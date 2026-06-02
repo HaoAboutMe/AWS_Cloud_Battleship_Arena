@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 
 function Home() {
   const [isLightMode, setIsLightMode] = useState(false);
+  const [botDifficulty, setBotDifficulty] = useState("easy");
 
   const toggleTheme = (e) => {
     // Fallback for browsers that don't support view transitions
@@ -205,7 +206,21 @@ function Home() {
                     Practice
                   </span>
                 </div>
-                <Link to="/Game" className="w-full block">
+                
+                <div className="flex flex-col gap-2 mb-1">
+                  <span className="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider">Select Difficulty:</span>
+                  <select 
+                    value={botDifficulty} 
+                    onChange={(e) => setBotDifficulty(e.target.value)}
+                    className="bg-surface-container/50 text-secondary font-label-md p-2 rounded-sm border border-secondary/20 outline-none focus:border-secondary transition-colors cursor-pointer"
+                  >
+                    <option value="easy">Recruit (Easy)</option>
+                    <option value="normal">Veteran (Normal)</option>
+                    <option value="hard">Elite (Hard)</option>
+                  </select>
+                </div>
+
+                <Link to={`/game?mode=pve&difficulty=${botDifficulty}`} className="w-full block">
                   <button className="w-full bg-secondary text-on-secondary-fixed font-label-md text-label-md py-3 rounded-sm hover:bg-secondary-container transition-all active:scale-95 tracking-widest">
                     BATTLE NOW
                   </button>
@@ -235,7 +250,10 @@ function Home() {
                     Online Matchmaking
                   </span>
                 </div>
-                <button className="w-full bg-secondary text-on-secondary-fixed font-label-md text-label-md py-3 rounded-sm hover:bg-secondary-container transition-all active:scale-95 tracking-widest">
+                <button 
+                  onClick={() => alert("This mode is under development.")}
+                  className="w-full bg-secondary opacity-50 cursor-not-allowed text-on-secondary-fixed font-label-md text-label-md py-3 rounded-sm hover:bg-secondary-container transition-all active:scale-95 tracking-widest"
+                >
                   JOIN QUEUE
                 </button>
               </div>
@@ -260,7 +278,10 @@ function Home() {
                     Custom Match
                   </span>
                 </div>
-                <button className="w-full bg-transparent border border-secondary text-secondary font-label-md text-label-md py-3 rounded-sm hover:bg-secondary/10 transition-all active:scale-95 tracking-widest">
+                <button 
+                  onClick={() => alert("This mode is under development.")}
+                  className="w-full bg-transparent opacity-50 cursor-not-allowed border border-secondary text-secondary font-label-md text-label-md py-3 rounded-sm hover:bg-secondary/10 transition-all active:scale-95 tracking-widest"
+                >
                   CREATE ROOM
                 </button>
               </div>

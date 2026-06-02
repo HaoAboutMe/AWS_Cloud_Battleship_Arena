@@ -140,21 +140,3 @@ export function checkVictory(board) {
     }
     return true;
 }
-
-export function botMove(board) {
-    let row, col;
-    let isValid = false;
-
-    while (!isValid) {
-        row = Math.floor(Math.random() * 10);
-        col = Math.floor(Math.random() * 10);
-
-        if (!board[row][col].isHit) {
-            isValid = true;
-        }
-    }
-
-    fireAt(board, row, col);
-
-    return { row, col };
-}

@@ -8,6 +8,13 @@ function Game() {
 
     useEffect(() => {
         if (!gameRef.current) {
+            const params = new URLSearchParams(window.location.search);
+            const mode = params.get("mode") || "pve";
+            const difficulty = params.get("difficulty") || "easy";
+            
+            window.gameMode = mode;
+            window.gameDifficulty = difficulty;
+
             GameConfig.parent = "game-container";
             gameRef.current = new Phaser.Game(GameConfig);
         }
