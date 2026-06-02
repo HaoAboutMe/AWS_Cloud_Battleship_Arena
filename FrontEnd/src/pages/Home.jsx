@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 function Home() {
   const [isLightMode, setIsLightMode] = useState(false);
   const [botDifficulty, setBotDifficulty] = useState("easy");
+  const [stats, setStats] = useState({ totalMatches: 0, wins: 0, losses: 0, totalShots: 0, totalHits: 0 });
 
   const toggleTheme = (e) => {
     // Fallback for browsers that don't support view transitions
@@ -44,6 +45,15 @@ function Home() {
   };
 
   useEffect(() => {
+    const savedStats = JSON.parse(localStorage.getItem('battleshipStats')) || {
+        totalMatches: 0,
+        wins: 0,
+        losses: 0,
+        totalShots: 0,
+        totalHits: 0,
+    };
+    setStats(savedStats);
+
     // Subtle mouse tracking glow effect for cards
     const cards = document.querySelectorAll(".glass-card");
     const handleMouseMove = (e) => {
@@ -381,25 +391,27 @@ function Home() {
                     <p className="text-[10px] text-on-surface-variant uppercase font-bold mb-1">
                       Total Engagements
                     </p>
-                    <p className="text-xl font-black text-on-surface">1,248</p>
+                    <p className="text-xl font-black text-on-surface">{stats.totalMatches}</p>
                   </div>
                   <div className="bg-surface-container/30 p-4 rounded-sm border border-white/5">
                     <p className="text-[10px] text-on-surface-variant uppercase font-bold mb-1">
                       Victories
                     </p>
-                    <p className="text-xl font-black text-secondary">848</p>
+                    <p className="text-xl font-black text-secondary">{stats.wins}</p>
                   </div>
                   <div className="bg-surface-container/30 p-4 rounded-sm border border-white/5">
                     <p className="text-[10px] text-on-surface-variant uppercase font-bold mb-1">
                       Defeats
                     </p>
-                    <p className="text-xl font-black text-error">400</p>
+                    <p className="text-xl font-black text-error">{stats.losses}</p>
                   </div>
                   <div className="bg-surface-container/30 p-4 rounded-sm border border-white/5">
                     <p className="text-[10px] text-on-surface-variant uppercase font-bold mb-1">
                       Win Rate
                     </p>
-                    <p className="text-xl font-black text-secondary">68.0%</p>
+                    <p className="text-xl font-black text-secondary">
+                      {stats.totalMatches > 0 ? ((stats.wins / stats.totalMatches) * 100).toFixed(1) : 0}%
+                    </p>
                   </div>
                 </div>
                 <div className="pt-4">
