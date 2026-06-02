@@ -144,7 +144,11 @@ function Game() {
             const cellName = `${colLetter}${rowNum}`;
 
             if (cell.hasShip) {
-                addLog(`Enemy hit your ship at ${cellName}!`, "enemy_hit");
+                if (botShot.result && botShot.result.isSunk) {
+                    addLog(`Enemy DESTROYED your ship (size ${botShot.result.shipLength}) at ${cellName}!`, "defeat");
+                } else {
+                    addLog(`Enemy hit your ship at ${cellName}!`, "enemy_hit");
+                }
                 
                 if (checkVictory(newPlayerBoard)) {
                     endGame(false);
