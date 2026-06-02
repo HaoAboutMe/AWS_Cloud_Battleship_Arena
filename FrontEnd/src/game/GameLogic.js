@@ -32,13 +32,19 @@ export function canPlaceShip(board, row, col, length, isHorizontal) {
     return true;
 }
 
+let nextShipId = 1;
+
 export function placeShip(board, row, col, length, isHorizontal) {
     if (canPlaceShip(board, row, col, length, isHorizontal)) {
+        const shipId = nextShipId++;
         for (let i = 0; i < length; i++) {
             const r = isHorizontal ? row : row + i;
             const c = isHorizontal ? col + i : col;
             board[r][c].hasShip = true;
             board[r][c].shipLength = length;
+            board[r][c].shipId = shipId;
+            board[r][c].shipPart = i === 0 ? 'head' : (i === length - 1 ? 'tail' : 'body');
+            board[r][c].isHorizontal = isHorizontal;
         }
         return true;
     }
@@ -77,11 +83,15 @@ export function placeShipsRandomly(board) {
             }
 
             if (canPlace) {
+                const shipId = nextShipId++;
                 for (let i = 0; i < length; i++) {
                     const r = isHorizontal ? startRow : startRow + i;
                     const c = isHorizontal ? startCol + i : startCol;
                     board[r][c].hasShip = true;
                     board[r][c].shipLength = length;
+                    board[r][c].shipId = shipId;
+                    board[r][c].shipPart = i === 0 ? 'head' : (i === length - 1 ? 'tail' : 'body');
+                    board[r][c].isHorizontal = isHorizontal;
                 }
                 placed = true;
             }
@@ -139,22 +149,4 @@ export function checkVictory(board) {
         }
     }
     return true;
-}
-
-export function botMove(board) {
-    let row, col;
-    let isValid = false;
-
-    while (!isValid) {
-        row = Math.floor(Math.random() * 10);
-        col = Math.floor(Math.random() * 10);
-
-        if (!board[row][col].isHit) {
-            isValid = true;
-        }
-    }
-
-    fireAt(board, row, col);
-
-    return { row, col };
 }

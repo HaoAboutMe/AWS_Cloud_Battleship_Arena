@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 
 function Home() {
   const [isLightMode, setIsLightMode] = useState(false);
+  const [botDifficulty, setBotDifficulty] = useState("easy");
+  const [stats, setStats] = useState({ totalMatches: 0, wins: 0, losses: 0, totalShots: 0, totalHits: 0 });
 
   const toggleTheme = (e) => {
     // Fallback for browsers that don't support view transitions
@@ -43,6 +45,15 @@ function Home() {
   };
 
   useEffect(() => {
+    const savedStats = JSON.parse(localStorage.getItem('battleshipStats')) || {
+        totalMatches: 0,
+        wins: 0,
+        losses: 0,
+        totalShots: 0,
+        totalHits: 0,
+    };
+    setStats(savedStats);
+
     // Subtle mouse tracking glow effect for cards
     const cards = document.querySelectorAll(".glass-card");
     const handleMouseMove = (e) => {
@@ -205,7 +216,21 @@ function Home() {
                     Practice
                   </span>
                 </div>
-                <Link to="/Game" className="w-full block">
+                
+                <div className="flex flex-col gap-2 mb-1">
+                  <span className="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider">Select Difficulty:</span>
+                  <select 
+                    value={botDifficulty} 
+                    onChange={(e) => setBotDifficulty(e.target.value)}
+                    className="bg-surface-container/50 text-secondary font-label-md p-2 rounded-sm border border-secondary/20 outline-none focus:border-secondary transition-colors cursor-pointer"
+                  >
+                    <option value="easy">Recruit (Easy)</option>
+                    <option value="normal">Veteran (Normal)</option>
+                    <option value="hard">Elite (Hard)</option>
+                  </select>
+                </div>
+
+                <Link to={`/game?mode=pve&difficulty=${botDifficulty}`} className="w-full block">
                   <button className="w-full bg-secondary text-on-secondary-fixed font-label-md text-label-md py-3 rounded-sm hover:bg-secondary-container transition-all active:scale-95 tracking-widest">
                     BATTLE NOW
                   </button>
@@ -235,7 +260,10 @@ function Home() {
                     Online Matchmaking
                   </span>
                 </div>
-                <button className="w-full bg-secondary text-on-secondary-fixed font-label-md text-label-md py-3 rounded-sm hover:bg-secondary-container transition-all active:scale-95 tracking-widest">
+                <button 
+                  onClick={() => alert("This mode is under development.")}
+                  className="w-full bg-secondary opacity-50 cursor-not-allowed text-on-secondary-fixed font-label-md text-label-md py-3 rounded-sm hover:bg-secondary-container transition-all active:scale-95 tracking-widest"
+                >
                   JOIN QUEUE
                 </button>
               </div>
@@ -260,7 +288,10 @@ function Home() {
                     Custom Match
                   </span>
                 </div>
-                <button className="w-full bg-transparent border border-secondary text-secondary font-label-md text-label-md py-3 rounded-sm hover:bg-secondary/10 transition-all active:scale-95 tracking-widest">
+                <button 
+                  onClick={() => alert("This mode is under development.")}
+                  className="w-full bg-transparent opacity-50 cursor-not-allowed border border-secondary text-secondary font-label-md text-label-md py-3 rounded-sm hover:bg-secondary/10 transition-all active:scale-95 tracking-widest"
+                >
                   CREATE ROOM
                 </button>
               </div>
@@ -360,25 +391,27 @@ function Home() {
                     <p className="text-[10px] text-on-surface-variant uppercase font-bold mb-1">
                       Total Engagements
                     </p>
-                    <p className="text-xl font-black text-on-surface">1,248</p>
+                    <p className="text-xl font-black text-on-surface">{stats.totalMatches}</p>
                   </div>
                   <div className="bg-surface-container/30 p-4 rounded-sm border border-white/5">
                     <p className="text-[10px] text-on-surface-variant uppercase font-bold mb-1">
                       Victories
                     </p>
-                    <p className="text-xl font-black text-secondary">848</p>
+                    <p className="text-xl font-black text-secondary">{stats.wins}</p>
                   </div>
                   <div className="bg-surface-container/30 p-4 rounded-sm border border-white/5">
                     <p className="text-[10px] text-on-surface-variant uppercase font-bold mb-1">
                       Defeats
                     </p>
-                    <p className="text-xl font-black text-error">400</p>
+                    <p className="text-xl font-black text-error">{stats.losses}</p>
                   </div>
                   <div className="bg-surface-container/30 p-4 rounded-sm border border-white/5">
                     <p className="text-[10px] text-on-surface-variant uppercase font-bold mb-1">
                       Win Rate
                     </p>
-                    <p className="text-xl font-black text-secondary">68.0%</p>
+                    <p className="text-xl font-black text-secondary">
+                      {stats.totalMatches > 0 ? ((stats.wins / stats.totalMatches) * 100).toFixed(1) : 0}%
+                    </p>
                   </div>
                 </div>
                 <div className="pt-4">

@@ -1,5 +1,6 @@
 import Phaser from "phaser";
-import { createBoard, placeShip, canPlaceShip, placeShipsRandomly, fireAt, checkVictory, botMove } from "./GameLogic";
+import { createBoard, placeShip, canPlaceShip, placeShipsRandomly, fireAt, checkVictory } from "./GameLogic";
+import { getBotMove, resetBotAI } from "./botAI";
 
 export default class BattleshipScene extends Phaser.Scene {
     constructor() {
@@ -7,6 +8,7 @@ export default class BattleshipScene extends Phaser.Scene {
     }
 
     create() {
+        resetBotAI();
         this.generateShipTextures();
 
         this.gameState = 'PLACEMENT'; // PLACEMENT, PLAYER_TURN, BOT_TURN, GAME_OVER
@@ -362,7 +364,8 @@ export default class BattleshipScene extends Phaser.Scene {
     performBotMove() {
         if (this.gameState === 'GAME_OVER') return;
 
-        const botShot = botMove(this.playerBoardData);
+        const difficulty = window.gameDifficulty || "easy";
+        const botShot = getBotMove(this.playerBoardData, difficulty);
         const isBotHit = this.playerBoardData[botShot.row][botShot.col].hasShip;
         const playerRect = this.playerBoardCells[botShot.row][botShot.col].rectangle;
         const x = playerRect.x;
