@@ -128,12 +128,21 @@ export function createBoard() {
 export function canPlaceShip(board, row, col, shipOrLength, rotationOrIsHorizontal) {
     const { shipDef, rotation } = normalizeShipArgs(shipOrLength, rotationOrIsHorizontal);
     const offsets = getShipOffsets(shipDef, rotation);
+    const targetCells = new Set(offsets.map(([dr, dc]) => `${row + dr}:${col + dc}`));
 
     for (const [dr, dc] of offsets) {
         const r = row + dr;
         const c = col + dc;
         if (r < 0 || c < 0 || r >= BOARD_SIZE || c >= BOARD_SIZE) return false;
         if (board[r][c].hasShip) return false;
+
+        for (let nr = r - 1; nr <= r + 1; nr++) {
+            for (let nc = c - 1; nc <= c + 1; nc++) {
+                if (nr < 0 || nc < 0 || nr >= BOARD_SIZE || nc >= BOARD_SIZE) continue;
+                if (targetCells.has(`${nr}:${nc}`)) continue;
+                if (board[nr][nc].hasShip) return false;
+            }
+        }
     }
 
     return true;
@@ -203,6 +212,33 @@ export function checkShipSunk(board, shipId) {
         }
     }
     return total > 0 && total === hit;
+}
+
+export function markWaterAroundSunkShip(board, shipId) {
+    const shipCells = [];
+
+    for (let r = 0; r < BOARD_SIZE; r++) {
+        for (let c = 0; c < BOARD_SIZE; c++) {
+            if (board[r][c].shipId === shipId) {
+                shipCells.push({ row: r, col: c });
+            }
+        }
+    }
+
+    shipCells.forEach(({ row, col }) => {
+        for (let r = row - 1; r <= row + 1; r++) {
+            for (let c = col - 1; c <= col + 1; c++) {
+                if (r < 0 || c < 0 || r >= BOARD_SIZE || c >= BOARD_SIZE) continue;
+                const cell = board[r][c];
+                if (!cell.hasShip && !cell.isHit) {
+                    cell.isHit = true;
+                    cell.autoMarked = true;
+                }
+            }
+        }
+    });
+
+    return shipCells;
 }
 
 export function fireAt(board, row, col) {

@@ -4,8 +4,9 @@ import ship1 from "../assets/ships/image/ship-1.png";
 import ship2 from "../assets/ships/image/ship-2.png";
 import ship3 from "../assets/ships/image/ship-3.png";
 import ship4 from "../assets/ships/image/ship-4.png";
-import { canPlaceShip, checkVictory, createBoard, fireAt, getShipOffsets, placeShip, placeShipsRandomly, SHIP_DEFS } from "../game/GameLogic";
+import { canPlaceShip, checkVictory, createBoard, fireAt, getShipOffsets, markWaterAroundSunkShip, placeShip, placeShipsRandomly, SHIP_DEFS } from "../game/GameLogic";
 import { getBotMove, resetBotAI } from "../game/botAI";
+import "./GameEffects.css";
 
 const BOARD_SIZE = 10;
 const CELL_SIZE = 40;
@@ -102,6 +103,10 @@ function Game() {
         shipsDestroyed: 0,
     });
     const [enemyShipsSunk, setEnemyShipsSunk] = useState([]);
+    const [enemySunkShipIds, setEnemySunkShipIds] = useState([]);
+    const [playerShipsSunk, setPlayerShipsSunk] = useState([]);
+    const [boardShake, setBoardShake] = useState(null);
+    const [sunkEffect, setSunkEffect] = useState(null);
     const [showModal, setShowModal] = useState(false);
 
     const logContainerRef = useRef(null);
@@ -125,6 +130,32 @@ function Game() {
     const addLog = useCallback((msg, type = "info") => {
         setLogs(prev => [...prev, { id: Date.now() + Math.random(), msg, type }]);
     }, []);
+
+    const triggerBoardShake = (boardSide) => {
+        const token = Date.now() + Math.random();
+        setBoardShake({ boardSide, token });
+        window.setTimeout(() => {
+            setBoardShake(current => current?.token === token ? null : current);
+        }, 180);
+    };
+
+    const triggerSunkEffect = (boardSide, shipTypeId, shipId, cells) => {
+        const shipDef = shipsToPlace.find(ship => ship.id === shipTypeId);
+        const token = Date.now() + Math.random();
+
+        setSunkEffect({
+            boardSide,
+            shipTypeId,
+            shipId,
+            shipLabel: shipDef?.label || "Ship",
+            cells,
+            token,
+        });
+
+        window.setTimeout(() => {
+            setSunkEffect(current => current?.token === token ? null : current);
+        }, 2400);
+    };
 
     const cloneBoard = (board) => board.map(row => row.map(cell => ({ ...cell })));
 
@@ -199,10 +230,37 @@ function Game() {
         };
 
         setPlayerBoard(newBoard);
-        setSelectedShip(updatedShip);
+        setSelectedShip(null);
+        setHoverCell(null);
         setRotation(updatedShip.rotation);
         return true;
     };
+
+    const rotatePlacedShip = useCallback((shipToRotate) => {
+        if (!shipToRotate) return;
+
+        const rotations = shipToRotate.shipDef.rotations;
+        const idx = rotations.indexOf(shipToRotate.rotation);
+        const nextRotation = rotations[(idx + 1) % rotations.length];
+
+        setPlayerBoard(prevBoard => {
+            const newBoard = cloneBoard(prevBoard);
+            clearShipFromBoard(newBoard, shipToRotate.shipId);
+
+            if (!placeShip(newBoard, shipToRotate.row, shipToRotate.col, shipToRotate.shipDef, nextRotation)) {
+                return prevBoard;
+            }
+
+            const newShipId = newBoard[shipToRotate.row][shipToRotate.col].shipId;
+            setSelectedShip({
+                ...shipToRotate,
+                shipId: newShipId,
+                rotation: nextRotation,
+            });
+            setRotation(nextRotation);
+            return newBoard;
+        });
+    }, []);
 
     const rotateShip = useCallback(() => {
         const shipToRotate = selectedShip?.shipDef || currentShip;
@@ -214,28 +272,12 @@ function Game() {
         const nextRotation = rotations[(idx + 1) % rotations.length];
 
         if (gameState === 'READY' && selectedShip) {
-            setPlayerBoard(prevBoard => {
-                const newBoard = cloneBoard(prevBoard);
-                clearShipFromBoard(newBoard, selectedShip.shipId);
-
-                if (!placeShip(newBoard, selectedShip.row, selectedShip.col, selectedShip.shipDef, nextRotation)) {
-                    return prevBoard;
-                }
-
-                const newShipId = newBoard[selectedShip.row][selectedShip.col].shipId;
-                setSelectedShip(prev => ({
-                    ...prev,
-                    shipId: newShipId,
-                    rotation: nextRotation,
-                }));
-                setRotation(nextRotation);
-                return newBoard;
-            });
+            rotatePlacedShip(selectedShip);
             return;
         }
 
         setRotation(nextRotation);
-    }, [currentShip, gameState, rotation, selectedShip]);
+    }, [currentShip, gameState, rotatePlacedShip, rotation, selectedShip]);
 
     useEffect(() => {
         if (currentShip) {
@@ -247,7 +289,7 @@ function Game() {
     useEffect(() => {
         const handleContextMenu = (e) => {
             e.preventDefault();
-            if (gameState === 'PLACEMENT' || gameState === 'READY') {
+            if (gameState === 'PLACEMENT') {
                 rotateShip();
             }
         };
@@ -334,7 +376,13 @@ function Game() {
             const cellName = `${colLetter}${rowNum}`;
 
             if (cell.hasShip) {
+                triggerBoardShake("player");
                 if (botShot.result && botShot.result.isSunk) {
+                    const sunkCells = markWaterAroundSunkShip(newPlayerBoard, botShot.result.shipId);
+                    setPlayerShipsSunk(prev => prev.includes(botShot.result.shipId)
+                        ? prev
+                        : [...prev, botShot.result.shipId]);
+                    triggerSunkEffect("player", botShot.result.shipTypeId, botShot.result.shipId, sunkCells);
                     addLog(`Enemy DESTROYED your ship (size ${botShot.result.shipLength}) at ${cellName}!`, "defeat");
                 } else {
                     addLog(`Enemy hit your ship at ${cellName}!`, "enemy_hit");
@@ -377,10 +425,16 @@ function Game() {
             setStats(prev => ({ ...prev, shots: prev.shots + 1 }));
 
             if (shotResult.result === "HIT") {
-                    setStats(prev => ({ ...prev, hits: prev.hits + 1 }));
+                triggerBoardShake("enemy");
+                setStats(prev => ({ ...prev, hits: prev.hits + 1 }));
                 if (shotResult.isSunk) {
+                    const sunkCells = markWaterAroundSunkShip(newEnemyBoard, shotResult.shipId);
                     setStats(prev => ({ ...prev, shipsDestroyed: prev.shipsDestroyed + 1 }));
                     setEnemyShipsSunk(prev => [...prev, shotResult.shipTypeId]);
+                    setEnemySunkShipIds(prev => prev.includes(shotResult.shipId)
+                        ? prev
+                        : [...prev, shotResult.shipId]);
+                    triggerSunkEffect("enemy", shotResult.shipTypeId, shotResult.shipId, sunkCells);
                     addLog(`You destroyed an enemy ship (size ${shotResult.shipLength}) at ${cellName}!`, "destroy");
                 } else {
                     addLog(`Direct hit at ${cellName}!`, "player_hit");
@@ -410,6 +464,7 @@ function Game() {
 
     const handlePlayerCellMouseDown = (event, r, c) => {
         if (gameState !== 'READY') return;
+        if (event.button !== 0) return;
 
         const clickedCell = playerBoard[r][c];
         const placedShip = getPlacedShipSelection(clickedCell);
@@ -434,6 +489,11 @@ function Game() {
 
         const targetRow = r - draggedShip.grabOffset.row;
         const targetCol = c - draggedShip.grabOffset.col;
+        if (targetRow === draggedShip.row && targetCol === draggedShip.col) {
+            setDraggedShip(null);
+            return;
+        }
+
         movePlacedShipTo(targetRow, targetCol, draggedShip);
         setDraggedShip(null);
         dragSkipClickRef.current = true;
@@ -486,6 +546,19 @@ function Game() {
                 finishPlacement();
             }
         }
+    };
+
+    const handlePlayerCellContextMenu = (event, r, c) => {
+        event.preventDefault();
+        if (gameState !== 'READY') return;
+
+        const clickedCell = playerBoard[r][c];
+        const placedShip = getPlacedShipSelection(clickedCell);
+        if (!placedShip) return;
+
+        setDraggedShip(null);
+        setHoverCell(null);
+        rotatePlacedShip(placedShip);
     };
 
     const finishPlacement = () => {
@@ -598,7 +671,7 @@ function Game() {
         return cells;
     };
 
-    const renderBoard = (board, isEnemy) => {
+    const renderBoard = (board, isEnemy, boardSide) => {
         const letters = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"];
         const previewShip = currentShip;
         const previewRotation = rotation;
@@ -627,17 +700,30 @@ function Game() {
         }
 
         const shipOverlays = [];
-        const showShips = !isEnemy || gameState === 'GAME_OVER';
-        if (showShips) {
+        const hitOverlays = [];
+        const sunkShipIds = isEnemy ? enemySunkShipIds : playerShipsSunk;
+        const showAllShips = !isEnemy || gameState === 'GAME_OVER';
+        if (showAllShips || sunkShipIds.length > 0) {
             board.forEach((row) => {
                 row.forEach((cell) => {
                     if (!cell.shipRoot) return;
+                    const isShipSunk = sunkShipIds.includes(cell.shipId);
+                    if (!showAllShips && !isShipSunk) return;
+
                     const spriteUrl = getShipSpriteUrl(cell);
                     const overlayStyle = getShipOverlayStyle(cell);
                     const imageStyle = getShipImageStyle(cell);
+                    const isActivelySinking = sunkEffect?.boardSide === boardSide
+                        && sunkEffect.shipId === cell.shipId;
                     if (!overlayStyle) return;
                     shipOverlays.push(
-                        <div key={`ship-${cell.shipId}`} className="pointer-events-none" style={overlayStyle}>
+                        <div
+                            key={`ship-${cell.shipId}`}
+                            className={`pointer-events-none ship-overlay ${
+                                isShipSunk ? "ship-sunk-silhouette" : ""
+                            } ${isActivelySinking ? "ship-sinking" : ""}`}
+                            style={overlayStyle}
+                        >
                             {spriteUrl ? (
                                 <img src={spriteUrl} alt="" style={imageStyle} />
                             ) : (
@@ -659,6 +745,37 @@ function Game() {
                 });
             });
         }
+
+        board.forEach((row) => {
+            row.forEach((cell) => {
+                if (!cell.isHit || !cell.hasShip) return;
+
+                hitOverlays.push(
+                    <div
+                        key={`hit-${cell.row}-${cell.col}`}
+                        className="shot-effect shot-hit"
+                        style={{
+                            left: `${cell.col * (CELL_SIZE + CELL_GAP)}px`,
+                            top: `${cell.row * (CELL_SIZE + CELL_GAP)}px`,
+                            right: "auto",
+                            bottom: "auto",
+                            width: `${CELL_SIZE}px`,
+                            height: `${CELL_SIZE}px`,
+                        }}
+                        aria-hidden="true"
+                    >
+                        <span className="hit-shockwave" />
+                        <span className="hit-fireball" />
+                        <span className="hit-smoke hit-smoke-one" />
+                        <span className="hit-smoke hit-smoke-two" />
+                        <span className="hit-spark hit-spark-one" />
+                        <span className="hit-spark hit-spark-two" />
+                        <span className="hit-spark hit-spark-three" />
+                        <span className="hit-mark">X</span>
+                    </div>
+                );
+            });
+        });
 
         return (
             <div className="flex flex-col select-none">
@@ -686,10 +803,16 @@ function Game() {
                             </div>
                         ))}
                     </div>
-                    <div className="relative" style={{ width: `${GRID_SIZE_PX}px`, height: `${GRID_SIZE_PX}px` }}>
+                    <div
+                        className={`relative ${
+                            boardShake?.boardSide === boardSide ? "board-impact-shake" : ""
+                        }`}
+                        style={{ width: `${GRID_SIZE_PX}px`, height: `${GRID_SIZE_PX}px` }}
+                    >
                         <div className="absolute inset-0 z-20 pointer-events-none">{shipOverlays}</div>
+                        <div className="absolute inset-0 z-40 pointer-events-none">{hitOverlays}</div>
                         <div
-                            className="relative z-30 grid"
+                            className="relative grid"
                             style={{
                                 gridTemplateColumns: `repeat(${BOARD_SIZE}, ${CELL_SIZE}px)`,
                                 gridAutoRows: `${CELL_SIZE}px`,
@@ -704,8 +827,18 @@ function Game() {
                                     const isCellHit = cell.isHit;
                                     const isCellMiss = isCellHit && !cell.hasShip;
                                     const isCellShipHit = isCellHit && cell.hasShip;
+                                    const isSunkShipCell = sunkShipIds.includes(cell.shipId);
+                                    const isRevealedEnemyShipCell = isEnemy && isSunkShipCell;
+                                    const sunkCellIndex = sunkEffect?.boardSide === boardSide
+                                        ? sunkEffect.cells.findIndex(pos => pos.row === r && pos.col === c)
+                                        : -1;
+                                    const isSunkChainCell = sunkCellIndex >= 0;
                                     const playerCellBg = cell.hasShip ? "bg-transparent" : "bg-surface-container/50";
-                                    const baseCellBg = isEnemy ? "bg-surface-container hover:bg-white/10" : playerCellBg;
+                                    const baseCellBg = isEnemy
+                                        ? (isSunkShipCell || isRevealedEnemyShipCell
+                                            ? "bg-transparent"
+                                            : "bg-surface-container hover:bg-white/10")
+                                        : playerCellBg;
                                     const isDraggableShipCell = !isEnemy && gameState === 'READY' && cell.hasShip;
                                     const cursorClass = draggedShip
                                         ? "cursor-grabbing"
@@ -718,20 +851,51 @@ function Game() {
                                             onMouseLeave={() => !isEnemy && setHoverCell(null)}
                                             onMouseDown={(event) => !isEnemy && handlePlayerCellMouseDown(event, r, c)}
                                             onMouseUp={() => !isEnemy && handlePlayerCellMouseUp(r, c)}
+                                            onContextMenu={(event) => !isEnemy && handlePlayerCellContextMenu(event, r, c)}
                                             onClick={() => isEnemy ? handleEnemyCellClick(r, c) : handlePlayerCellClick(r, c)}
-                                            className={`relative ${cursorClass} overflow-hidden transition-all duration-300 ${baseCellBg} ${
+                                            className={`ocean-cell relative ${cursorClass} overflow-visible transition-all duration-300 ${baseCellBg} ${
+                                                isRevealedEnemyShipCell ? "enemy-ship-cell-revealed" : ""
+                                            } ${
                                                 isHovered
                                                     ? (canPlace ? "bg-secondary/50 shadow-[0_0_15px_#a5e7ff]" : "bg-error/50")
                                                     : ""
                                             }`}
                                         >
-                                            {isCellMiss && (
-                                                <div className="absolute inset-0 flex items-center justify-center animate-fade-in">
-                                                    <div className="w-2 h-2 rounded-full bg-white/50"></div>
+                                            {isSunkChainCell && (
+                                                <div
+                                                    className="chain-explosion"
+                                                    style={{ "--chain-delay": `${sunkCellIndex * 150}ms` }}
+                                                    aria-hidden="true"
+                                                >
+                                                    <span className="chain-fire" />
+                                                    <span className="chain-ring" />
+                                                    <span className="chain-bubble chain-bubble-one" />
+                                                    <span className="chain-bubble chain-bubble-two" />
                                                 </div>
                                             )}
-                                            {isCellShipHit && (
-                                                <div className="absolute inset-0 flex items-center justify-center animate-ping-once z-10">
+                                            {isCellMiss && !cell.autoMarked && (
+                                                <div className={`shot-effect shot-miss ${
+                                                    cell.autoMarked ? "shot-auto-marked" : ""
+                                                }`} aria-hidden="true">
+                                                    <span className="miss-wave miss-wave-one" />
+                                                    <span className="miss-wave miss-wave-two" />
+                                                    <span className="miss-column" />
+                                                    <span className="miss-droplet miss-droplet-one" />
+                                                    <span className="miss-droplet miss-droplet-two" />
+                                                    <span className="miss-droplet miss-droplet-three" />
+                                                    <span className="miss-dot" />
+                                                </div>
+                                            )}
+                                            {false && isCellShipHit && (
+                                                <div className="shot-effect shot-hit" aria-hidden="true">
+                                                    <span className="hit-shockwave" />
+                                                    <span className="hit-fireball" />
+                                                    <span className="hit-smoke hit-smoke-one" />
+                                                    <span className="hit-smoke hit-smoke-two" />
+                                                    <span className="hit-spark hit-spark-one" />
+                                                    <span className="hit-spark hit-spark-two" />
+                                                    <span className="hit-spark hit-spark-three" />
+                                                    <span className="hit-mark">X</span>
                                                     <span className="text-error font-black text-xl drop-shadow-[0_0_5px_rgba(255,0,0,0.8)]">✕</span>
                                                 </div>
                                             )}
@@ -747,7 +911,7 @@ function Game() {
     };
 
     return (
-        <div className="bg-background text-on-background font-body-md min-h-screen selection:bg-secondary/30 flex flex-col">
+        <div className="game-shell bg-background text-on-background font-body-md min-h-screen selection:bg-secondary/30 flex flex-col">
             <header className="w-full top-0 sticky z-50 border-b border-white/5 bg-surface/40 backdrop-blur-xl shadow-[0_0_20px_rgba(0,210,255,0.1)]">
                 <div className="flex justify-between items-center w-full px-gutter max-w-[1440px] mx-auto h-12">
                     <Link to="/" className="font-display-lg text-[20px] font-black text-secondary tracking-tighter uppercase hover:text-white transition-colors">
@@ -804,42 +968,64 @@ function Game() {
 
                     <div className="flex flex-col lg:flex-row gap-8 justify-center items-center lg:items-start">
                         {/* Player Board */}
-                        <div className="flex flex-col items-center">
-                            <h3 className="font-bold text-secondary mb-4 tracking-widest uppercase">Your Fleet</h3>
-                            {renderBoard(playerBoard, false)}
+                        <div className="battle-board-section flex flex-col items-center">
+                            <div className="board-heading">
+                                <h3 className="font-bold text-secondary tracking-widest uppercase">Your Fleet</h3>
+                                <div className="fleet-image-panel fleet-image-panel-placeholder" aria-hidden="true" />
+                            </div>
+                            {renderBoard(playerBoard, false, "player")}
                         </div>
                         
                         {/* Enemy Board */}
-                        <div className="flex flex-col items-center">
-                            <div className="flex flex-col items-center mb-4">
-                                <h3 className="font-bold text-error tracking-widest uppercase mb-2">
+                        <div className="battle-board-section flex flex-col items-center">
+                            <div className="board-heading enemy-board-heading">
+                                <h3 className="font-bold text-error tracking-widest uppercase">
                                     {gameState === 'PLACEMENT' || gameState === 'READY' ? "Enemy Waters (Scanning...)" : "Enemy Waters"}
                                 </h3>
                                 
-                                {/* Enemy Ship Status Icons */}
-                                <div className="flex gap-4 h-[12px]">
+                                <div className="fleet-image-panel">
+                                    <div className="fleet-image-list">
                                     {gameState !== 'PLACEMENT' && gameState !== 'READY' && shipsToPlace.map((ship, idx) => {
                                         const isSunk = enemyShipsSunk.includes(ship.id);
+                                        const offsets = getShipOffsets(ship, ship.rotations[0]);
+                                        const rowCount = Math.max(...offsets.map(([row]) => row)) + 1;
+                                        const colCount = Math.max(...offsets.map(([, col]) => col)) + 1;
                                         return (
-                                            <div key={idx} className="flex gap-[2px]">
-                                                {Array.from({ length: ship.size }).map((_, i) => (
-                                                    <div
-                                                        key={i}
-                                                        className={`w-3 h-3 border ${
-                                                            isSunk
-                                                                ? 'bg-surface-variant border-outline-variant opacity-40'
-                                                                : 'bg-secondary/40 border-secondary shadow-[0_0_5px_rgba(0,210,255,0.3)]'
-                                                        }`}
-                                                    />
-                                                ))}
+                                            <div
+                                                key={idx}
+                                                className={`fleet-shape-item ${isSunk ? "is-sunk" : ""}`}
+                                                title={ship.label}
+                                            >
+                                                <span
+                                                    className="fleet-shape-grid"
+                                                    style={{
+                                                        gridTemplateColumns: `repeat(${colCount}, 6px)`,
+                                                        gridTemplateRows: `repeat(${rowCount}, 6px)`,
+                                                    }}
+                                                >
+                                                    {offsets.map(([row, col]) => (
+                                                        <span
+                                                            key={`${row}-${col}`}
+                                                            className="fleet-shape-cell"
+                                                            style={{
+                                                                gridRow: row + 1,
+                                                                gridColumn: col + 1,
+                                                            }}
+                                                        />
+                                                    ))}
+                                                </span>
                                             </div>
                                         );
                                     })}
+                                    {(gameState === 'PLACEMENT' || gameState === 'READY') && (
+                                        <span className="enemy-fleet-scanning">Scanning...</span>
+                                    )}
+                                    </div>
                                 </div>
                             </div>
 
                             <div className={`transition-opacity duration-700 ${gameState === 'PLACEMENT' || gameState === 'READY' ? 'opacity-20 pointer-events-none' : 'opacity-100'}`}>
-                                {renderBoard(enemyBoard, true)}
+                                {renderBoard(enemyBoard, true, "enemy")}
                             </div>
                         </div>
                     </div>
@@ -880,6 +1066,18 @@ function Game() {
                     </div>
                 </div>
             </main>
+
+            {sunkEffect && (
+                <div className={`sunk-announcement ${
+                    sunkEffect.boardSide === "enemy" ? "sunk-announcement-victory" : "sunk-announcement-danger"
+                }`}>
+                    <span className="sunk-announcement-line" />
+                    <strong>
+                        {sunkEffect.boardSide === "enemy" ? "ENEMY" : "YOUR"} {sunkEffect.shipLabel.toUpperCase()} SUNK!
+                    </strong>
+                    <span className="sunk-announcement-line" />
+                </div>
+            )}
 
             {/* Victory/Defeat Modal */}
             {showModal && (
