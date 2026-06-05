@@ -11,6 +11,7 @@ import "./GameEffects.css";
 const BOARD_SIZE = 10;
 const CELL_SIZE = 40;
 const CELL_GAP = 2;
+const COORD_HEADER_HEIGHT = 24;
 const SHIP_CELL_PADDING = 0;
 const SHIP_IMAGE_SCALE = 1.22;
 const L_SHIP_IMAGE_SCALE = 1.15;
@@ -202,6 +203,37 @@ function Game() {
         };
     };
 
+    const getPlacedShipSelectionAt = (row, col, board = playerBoard) => {
+        const directSelection = getPlacedShipSelection(board[row][col], board);
+        if (directSelection) return directSelection;
+
+        for (const boardRow of board) {
+            for (const cell of boardRow) {
+                if (!cell.shipRoot || !cell.shipBounds) continue;
+
+                const insideBounds = row >= cell.row
+                    && row < cell.row + cell.shipBounds.rows
+                    && col >= cell.col
+                    && col < cell.col + cell.shipBounds.cols;
+
+                if (insideBounds) {
+                    const shipDef = getShipDefById(cell.shipTypeId);
+                    if (!shipDef) return null;
+
+                    return {
+                        shipId: cell.shipId,
+                        shipDef,
+                        rotation: cell.shipRotation,
+                        row: cell.row,
+                        col: cell.col,
+                    };
+                }
+            }
+        }
+
+        return null;
+    };
+
     const selectPlacedShip = (cell, board = playerBoard) => {
         const placedShip = getPlacedShipSelection(cell, board);
         if (!placedShip) return;
@@ -247,15 +279,34 @@ function Game() {
             const newBoard = cloneBoard(prevBoard);
             clearShipFromBoard(newBoard, shipToRotate.shipId);
 
-            if (!placeShip(newBoard, shipToRotate.row, shipToRotate.col, shipToRotate.shipDef, nextRotation)) {
+            const candidateRoots = [
+                [shipToRotate.row, shipToRotate.col],
+                [shipToRotate.row - 1, shipToRotate.col],
+                [shipToRotate.row, shipToRotate.col - 1],
+                [shipToRotate.row + 1, shipToRotate.col],
+                [shipToRotate.row, shipToRotate.col + 1],
+                [shipToRotate.row - 1, shipToRotate.col - 1],
+                [shipToRotate.row - 1, shipToRotate.col + 1],
+                [shipToRotate.row + 1, shipToRotate.col - 1],
+                [shipToRotate.row + 1, shipToRotate.col + 1],
+            ];
+            const nextRoot = candidateRoots.find(([row, col]) =>
+                canPlaceShip(newBoard, row, col, shipToRotate.shipDef, nextRotation)
+            );
+
+            if (!nextRoot) {
                 return prevBoard;
             }
 
-            const newShipId = newBoard[shipToRotate.row][shipToRotate.col].shipId;
+            const [nextRow, nextCol] = nextRoot;
+            placeShip(newBoard, nextRow, nextCol, shipToRotate.shipDef, nextRotation);
+            const newShipId = newBoard[nextRow][nextCol].shipId;
             setSelectedShip({
                 ...shipToRotate,
                 shipId: newShipId,
                 rotation: nextRotation,
+                row: nextRow,
+                col: nextCol,
             });
             setRotation(nextRotation);
             return newBoard;
@@ -284,18 +335,6 @@ function Game() {
             setRotation(currentShip.rotations[0]);
         }
     }, [currentShipIndex]);
-
-    // Right click rotation
-    useEffect(() => {
-        const handleContextMenu = (e) => {
-            e.preventDefault();
-            if (gameState === 'PLACEMENT') {
-                rotateShip();
-            }
-        };
-        document.addEventListener("contextmenu", handleContextMenu);
-        return () => document.removeEventListener("contextmenu", handleContextMenu);
-    }, [gameState, rotateShip]);
 
     // Timer Tick
     useEffect(() => {
@@ -408,14 +447,18 @@ function Game() {
         if (gameState !== 'PLAYER_TURN') return;
         
         // We only check this to prevent obvious double clicks on already hit cells
-        if (enemyBoard[r][c].isHit) return;
+        if (enemyBoard[r][c].isHit && !enemyBoard[r][c].autoMarked) return;
 
         clearInterval(timerRef.current);
         
         setEnemyBoard(prevBoard => {
-            if (prevBoard[r][c].isHit) return prevBoard; // prevent fast double click issues
+            if (prevBoard[r][c].isHit && !prevBoard[r][c].autoMarked) return prevBoard;
             
             const newEnemyBoard = [...prevBoard.map(row => [...row.map(c => ({...c}))])];
+            if (newEnemyBoard[r][c].autoMarked) {
+                newEnemyBoard[r][c].isHit = false;
+                newEnemyBoard[r][c].autoMarked = false;
+            }
             const shotResult = fireAt(newEnemyBoard, r, c);
             
             const colLetter = String.fromCharCode(65 + c);
@@ -428,7 +471,7 @@ function Game() {
                 triggerBoardShake("enemy");
                 setStats(prev => ({ ...prev, hits: prev.hits + 1 }));
                 if (shotResult.isSunk) {
-                    const sunkCells = markWaterAroundSunkShip(newEnemyBoard, shotResult.shipId);
+                    const sunkCells = markWaterAroundSunkShip(newEnemyBoard, shotResult.shipId, false);
                     setStats(prev => ({ ...prev, shipsDestroyed: prev.shipsDestroyed + 1 }));
                     setEnemyShipsSunk(prev => [...prev, shotResult.shipTypeId]);
                     setEnemySunkShipIds(prev => prev.includes(shotResult.shipId)
@@ -466,8 +509,7 @@ function Game() {
         if (gameState !== 'READY') return;
         if (event.button !== 0) return;
 
-        const clickedCell = playerBoard[r][c];
-        const placedShip = getPlacedShipSelection(clickedCell);
+        const placedShip = getPlacedShipSelectionAt(r, c);
         if (!placedShip) return;
 
         event.preventDefault();
@@ -550,10 +592,16 @@ function Game() {
 
     const handlePlayerCellContextMenu = (event, r, c) => {
         event.preventDefault();
+        event.stopPropagation();
+
+        if (gameState === 'PLACEMENT') {
+            rotateShip();
+            return;
+        }
+
         if (gameState !== 'READY') return;
 
-        const clickedCell = playerBoard[r][c];
-        const placedShip = getPlacedShipSelection(clickedCell);
+        const placedShip = getPlacedShipSelectionAt(r, c);
         if (!placedShip) return;
 
         setDraggedShip(null);
@@ -780,12 +828,12 @@ function Game() {
         return (
             <div className="flex flex-col select-none">
                 <div className="flex mb-1" style={{ gap: `${CELL_GAP}px` }}>
-                    <div className="w-6 h-6"></div>
+                    <div style={{ width: "24px", height: `${COORD_HEADER_HEIGHT}px` }} />
                     {letters.map((l) => (
                         <div
                             key={l}
                             className="flex items-center justify-center text-secondary/70 font-bold text-xs"
-                            style={{ width: `${CELL_SIZE}px`, height: `${CELL_SIZE}px` }}
+                            style={{ width: `${CELL_SIZE}px`, height: `${COORD_HEADER_HEIGHT}px` }}
                         >
                             {l}
                         </div>
@@ -827,7 +875,7 @@ function Game() {
                                     const isCellHit = cell.isHit;
                                     const isCellMiss = isCellHit && !cell.hasShip;
                                     const isCellShipHit = isCellHit && cell.hasShip;
-                                    const isSunkShipCell = sunkShipIds.includes(cell.shipId);
+                                    const isSunkShipCell = cell.hasShip && sunkShipIds.includes(cell.shipId);
                                     const isRevealedEnemyShipCell = isEnemy && isSunkShipCell;
                                     const sunkCellIndex = sunkEffect?.boardSide === boardSide
                                         ? sunkEffect.cells.findIndex(pos => pos.row === r && pos.col === c)
@@ -928,12 +976,12 @@ function Game() {
                 </div>
             </header>
 
-            <main className="flex-1 w-full max-w-[1440px] mx-auto px-gutter py-6 flex flex-col lg:flex-row gap-8">
+            <main className="game-main flex-1 w-full max-w-[1440px] mx-auto px-gutter flex flex-col lg:flex-row">
                 
                 {/* Boards Section */}
-                <div className="flex-1 flex flex-col gap-8">
+                <div className="game-board-column flex-1 flex flex-col">
                     {/* Status Header */}
-                    <div className="glass-card p-4 rounded-xl border border-white/10 flex justify-between items-center">
+                    <div className="game-status glass-card rounded-xl border border-white/10 flex justify-between items-center">
                         <div>
                             <h2 className="font-display-lg text-xl uppercase tracking-widest text-on-surface">
                                 {gameState === 'PLACEMENT' || gameState === 'READY' ? "Deploy Your Fleet" : "Sector Command"}
@@ -951,7 +999,7 @@ function Game() {
                         {gameState === 'READY' && (
                             <button
                                 onClick={beginBattle}
-                                className="bg-secondary text-on-secondary-fixed font-bold px-8 py-3 rounded-sm hover:bg-secondary-container transition-all active:scale-95 tracking-widest"
+                                className="bg-secondary text-on-secondary-fixed font-bold px-8 py-2 rounded-sm hover:bg-secondary-container transition-all active:scale-95 tracking-widest"
                             >
                                 READY
                             </button>
@@ -966,7 +1014,7 @@ function Game() {
                         )}
                     </div>
 
-                    <div className="flex flex-col lg:flex-row gap-8 justify-center items-center lg:items-start">
+                    <div className="game-boards flex flex-col lg:flex-row justify-center items-center lg:items-start">
                         {/* Player Board */}
                         <div className="battle-board-section flex flex-col items-center">
                             <div className="board-heading">
@@ -1032,7 +1080,7 @@ function Game() {
                 </div>
 
                 {/* Battle Log Section */}
-                <div className="w-full lg:w-[350px] flex flex-col gap-4">
+                <div className="game-log-column w-full lg:w-[350px] flex flex-col gap-4">
                     <div className="glass-card flex-1 flex flex-col rounded-xl overflow-hidden border border-white/10 min-h-[300px] lg:max-h-[600px]">
                         <div className="p-4 border-b border-white/5 bg-white/5">
                             <h3 className="font-bold text-on-surface uppercase tracking-widest flex items-center gap-2">
