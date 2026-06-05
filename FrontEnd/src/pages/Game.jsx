@@ -4,7 +4,7 @@ import ship1 from "../assets/ships/image/ship-1.png";
 import ship2 from "../assets/ships/image/ship-2.png";
 import ship3 from "../assets/ships/image/ship-3.png";
 import ship4 from "../assets/ships/image/ship-4.png";
-import { canPlaceShip, checkVictory, createBoard, fireAt, getShipOffsets, markWaterAroundSunkShip, placeShip, placeShipsRandomly, SHIP_DEFS } from "../game/GameLogic";
+import { canPlaceShip, checkVictory, createBoard, fireAt, getShipBounds, getShipOffsets, markWaterAroundSunkShip, placeShip, placeShipsRandomly, SHIP_DEFS } from "../game/GameLogic";
 import { getBotMove, resetBotAI } from "../game/botAI";
 import "./GameEffects.css";
 
@@ -89,6 +89,8 @@ function Game() {
     const [hoverCell, setHoverCell] = useState(null);
     const [selectedShip, setSelectedShip] = useState(null);
     const [draggedShip, setDraggedShip] = useState(null);
+    const [dragPointer, setDragPointer] = useState(null);
+    const [invalidRotationPreview, setInvalidRotationPreview] = useState(null);
     
     // Game State
     const [turnTimer, setTurnTimer] = useState(30);
@@ -172,6 +174,8 @@ function Game() {
                 cell.shipLength = null;
                 cell.shipRoot = false;
                 cell.shipBounds = null;
+                cell.shipOriginRow = null;
+                cell.shipOriginCol = null;
             });
         });
     };
@@ -180,6 +184,17 @@ function Game() {
         for (const row of board) {
             for (const cell of row) {
                 if (cell.shipId === shipId && cell.shipRoot) return cell;
+            }
+        }
+        return null;
+    };
+
+    const getRootCellAtOrigin = (board, row, col) => {
+        for (const boardRow of board) {
+            for (const cell of boardRow) {
+                if (cell.shipRoot && cell.shipOriginRow === row && cell.shipOriginCol === col) {
+                    return cell;
+                }
             }
         }
         return null;
@@ -198,8 +213,8 @@ function Game() {
             shipId: cell.shipId,
             shipDef,
             rotation: cell.shipRotation,
-            row: rootCell.row,
-            col: rootCell.col,
+            row: rootCell.shipOriginRow ?? rootCell.row,
+            col: rootCell.shipOriginCol ?? rootCell.col,
         };
     };
 
@@ -211,10 +226,12 @@ function Game() {
             for (const cell of boardRow) {
                 if (!cell.shipRoot || !cell.shipBounds) continue;
 
-                const insideBounds = row >= cell.row
-                    && row < cell.row + cell.shipBounds.rows
-                    && col >= cell.col
-                    && col < cell.col + cell.shipBounds.cols;
+                const originRow = cell.shipOriginRow ?? cell.row;
+                const originCol = cell.shipOriginCol ?? cell.col;
+                const insideBounds = row >= originRow
+                    && row < originRow + cell.shipBounds.rows
+                    && col >= originCol
+                    && col < originCol + cell.shipBounds.cols;
 
                 if (insideBounds) {
                     const shipDef = getShipDefById(cell.shipTypeId);
@@ -224,8 +241,8 @@ function Game() {
                         shipId: cell.shipId,
                         shipDef,
                         rotation: cell.shipRotation,
-                        row: cell.row,
-                        col: cell.col,
+                        row: originRow,
+                        col: originCol,
                     };
                 }
             }
@@ -252,8 +269,9 @@ function Game() {
             return false;
         }
 
-        const newRootCell = getRootCellForShip(newBoard, newBoard[targetRow][targetCol].shipId);
-        const newShipId = newRootCell?.shipId ?? newBoard[targetRow][targetCol].shipId;
+        const newRootCell = getRootCellAtOrigin(newBoard, targetRow, targetCol);
+        if (!newRootCell) return false;
+        const newShipId = newRootCell.shipId;
         const updatedShip = {
             ...shipToMove,
             shipId: newShipId,
@@ -264,6 +282,7 @@ function Game() {
         setPlayerBoard(newBoard);
         setSelectedShip(null);
         setHoverCell(null);
+        setInvalidRotationPreview(null);
         setRotation(updatedShip.rotation);
         return true;
     };
@@ -274,36 +293,60 @@ function Game() {
         const rotations = shipToRotate.shipDef.rotations;
         const idx = rotations.indexOf(shipToRotate.rotation);
         const nextRotation = rotations[(idx + 1) % rotations.length];
+        const currentBounds = getShipBounds(
+            getShipOffsets(shipToRotate.shipDef, shipToRotate.rotation)
+        );
+        const nextBounds = getShipBounds(
+            getShipOffsets(shipToRotate.shipDef, nextRotation)
+        );
+        const nextRow = Math.round(
+            shipToRotate.row + ((currentBounds.rows - nextBounds.rows) / 2)
+        );
+        const nextCol = Math.round(
+            shipToRotate.col + ((currentBounds.cols - nextBounds.cols) / 2)
+        );
 
         setPlayerBoard(prevBoard => {
             const newBoard = cloneBoard(prevBoard);
             clearShipFromBoard(newBoard, shipToRotate.shipId);
 
-            const candidateRoots = [
-                [shipToRotate.row, shipToRotate.col],
-                [shipToRotate.row - 1, shipToRotate.col],
-                [shipToRotate.row, shipToRotate.col - 1],
-                [shipToRotate.row + 1, shipToRotate.col],
-                [shipToRotate.row, shipToRotate.col + 1],
-                [shipToRotate.row - 1, shipToRotate.col - 1],
-                [shipToRotate.row - 1, shipToRotate.col + 1],
-                [shipToRotate.row + 1, shipToRotate.col - 1],
-                [shipToRotate.row + 1, shipToRotate.col + 1],
-            ];
-            const nextRoot = candidateRoots.find(([row, col]) =>
-                canPlaceShip(newBoard, row, col, shipToRotate.shipDef, nextRotation)
-            );
-
-            if (!nextRoot) {
+            if (!canPlaceShip(
+                newBoard,
+                nextRow,
+                nextCol,
+                shipToRotate.shipDef,
+                nextRotation
+            )) {
+                const previewToken = Date.now() + Math.random();
+                setInvalidRotationPreview({
+                    ...shipToRotate,
+                    rotation: nextRotation,
+                    row: nextRow,
+                    col: nextCol,
+                    token: previewToken,
+                });
+                window.setTimeout(() => {
+                    setInvalidRotationPreview(current =>
+                        current?.token === previewToken ? null : current
+                    );
+                }, 850);
                 return prevBoard;
             }
 
-            const [nextRow, nextCol] = nextRoot;
-            placeShip(newBoard, nextRow, nextCol, shipToRotate.shipDef, nextRotation);
-            const newShipId = newBoard[nextRow][nextCol].shipId;
+            placeShip(
+                newBoard,
+                nextRow,
+                nextCol,
+                shipToRotate.shipDef,
+                nextRotation
+            );
+            const newRootCell = getRootCellAtOrigin(newBoard, nextRow, nextCol);
+            if (!newRootCell) return prevBoard;
+
+            setInvalidRotationPreview(null);
             setSelectedShip({
                 ...shipToRotate,
-                shipId: newShipId,
+                shipId: newRootCell.shipId,
                 rotation: nextRotation,
                 row: nextRow,
                 col: nextCol,
@@ -513,17 +556,24 @@ function Game() {
         if (!placedShip) return;
 
         event.preventDefault();
+        const cellRect = event.currentTarget.getBoundingClientRect();
         const shipToDrag = {
             ...placedShip,
             grabOffset: {
                 row: r - placedShip.row,
                 col: c - placedShip.col,
             },
+            pointerOffset: {
+                x: ((c - placedShip.col) * (CELL_SIZE + CELL_GAP)) + (event.clientX - cellRect.left),
+                y: ((r - placedShip.row) * (CELL_SIZE + CELL_GAP)) + (event.clientY - cellRect.top),
+            },
         };
 
         setSelectedShip(placedShip);
         setRotation(placedShip.rotation);
+        setInvalidRotationPreview(null);
         setDraggedShip(shipToDrag);
+        setDragPointer({ x: event.clientX, y: event.clientY });
     };
 
     const handlePlayerCellMouseUp = (r, c) => {
@@ -533,11 +583,13 @@ function Game() {
         const targetCol = c - draggedShip.grabOffset.col;
         if (targetRow === draggedShip.row && targetCol === draggedShip.col) {
             setDraggedShip(null);
+            setDragPointer(null);
             return;
         }
 
         movePlacedShipTo(targetRow, targetCol, draggedShip);
         setDraggedShip(null);
+        setDragPointer(null);
         dragSkipClickRef.current = true;
         window.setTimeout(() => {
             dragSkipClickRef.current = false;
@@ -545,10 +597,22 @@ function Game() {
     };
 
     useEffect(() => {
-        const stopDragging = () => setDraggedShip(null);
+        if (!draggedShip) return undefined;
+
+        const updateDragPointer = (event) => {
+            setDragPointer({ x: event.clientX, y: event.clientY });
+        };
+        const stopDragging = () => {
+            setDraggedShip(null);
+            setDragPointer(null);
+        };
+        document.addEventListener("mousemove", updateDragPointer);
         document.addEventListener("mouseup", stopDragging);
-        return () => document.removeEventListener("mouseup", stopDragging);
-    }, []);
+        return () => {
+            document.removeEventListener("mousemove", updateDragPointer);
+            document.removeEventListener("mouseup", stopDragging);
+        };
+    }, [draggedShip]);
 
     const handlePlayerCellClick = (r, c) => {
         if (dragSkipClickRef.current) return;
@@ -605,6 +669,7 @@ function Game() {
         if (!placedShip) return;
 
         setDraggedShip(null);
+        setDragPointer(null);
         setHoverCell(null);
         rotatePlacedShip(placedShip);
     };
@@ -638,8 +703,10 @@ function Game() {
         if (!cell.shipBounds) return null;
         const width = (cell.shipBounds.cols * CELL_SIZE) + ((cell.shipBounds.cols - 1) * CELL_GAP);
         const height = (cell.shipBounds.rows * CELL_SIZE) + ((cell.shipBounds.rows - 1) * CELL_GAP);
-        const left = cell.col * (CELL_SIZE + CELL_GAP);
-        const top = cell.row * (CELL_SIZE + CELL_GAP);
+        const originCol = cell.shipOriginCol ?? cell.col;
+        const originRow = cell.shipOriginRow ?? cell.row;
+        const left = originCol * (CELL_SIZE + CELL_GAP);
+        const top = originRow * (CELL_SIZE + CELL_GAP);
 
         return {
             position: "absolute",
@@ -747,8 +814,20 @@ function Game() {
             }
         }
 
+        if (!isEnemy && gameState === 'READY' && invalidRotationPreview) {
+            placementOffsets = getShipOffsets(
+                invalidRotationPreview.shipDef,
+                invalidRotationPreview.rotation
+            ).map(([dr, dc]) => ({
+                r: invalidRotationPreview.row + dr,
+                c: invalidRotationPreview.col + dc,
+            }));
+            canPlace = false;
+        }
+
         const shipOverlays = [];
         const hitOverlays = [];
+        let dragGhostOverlay = null;
         const sunkShipIds = isEnemy ? enemySunkShipIds : playerShipsSunk;
         const showAllShips = !isEnemy || gameState === 'GAME_OVER';
         if (showAllShips || sunkShipIds.length > 0) {
@@ -769,7 +848,9 @@ function Game() {
                             key={`ship-${cell.shipId}`}
                             className={`pointer-events-none ship-overlay ${
                                 isShipSunk ? "ship-sunk-silhouette" : ""
-                            } ${isActivelySinking ? "ship-sinking" : ""}`}
+                            } ${isActivelySinking ? "ship-sinking" : ""} ${
+                                draggedShip?.shipId === cell.shipId ? "ship-drag-source" : ""
+                            }`}
                             style={overlayStyle}
                         >
                             {spriteUrl ? (
@@ -780,8 +861,8 @@ function Game() {
                                         key={`${cell.shipId}-${shipCell.row}-${shipCell.col}`}
                                         className="absolute bg-secondary/30 border border-secondary/40"
                                         style={{
-                                            left: `${(shipCell.col - cell.col) * (CELL_SIZE + CELL_GAP)}px`,
-                                            top: `${(shipCell.row - cell.row) * (CELL_SIZE + CELL_GAP)}px`,
+                                            left: `${(shipCell.col - (cell.shipOriginCol ?? cell.col)) * (CELL_SIZE + CELL_GAP)}px`,
+                                            top: `${(shipCell.row - (cell.shipOriginRow ?? cell.row)) * (CELL_SIZE + CELL_GAP)}px`,
                                             width: `${CELL_SIZE}px`,
                                             height: `${CELL_SIZE}px`,
                                         }}
@@ -792,6 +873,42 @@ function Game() {
                     );
                 });
             });
+        }
+
+        if (!isEnemy && gameState === 'READY' && draggedShip && dragPointer) {
+            const offsets = getShipOffsets(draggedShip.shipDef, draggedShip.rotation);
+            const bounds = getShipBounds(offsets);
+            const ghostCell = {
+                row: 0,
+                col: 0,
+                shipTypeId: draggedShip.shipDef.id,
+                shipRotation: draggedShip.rotation,
+                shipBounds: bounds,
+            };
+            const ghostImageStyle = getShipImageStyle(ghostCell);
+            const ghostSpriteUrl = resolveSpriteUrl(
+                SHIP_SPRITES[draggedShip.shipDef.id]?.[draggedShip.rotation]
+            );
+            const ghostWidth = (bounds.cols * CELL_SIZE) + ((bounds.cols - 1) * CELL_GAP);
+            const ghostHeight = (bounds.rows * CELL_SIZE) + ((bounds.rows - 1) * CELL_GAP);
+
+            if (ghostSpriteUrl) {
+                dragGhostOverlay = (
+                    <div
+                        className={`ship-drag-ghost ${canPlace ? "is-valid" : "is-invalid"}`}
+                        style={{
+                            position: "fixed",
+                            left: `${dragPointer.x - draggedShip.pointerOffset.x}px`,
+                            top: `${dragPointer.y - draggedShip.pointerOffset.y}px`,
+                            width: `${ghostWidth}px`,
+                            height: `${ghostHeight}px`,
+                            overflow: "hidden",
+                        }}
+                    >
+                        <img src={ghostSpriteUrl} alt="" style={ghostImageStyle} />
+                    </div>
+                );
+            }
         }
 
         board.forEach((row) => {
@@ -819,7 +936,6 @@ function Game() {
                         <span className="hit-spark hit-spark-one" />
                         <span className="hit-spark hit-spark-two" />
                         <span className="hit-spark hit-spark-three" />
-                        <span className="hit-mark">X</span>
                     </div>
                 );
             });
@@ -858,6 +974,7 @@ function Game() {
                         style={{ width: `${GRID_SIZE_PX}px`, height: `${GRID_SIZE_PX}px` }}
                     >
                         <div className="absolute inset-0 z-20 pointer-events-none">{shipOverlays}</div>
+                        <div className="absolute inset-0 z-30 pointer-events-none">{dragGhostOverlay}</div>
                         <div className="absolute inset-0 z-40 pointer-events-none">{hitOverlays}</div>
                         <div
                             className="relative grid"
@@ -903,6 +1020,12 @@ function Game() {
                                             onClick={() => isEnemy ? handleEnemyCellClick(r, c) : handlePlayerCellClick(r, c)}
                                             className={`ocean-cell relative ${cursorClass} overflow-visible transition-all duration-300 ${baseCellBg} ${
                                                 isRevealedEnemyShipCell ? "enemy-ship-cell-revealed" : ""
+                                            } ${
+                                                !isEnemy && cell.hasShip ? "player-ship-cell" : ""
+                                            } ${
+                                                isHovered && draggedShip
+                                                    ? (canPlace ? "drag-target-cell-valid" : "drag-target-cell-invalid")
+                                                    : ""
                                             } ${
                                                 isHovered
                                                     ? (canPlace ? "bg-secondary/50 shadow-[0_0_15px_#a5e7ff]" : "bg-error/50")

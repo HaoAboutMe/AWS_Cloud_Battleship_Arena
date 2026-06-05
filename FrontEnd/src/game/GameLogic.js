@@ -117,7 +117,9 @@ export function createBoard() {
                 shipRotation: null,
                 shipLength: null,
                 shipRoot: false,
-                shipBounds: null
+                shipBounds: null,
+                shipOriginRow: null,
+                shipOriginCol: null,
             };
         }
     }
@@ -157,11 +159,16 @@ export function placeShip(board, row, col, shipOrLength, rotationOrIsHorizontal)
         board[r][c].shipId = shipId;
         board[r][c].shipTypeId = shipDef.id;
         board[r][c].shipRotation = rotation;
+        board[r][c].shipOriginRow = row;
+        board[r][c].shipOriginCol = col;
     });
 
-    const rootCell = board[row][col];
+    const [rootDr, rootDc] = offsets[0];
+    const rootCell = board[row + rootDr][col + rootDc];
     rootCell.shipRoot = true;
     rootCell.shipBounds = bounds;
+    rootCell.shipOriginRow = row;
+    rootCell.shipOriginCol = col;
     rootCell.shipTypeId = shipDef.id;
     rootCell.shipRotation = rotation;
     rootCell.shipLength = shipDef.size;
