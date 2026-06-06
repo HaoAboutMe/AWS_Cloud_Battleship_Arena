@@ -1165,10 +1165,9 @@ function Game() {
                                     const isCellHit = cell.isHit;
                                     const isCellMiss = isCellHit && !cell.hasShip;
                                     const isSunkShipCell = cell.hasShip && sunkShipIds.includes(cell.shipId);
-                                    const isRevealedEnemyShipCell = isEnemy && isSunkShipCell;
                                     const playerCellBg = cell.hasShip ? "bg-transparent" : "bg-surface-container/50";
                                     const baseCellBg = isEnemy
-                                        ? (isSunkShipCell || isRevealedEnemyShipCell
+                                        ? (isSunkShipCell
                                             ? "bg-transparent"
                                             : "bg-surface-container hover:bg-white/10")
                                         : playerCellBg;
@@ -1189,8 +1188,6 @@ function Game() {
                                             onContextMenu={(event) => !isEnemy && handlePlayerCellContextMenu(event, r, c)}
                                             onClick={() => isEnemy ? handleEnemyCellClick(r, c) : handlePlayerCellClick(r, c)}
                                             className={`ocean-cell relative ${cursorClass} overflow-visible transition-all duration-300 ${baseCellBg} ${
-                                                isRevealedEnemyShipCell ? "enemy-ship-cell-revealed" : ""
-                                            } ${
                                                 !isEnemy && cell.hasShip ? "player-ship-cell" : ""
                                             } ${
                                                 isHovered && draggedShip

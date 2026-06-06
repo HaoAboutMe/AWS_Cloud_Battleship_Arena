@@ -201,6 +201,69 @@ const playBubbles = (scene, x, y, delay) => {
     });
 };
 
+const playSunkFinisher = (scene, cells, cellCenter) => {
+    if (cells.length === 0) return;
+
+    const centers = cells.map(cell => cellCenter(cell.row, cell.col));
+    const x = centers.reduce((sum, point) => sum + point.x, 0) / centers.length;
+    const y = centers.reduce((sum, point) => sum + point.y, 0) / centers.length;
+
+    const flash = circle(scene, x, y, 18, 0xffd36a, 0.82);
+    flash.setBlendMode("ADD");
+    flash.setScale(0.25);
+    tweenOut(scene, flash, {
+        scale: 4.2,
+        alpha: 0,
+        duration: 520,
+        ease: "Expo.easeOut",
+    });
+
+    [0, 130].forEach((delay, index) => {
+        scene.time.delayedCall(delay, () => {
+            const shockwave = ring(
+                scene,
+                x,
+                y,
+                12 + (index * 5),
+                index === 0 ? 0xffb347 : 0xc8f4ff,
+                0.95,
+                index === 0 ? 4 : 2
+            );
+            shockwave.setBlendMode("ADD");
+            shockwave.setScale(0.35);
+            tweenOut(scene, shockwave, {
+                scaleX: 5.2,
+                scaleY: 3.2,
+                alpha: 0,
+                duration: 850 + (index * 170),
+                ease: "Cubic.easeOut",
+            });
+        });
+    });
+
+    for (let index = 0; index < 18; index += 1) {
+        const angle = rand(0, Math.PI * 2);
+        const distance = randInt(28, 74);
+        const ember = circle(
+            scene,
+            x,
+            y,
+            rand(1.2, 2.5),
+            index % 3 === 0 ? 0xfff0a8 : 0xff6a24,
+            1
+        );
+        ember.setBlendMode("ADD");
+        tweenOut(scene, ember, {
+            x: x + (Math.cos(angle) * distance),
+            y: y + (Math.sin(angle) * distance) + randInt(4, 18),
+            scale: 0.15,
+            alpha: 0,
+            duration: randInt(620, 1050),
+            ease: "Cubic.easeOut",
+        });
+    }
+};
+
 const BattleEffectsLayer = forwardRef(function BattleEffectsLayer(
     { width, height, cellSize, cellGap, boardSide, smokeCells = [] },
     ref
@@ -216,6 +279,7 @@ const BattleEffectsLayer = forwardRef(function BattleEffectsLayer(
     const wakeFor = (scene, duration) => {
         scene.game.loop.wake();
         scene.scene.wake();
+        scene.game.loop.resetDelta?.();
         window.clearTimeout(sleepTimerRef.current);
         sleepTimerRef.current = window.setTimeout(() => {
             if (sceneRef.current !== scene) return;
@@ -282,6 +346,7 @@ const BattleEffectsLayer = forwardRef(function BattleEffectsLayer(
 
             scene.game.loop.wake();
             scene.scene.wake();
+            scene.game.loop.resetDelta?.();
             startPersistentSmoke(scene);
         }
 
@@ -296,11 +361,15 @@ const BattleEffectsLayer = forwardRef(function BattleEffectsLayer(
         if (command.type === "sunk") {
             const cells = command.cells || [];
             wakeFor(scene, 8500);
+            playSunkFinisher(scene, cells, cellCenter);
             cells.forEach((cell, index) => {
                 const { x, y } = cellCenter(cell.row, cell.col);
                 const delay = index * 150;
                 scene.time.delayedCall(delay, () => playHit(scene, x, y, true));
-                scene.time.delayedCall(delay, () => playLingeringSmoke(scene, x, y, true));
+                scene.time.delayedCall(
+                    delay,
+                    () => playLingeringSmoke(scene, x, y, true)
+                );
                 playBubbles(scene, x, y, delay + 280);
             });
 
@@ -330,20 +399,24 @@ const BattleEffectsLayer = forwardRef(function BattleEffectsLayer(
             if (!banner) return;
 
             wakeFor(scene, 2400);
-            const state = { scale: 0.72, opacity: 0, blur: 7 };
+            const state = { scale: 0.78, opacity: 0 };
+            banner.style.willChange = "transform, opacity";
+            banner.style.filter = "none";
             const updateBanner = () => {
                 banner.style.transform = `translate(-50%, -50%) scale(${state.scale})`;
                 banner.style.opacity = String(state.opacity);
-                banner.style.filter = `blur(${state.blur}px)`;
             };
             const finishBanner = () => {
                 scene.tweens.add({
                     targets: state,
                     scale: 0.96,
                     opacity: 0,
-                    duration: 580,
-                    ease: "Quad.easeIn",
+                    duration: 520,
+                    ease: "Sine.easeIn",
                     onUpdate: updateBanner,
+                    onComplete: () => {
+                        banner.style.willChange = "";
+                    },
                 });
             };
             const holdBanner = () => {
@@ -351,18 +424,18 @@ const BattleEffectsLayer = forwardRef(function BattleEffectsLayer(
                     targets: state,
                     scale: 1,
                     opacity: 1,
-                    duration: 1350,
+                    duration: 1280,
+                    ease: "Sine.easeInOut",
                     onUpdate: updateBanner,
                     onComplete: finishBanner,
                 });
             };
             scene.tweens.add({
                 targets: state,
-                scale: 1.06,
+                scale: 1.04,
                 opacity: 1,
-                blur: 0,
-                duration: 420,
-                ease: "Back.easeOut",
+                duration: 360,
+                ease: "Cubic.easeOut",
                 onUpdate: updateBanner,
                 onComplete: holdBanner,
             });
@@ -409,7 +482,20 @@ const BattleEffectsLayer = forwardRef(function BattleEffectsLayer(
                 transparent: true,
                 banner: false,
                 audio: { noAudio: true },
-                fps: { target: 30, min: 15, forceSetTimeOut: true },
+                antialias: true,
+                pixelArt: false,
+                roundPixels: false,
+                fps: {
+                    target: 90,
+                    min: 45,
+                    forceSetTimeOut: false,
+                    smoothStep: true,
+                },
+                render: {
+                    antialias: true,
+                    antialiasGL: true,
+                    roundPixels: false,
+                },
                 scene: {
                     create() {
                         sceneRef.current = this;
