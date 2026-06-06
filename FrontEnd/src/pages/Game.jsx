@@ -4,6 +4,7 @@ import ship1 from "../assets/ships/image/ship-1.png";
 import ship2 from "../assets/ships/image/ship-2.png";
 import ship3 from "../assets/ships/image/ship-3.png";
 import ship4 from "../assets/ships/image/ship-4.png";
+import BattleEffectsLayer from "../game/BattleEffectsLayer";
 import { canPlaceShip, checkVictory, createBoard, fireAt, getShipBounds, getShipOffsets, markWaterAroundSunkShip, placeShip, placeShipsRandomly, SHIP_DEFS } from "../game/GameLogic";
 import { getBotMove, resetBotAI } from "../game/botAI";
 import "./GameEffects.css";
@@ -124,14 +125,62 @@ function Game() {
     const [enemyShipsSunk, setEnemyShipsSunk] = useState([]);
     const [enemySunkShipIds, setEnemySunkShipIds] = useState([]);
     const [playerShipsSunk, setPlayerShipsSunk] = useState([]);
-    const [boardShake, setBoardShake] = useState(null);
     const [sunkEffect, setSunkEffect] = useState(null);
     const [showModal, setShowModal] = useState(false);
 
     const logContainerRef = useRef(null);
     const timerRef = useRef(null);
     const dragSkipClickRef = useRef(false);
+    const playerEffectsRef = useRef(null);
+    const enemyEffectsRef = useRef(null);
     const currentShip = shipsToPlace[currentShipIndex];
+    const playerSunkShipTypeIds = playerBoard
+        .flat()
+        .filter(cell => cell.shipRoot && playerShipsSunk.includes(cell.shipId))
+        .map(cell => cell.shipTypeId);
+
+    const renderFleetStatus = (sunkShipTypeIds, isScanning = false) => (
+        <div className="fleet-image-panel">
+            <div className="fleet-image-list">
+                {!isScanning && shipsToPlace.map((ship) => {
+                    const isSunk = sunkShipTypeIds.includes(ship.id);
+                    const offsets = getShipOffsets(ship, ship.rotations[0]);
+                    const rowCount = Math.max(...offsets.map(([row]) => row)) + 1;
+                    const colCount = Math.max(...offsets.map(([, col]) => col)) + 1;
+
+                    return (
+                        <div
+                            key={ship.id}
+                            className={`fleet-shape-item ${isSunk ? "is-sunk" : ""}`}
+                            title={ship.label}
+                        >
+                            <span
+                                className="fleet-shape-grid"
+                                style={{
+                                    gridTemplateColumns: `repeat(${colCount}, 6px)`,
+                                    gridTemplateRows: `repeat(${rowCount}, 6px)`,
+                                }}
+                            >
+                                {offsets.map(([row, col]) => (
+                                    <span
+                                        key={`${row}-${col}`}
+                                        className="fleet-shape-cell"
+                                        style={{
+                                            gridRow: row + 1,
+                                            gridColumn: col + 1,
+                                        }}
+                                    />
+                                ))}
+                            </span>
+                        </div>
+                    );
+                })}
+                {isScanning && (
+                    <span className="enemy-fleet-scanning">Scanning...</span>
+                )}
+            </div>
+        </div>
+    );
 
     useEffect(() => {
         const params = new URLSearchParams(location.search);
@@ -150,14 +199,6 @@ function Game() {
         setLogs(prev => [...prev, { id: Date.now() + Math.random(), msg, type }]);
     }, []);
 
-    const triggerBoardShake = (boardSide) => {
-        const token = Date.now() + Math.random();
-        setBoardShake({ boardSide, token });
-        window.setTimeout(() => {
-            setBoardShake(current => current?.token === token ? null : current);
-        }, 180);
-    };
-
     const triggerSunkEffect = (boardSide, shipTypeId, shipId, cells) => {
         const shipDef = shipsToPlace.find(ship => ship.id === shipTypeId);
         const token = Date.now() + Math.random();
@@ -170,6 +211,9 @@ function Game() {
             cells,
             token,
         });
+        const effects = boardSide === "enemy" ? enemyEffectsRef.current : playerEffectsRef.current;
+        effects?.playSunk(cells, shipId);
+        window.requestAnimationFrame(() => effects?.animateBanner());
 
         window.setTimeout(() => {
             setSunkEffect(current => current?.token === token ? null : current);
@@ -495,7 +539,7 @@ function Game() {
             const cellName = `${colLetter}${rowNum}`;
 
             if (cell.hasShip) {
-                triggerBoardShake("player");
+                playerEffectsRef.current?.playHit(botShot.row, botShot.col);
                 if (botShot.result && botShot.result.isSunk) {
                     const sunkCells = markWaterAroundSunkShip(newPlayerBoard, botShot.result.shipId);
                     setPlayerShipsSunk(prev => prev.includes(botShot.result.shipId)
@@ -515,6 +559,7 @@ function Game() {
                     setTimeout(() => performBotMove(), delay);
                 }
             } else {
+                playerEffectsRef.current?.playMiss(botShot.row, botShot.col);
                 addLog(`Enemy missed at ${cellName}.`, "enemy_miss");
                 setTimeout(() => startPlayerTurn(), 800);
             }
@@ -548,7 +593,7 @@ function Game() {
             setStats(prev => ({ ...prev, shots: prev.shots + 1 }));
 
             if (shotResult.result === "HIT") {
-                triggerBoardShake("enemy");
+                enemyEffectsRef.current?.playHit(r, c);
                 setStats(prev => ({ ...prev, hits: prev.hits + 1 }));
                 if (shotResult.isSunk) {
                     const sunkCells = markWaterAroundSunkShip(newEnemyBoard, shotResult.shipId, false);
@@ -570,6 +615,7 @@ function Game() {
                     setTimeout(() => startPlayerTurn(), 800);
                 }
             } else {
+                enemyEffectsRef.current?.playMiss(r, c);
                 setStats(prev => ({ ...prev, misses: prev.misses + 1 }));
                 addLog(`Missed at ${cellName}.`, "player_miss");
                 setTimeout(() => startBotTurn(), 800);
@@ -920,6 +966,7 @@ function Game() {
 
         const shipOverlays = [];
         const hitOverlays = [];
+        const smokeCells = [];
         let dragGhostOverlay = null;
         const sunkShipIds = isEnemy ? enemySunkShipIds : playerShipsSunk;
         const showAllShips = !isEnemy || gameState === 'GAME_OVER';
@@ -933,15 +980,15 @@ function Game() {
                     const spriteUrl = getShipSpriteUrl(cell);
                     const overlayStyle = getShipOverlayStyle(cell);
                     const imageStyle = getShipImageStyle(cell);
-                    const isActivelySinking = sunkEffect?.boardSide === boardSide
-                        && sunkEffect.shipId === cell.shipId;
                     if (!overlayStyle) return;
                     shipOverlays.push(
                         <div
                             key={`ship-${cell.shipId}`}
+                            data-board-side={boardSide}
+                            data-ship-id={cell.shipId}
                             className={`pointer-events-none ship-overlay ${
                                 isShipSunk ? "ship-sunk-silhouette" : ""
-                            } ${isActivelySinking ? "ship-sinking" : ""} ${
+                            } ${
                                 draggedShip?.shipId === cell.shipId ? "ship-drag-source" : ""
                             } ${
                                 invalidRotationPreview?.shipId === cell.shipId ? "ship-invalid-source" : ""
@@ -1041,6 +1088,7 @@ function Game() {
         board.forEach((row) => {
             row.forEach((cell) => {
                 if (!cell.isHit || !cell.hasShip) return;
+                smokeCells.push({ row: cell.row, col: cell.col });
 
                 hitOverlays.push(
                     <div
@@ -1056,13 +1104,7 @@ function Game() {
                         }}
                         aria-hidden="true"
                     >
-                        <span className="hit-shockwave" />
-                        <span className="hit-fireball" />
-                        <span className="hit-smoke hit-smoke-one" />
-                        <span className="hit-smoke hit-smoke-two" />
-                        <span className="hit-spark hit-spark-one" />
-                        <span className="hit-spark hit-spark-two" />
-                        <span className="hit-spark hit-spark-three" />
+                        <span className="hit-static-mark" />
                     </div>
                 );
             });
@@ -1094,15 +1136,19 @@ function Game() {
                             </div>
                         ))}
                     </div>
-                    <div
-                        className={`relative ${
-                            boardShake?.boardSide === boardSide ? "board-impact-shake" : ""
-                        }`}
-                        style={{ width: `${GRID_SIZE_PX}px`, height: `${GRID_SIZE_PX}px` }}
-                    >
+                    <div className="relative" style={{ width: `${GRID_SIZE_PX}px`, height: `${GRID_SIZE_PX}px` }}>
                         <div className="absolute inset-0 z-20 pointer-events-none">{shipOverlays}</div>
                         <div className="absolute inset-0 z-30 pointer-events-none">{dragGhostOverlay}</div>
                         <div className="absolute inset-0 z-40 pointer-events-none">{hitOverlays}</div>
+                        <BattleEffectsLayer
+                            ref={boardSide === "enemy" ? enemyEffectsRef : playerEffectsRef}
+                            width={GRID_SIZE_PX}
+                            height={GRID_SIZE_PX}
+                            cellSize={CELL_SIZE}
+                            cellGap={CELL_GAP}
+                            boardSide={boardSide}
+                            smokeCells={smokeCells}
+                        />
                         <div
                             className="relative grid"
                             style={{
@@ -1118,13 +1164,8 @@ function Game() {
                                         : false;
                                     const isCellHit = cell.isHit;
                                     const isCellMiss = isCellHit && !cell.hasShip;
-                                    const isCellShipHit = isCellHit && cell.hasShip;
                                     const isSunkShipCell = cell.hasShip && sunkShipIds.includes(cell.shipId);
                                     const isRevealedEnemyShipCell = isEnemy && isSunkShipCell;
-                                    const sunkCellIndex = sunkEffect?.boardSide === boardSide
-                                        ? sunkEffect.cells.findIndex(pos => pos.row === r && pos.col === c)
-                                        : -1;
-                                    const isSunkChainCell = sunkCellIndex >= 0;
                                     const playerCellBg = cell.hasShip ? "bg-transparent" : "bg-surface-container/50";
                                     const baseCellBg = isEnemy
                                         ? (isSunkShipCell || isRevealedEnemyShipCell
@@ -1165,42 +1206,11 @@ function Game() {
                                                     : ""
                                             }`}
                                         >
-                                            {isSunkChainCell && (
-                                                <div
-                                                    className="chain-explosion"
-                                                    style={{ "--chain-delay": `${sunkCellIndex * 150}ms` }}
-                                                    aria-hidden="true"
-                                                >
-                                                    <span className="chain-fire" />
-                                                    <span className="chain-ring" />
-                                                    <span className="chain-bubble chain-bubble-one" />
-                                                    <span className="chain-bubble chain-bubble-two" />
-                                                </div>
-                                            )}
                                             {isCellMiss && !cell.autoMarked && (
                                                 <div className={`shot-effect shot-miss ${
                                                     cell.autoMarked ? "shot-auto-marked" : ""
                                                 }`} aria-hidden="true">
-                                                    <span className="miss-wave miss-wave-one" />
-                                                    <span className="miss-wave miss-wave-two" />
-                                                    <span className="miss-column" />
-                                                    <span className="miss-droplet miss-droplet-one" />
-                                                    <span className="miss-droplet miss-droplet-two" />
-                                                    <span className="miss-droplet miss-droplet-three" />
                                                     <span className="miss-dot" />
-                                                </div>
-                                            )}
-                                            {false && isCellShipHit && (
-                                                <div className="shot-effect shot-hit" aria-hidden="true">
-                                                    <span className="hit-shockwave" />
-                                                    <span className="hit-fireball" />
-                                                    <span className="hit-smoke hit-smoke-one" />
-                                                    <span className="hit-smoke hit-smoke-two" />
-                                                    <span className="hit-spark hit-spark-one" />
-                                                    <span className="hit-spark hit-spark-two" />
-                                                    <span className="hit-spark hit-spark-three" />
-                                                    <span className="hit-mark">X</span>
-                                                    <span className="text-error font-black text-xl drop-shadow-[0_0_5px_rgba(255,0,0,0.8)]">✕</span>
                                                 </div>
                                             )}
                                         </div>
@@ -1284,7 +1294,9 @@ function Game() {
                         <div className="battle-board-section flex flex-col items-center">
                             <div className="board-heading">
                                 <h3 className="font-bold text-secondary tracking-widest uppercase">Your Fleet</h3>
-                                <div className="fleet-image-panel fleet-image-panel-placeholder" aria-hidden="true" />
+                                {gameState !== 'PLACEMENT'
+                                    ? renderFleetStatus(playerSunkShipTypeIds)
+                                    : <div className="fleet-image-panel fleet-image-panel-placeholder" aria-hidden="true" />}
                             </div>
                             {renderBoard(playerBoard, false, "player")}
                         </div>
@@ -1394,45 +1406,7 @@ function Game() {
                                             {gameState === 'READY' ? "Enemy Waters (Scanning...)" : "Enemy Waters"}
                                         </h3>
 
-                                        <div className="fleet-image-panel">
-                                            <div className="fleet-image-list">
-                                            {gameState !== 'READY' && shipsToPlace.map((ship, idx) => {
-                                                const isSunk = enemyShipsSunk.includes(ship.id);
-                                                const offsets = getShipOffsets(ship, ship.rotations[0]);
-                                                const rowCount = Math.max(...offsets.map(([row]) => row)) + 1;
-                                                const colCount = Math.max(...offsets.map(([, col]) => col)) + 1;
-                                                return (
-                                                    <div
-                                                        key={idx}
-                                                        className={`fleet-shape-item ${isSunk ? "is-sunk" : ""}`}
-                                                        title={ship.label}
-                                                    >
-                                                        <span
-                                                            className="fleet-shape-grid"
-                                                            style={{
-                                                                gridTemplateColumns: `repeat(${colCount}, 6px)`,
-                                                                gridTemplateRows: `repeat(${rowCount}, 6px)`,
-                                                            }}
-                                                        >
-                                                            {offsets.map(([row, col]) => (
-                                                                <span
-                                                                    key={`${row}-${col}`}
-                                                                    className="fleet-shape-cell"
-                                                                    style={{
-                                                                        gridRow: row + 1,
-                                                                        gridColumn: col + 1,
-                                                                    }}
-                                                                />
-                                                            ))}
-                                                        </span>
-                                                    </div>
-                                                );
-                                            })}
-                                            {gameState === 'READY' && (
-                                                <span className="enemy-fleet-scanning">Scanning...</span>
-                                            )}
-                                            </div>
-                                        </div>
+                                        {renderFleetStatus(enemyShipsSunk, gameState === 'READY')}
                                     </div>
 
                                     <div className={`transition-opacity duration-700 ${gameState === 'READY' ? 'opacity-20 pointer-events-none' : 'opacity-100'}`}>
