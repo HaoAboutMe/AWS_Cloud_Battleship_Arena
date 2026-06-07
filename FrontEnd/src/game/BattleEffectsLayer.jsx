@@ -262,6 +262,101 @@ const playSunkFinisher = (scene, cells, cellCenter) => {
             ease: "Cubic.easeOut",
         });
     }
+
+    const burstPoints = centers.length > 1
+        ? [centers[0], centers[centers.length - 1]]
+        : [centers[0]];
+
+    burstPoints.forEach((point, index) => {
+        scene.time.delayedCall(110 + (index * 150), () => {
+            const blast = circle(scene, point.x, point.y, 13, 0xff5a1f, 0.96);
+            blast.setBlendMode("ADD");
+            blast.setScale(0.18);
+            tweenOut(scene, blast, {
+                scale: 2.7,
+                alpha: 0,
+                duration: 620,
+                ease: "Expo.easeOut",
+            });
+
+            const blastCore = circle(scene, point.x, point.y, 6, 0xffffd2, 1);
+            blastCore.setBlendMode("ADD");
+            tweenOut(scene, blastCore, {
+                scale: 2.1,
+                alpha: 0,
+                duration: 330,
+                ease: "Cubic.easeOut",
+            });
+        });
+    });
+
+    for (let index = 0; index < 14; index += 1) {
+        const angle = rand(0, Math.PI * 2);
+        const distance = randInt(34, 88);
+        const debris = scene.add.rectangle(
+            x,
+            y,
+            randInt(2, 5),
+            randInt(3, 7),
+            index % 3 === 0 ? 0xd86a2b : 0x25282b,
+            0.95
+        );
+        debris.setAngle(randInt(0, 180));
+        scene.tweens.add({
+            targets: debris,
+            x: x + (Math.cos(angle) * distance),
+            y: y + (Math.sin(angle) * distance) + randInt(10, 28),
+            angle: debris.angle + randInt(160, 420),
+            scaleX: 0.25,
+            scaleY: 0.25,
+            alpha: 0,
+            duration: randInt(720, 1180),
+            ease: "Cubic.easeOut",
+            onComplete: () => debris.destroy(),
+        });
+    }
+};
+
+const animateSinkingShip = (scene, boardSide, shipId, attempt = 0) => {
+    const shipElement = document.querySelector(
+        `[data-board-side="${boardSide}"][data-ship-id="${shipId}"]`
+    );
+
+    if (!shipElement) {
+        if (attempt < 6) {
+            scene.time.delayedCall(
+                40,
+                () => animateSinkingShip(scene, boardSide, shipId, attempt + 1)
+            );
+        }
+        return;
+    }
+
+    const initialOpacity = Number.parseFloat(
+        window.getComputedStyle(shipElement).opacity
+    ) || 1;
+    const state = { y: 0, scale: 1, opacity: initialOpacity };
+
+    shipElement.classList.add("ship-is-sinking");
+    shipElement.style.willChange = "transform, opacity";
+
+    scene.tweens.add({
+        targets: state,
+        y: 9,
+        scale: 0.94,
+        opacity: 0.46,
+        delay: 150,
+        duration: 1750,
+        ease: "Cubic.easeIn",
+        onUpdate: () => {
+            shipElement.style.transform = `translate3d(0, ${state.y}px, 0) scale(${state.scale})`;
+            shipElement.style.opacity = String(state.opacity);
+        },
+        onComplete: () => {
+            shipElement.classList.remove("ship-is-sinking");
+            shipElement.style.willChange = "";
+        },
+    });
 };
 
 const BattleEffectsLayer = forwardRef(function BattleEffectsLayer(
@@ -355,7 +450,6 @@ const BattleEffectsLayer = forwardRef(function BattleEffectsLayer(
             const { x, y } = cellCenter(command.row, command.col);
             playHit(scene, x, y);
             playLingeringSmoke(scene, x, y);
-            scene.cameras.main.shake(160, 0.009);
         }
 
         if (command.type === "sunk") {
@@ -373,25 +467,7 @@ const BattleEffectsLayer = forwardRef(function BattleEffectsLayer(
                 playBubbles(scene, x, y, delay + 280);
             });
 
-            const shipElement = document.querySelector(
-                `[data-board-side="${boardSide}"][data-ship-id="${command.shipId}"]`
-            );
-            if (shipElement) {
-                const state = { y: 0, scale: 1, opacity: 1 };
-                scene.tweens.add({
-                    targets: state,
-                    y: 9,
-                    scale: 0.94,
-                    opacity: 0.46,
-                    delay: 150,
-                    duration: 1750,
-                    ease: "Cubic.easeIn",
-                    onUpdate: () => {
-                        shipElement.style.transform = `translateY(${state.y}px) scale(${state.scale})`;
-                        shipElement.style.opacity = String(state.opacity);
-                    },
-                });
-            }
+            animateSinkingShip(scene, boardSide, command.shipId);
         }
 
         if (command.type === "banner") {

@@ -34,6 +34,10 @@
     transition: filter 500ms ease, opacity 500ms ease, transform 500ms ease;
 }
 
+.ship-overlay.ship-is-sinking {
+    transition: none;
+}
+
 .ship-drag-source {
     opacity: 0.22;
     filter: grayscale(0.35) brightness(0.7) !important;

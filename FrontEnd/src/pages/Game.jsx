@@ -539,15 +539,25 @@ function Game() {
             const cellName = `${colLetter}${rowNum}`;
 
             if (cell.hasShip) {
-                playerEffectsRef.current?.playHit(botShot.row, botShot.col);
                 if (botShot.result && botShot.result.isSunk) {
                     const sunkCells = markWaterAroundSunkShip(newPlayerBoard, botShot.result.shipId);
                     setPlayerShipsSunk(prev => prev.includes(botShot.result.shipId)
                         ? prev
                         : [...prev, botShot.result.shipId]);
-                    triggerSunkEffect("player", botShot.result.shipTypeId, botShot.result.shipId, sunkCells);
+                    window.requestAnimationFrame(() => {
+                        playerEffectsRef.current?.playHit(botShot.row, botShot.col);
+                        triggerSunkEffect(
+                            "player",
+                            botShot.result.shipTypeId,
+                            botShot.result.shipId,
+                            sunkCells
+                        );
+                    });
                     addLog(`Enemy DESTROYED your ship (size ${botShot.result.shipLength}) at ${cellName}!`, "defeat");
                 } else {
+                    window.requestAnimationFrame(() => {
+                        playerEffectsRef.current?.playHit(botShot.row, botShot.col);
+                    });
                     addLog(`Enemy hit your ship at ${cellName}!`, "enemy_hit");
                 }
                 
@@ -559,7 +569,9 @@ function Game() {
                     setTimeout(() => performBotMove(), delay);
                 }
             } else {
-                playerEffectsRef.current?.playMiss(botShot.row, botShot.col);
+                window.requestAnimationFrame(() => {
+                    playerEffectsRef.current?.playMiss(botShot.row, botShot.col);
+                });
                 addLog(`Enemy missed at ${cellName}.`, "enemy_miss");
                 setTimeout(() => startPlayerTurn(), 800);
             }
