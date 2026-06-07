@@ -27,7 +27,33 @@ const tweenOut = (scene, target, config) => {
     });
 };
 
+const playImpactRipple = (scene, x, y, intensity = 1) => {
+    [0, 120, 250].forEach((delay, index) => {
+        scene.time.delayedCall(delay, () => {
+            const ripple = ring(
+                scene,
+                x,
+                y,
+                7 + (index * 2),
+                index === 0 ? 0xa9efff : 0x4bb9d6,
+                0.6 - (index * 0.1),
+                index === 0 ? 2 : 1
+            );
+            ripple.setScale(0.35);
+            tweenOut(scene, ripple, {
+                scaleX: (3.6 + (index * 0.55)) * intensity,
+                scaleY: (2.1 + (index * 0.3)) * intensity,
+                alpha: 0,
+                duration: 780 + (index * 170),
+                ease: "Sine.easeOut",
+            });
+        });
+    });
+};
+
 const playMiss = (scene, x, y) => {
+    playImpactRipple(scene, x, y, 1);
+
     [0, 130].forEach((delay, index) => {
         const wave = ring(scene, x, y, 5, 0xcdf7ff, 0.95 - (index * 0.2), 2);
         wave.setScale(0.25);
@@ -68,6 +94,8 @@ const playMiss = (scene, x, y) => {
 };
 
 const playHit = (scene, x, y, compact = false) => {
+    playImpactRipple(scene, x, y, compact ? 0.75 : 1.12);
+
     const wave = ring(scene, x, y, 6, 0xffd287, 0.95, 2);
     tweenOut(scene, wave, {
         scale: compact ? 2.6 : 3.5,

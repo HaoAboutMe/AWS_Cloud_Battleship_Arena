@@ -605,7 +605,6 @@ function Game() {
             setStats(prev => ({ ...prev, shots: prev.shots + 1 }));
 
             if (shotResult.result === "HIT") {
-                enemyEffectsRef.current?.playHit(r, c);
                 setStats(prev => ({ ...prev, hits: prev.hits + 1 }));
                 if (shotResult.isSunk) {
                     const sunkCells = markWaterAroundSunkShip(newEnemyBoard, shotResult.shipId, false);
@@ -614,9 +613,20 @@ function Game() {
                     setEnemySunkShipIds(prev => prev.includes(shotResult.shipId)
                         ? prev
                         : [...prev, shotResult.shipId]);
-                    triggerSunkEffect("enemy", shotResult.shipTypeId, shotResult.shipId, sunkCells);
+                    window.requestAnimationFrame(() => {
+                        enemyEffectsRef.current?.playHit(r, c);
+                        triggerSunkEffect(
+                            "enemy",
+                            shotResult.shipTypeId,
+                            shotResult.shipId,
+                            sunkCells
+                        );
+                    });
                     addLog(`You destroyed an enemy ship (size ${shotResult.shipLength}) at ${cellName}!`, "destroy");
                 } else {
+                    window.requestAnimationFrame(() => {
+                        enemyEffectsRef.current?.playHit(r, c);
+                    });
                     addLog(`Direct hit at ${cellName}!`, "player_hit");
                 }
                 
@@ -627,7 +637,9 @@ function Game() {
                     setTimeout(() => startPlayerTurn(), 800);
                 }
             } else {
-                enemyEffectsRef.current?.playMiss(r, c);
+                window.requestAnimationFrame(() => {
+                    enemyEffectsRef.current?.playMiss(r, c);
+                });
                 setStats(prev => ({ ...prev, misses: prev.misses + 1 }));
                 addLog(`Missed at ${cellName}.`, "player_miss");
                 setTimeout(() => startBotTurn(), 800);
@@ -1001,6 +1013,8 @@ function Game() {
                             className={`pointer-events-none ship-overlay ${
                                 isShipSunk ? "ship-sunk-silhouette" : ""
                             } ${
+                                !isShipSunk ? "ship-afloat" : ""
+                            } ${
                                 draggedShip?.shipId === cell.shipId ? "ship-drag-source" : ""
                             } ${
                                 invalidRotationPreview?.shipId === cell.shipId ? "ship-invalid-source" : ""
@@ -1148,7 +1162,10 @@ function Game() {
                             </div>
                         ))}
                     </div>
-                    <div className="relative" style={{ width: `${GRID_SIZE_PX}px`, height: `${GRID_SIZE_PX}px` }}>
+                    <div
+                        className="ocean-board-surface relative"
+                        style={{ width: `${GRID_SIZE_PX}px`, height: `${GRID_SIZE_PX}px` }}
+                    >
                         <div className="absolute inset-0 z-20 pointer-events-none">{shipOverlays}</div>
                         <div className="absolute inset-0 z-30 pointer-events-none">{dragGhostOverlay}</div>
                         <div className="absolute inset-0 z-40 pointer-events-none">{hitOverlays}</div>
@@ -1162,7 +1179,7 @@ function Game() {
                             smokeCells={smokeCells}
                         />
                         <div
-                            className="relative grid"
+                            className="relative z-10 grid"
                             style={{
                                 gridTemplateColumns: `repeat(${BOARD_SIZE}, ${CELL_SIZE}px)`,
                                 gridAutoRows: `${CELL_SIZE}px`,
