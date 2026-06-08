@@ -467,11 +467,21 @@
 
 .ocean-cell {
     background:
-        radial-gradient(ellipse at 65% 18%, rgba(62, 143, 164, 0.08), transparent 48%),
-        linear-gradient(150deg, rgba(14, 45, 60, 0.54), rgba(3, 21, 32, 0.66)) !important;
+        radial-gradient(ellipse at 65% 18%, rgba(62, 143, 164, 0.15), transparent 48%),
+        linear-gradient(150deg, rgba(20, 60, 80, 0.65), rgba(10, 35, 50, 0.75)) !important;
     box-shadow:
-        inset 0 0 14px rgba(0, 0, 0, 0.16),
-        inset 0 1px 0 rgba(94, 169, 190, 0.04) !important;
+        inset 0 0 10px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(94, 169, 190, 0.2) !important;
+    transition: all 0.2s ease-out;
+}
+
+.ocean-cell:hover {
+    background:
+        radial-gradient(ellipse at 65% 18%, rgba(100, 200, 255, 0.25), transparent 48%),
+        linear-gradient(150deg, rgba(30, 80, 100, 0.75), rgba(15, 50, 70, 0.85)) !important;
+    box-shadow:
+        inset 0 0 15px rgba(0, 200, 255, 0.2),
+        inset 0 1px 0 rgba(100, 200, 255, 0.4) !important;
 }
 
 .ocean-board-surface {
@@ -503,20 +513,26 @@
 .ocean-board-surface::after {
     z-index: 1;
     inset: -8%;
-    opacity: 0.2;
+    opacity: 0.4;
     background:
         url("../assets/ocean/deep-ocean-texture.jpg");
     background-size: 540px 540px;
     background-position: 80px 45px;
     mix-blend-mode: screen;
-    filter: saturate(0.8) brightness(0.7) blur(0.5px);
+    filter: saturate(0.8) brightness(0.8) blur(0.5px);
     animation: ocean-highlight-drift 9s ease-in-out infinite alternate-reverse;
 }
 
 .ocean-board-surface .ocean-cell {
     background:
-        radial-gradient(ellipse at 65% 18%, rgba(62, 143, 164, 0.06), transparent 48%),
-        linear-gradient(150deg, rgba(9, 38, 53, 0.46), rgba(2, 18, 29, 0.58)) !important;
+        radial-gradient(ellipse at 65% 18%, rgba(62, 143, 164, 0.12), transparent 48%),
+        linear-gradient(150deg, rgba(15, 55, 75, 0.56), rgba(5, 25, 40, 0.68)) !important;
+}
+
+.ocean-board-surface .ocean-cell:hover {
+    background:
+        radial-gradient(ellipse at 65% 18%, rgba(100, 200, 255, 0.25), transparent 48%),
+        linear-gradient(150deg, rgba(30, 80, 100, 0.75), rgba(15, 50, 70, 0.85)) !important;
 }
 
 @keyframes ocean-texture-drift {
@@ -608,13 +624,13 @@
 
 .player-ship-cell {
     background:
-        radial-gradient(circle at center, rgba(20, 72, 91, 0.28), rgba(2, 18, 29, 0.82) 72%) !important;
+        radial-gradient(circle at center, rgba(20, 72, 91, 0.35), rgba(5, 25, 40, 0.85) 72%) !important;
     box-shadow:
         inset 0 0 16px rgba(0, 0, 0, 0.42),
-        inset 0 0 5px rgba(52, 135, 161, 0.16) !important;
+        inset 0 0 5px rgba(52, 135, 161, 0.25) !important;
 }
 
-.ocean-cell.drag-target-cell-valid {
+.ocean-board-surface .ocean-cell.drag-target-cell-valid {
     background:
         radial-gradient(circle at center, rgba(15, 73, 91, 0.62), rgba(1, 10, 18, 0.98) 76%) !important;
     box-shadow:
@@ -622,7 +638,7 @@
         inset 0 0 0 1px rgba(71, 170, 197, 0.22) !important;
 }
 
-.ocean-cell.drag-target-cell-invalid {
+.ocean-board-surface .ocean-cell.drag-target-cell-invalid {
     background:
         radial-gradient(circle at center, rgba(119, 29, 29, 0.66), rgba(24, 3, 7, 0.98) 76%) !important;
     box-shadow:

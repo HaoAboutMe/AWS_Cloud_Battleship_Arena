@@ -27,8 +27,8 @@ const PATROL_VERTICAL_IMAGE_OFFSET_Y = 8;
 const GRID_SIZE_PX = BOARD_SIZE * CELL_SIZE + (BOARD_SIZE - 1) * CELL_GAP;
 
 const SHIP_SPRITES = {
-    carrier: { 0: ship1, 90: ship1 },
-    patrol: { 0: ship2, 90: ship2 },
+    carrier: { 0: ship1, 90: ship1, 180: ship1, 270: ship1 },
+    patrol: { 0: ship2, 90: ship2, 180: ship2, 270: ship2 },
     zship: { 0: ship4, 90: ship4, 180: ship4, 270: ship4 },
     destroyer: { 0: ship3, 90: ship3, 180: ship3, 270: ship3 },
 };
@@ -86,6 +86,19 @@ const getDefaultTrayRotation = (shipDef) => (
         return bestRotation;
     }, shipDef.rotations[0])
 );
+
+const getCenterOffset = (shipDef, rotation) => {
+    const offsets = getShipOffsets(shipDef, rotation);
+    const bounds = getShipBounds(offsets);
+    const centerRow = (bounds.rows - 1) / 2;
+    const centerCol = (bounds.cols - 1) / 2;
+    const [grabRow, grabCol] = offsets.reduce((closest, offset) => {
+        const closestDistance = Math.abs(closest[0] - centerRow) + Math.abs(closest[1] - centerCol);
+        const offsetDistance = Math.abs(offset[0] - centerRow) + Math.abs(offset[1] - centerCol);
+        return offsetDistance < closestDistance ? offset : closest;
+    }, offsets[0]);
+    return { row: grabRow, col: grabCol };
+};
 
 function Game() {
     const location = useLocation();
@@ -335,21 +348,23 @@ function Game() {
         setRotation(placedShip.rotation);
     };
 
-    const movePlacedShipTo = (targetRow, targetCol, shipToMove = selectedShip) => {
+    const movePlacedShipTo = (targetRow, targetCol, shipToMove = selectedShip, skipUIUpdate = false) => {
         if (!shipToMove) return false;
 
         const newBoard = cloneBoard(playerBoard);
         clearShipFromBoard(newBoard, shipToMove.shipId);
 
         if (!canPlaceShip(newBoard, targetRow, targetCol, shipToMove.shipDef, shipToMove.rotation)) {
-            const invalidPlacement = {
-                ...shipToMove,
-                row: targetRow,
-                col: targetCol,
-            };
-            setInvalidRotationPreview(invalidPlacement);
-            setSelectedShip(invalidPlacement);
-            setHoverCell(null);
+            if (!skipUIUpdate) {
+                const invalidPlacement = {
+                    ...shipToMove,
+                    row: targetRow,
+                    col: targetCol,
+                };
+                setInvalidRotationPreview(invalidPlacement);
+                setSelectedShip(invalidPlacement);
+                setHoverCell(null);
+            }
             return false;
         }
 
@@ -438,21 +453,38 @@ function Game() {
     }, []);
 
     const rotateShip = useCallback(() => {
-        const shipToRotate = selectedShip?.shipDef || currentShip;
-        const currentRotation = selectedShip?.rotation ?? rotation;
-        if (!shipToRotate) return;
+        if (gameState !== 'PLACEMENT' && gameState !== 'READY') return;
 
-        const rotations = shipToRotate.rotations;
-        const idx = rotations.indexOf(currentRotation);
-        const nextRotation = rotations[(idx + 1) % rotations.length];
+        setDraggedShip(prev => {
+            if (prev) {
+                const rotations = prev.shipDef.rotations;
+                const idx = rotations.indexOf(prev.rotation);
+                const nextRotation = rotations[(idx + 1) % rotations.length];
+                const newCenter = getCenterOffset(prev.shipDef, nextRotation);
+                return { 
+                    ...prev, 
+                    rotation: nextRotation,
+                    grabOffset: newCenter,
+                    pointerOffset: {
+                        x: (newCenter.col * (CELL_SIZE + CELL_GAP)) + (CELL_SIZE / 2),
+                        y: (newCenter.row * (CELL_SIZE + CELL_GAP)) + (CELL_SIZE / 2),
+                    }
+                };
+            }
+            return prev;
+        });
+    }, [gameState]);
 
-        if (gameState === 'READY' && selectedShip) {
-            rotatePlacedShip(selectedShip);
-            return;
-        }
-
-        setRotation(nextRotation);
-    }, [currentShip, gameState, rotatePlacedShip, rotation, selectedShip]);
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (e.key === 'r' || e.key === 'R') {
+                e.preventDefault();
+                rotateShip();
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [rotateShip]);
 
     useEffect(() => {
         if (currentShip) {
@@ -652,84 +684,10 @@ function Game() {
     const handlePlayerCellHover = (r, c) => {
         if (gameState === 'PLACEMENT' || gameState === 'READY') {
             setHoverCell({ r, c });
-        }
-    };
-
-    const handlePlayerCellMouseDown = (event, r, c) => {
-        if (gameState !== 'PLACEMENT' && gameState !== 'READY') return;
-        if (event.button !== 0) return;
-
-        const placedShip = getPlacedShipSelectionAt(r, c);
-        if (!placedShip) return;
-
-        event.preventDefault();
-        const cellRect = event.currentTarget.getBoundingClientRect();
-        const shipToDrag = {
-            ...placedShip,
-            grabOffset: {
-                row: r - placedShip.row,
-                col: c - placedShip.col,
-            },
-            pointerOffset: {
-                x: ((c - placedShip.col) * (CELL_SIZE + CELL_GAP)) + (event.clientX - cellRect.left),
-                y: ((r - placedShip.row) * (CELL_SIZE + CELL_GAP)) + (event.clientY - cellRect.top),
-            },
-        };
-
-        setSelectedShip(placedShip);
-        setRotation(placedShip.rotation);
-        setDraggedShip(shipToDrag);
-        setDragPointer({ x: event.clientX, y: event.clientY });
-    };
-
-    const handlePlayerCellMouseUp = (r, c) => {
-        if ((gameState !== 'PLACEMENT' && gameState !== 'READY') || !draggedShip) return;
-
-        const targetRow = r - draggedShip.grabOffset.row;
-        const targetCol = c - draggedShip.grabOffset.col;
-        if (draggedShip.fromTray) {
-            const newBoard = cloneBoard(playerBoard);
-            if (canPlaceShip(
-                newBoard,
-                targetRow,
-                targetCol,
-                draggedShip.shipDef,
-                draggedShip.rotation
-            )) {
-                placeShip(
-                    newBoard,
-                    targetRow,
-                    targetCol,
-                    draggedShip.shipDef,
-                    draggedShip.rotation
-                );
-                setPlayerBoard(newBoard);
-                const isLastUnplacedShip = unplacedShipIds.length === 1
-                    && unplacedShipIds.includes(draggedShip.shipDef.id);
-                setUnplacedShipIds(current => current.filter(id => id !== draggedShip.shipDef.id));
-                if (isLastUnplacedShip) {
-                    addLog("Fleet deployed. Review the formation or press Ready.", "info");
-                }
+            if (invalidRotationPreview) {
+                setInvalidRotationPreview(null);
             }
-            setDraggedShip(null);
-            setDragPointer(null);
-            setHoverCell(null);
-            return;
         }
-
-        if (targetRow === draggedShip.row && targetCol === draggedShip.col) {
-            setDraggedShip(null);
-            setDragPointer(null);
-            return;
-        }
-
-        movePlacedShipTo(targetRow, targetCol, draggedShip);
-        setDraggedShip(null);
-        setDragPointer(null);
-        dragSkipClickRef.current = true;
-        window.setTimeout(() => {
-            dragSkipClickRef.current = false;
-        }, 0);
     };
 
     useEffect(() => {
@@ -738,41 +696,67 @@ function Game() {
         const updateDragPointer = (event) => {
             setDragPointer({ x: event.clientX, y: event.clientY });
         };
-        const stopDragging = () => {
-            setDraggedShip(null);
-            setDragPointer(null);
-        };
         document.addEventListener("mousemove", updateDragPointer);
-        document.addEventListener("mouseup", stopDragging);
         return () => {
             document.removeEventListener("mousemove", updateDragPointer);
-            document.removeEventListener("mouseup", stopDragging);
         };
     }, [draggedShip]);
 
-    const handlePlayerCellClick = (r, c) => {
-        if (dragSkipClickRef.current) return;
+    const handlePlayerCellClick = (event, r, c) => {
+        if (gameState !== 'PLACEMENT' && gameState !== 'READY') return;
 
-        if (gameState === 'PLACEMENT' || gameState === 'READY') {
-            const clickedCell = playerBoard[r][c];
-
-            if (clickedCell.hasShip && clickedCell.shipId !== selectedShip?.shipId) {
-                selectPlacedShip(clickedCell);
-                return;
+        if (draggedShip) {
+            const targetRow = r - draggedShip.grabOffset.row;
+            const targetCol = c - draggedShip.grabOffset.col;
+            if (draggedShip.fromTray) {
+                const newBoard = cloneBoard(playerBoard);
+                if (canPlaceShip(newBoard, targetRow, targetCol, draggedShip.shipDef, draggedShip.rotation)) {
+                    placeShip(newBoard, targetRow, targetCol, draggedShip.shipDef, draggedShip.rotation);
+                    setPlayerBoard(newBoard);
+                    const isLastUnplacedShip = unplacedShipIds.length === 1 && unplacedShipIds.includes(draggedShip.shipDef.id);
+                    setUnplacedShipIds(current => current.filter(id => id !== draggedShip.shipDef.id));
+                    if (isLastUnplacedShip) {
+                        addLog("Fleet deployed. Review the formation or press Ready.", "info");
+                    }
+                    setDraggedShip(null);
+                    setDragPointer(null);
+                    setHoverCell(null);
+                } else {
+                    // Invalid placement, do nothing
+                    addLog("Invalid placement position.", "warning");
+                }
+            } else {
+                const success = movePlacedShipTo(targetRow, targetCol, draggedShip, true);
+                if (success) {
+                    setDraggedShip(null);
+                    setDragPointer(null);
+                } else {
+                    addLog("Invalid placement position.", "warning");
+                }
             }
-
-            if (clickedCell.hasShip && clickedCell.shipId === selectedShip?.shipId) {
-                selectPlacedShip(clickedCell);
-                return;
-            }
-
-            if (!selectedShip) {
-                if (clickedCell.hasShip) selectPlacedShip(clickedCell);
-                return;
-            }
-
-            movePlacedShipTo(r, c);
             return;
+        }
+
+        const placedShip = getPlacedShipSelectionAt(r, c);
+        if (placedShip) {
+            const newCenter = getCenterOffset(placedShip.shipDef, placedShip.rotation);
+            const shipToDrag = {
+                ...placedShip,
+                grabOffset: newCenter,
+                pointerOffset: {
+                    x: (newCenter.col * (CELL_SIZE + CELL_GAP)) + (CELL_SIZE / 2),
+                    y: (newCenter.row * (CELL_SIZE + CELL_GAP)) + (CELL_SIZE / 2),
+                },
+            };
+
+            const newBoard = cloneBoard(playerBoard);
+            clearShipFromBoard(newBoard, placedShip.shipId);
+            setPlayerBoard(newBoard);
+
+            setSelectedShip(placedShip);
+            setRotation(placedShip.rotation);
+            setDraggedShip(shipToDrag);
+            setDragPointer({ x: event.clientX, y: event.clientY });
         }
     };
 
@@ -782,29 +766,36 @@ function Game() {
 
         if (gameState !== 'PLACEMENT' && gameState !== 'READY') return;
 
+        if (draggedShip) {
+            rotateShip();
+            return;
+        }
+
         const placedShip = getPlacedShipSelectionAt(r, c);
         if (!placedShip) return;
 
-        setDraggedShip(null);
-        setDragPointer(null);
-        setHoverCell(null);
         rotatePlacedShip(placedShip);
     };
 
-    const handleTrayShipMouseDown = (event, shipDef) => {
-        if (gameState !== 'PLACEMENT' || event.button !== 0) return;
-
+    const handleTrayShipClick = (event, shipDef) => {
+        if (gameState !== 'PLACEMENT') return;
         event.preventDefault();
+        
+        if (draggedShip && draggedShip.shipId === `tray-${shipDef.id}`) {
+            return; // Already dragging this ship
+        }
+
+        // Restore previously picked ship back to the board if it was picked from the board
+        if (draggedShip && !draggedShip.fromTray) {
+            setPlayerBoard(prev => {
+                const newBoard = cloneBoard(prev);
+                placeShip(newBoard, draggedShip.row, draggedShip.col, draggedShip.shipDef, draggedShip.rotation);
+                return newBoard;
+            });
+        }
         const rotation = trayRotations[shipDef.id] ?? shipDef.rotations[0];
-        const offsets = getShipOffsets(shipDef, rotation);
-        const bounds = getShipBounds(offsets);
-        const centerRow = (bounds.rows - 1) / 2;
-        const centerCol = (bounds.cols - 1) / 2;
-        const [grabRow, grabCol] = offsets.reduce((closest, offset) => {
-            const closestDistance = Math.abs(closest[0] - centerRow) + Math.abs(closest[1] - centerCol);
-            const offsetDistance = Math.abs(offset[0] - centerRow) + Math.abs(offset[1] - centerCol);
-            return offsetDistance < closestDistance ? offset : closest;
-        }, offsets[0]);
+        const newCenter = getCenterOffset(shipDef, rotation);
+
         setSelectedShip(null);
         setInvalidRotationPreview(null);
         setDraggedShip({
@@ -814,10 +805,10 @@ function Game() {
             rotation,
             row: 0,
             col: 0,
-            grabOffset: { row: grabRow, col: grabCol },
+            grabOffset: newCenter,
             pointerOffset: {
-                x: (grabCol * (CELL_SIZE + CELL_GAP)) + (CELL_SIZE / 2),
-                y: (grabRow * (CELL_SIZE + CELL_GAP)) + (CELL_SIZE / 2),
+                x: (newCenter.col * (CELL_SIZE + CELL_GAP)) + (CELL_SIZE / 2),
+                y: (newCenter.row * (CELL_SIZE + CELL_GAP)) + (CELL_SIZE / 2),
             },
         });
         setDragPointer({ x: event.clientX, y: event.clientY });
@@ -848,7 +839,7 @@ function Game() {
     };
 
     const beginBattle = () => {
-        if (invalidRotationPreview || unplacedShipIds.length > 0) return;
+        if (invalidRotationPreview || unplacedShipIds.length > 0 || draggedShip) return;
 
         const newEnemyBoard = [...enemyBoard.map(row => [...row.map(c => ({...c}))])];
         placeShipsRandomly(newEnemyBoard, shipsToPlace);
@@ -977,7 +968,7 @@ function Game() {
             }
         }
 
-        if (!isEnemy && (gameState === 'PLACEMENT' || gameState === 'READY') && invalidRotationPreview) {
+        if (!isEnemy && (gameState === 'PLACEMENT' || gameState === 'READY') && invalidRotationPreview && !draggedShip) {
             placementOffsets = getShipOffsets(
                 invalidRotationPreview.shipDef,
                 invalidRotationPreview.rotation
@@ -1212,10 +1203,8 @@ function Game() {
                                             key={`${r}-${c}`}
                                             onMouseEnter={() => !isEnemy && handlePlayerCellHover(r, c)}
                                             onMouseLeave={() => !isEnemy && setHoverCell(null)}
-                                            onMouseDown={(event) => !isEnemy && handlePlayerCellMouseDown(event, r, c)}
-                                            onMouseUp={() => !isEnemy && handlePlayerCellMouseUp(r, c)}
                                             onContextMenu={(event) => !isEnemy && handlePlayerCellContextMenu(event, r, c)}
-                                            onClick={() => isEnemy ? handleEnemyCellClick(r, c) : handlePlayerCellClick(r, c)}
+                                            onClick={(event) => isEnemy ? handleEnemyCellClick(r, c) : handlePlayerCellClick(event, r, c)}
                                             className={`ocean-cell relative ${cursorClass} overflow-visible transition-all duration-300 ${baseCellBg} ${
                                                 !isEnemy && cell.hasShip ? "player-ship-cell" : ""
                                             } ${
@@ -1295,9 +1284,9 @@ function Game() {
                         {(gameState === 'PLACEMENT' || gameState === 'READY') && unplacedShipIds.length === 0 && (
                             <button
                                 onClick={beginBattle}
-                                disabled={Boolean(invalidRotationPreview) || unplacedShipIds.length > 0}
+                                disabled={Boolean(invalidRotationPreview) || unplacedShipIds.length > 0 || Boolean(draggedShip)}
                                 className={`font-bold px-8 py-2 rounded-sm transition-all tracking-widest ${
-                                    invalidRotationPreview
+                                    (invalidRotationPreview || draggedShip)
                                         ? "bg-surface-container text-on-surface-variant/40 cursor-not-allowed opacity-50"
                                         : "bg-secondary text-on-secondary-fixed hover:bg-secondary-container active:scale-95"
                                 }`}
@@ -1362,8 +1351,8 @@ function Game() {
                                                     className={`deployment-ship-card deployment-${shipDef.id} ${
                                                         isPlaced ? "is-placed" : ""
                                                     }`}
-                                                    onMouseDown={(event) => {
-                                                        if (!isPlaced) handleTrayShipMouseDown(event, shipDef);
+                                                    onClick={(event) => {
+                                                        if (!isPlaced) handleTrayShipClick(event, shipDef);
                                                     }}
                                                     onContextMenu={(event) => {
                                                         if (!isPlaced) handleTrayShipContextMenu(event, shipDef);

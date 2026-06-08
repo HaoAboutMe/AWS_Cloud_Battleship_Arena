@@ -6,7 +6,7 @@ export const SHIP_DEFS = [
         label: "Carrier",
         size: 5,
         baseOffsets: [[0, 0], [0, 1], [0, 2], [0, 3], [0, 4]],
-        rotations: [0, 90],
+        rotations: [0, 90, 180, 270],
     },
     {
         id: "zship",
@@ -27,7 +27,7 @@ export const SHIP_DEFS = [
         label: "Patrol",
         size: 2,
         baseOffsets: [[0, 0], [0, 1]],
-        rotations: [0, 90],
+        rotations: [0, 90, 180, 270],
     },
 ];
 
@@ -36,7 +36,7 @@ const LEGACY_SHIP_DEFS = [5, 4, 3, 2].map((length) => ({
     label: `Legacy-${length}`,
     size: length,
     baseOffsets: Array.from({ length }, (_, i) => [0, i]),
-    rotations: [0, 90],
+    rotations: [0, 90, 180, 270],
 }));
 
 const rotateOffsetsClockwise = (offsets) => offsets.map(([r, c]) => [c, -r]);
@@ -92,7 +92,7 @@ const normalizeShipArgs = (shipOrLength, rotationOrIsHorizontal) => {
         label: `Legacy-${length}`,
         size: length,
         baseOffsets: Array.from({ length }, (_, i) => [0, i]),
-        rotations: [0, 90],
+        rotations: [0, 90, 180, 270],
     };
     const isHorizontal = Boolean(rotationOrIsHorizontal);
     const rotation = isHorizontal ? 0 : 90;
