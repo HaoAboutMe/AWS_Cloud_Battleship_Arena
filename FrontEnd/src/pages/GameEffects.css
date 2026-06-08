@@ -429,6 +429,31 @@
     }
 }
 
+@media (max-width: 767px) {
+    .board-heading {
+        height: auto;
+        margin-bottom: 8px;
+        padding-top: 0;
+    }
+
+    .board-heading h3 {
+        margin-bottom: 8px;
+    }
+
+    .fleet-image-panel {
+        top: auto;
+        right: auto;
+        margin-top: 0;
+        margin-bottom: 10px;
+        min-height: auto;
+    }
+
+    .fleet-image-list {
+        padding-top: 4px;
+        padding-bottom: 4px;
+    }
+}
+
 @media (max-height: 820px) and (min-width: 1024px) {
     .game-main {
         padding-top: 8px;
@@ -488,7 +513,18 @@
     isolation: isolate;
     background: #031623;
     overflow: hidden;
+    --cell-size: 40px;
+    --cell-gap: 2px;
+    --board-size: calc(10 * var(--cell-size) + 9 * var(--cell-gap));
 }
+
+@media (max-width: 767px) {
+    .ocean-board-surface {
+        --cell-gap: 2px;
+        --cell-size: calc((100vw - 32px - 9 * var(--cell-gap)) / 10);
+    }
+}
+
 
 .ocean-board-surface::before,
 .ocean-board-surface::after {

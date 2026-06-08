@@ -100,8 +100,19 @@ const getCenterOffset = (shipDef, rotation) => {
     return { row: grabRow, col: grabCol };
 };
 
+const useIsMobile = () => {
+    const [isMobile, setIsMobile] = useState(window.innerWidth <= 767);
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth <= 767);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+    return isMobile;
+};
+
 function Game() {
     const location = useLocation();
+    const isMobile = useIsMobile();
     const [difficulty, setDifficulty] = useState("easy");
 
     const [gameState, setGameState] = useState('PLACEMENT'); // PLACEMENT, READY, PLAYER_TURN, BOT_TURN, GAME_OVER
@@ -116,6 +127,7 @@ function Game() {
     const [selectedShip, setSelectedShip] = useState(null);
     const [draggedShip, setDraggedShip] = useState(null);
     const [dragPointer, setDragPointer] = useState(null);
+    const [originalPlacement, setOriginalPlacement] = useState(null);
     const [invalidRotationPreview, setInvalidRotationPreview] = useState(null);
     const [unplacedShipIds, setUnplacedShipIds] = useState(() => SHIP_DEFS.map(ship => ship.id));
     const [trayRotations, setTrayRotations] = useState(() => (
@@ -140,12 +152,15 @@ function Game() {
     const [playerShipsSunk, setPlayerShipsSunk] = useState([]);
     const [sunkEffect, setSunkEffect] = useState(null);
     const [showModal, setShowModal] = useState(false);
+    const [touchData, setTouchData] = useState(null);
+    const [showMobileLog, setShowMobileLog] = useState(false);
 
     const logContainerRef = useRef(null);
     const timerRef = useRef(null);
     const dragSkipClickRef = useRef(false);
     const playerEffectsRef = useRef(null);
     const enemyEffectsRef = useRef(null);
+    const playerBoardRef = useRef(null);
     const currentShip = shipsToPlace[currentShipIndex];
     const playerSunkShipTypeIds = playerBoard
         .flat()
@@ -203,6 +218,12 @@ function Game() {
     }, [location]);
 
     useEffect(() => {
+        if (isMobile && gameState === 'PLACEMENT' && unplacedShipIds.length > 0) {
+            autoArrangeFleet();
+        }
+    }, [isMobile, gameState, unplacedShipIds.length]);
+
+    useEffect(() => {
         if (logContainerRef.current) {
             logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight;
         }
@@ -251,6 +272,10 @@ function Game() {
                 cell.shipOriginCol = null;
             });
         });
+    };
+
+    const removeShipById = (board, shipId) => {
+        clearShipFromBoard(board, shipId);
     };
 
     const getRootCellForShip = (board, shipId) => {
@@ -387,24 +412,77 @@ function Game() {
         return true;
     };
 
+    const rotatePlacedShipSafely = useCallback((shipToRotate) => {
+        if (!shipToRotate) return;
+
+        setPlayerBoard(prevBoard => {
+            const boardWithoutShip = cloneBoard(prevBoard);
+            removeShipById(boardWithoutShip, shipToRotate.shipId);
+
+            const rotations = shipToRotate.shipDef.rotations;
+            const idx = rotations.indexOf(shipToRotate.rotation);
+            const nextRotation = rotations[(idx + 1) % rotations.length];
+            
+            const currentCenterOffset = getCenterOffset(shipToRotate.shipDef, shipToRotate.rotation);
+            const nextCenterOffset = getCenterOffset(shipToRotate.shipDef, nextRotation);
+            
+            const nextRow = shipToRotate.row + currentCenterOffset.row - nextCenterOffset.row;
+            const nextCol = shipToRotate.col + currentCenterOffset.col - nextCenterOffset.col;
+
+            const canRotate = canPlaceShip(
+                boardWithoutShip,
+                nextRow,
+                nextCol,
+                shipToRotate.shipDef,
+                nextRotation
+            );
+
+            if (!canRotate) {
+                addLog("Cannot rotate here. Area blocked.", "warning");
+                setDraggedShip(null);
+                setDragPointer(null);
+                setHoverCell(null);
+                setInvalidRotationPreview(null);
+                return prevBoard; // Return original board untouched
+            }
+
+            placeShip(
+                boardWithoutShip,
+                nextRow,
+                nextCol,
+                shipToRotate.shipDef,
+                nextRotation
+            );
+            
+            const newRootCell = getRootCellAtOrigin(boardWithoutShip, nextRow, nextCol);
+            
+            setInvalidRotationPreview(null);
+            if (newRootCell) {
+                setSelectedShip({
+                    ...shipToRotate,
+                    shipId: newRootCell.shipId,
+                    rotation: nextRotation,
+                    row: nextRow,
+                    col: nextCol,
+                });
+            }
+            setRotation(nextRotation);
+            return boardWithoutShip;
+        });
+    }, [addLog]);
+
     const rotatePlacedShip = useCallback((shipToRotate) => {
         if (!shipToRotate) return;
 
         const rotations = shipToRotate.shipDef.rotations;
         const idx = rotations.indexOf(shipToRotate.rotation);
         const nextRotation = rotations[(idx + 1) % rotations.length];
-        const currentBounds = getShipBounds(
-            getShipOffsets(shipToRotate.shipDef, shipToRotate.rotation)
-        );
-        const nextBounds = getShipBounds(
-            getShipOffsets(shipToRotate.shipDef, nextRotation)
-        );
-        const nextRow = Math.round(
-            shipToRotate.row + ((currentBounds.rows - nextBounds.rows) / 2)
-        );
-        const nextCol = Math.round(
-            shipToRotate.col + ((currentBounds.cols - nextBounds.cols) / 2)
-        );
+        
+        const currentCenterOffset = getCenterOffset(shipToRotate.shipDef, shipToRotate.rotation);
+        const nextCenterOffset = getCenterOffset(shipToRotate.shipDef, nextRotation);
+        
+        const nextRow = shipToRotate.row + currentCenterOffset.row - nextCenterOffset.row;
+        const nextCol = shipToRotate.col + currentCenterOffset.col - nextCenterOffset.col;
 
         setPlayerBoard(prevBoard => {
             const newBoard = cloneBoard(prevBoard);
@@ -694,13 +772,102 @@ function Game() {
         if (!draggedShip) return undefined;
 
         const updateDragPointer = (event) => {
-            setDragPointer({ x: event.clientX, y: event.clientY });
+            let clientX, clientY;
+            if (event.touches) {
+                // prevent scrolling while dragging
+                event.preventDefault();
+                clientX = event.touches[0].clientX;
+                clientY = event.touches[0].clientY;
+            } else {
+                clientX = event.clientX;
+                clientY = event.clientY;
+            }
+            setDragPointer({ x: clientX, y: clientY });
+
+            if (isMobile && playerBoardRef.current && draggedShip) {
+                const rect = playerBoardRef.current.getBoundingClientRect();
+                if (clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom) {
+                    const cellSize = rect.width / 10;
+                    const c = Math.floor((clientX - rect.left) / cellSize);
+                    const r = Math.floor((clientY - rect.top) / cellSize);
+                    if (r >= 0 && r < BOARD_SIZE && c >= 0 && c < BOARD_SIZE) {
+                        setHoverCell({ r, c });
+                    } else {
+                        setHoverCell(null);
+                    }
+                } else {
+                    setHoverCell(null);
+                }
+            }
         };
+
+        const handleTouchDrop = (event) => {
+            if (!isMobile || !draggedShip || !originalPlacement) return;
+            document.body.style.overflow = "";
+            document.documentElement.style.overflow = "";
+            
+            const touch = event.changedTouches[0];
+            let dropHoverCell = null;
+            if (playerBoardRef.current) {
+                const rect = playerBoardRef.current.getBoundingClientRect();
+                const clientX = touch.clientX;
+                const clientY = touch.clientY;
+                if (clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom) {
+                    const cellSize = rect.width / 10;
+                    const c = Math.floor((clientX - rect.left) / cellSize);
+                    const r = Math.floor((clientY - rect.top) / cellSize);
+                    if (r >= 0 && r < BOARD_SIZE && c >= 0 && c < BOARD_SIZE) {
+                        dropHoverCell = { r, c };
+                    }
+                }
+            }
+
+            if (dropHoverCell) {
+                const targetRow = dropHoverCell.r - draggedShip.grabOffset.row;
+                const targetCol = dropHoverCell.c - draggedShip.grabOffset.col;
+                
+                setPlayerBoard(prevBoard => {
+                    const newBoard = cloneBoard(prevBoard);
+                    // clear any remaining original instances of this ship before place
+                    removeShipById(newBoard, originalPlacement.shipId);
+                    
+                    if (canPlaceShip(newBoard, targetRow, targetCol, draggedShip.shipDef, draggedShip.rotation)) {
+                        placeShip(newBoard, targetRow, targetCol, draggedShip.shipDef, draggedShip.rotation);
+                    } else {
+                        placeShip(newBoard, originalPlacement.row, originalPlacement.col, originalPlacement.shipDef, originalPlacement.rotation);
+                        addLog("Invalid placement. Ship returned to original position.", "warning");
+                    }
+                    return newBoard;
+                });
+            } else {
+                // Cancel drag
+                setPlayerBoard(prevBoard => {
+                    const newBoard = cloneBoard(prevBoard);
+                    removeShipById(newBoard, originalPlacement.shipId);
+                    placeShip(newBoard, originalPlacement.row, originalPlacement.col, originalPlacement.shipDef, originalPlacement.rotation);
+                    return newBoard;
+                });
+            }
+            
+            setDraggedShip(null);
+            setDragPointer(null);
+            setTouchData(null);
+            setOriginalPlacement(null);
+            setHoverCell(null);
+        };
+
         document.addEventListener("mousemove", updateDragPointer);
+        document.addEventListener("touchmove", updateDragPointer, { passive: false });
+        document.addEventListener("touchend", handleTouchDrop);
+        
         return () => {
             document.removeEventListener("mousemove", updateDragPointer);
+            document.removeEventListener("touchmove", updateDragPointer);
+            document.removeEventListener("touchend", handleTouchDrop);
+            document.body.style.overflow = "";
+            document.documentElement.style.overflow = "";
         };
-    }, [draggedShip]);
+    }, [draggedShip, isMobile]);
 
     const handlePlayerCellClick = (event, r, c) => {
         if (gameState !== 'PLACEMENT' && gameState !== 'READY') return;
@@ -775,6 +942,88 @@ function Game() {
         if (!placedShip) return;
 
         rotatePlacedShip(placedShip);
+    };
+
+    const handleTouchStart = (e, r, c) => {
+        if (!isMobile || (gameState !== 'PLACEMENT' && gameState !== 'READY')) return;
+        const placedShip = getPlacedShipSelectionAt(r, c);
+        if (!placedShip) return;
+
+        setTouchData({
+            x: e.touches[0].clientX,
+            y: e.touches[0].clientY,
+            ship: placedShip,
+            startTime: Date.now(),
+            r, c,
+            moved: false,
+        });
+    };
+
+    const handleTouchMove = (e) => {
+        if (!isMobile || !touchData || draggedShip || (gameState !== 'PLACEMENT' && gameState !== 'READY')) return;
+        
+        const dx = e.touches[0].clientX - touchData.x;
+        const dy = e.touches[0].clientY - touchData.y;
+        const distance = Math.sqrt(dx*dx + dy*dy);
+        
+        if (distance >= 8 && !touchData.moved) {
+            setTouchData(prev => ({ ...prev, moved: true }));
+            
+            document.body.style.overflow = "hidden";
+            document.documentElement.style.overflow = "hidden";
+            
+            const placedShip = touchData.ship;
+            const grabRowOffset = touchData.r - placedShip.row;
+            const grabColOffset = touchData.c - placedShip.col;
+            
+            setOriginalPlacement({
+                shipId: placedShip.shipId,
+                shipDef: placedShip.shipDef,
+                row: placedShip.row,
+                col: placedShip.col,
+                rotation: placedShip.rotation,
+            });
+
+            let cellStep = CELL_SIZE + CELL_GAP;
+            if (playerBoardRef.current) {
+                const rect = playerBoardRef.current.getBoundingClientRect();
+                cellStep = rect.width / 10;
+            }
+
+            const shipToDrag = {
+                ...placedShip,
+                grabOffset: { row: grabRowOffset, col: grabColOffset },
+                pointerOffset: {
+                    x: grabColOffset * cellStep + cellStep / 2,
+                    y: grabRowOffset * cellStep + cellStep / 2,
+                },
+            };
+
+            const newBoard = cloneBoard(playerBoard);
+            clearShipFromBoard(newBoard, placedShip.shipId);
+            setPlayerBoard(newBoard);
+
+            setSelectedShip(placedShip);
+            setRotation(placedShip.rotation);
+            setDraggedShip(shipToDrag);
+            setDragPointer({ x: e.touches[0].clientX, y: e.touches[0].clientY });
+        }
+    };
+
+    const handleTouchEnd = (e, r, c) => {
+        if (!isMobile || !touchData) return;
+        
+        if (draggedShip) {
+            setTouchData(null);
+            return;
+        }
+        
+        const duration = Date.now() - touchData.startTime;
+        
+        if (!touchData.moved && duration < 200) {
+            rotatePlacedShipSafely(touchData.ship);
+        }
+        setTouchData(null);
     };
 
     const handleTrayShipClick = (event, shipDef) => {
@@ -861,19 +1110,15 @@ function Game() {
 
     const getShipOverlayStyle = (cell) => {
         if (!cell.shipBounds) return null;
-        const width = (cell.shipBounds.cols * CELL_SIZE) + ((cell.shipBounds.cols - 1) * CELL_GAP);
-        const height = (cell.shipBounds.rows * CELL_SIZE) + ((cell.shipBounds.rows - 1) * CELL_GAP);
         const originCol = cell.shipOriginCol ?? cell.col;
         const originRow = cell.shipOriginRow ?? cell.row;
-        const left = originCol * (CELL_SIZE + CELL_GAP);
-        const top = originRow * (CELL_SIZE + CELL_GAP);
 
         return {
             position: "absolute",
-            left: `${left + SHIP_CELL_PADDING}px`,
-            top: `${top + SHIP_CELL_PADDING}px`,
-            width: `${width - (SHIP_CELL_PADDING * 2)}px`,
-            height: `${height - (SHIP_CELL_PADDING * 2)}px`,
+            left: `calc(${originCol} * (var(--cell-size) + var(--cell-gap)) + ${SHIP_CELL_PADDING}px)`,
+            top: `calc(${originRow} * (var(--cell-size) + var(--cell-gap)) + ${SHIP_CELL_PADDING}px)`,
+            width: `calc(${cell.shipBounds.cols} * var(--cell-size) + ${cell.shipBounds.cols - 1} * var(--cell-gap) - ${SHIP_CELL_PADDING * 2}px)`,
+            height: `calc(${cell.shipBounds.rows} * var(--cell-size) + ${cell.shipBounds.rows - 1} * var(--cell-gap) - ${SHIP_CELL_PADDING * 2}px)`,
             overflow: "hidden",
             filter: "drop-shadow(0 0 6px rgba(0, 0, 0, 0.45))",
         };
@@ -881,8 +1126,6 @@ function Game() {
 
     const getShipImageStyle = (cell) => {
         if (!cell.shipBounds) return null;
-        const width = (cell.shipBounds.cols * CELL_SIZE) + ((cell.shipBounds.cols - 1) * CELL_GAP);
-        const height = (cell.shipBounds.rows * CELL_SIZE) + ((cell.shipBounds.rows - 1) * CELL_GAP);
         const rotationDeg = cell.shipRotation || 0;
         const quarterTurn = rotationDeg === 90 || rotationDeg === 270;
         const isAngledShip = cell.shipTypeId === "destroyer" || cell.shipTypeId === "zship";
@@ -897,6 +1140,9 @@ function Game() {
         const offsetY = rotatedOffset.y;
         const scale = isLShip ? L_SHIP_IMAGE_SCALE : (isAngledShip ? SHIP_IMAGE_SCALE : 1);
 
+        const wCalc = `calc(${cell.shipBounds.cols} * var(--cell-size) + ${cell.shipBounds.cols - 1} * var(--cell-gap))`;
+        const hCalc = `calc(${cell.shipBounds.rows} * var(--cell-size) + ${cell.shipBounds.rows - 1} * var(--cell-gap))`;
+
         if (isStraightShip) {
             const straightQuarterTurn = straightImageRotation === 90 || straightImageRotation === 270;
             const straightScale = cell.shipTypeId === "patrol" ? 1.5 : 1;
@@ -909,10 +1155,10 @@ function Game() {
                 : (cell.shipTypeId === "patrol" ? PATROL_IMAGE_OFFSET_Y : 0);
             return {
                 position: "absolute",
-                left: straightQuarterTurn ? `${(width - height) / 2}px` : "0",
-                top: straightQuarterTurn ? `${(height - width) / 2}px` : "0",
-                width: straightQuarterTurn ? `${height}px` : "100%",
-                height: straightQuarterTurn ? `${width}px` : "100%",
+                left: straightQuarterTurn ? `calc((${wCalc} - ${hCalc}) / 2)` : "0",
+                top: straightQuarterTurn ? `calc((${hCalc} - ${wCalc}) / 2)` : "0",
+                width: straightQuarterTurn ? hCalc : "100%",
+                height: straightQuarterTurn ? wCalc : "100%",
                 objectFit: "cover",
                 objectPosition: "center",
                 transform: `translate(${straightOffsetX}px, ${straightOffsetY}px) rotate(${straightImageRotation}deg) scale(${straightScale})`,
@@ -924,10 +1170,10 @@ function Game() {
 
         return {
             position: "absolute",
-            left: quarterTurn ? `${(width - height) / 2}px` : "0",
-            top: quarterTurn ? `${(height - width) / 2}px` : "0",
-            width: quarterTurn ? `${height}px` : "100%",
-            height: quarterTurn ? `${width}px` : "100%",
+            left: quarterTurn ? `calc((${wCalc} - ${hCalc}) / 2)` : "0",
+            top: quarterTurn ? `calc((${hCalc} - ${wCalc}) / 2)` : "0",
+            width: quarterTurn ? hCalc : "100%",
+            height: quarterTurn ? wCalc : "100%",
             objectFit: isAngledShip ? "cover" : "fill",
             objectPosition: "center",
             transform: `translate(${offsetX}px, ${offsetY}px) rotate(${rotationDeg}deg) scale(${scale})`,
@@ -1020,10 +1266,10 @@ function Game() {
                                         key={`${cell.shipId}-${shipCell.row}-${shipCell.col}`}
                                         className="absolute bg-secondary/30 border border-secondary/40"
                                         style={{
-                                            left: `${(shipCell.col - (cell.shipOriginCol ?? cell.col)) * (CELL_SIZE + CELL_GAP)}px`,
-                                            top: `${(shipCell.row - (cell.shipOriginRow ?? cell.row)) * (CELL_SIZE + CELL_GAP)}px`,
-                                            width: `${CELL_SIZE}px`,
-                                            height: `${CELL_SIZE}px`,
+                                            left: `calc(${(shipCell.col - (cell.shipOriginCol ?? cell.col))} * (var(--cell-size) + var(--cell-gap)))`,
+                                            top: `calc(${(shipCell.row - (cell.shipOriginRow ?? cell.row))} * (var(--cell-size) + var(--cell-gap)))`,
+                                            width: `var(--cell-size)`,
+                                            height: `var(--cell-size)`,
                                         }}
                                     />
                                 ))
@@ -1080,8 +1326,8 @@ function Game() {
             const ghostSpriteUrl = resolveSpriteUrl(
                 SHIP_SPRITES[draggedShip.shipDef.id]?.[draggedShip.rotation]
             );
-            const ghostWidth = (bounds.cols * CELL_SIZE) + ((bounds.cols - 1) * CELL_GAP);
-            const ghostHeight = (bounds.rows * CELL_SIZE) + ((bounds.rows - 1) * CELL_GAP);
+            const ghostWidth = `calc(${bounds.cols} * var(--cell-size) + ${bounds.cols - 1} * var(--cell-gap))`;
+            const ghostHeight = `calc(${bounds.rows} * var(--cell-size) + ${bounds.rows - 1} * var(--cell-gap))`;
 
             if (ghostSpriteUrl) {
                 dragGhostOverlay = (
@@ -1091,8 +1337,8 @@ function Game() {
                             position: "fixed",
                             left: `${dragPointer.x - draggedShip.pointerOffset.x}px`,
                             top: `${dragPointer.y - draggedShip.pointerOffset.y}px`,
-                            width: `${ghostWidth}px`,
-                            height: `${ghostHeight}px`,
+                            width: ghostWidth,
+                            height: ghostHeight,
                             overflow: "hidden",
                         }}
                     >
@@ -1112,12 +1358,12 @@ function Game() {
                         key={`hit-${cell.row}-${cell.col}`}
                         className="shot-effect shot-hit"
                         style={{
-                            left: `${cell.col * (CELL_SIZE + CELL_GAP)}px`,
-                            top: `${cell.row * (CELL_SIZE + CELL_GAP)}px`,
+                            left: `calc(${cell.col} * (var(--cell-size) + var(--cell-gap)))`,
+                            top: `calc(${cell.row} * (var(--cell-size) + var(--cell-gap)))`,
                             right: "auto",
                             bottom: "auto",
-                            width: `${CELL_SIZE}px`,
-                            height: `${CELL_SIZE}px`,
+                            width: `var(--cell-size)`,
+                            height: `var(--cell-size)`,
                         }}
                         aria-hidden="true"
                     >
@@ -1128,37 +1374,55 @@ function Game() {
         });
 
         return (
-            <div className="flex flex-col select-none">
-                <div className="flex mb-1" style={{ gap: `${CELL_GAP}px` }}>
-                    <div style={{ width: "24px", height: `${COORD_HEADER_HEIGHT}px` }} />
-                    {letters.map((l) => (
-                        <div
-                            key={l}
-                            className="flex items-center justify-center text-secondary/70 font-bold text-xs"
-                            style={{ width: `${CELL_SIZE}px`, height: `${COORD_HEADER_HEIGHT}px` }}
-                        >
-                            {l}
-                        </div>
-                    ))}
-                </div>
-                <div className="flex">
-                    <div className="flex flex-col" style={{ gap: `${CELL_GAP}px`, marginRight: `${CELL_GAP}px` }}>
-                        {Array.from({ length: BOARD_SIZE }).map((_, idx) => (
-                            <div
-                                key={idx}
-                                className="flex items-center justify-center text-secondary/70 font-bold text-xs"
-                                style={{ width: "24px", height: `${CELL_SIZE}px` }}
-                            >
-                                {idx + 1}
-                            </div>
-                        ))}
-                    </div>
+            <div 
+                className="select-none grid"
+                style={{
+                    gridTemplateColumns: `24px var(--label-gap, 6px) repeat(${BOARD_SIZE}, var(--cell-size))`,
+                    gridTemplateRows: `24px var(--label-gap, 6px) repeat(${BOARD_SIZE}, var(--cell-size))`,
+                    gap: `var(--cell-gap)`,
+                }}
+            >
+                {/* Column Headers (A-J) */}
+                {letters.map((l, colIndex) => (
                     <div
-                        className="ocean-board-surface relative"
-                        style={{ width: `${GRID_SIZE_PX}px`, height: `${GRID_SIZE_PX}px` }}
+                        key={l}
+                        className="flex items-center justify-center text-secondary/70 font-bold text-xs"
+                        style={{
+                            gridRow: 1,
+                            gridColumn: colIndex + 3,
+                        }}
                     >
-                        <div className="absolute inset-0 z-20 pointer-events-none">{shipOverlays}</div>
-                        <div className="absolute inset-0 z-30 pointer-events-none">{dragGhostOverlay}</div>
+                        {l}
+                    </div>
+                ))}
+
+                {/* Row Headers (1-10) */}
+                {Array.from({ length: BOARD_SIZE }).map((_, rowIndex) => (
+                    <div
+                        key={rowIndex}
+                        className="flex items-center justify-center text-secondary/70 font-bold text-xs"
+                        style={{
+                            gridRow: rowIndex + 3,
+                            gridColumn: 1,
+                        }}
+                    >
+                        {rowIndex + 1}
+                    </div>
+                ))}
+
+                {/* Board Surface */}
+                <div
+                    ref={boardSide === "player" ? playerBoardRef : null}
+                    className={`ocean-board-surface relative ${isMobile && (gameState === 'PLACEMENT' || gameState === 'READY') ? 'touch-none' : ''}`}
+                    style={{ 
+                        gridColumn: `3 / ${BOARD_SIZE + 3}`,
+                        gridRow: `3 / ${BOARD_SIZE + 3}`,
+                        width: `var(--board-size)`, 
+                        height: `var(--board-size)` 
+                    }}
+                >
+                    <div className="absolute inset-0 z-20 pointer-events-none">{shipOverlays}</div>
+                    <div className="absolute inset-0 z-30 pointer-events-none">{dragGhostOverlay}</div>
                         <div className="absolute inset-0 z-40 pointer-events-none">{hitOverlays}</div>
                         <BattleEffectsLayer
                             ref={boardSide === "enemy" ? enemyEffectsRef : playerEffectsRef}
@@ -1172,9 +1436,9 @@ function Game() {
                         <div
                             className="relative z-10 grid"
                             style={{
-                                gridTemplateColumns: `repeat(${BOARD_SIZE}, ${CELL_SIZE}px)`,
-                                gridAutoRows: `${CELL_SIZE}px`,
-                                gap: `${CELL_GAP}px`,
+                                gridTemplateColumns: `repeat(${BOARD_SIZE}, var(--cell-size))`,
+                                gridAutoRows: `var(--cell-size)`,
+                                gap: `var(--cell-gap)`,
                             }}
                         >
                             {board.flatMap((row, r) =>
@@ -1201,10 +1465,15 @@ function Game() {
                                     return (
                                         <div
                                             key={`${r}-${c}`}
+                                            data-row={r}
+                                            data-col={c}
                                             onMouseEnter={() => !isEnemy && handlePlayerCellHover(r, c)}
                                             onMouseLeave={() => !isEnemy && setHoverCell(null)}
                                             onContextMenu={(event) => !isEnemy && handlePlayerCellContextMenu(event, r, c)}
-                                            onClick={(event) => isEnemy ? handleEnemyCellClick(r, c) : handlePlayerCellClick(event, r, c)}
+                                            onClick={(event) => isEnemy ? handleEnemyCellClick(r, c) : (!isMobile && handlePlayerCellClick(event, r, c))}
+                                            onTouchStart={(event) => !isEnemy && handleTouchStart(event, r, c)}
+                                            onTouchMove={(event) => !isEnemy && handleTouchMove(event)}
+                                            onTouchEnd={(event) => !isEnemy && handleTouchEnd(event, r, c)}
                                             className={`ocean-cell relative ${cursorClass} overflow-visible transition-all duration-300 ${baseCellBg} ${
                                                 !isEnemy && cell.hasShip ? "player-ship-cell" : ""
                                             } ${
@@ -1232,7 +1501,6 @@ function Game() {
                                     );
                                 })
                             )}
-                        </div>
                     </div>
                 </div>
             </div>
@@ -1243,8 +1511,8 @@ function Game() {
         <div className="game-shell bg-background text-on-background font-body-md min-h-screen selection:bg-secondary/30 flex flex-col">
             <header className="w-full top-0 sticky z-50 border-b border-white/5 bg-surface/40 backdrop-blur-xl shadow-[0_0_20px_rgba(0,210,255,0.1)]">
                 <div className="flex justify-between items-center w-full px-gutter max-w-[1440px] mx-auto h-12">
-                    <Link to="/" className="font-display-lg text-[20px] font-black text-secondary tracking-tighter uppercase hover:text-white transition-colors">
-                        Cloud Battleship Arena
+                    <Link to="/" className="font-display-lg text-[20px] font-black text-secondary tracking-tighter uppercase hover:text-white transition-colors truncate">
+                        {isMobile ? "BATTLESHIP" : "Cloud Battleship Arena"}
                     </Link>
                     <div className="flex items-center gap-4">
                         <span className="text-[10px] uppercase font-bold text-secondary bg-secondary/10 px-2 py-1 rounded-sm border border-secondary/20">
@@ -1264,10 +1532,10 @@ function Game() {
                     {/* Status Header */}
                     <div className="game-status glass-card rounded-xl border border-white/10 flex justify-between items-center">
                         <div>
-                            <h2 className="font-display-lg text-xl uppercase tracking-widest text-on-surface">
+                            <h2 className="font-display-lg text-base md:text-xl uppercase tracking-widest text-on-surface">
                                 {gameState === 'PLACEMENT' || gameState === 'READY' ? "Deploy Your Fleet" : "Sector Command"}
                             </h2>
-                            <p className="text-on-surface-variant text-sm mt-1">
+                            <p className="text-on-surface-variant text-xs md:text-sm mt-1 hidden md:block">
                                 {gameState === 'PLACEMENT' && (
                                     unplacedShipIds.length > 0
                                         ? "Drag ships from staging onto your map. Right-click to rotate."
@@ -1285,7 +1553,7 @@ function Game() {
                             <button
                                 onClick={beginBattle}
                                 disabled={Boolean(invalidRotationPreview) || unplacedShipIds.length > 0 || Boolean(draggedShip)}
-                                className={`font-bold px-8 py-2 rounded-sm transition-all tracking-widest ${
+                                className={`font-bold px-4 py-1.5 md:px-8 md:py-2 text-sm md:text-base rounded-sm transition-all tracking-widest ${
                                     (invalidRotationPreview || draggedShip)
                                         ? "bg-surface-container text-on-surface-variant/40 cursor-not-allowed opacity-50"
                                         : "bg-secondary text-on-secondary-fixed hover:bg-secondary-container active:scale-95"
@@ -1313,107 +1581,162 @@ function Game() {
                                     ? renderFleetStatus(playerSunkShipTypeIds)
                                     : <div className="fleet-image-panel fleet-image-panel-placeholder" aria-hidden="true" />}
                             </div>
+                            {isMobile && (
+                                <div className="mobile-fleet-footprints flex overflow-x-auto overflow-y-visible py-2 px-2 gap-[40px] w-full justify-center items-center min-h-[40px] mb-2">
+                                    {shipsToPlace.map((shipDef) => {
+                                        const activeShipTypeId = draggedShip?.shipDef?.id || selectedShip?.shipDef?.id;
+                                        const isActive = activeShipTypeId === shipDef.id;
+                                        const offsets = getShipOffsets(shipDef, shipDef.rotations[0]);
+                                        const bounds = getShipBounds(offsets);
+                                        const minRow = Math.min(...offsets.map(o => o[0]));
+                                        const minCol = Math.min(...offsets.map(o => o[1]));
+                                        return (
+                                            <div 
+                                                key={shipDef.id} 
+                                                className="grid flex-shrink-0 transition-all duration-300"
+                                                style={{ 
+                                                    gridTemplateColumns: `repeat(${bounds.cols}, 7px)`,
+                                                    gridTemplateRows: `repeat(${bounds.rows}, 7px)`,
+                                                    gap: '2px',
+                                                    opacity: isActive ? 1 : 0.65,
+                                                    transform: isActive ? 'scale(1.12)' : 'scale(1)',
+                                                    filter: isActive ? 'drop-shadow(0 0 8px rgba(142, 235, 255, 0.9))' : 'none',
+                                                }}
+                                            >
+                                                {offsets.map((pos, idx) => (
+                                                    <div 
+                                                        key={idx}
+                                                        style={{
+                                                            gridColumn: (pos[1] - minCol) + 1,
+                                                            gridRow: (pos[0] - minRow) + 1,
+                                                            width: '7px',
+                                                            height: '7px',
+                                                            background: '#8EEBFF',
+                                                            border: '1px solid rgba(142, 235, 255, 0.8)',
+                                                            boxShadow: '0 0 6px rgba(142, 235, 255, 0.75)',
+                                                            borderRadius: '1px',
+                                                        }}
+                                                    />
+                                                ))}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
                             {renderBoard(playerBoard, false, "player")}
                         </div>
                         
                         {/* Enemy Board */}
                         <div className="battle-board-section flex flex-col items-center">
                             {gameState === 'PLACEMENT' ? (
-                                <div className="deployment-dock">
-                                    <div className="deployment-dock-heading">
-                                        <h3 className="font-bold text-error tracking-widest uppercase">Fleet Staging</h3>
-                                        <span>{unplacedShipIds.length} ships remaining</span>
+                                isMobile ? (
+                                    <div className="w-full mt-4 max-w-[430px]">
+                                        <button
+                                            type="button"
+                                            className="auto-arrange-button"
+                                            onClick={autoArrangeFleet}
+                                        >
+                                            <span className="material-symbols-outlined" aria-hidden="true">auto_fix_high</span>
+                                            AUTO ARRANGE
+                                        </button>
                                     </div>
-                                    <div className="deployment-ship-grid">
-                                        {shipsToPlace.map((shipDef) => {
-                                            const isPlaced = !unplacedShipIds.includes(shipDef.id);
-                                            const trayRotation = trayRotations[shipDef.id] ?? shipDef.rotations[0];
-                                            const trayOffsets = getShipOffsets(shipDef, trayRotation);
-                                            const trayBounds = getShipBounds(trayOffsets);
-                                            const trayCell = {
-                                                row: 0,
-                                                col: 0,
-                                                shipTypeId: shipDef.id,
-                                                shipRotation: trayRotation,
-                                                shipBounds: trayBounds,
-                                            };
-                                            const trayWidth = (trayBounds.cols * CELL_SIZE)
-                                                + ((trayBounds.cols - 1) * CELL_GAP);
-                                            const trayHeight = (trayBounds.rows * CELL_SIZE)
-                                                + ((trayBounds.rows - 1) * CELL_GAP);
-                                            const spriteUrl = resolveSpriteUrl(
-                                                SHIP_SPRITES[shipDef.id]?.[trayRotation]
-                                            );
+                                ) : (
+                                    <div className="deployment-dock" style={{ '--cell-size': `${CELL_SIZE}px`, '--cell-gap': `${CELL_GAP}px` }}>
+                                        <div className="deployment-dock-heading">
+                                            <h3 className="font-bold text-error tracking-widest uppercase">Fleet Staging</h3>
+                                            <span>{unplacedShipIds.length} ships remaining</span>
+                                        </div>
+                                        <div className="deployment-ship-grid">
+                                            {shipsToPlace.map((shipDef) => {
+                                                const isPlaced = !unplacedShipIds.includes(shipDef.id);
+                                                const trayRotation = trayRotations[shipDef.id] ?? shipDef.rotations[0];
+                                                const trayOffsets = getShipOffsets(shipDef, trayRotation);
+                                                const trayBounds = getShipBounds(trayOffsets);
+                                                const trayCell = {
+                                                    row: 0,
+                                                    col: 0,
+                                                    shipTypeId: shipDef.id,
+                                                    shipRotation: trayRotation,
+                                                    shipBounds: trayBounds,
+                                                };
+                                                const trayWidth = (trayBounds.cols * CELL_SIZE)
+                                                    + ((trayBounds.cols - 1) * CELL_GAP);
+                                                const trayHeight = (trayBounds.rows * CELL_SIZE)
+                                                    + ((trayBounds.rows - 1) * CELL_GAP);
+                                                const spriteUrl = resolveSpriteUrl(
+                                                    SHIP_SPRITES[shipDef.id]?.[trayRotation]
+                                                );
 
-                                            return (
-                                                <div
-                                                    key={shipDef.id}
-                                                    className={`deployment-ship-card deployment-${shipDef.id} ${
-                                                        isPlaced ? "is-placed" : ""
-                                                    }`}
-                                                    onClick={(event) => {
-                                                        if (!isPlaced) handleTrayShipClick(event, shipDef);
-                                                    }}
-                                                    onContextMenu={(event) => {
-                                                        if (!isPlaced) handleTrayShipContextMenu(event, shipDef);
-                                                        else event.preventDefault();
-                                                    }}
-                                                >
-                                                    <div className="deployment-ship-meta">
-                                                        <span className="deployment-ship-label">{shipDef.label}</span>
-                                                        <span className="deployment-ship-size">{shipDef.size} cells</span>
-                                                        <span
-                                                            className="deployment-footprint"
-                                                            style={{
-                                                                gridTemplateColumns: `repeat(${trayBounds.cols}, 7px)`,
-                                                                gridTemplateRows: `repeat(${trayBounds.rows}, 7px)`,
-                                                            }}
-                                                            aria-label={`${shipDef.label} occupies ${shipDef.size} cells`}
-                                                        >
-                                                            {trayOffsets.map(([row, col]) => (
-                                                                <span
-                                                                    key={`${row}-${col}`}
-                                                                    className="deployment-footprint-cell"
-                                                                    style={{
-                                                                        gridRow: row + 1,
-                                                                        gridColumn: col + 1,
-                                                                    }}
-                                                                />
-                                                            ))}
-                                                        </span>
-                                                    </div>
-                                                    <div className="deployment-ship-stage">
-                                                        {!isPlaced && spriteUrl ? (
-                                                            <div
-                                                                className="deployment-ship-preview"
+                                                return (
+                                                    <div
+                                                        key={shipDef.id}
+                                                        className={`deployment-ship-card deployment-${shipDef.id} ${
+                                                            isPlaced ? "is-placed" : ""
+                                                        }`}
+                                                        onClick={(event) => {
+                                                            if (!isPlaced) handleTrayShipClick(event, shipDef);
+                                                        }}
+                                                        onContextMenu={(event) => {
+                                                            if (!isPlaced) handleTrayShipContextMenu(event, shipDef);
+                                                            else event.preventDefault();
+                                                        }}
+                                                    >
+                                                        <div className="deployment-ship-meta">
+                                                            <span className="deployment-ship-label">{shipDef.label}</span>
+                                                            <span className="deployment-ship-size">{shipDef.size} cells</span>
+                                                            <span
+                                                                className="deployment-footprint"
                                                                 style={{
-                                                                    width: `${trayWidth}px`,
-                                                                    height: `${trayHeight}px`,
+                                                                    gridTemplateColumns: `repeat(${trayBounds.cols}, 7px)`,
+                                                                    gridTemplateRows: `repeat(${trayBounds.rows}, 7px)`,
                                                                 }}
+                                                                aria-label={`${shipDef.label} occupies ${shipDef.size} cells`}
                                                             >
-                                                                <img
-                                                                    src={spriteUrl}
-                                                                    alt={shipDef.label}
-                                                                    style={getShipImageStyle(trayCell)}
-                                                                />
-                                                            </div>
-                                                        ) : (
-                                                            <span className="deployment-placed-mark">Deployed</span>
-                                                        )}
+                                                                {trayOffsets.map(([row, col]) => (
+                                                                    <span
+                                                                        key={`${row}-${col}`}
+                                                                        className="deployment-footprint-cell"
+                                                                        style={{
+                                                                            gridRow: row + 1,
+                                                                            gridColumn: col + 1,
+                                                                        }}
+                                                                    />
+                                                                ))}
+                                                            </span>
+                                                        </div>
+                                                        <div className="deployment-ship-stage">
+                                                            {!isPlaced && spriteUrl ? (
+                                                                <div
+                                                                    className="deployment-ship-preview"
+                                                                    style={{
+                                                                        width: `${trayWidth}px`,
+                                                                        height: `${trayHeight}px`,
+                                                                    }}
+                                                                >
+                                                                    <img
+                                                                        src={spriteUrl}
+                                                                        alt={shipDef.label}
+                                                                        style={getShipImageStyle(trayCell)}
+                                                                    />
+                                                                </div>
+                                                            ) : (
+                                                                <span className="deployment-placed-mark">Deployed</span>
+                                                            )}
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            );
-                                        })}
+                                                );
+                                            })}
+                                        </div>
+                                        <button
+                                            type="button"
+                                            className="auto-arrange-button"
+                                            onClick={autoArrangeFleet}
+                                        >
+                                            <span className="material-symbols-outlined" aria-hidden="true">auto_fix_high</span>
+                                            AUTO ARRANGE
+                                        </button>
                                     </div>
-                                    <button
-                                        type="button"
-                                        className="auto-arrange-button"
-                                        onClick={autoArrangeFleet}
-                                    >
-                                        <span className="material-symbols-outlined" aria-hidden="true">auto_fix_high</span>
-                                        AUTO ARRANGE
-                                    </button>
-                                </div>
+                                )
                             ) : (
                                 <>
                                     <div className="board-heading enemy-board-heading">
@@ -1449,40 +1772,90 @@ function Game() {
                 </div>
 
                 {/* Battle Log Section */}
-                <div className="game-log-column w-full lg:w-[350px] flex flex-col gap-4">
-                    <div className="glass-card flex-1 flex flex-col rounded-xl overflow-hidden border border-white/10 min-h-[300px] lg:max-h-[600px]">
-                        <div className="p-4 border-b border-white/5 bg-white/5">
-                            <h3 className="font-bold text-on-surface uppercase tracking-widest flex items-center gap-2">
-                                <span className="material-symbols-outlined text-[18px]">receipt_long</span>
-                                Battle Log
-                            </h3>
-                        </div>
-                        <div 
-                            ref={logContainerRef}
-                            className="flex-1 p-4 overflow-y-auto flex flex-col gap-2 font-mono text-xs"
-                        >
-                            {logs.map(log => (
-                                <div key={log.id} className={`p-2 rounded-sm border-l-2 ${
-                                    log.type === 'player_hit' ? 'bg-secondary/20 border-secondary text-secondary font-bold' :
-                                    log.type === 'player_miss' ? 'bg-secondary/5 border-secondary/30 text-secondary/70' :
-                                    log.type === 'enemy_hit' ? 'bg-error/20 border-error text-error font-bold' :
-                                    log.type === 'enemy_miss' ? 'bg-error/5 border-error/30 text-error/70' :
-                                    log.type === 'destroy' ? 'bg-green-500/20 border-green-500 text-green-400 font-bold glow-text' :
-                                    log.type === 'defeat' ? 'bg-error/30 border-error text-error font-bold glow-text-error' :
-                                    log.type === 'victory' ? 'bg-yellow-500/20 border-yellow-500 text-yellow-400 font-bold glow-text' :
-                                    log.type === 'warning' ? 'bg-orange-500/10 border-orange-500 text-orange-400' :
-                                    'bg-surface-container border-white/10 text-on-surface'
-                                } animate-fade-in`}>
-                                    {log.msg}
-                                </div>
-                            ))}
-                            {logs.length === 0 && (
-                                <div className="text-on-surface-variant italic text-center mt-4 opacity-50">Awaiting deployment...</div>
-                            )}
+                {!isMobile && (
+                    <div className="game-log-column w-full lg:w-[350px] flex flex-col gap-4">
+                        <div className="glass-card flex-1 flex flex-col rounded-xl overflow-hidden border border-white/10 min-h-[300px] lg:max-h-[600px]">
+                            <div className="p-4 border-b border-white/5 bg-white/5">
+                                <h3 className="font-bold text-on-surface uppercase tracking-widest flex items-center gap-2">
+                                    <span className="material-symbols-outlined text-[18px]">receipt_long</span>
+                                    Battle Log
+                                </h3>
+                            </div>
+                            <div 
+                                ref={logContainerRef}
+                                className="flex-1 p-4 overflow-y-auto flex flex-col gap-2 font-mono text-xs"
+                            >
+                                {logs.map(log => (
+                                    <div key={log.id} className={`p-2 rounded-sm border-l-2 ${
+                                        log.type === 'player_hit' ? 'bg-secondary/20 border-secondary text-secondary font-bold' :
+                                        log.type === 'player_miss' ? 'bg-secondary/5 border-secondary/30 text-secondary/70' :
+                                        log.type === 'enemy_hit' ? 'bg-error/20 border-error text-error font-bold' :
+                                        log.type === 'enemy_miss' ? 'bg-error/5 border-error/30 text-error/70' :
+                                        log.type === 'destroy' ? 'bg-green-500/20 border-green-500 text-green-400 font-bold glow-text' :
+                                        log.type === 'defeat' ? 'bg-error/30 border-error text-error font-bold glow-text-error' :
+                                        log.type === 'victory' ? 'bg-yellow-500/20 border-yellow-500 text-yellow-400 font-bold glow-text' :
+                                        log.type === 'warning' ? 'bg-orange-500/10 border-orange-500 text-orange-400' :
+                                        'bg-surface-container border-white/10 text-on-surface'
+                                    } animate-fade-in`}>
+                                        {log.msg}
+                                    </div>
+                                ))}
+                                {logs.length === 0 && (
+                                    <div className="text-on-surface-variant italic text-center mt-4 opacity-50">Awaiting deployment...</div>
+                                )}
+                            </div>
                         </div>
                     </div>
-                </div>
+                )}
             </main>
+
+            {isMobile && (
+                <>
+                    <button
+                        className="fixed bottom-4 right-4 z-50 w-14 h-14 bg-secondary text-on-secondary-fixed rounded-full shadow-lg flex items-center justify-center active:scale-95 transition-all hover:scale-105"
+                        onClick={() => setShowMobileLog(true)}
+                        aria-label="Open Battle Log"
+                    >
+                        <span className="material-symbols-outlined text-2xl">receipt_long</span>
+                    </button>
+                    {showMobileLog && (
+                        <div className="fixed inset-x-0 bottom-0 z-[100] bg-surface border-t border-white/10 rounded-t-2xl shadow-[0_-10px_40px_rgba(0,0,0,0.5)] flex flex-col max-h-[45vh] min-h-[40vh] transform transition-transform animate-slide-up">
+                            <div className="flex justify-between items-center p-4 border-b border-white/5 bg-surface-container">
+                                <h3 className="font-bold text-on-surface uppercase tracking-widest flex items-center gap-2">
+                                    <span className="material-symbols-outlined text-[18px]">receipt_long</span>
+                                    Battle Log
+                                </h3>
+                                <button onClick={() => setShowMobileLog(false)} className="text-on-surface-variant hover:text-on-surface transition-colors p-2 -mr-2">
+                                    <span className="material-symbols-outlined">close</span>
+                                </button>
+                            </div>
+                            <div 
+                                ref={logContainerRef}
+                                className="flex-1 p-4 overflow-y-auto flex flex-col gap-2 font-mono text-xs bg-background"
+                            >
+                                {logs.slice(-10).map(log => (
+                                    <div key={log.id} className={`p-2 rounded-sm border-l-2 ${
+                                        log.type === 'player_hit' ? 'bg-secondary/20 border-secondary text-secondary font-bold' :
+                                        log.type === 'player_miss' ? 'bg-secondary/5 border-secondary/30 text-secondary/70' :
+                                        log.type === 'enemy_hit' ? 'bg-error/20 border-error text-error font-bold' :
+                                        log.type === 'enemy_miss' ? 'bg-error/5 border-error/30 text-error/70' :
+                                        log.type === 'destroy' ? 'bg-green-500/20 border-green-500 text-green-400 font-bold glow-text' :
+                                        log.type === 'defeat' ? 'bg-error/30 border-error text-error font-bold glow-text-error' :
+                                        log.type === 'victory' ? 'bg-yellow-500/20 border-yellow-500 text-yellow-400 font-bold glow-text' :
+                                        log.type === 'warning' ? 'bg-orange-500/10 border-orange-500 text-orange-400' :
+                                        'bg-surface-container border-white/10 text-on-surface'
+                                    } animate-fade-in`}>
+                                        {log.msg}
+                                    </div>
+                                ))}
+                                {logs.length === 0 && (
+                                    <div className="text-on-surface-variant italic text-center mt-4 opacity-50">Awaiting deployment...</div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                </>
+            )}
 
             {/* Victory/Defeat Modal */}
             {showModal && (
