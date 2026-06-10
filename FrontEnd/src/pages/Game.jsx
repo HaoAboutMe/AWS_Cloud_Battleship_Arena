@@ -138,7 +138,9 @@ function Game() {
     const [turnTimer, setTurnTimer] = useState(30);
     const [logs, setLogs] = useState([]);
     const [winner, setWinner] = useState(null); // 'PLAYER' | 'BOT'
-    
+    const [isShotResolving, setIsShotResolving] = useState(false);
+    const shotLockRef = useRef(false);
+
     // Statistics
     const [stats, setStats] = useState({
         turns: 0,
@@ -154,6 +156,7 @@ function Game() {
     const [showModal, setShowModal] = useState(false);
     const [touchData, setTouchData] = useState(null);
     const [showMobileLog, setShowMobileLog] = useState(false);
+    const [activeBattleTab, setActiveBattleTab] = useState("enemy");
 
     const logContainerRef = useRef(null);
     const timerRef = useRef(null);
@@ -222,6 +225,14 @@ function Game() {
             autoArrangeFleet();
         }
     }, [isMobile, gameState, unplacedShipIds.length]);
+
+    useEffect(() => {
+        if (gameState === 'PLAYER_TURN') {
+            setActiveBattleTab("enemy");
+        } else if (gameState === 'BOT_TURN' || gameState === 'GAME_OVER') {
+            setActiveBattleTab("fleet");
+        }
+    }, [gameState]);
 
     useEffect(() => {
         if (logContainerRef.current) {
@@ -619,6 +630,8 @@ function Game() {
     }, [saveMatchStats, addLog]);
 
     const startPlayerTurn = () => {
+        shotLockRef.current = false;
+        setIsShotResolving(false);
         setGameState('PLAYER_TURN');
         setTurnTimer(30);
         addLog("Your turn started.", "info");
@@ -692,9 +705,13 @@ function Game() {
 
     const handleEnemyCellClick = (r, c) => {
         if (gameState !== 'PLAYER_TURN') return;
+        if (shotLockRef.current) return;
         
         // We only check this to prevent obvious double clicks on already hit cells
         if (enemyBoard[r][c].isHit && !enemyBoard[r][c].autoMarked) return;
+
+        shotLockRef.current = true;
+        setIsShotResolving(true);
 
         clearInterval(timerRef.current);
         
@@ -1413,7 +1430,7 @@ function Game() {
                 {/* Board Surface */}
                 <div
                     ref={boardSide === "player" ? playerBoardRef : null}
-                    className={`ocean-board-surface relative ${isMobile && (gameState === 'PLACEMENT' || gameState === 'READY') ? 'touch-none' : ''}`}
+                    className={`ocean-board-surface relative ${isMobile && (gameState === 'PLACEMENT' || gameState === 'READY') ? 'touch-none' : ''} ${isEnemy && isShotResolving ? 'pointer-events-none' : ''}`}
                     style={{ 
                         gridColumn: `3 / ${BOARD_SIZE + 3}`,
                         gridRow: `3 / ${BOARD_SIZE + 3}`,
@@ -1572,16 +1589,44 @@ function Game() {
                         )}
                     </div>
 
-                    <div className="game-boards flex flex-col lg:flex-row justify-center items-center lg:items-start">
+                    {/* Battle Tabs for Mobile */}
+                    {isMobile && gameState !== 'PLACEMENT' && gameState !== 'READY' && (
+                        <div className="flex w-full justify-center gap-2 mb-2 px-4">
+                            <button
+                                onClick={() => setActiveBattleTab("enemy")}
+                                className={`flex-1 py-2 px-4 rounded-lg font-bold tracking-widest text-sm transition-all border ${
+                                    activeBattleTab === "enemy" 
+                                        ? "bg-error/20 text-error border-error shadow-[0_0_15px_rgba(255,0,0,0.2)]" 
+                                        : "bg-surface-container border-white/10 text-on-surface-variant"
+                                }`}
+                            >
+                                ENEMY WATERS
+                            </button>
+                            <button
+                                onClick={() => setActiveBattleTab("fleet")}
+                                className={`flex-1 py-2 px-4 rounded-lg font-bold tracking-widest text-sm transition-all border ${
+                                    activeBattleTab === "fleet" 
+                                        ? "bg-secondary/20 text-secondary border-secondary shadow-[0_0_15px_rgba(0,210,255,0.2)]" 
+                                        : "bg-surface-container border-white/10 text-on-surface-variant"
+                                }`}
+                            >
+                                YOUR FLEET
+                            </button>
+                        </div>
+                    )}
+
+                    <div className="game-boards flex flex-col lg:flex-row justify-center items-center lg:items-start w-full relative">
                         {/* Player Board */}
-                        <div className="battle-board-section flex flex-col items-center">
+                        <div className={`battle-board-section flex flex-col items-center ${isMobile && gameState !== 'PLACEMENT' && gameState !== 'READY' && activeBattleTab !== 'fleet' ? 'hidden lg:flex' : ''}`}>
                             <div className="board-heading">
-                                <h3 className="font-bold text-secondary tracking-widest uppercase">Your Fleet</h3>
+                                {(!isMobile || gameState === 'PLACEMENT' || gameState === 'READY') && (
+                                    <h3 className="font-bold text-secondary tracking-widest uppercase mb-1">Your Fleet</h3>
+                                )}
                                 {gameState !== 'PLACEMENT'
                                     ? renderFleetStatus(playerSunkShipTypeIds)
                                     : <div className="fleet-image-panel fleet-image-panel-placeholder" aria-hidden="true" />}
                             </div>
-                            {isMobile && (
+                            {isMobile && (gameState === 'PLACEMENT' || gameState === 'READY') && (
                                 <div className="mobile-fleet-footprints flex overflow-x-auto overflow-y-visible py-2 px-2 gap-[40px] w-full justify-center items-center min-h-[40px] mb-2">
                                     {shipsToPlace.map((shipDef) => {
                                         const activeShipTypeId = draggedShip?.shipDef?.id || selectedShip?.shipDef?.id;
@@ -1627,7 +1672,7 @@ function Game() {
                         </div>
                         
                         {/* Enemy Board */}
-                        <div className="battle-board-section flex flex-col items-center">
+                        <div className={`battle-board-section flex flex-col items-center ${isMobile && gameState !== 'PLACEMENT' && gameState !== 'READY' && activeBattleTab !== 'enemy' ? 'hidden lg:flex' : ''}`}>
                             {gameState === 'PLACEMENT' ? (
                                 isMobile ? (
                                     <div className="w-full mt-4 max-w-[430px]">
@@ -1740,9 +1785,11 @@ function Game() {
                             ) : (
                                 <>
                                     <div className="board-heading enemy-board-heading">
-                                        <h3 className="font-bold text-error tracking-widest uppercase">
-                                            {gameState === 'READY' ? "Enemy Waters (Scanning...)" : "Enemy Waters"}
-                                        </h3>
+                                        {(!isMobile || gameState === 'PLACEMENT' || gameState === 'READY') && (
+                                            <h3 className="font-bold text-error tracking-widest uppercase mb-1">
+                                                {gameState === 'READY' ? "Enemy Waters (Scanning...)" : "Enemy Waters"}
+                                            </h3>
+                                        )}
 
                                         {renderFleetStatus(enemyShipsSunk, gameState === 'READY')}
                                     </div>
@@ -1769,6 +1816,29 @@ function Game() {
                             </div>
                         )}
                     </div>
+
+                    {/* Mini Battle Log for Mobile */}
+                    {isMobile && gameState !== 'PLACEMENT' && gameState !== 'READY' && (
+                        <div className="mobile-mini-battle-log mx-4">
+                            <div className={`mini-turn-status text-center ${
+                                gameState === "PLAYER_TURN" ? "text-secondary shadow-secondary/50 drop-shadow-md" :
+                                gameState === "BOT_TURN" ? "text-error shadow-error/50 drop-shadow-md" : 
+                                "text-yellow-400"
+                            }`}>
+                                {gameState === "PLAYER_TURN" ? "YOUR TURN" : 
+                                 gameState === "BOT_TURN" ? "ENEMY TURN" : 
+                                 "GAME OVER"}
+                            </div>
+
+                            <div className="mini-log-list flex flex-col gap-1 items-center text-on-surface-variant mt-2">
+                                {logs.filter(log => ['player_hit', 'player_miss', 'enemy_hit', 'enemy_miss', 'destroy'].includes(log.type)).slice(-2).map((log) => (
+                                    <div key={log.id} className="mini-log-item truncate w-full text-center">
+                                        {log.msg}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Battle Log Section */}
