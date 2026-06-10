@@ -138,7 +138,9 @@ function Game() {
     const [turnTimer, setTurnTimer] = useState(30);
     const [logs, setLogs] = useState([]);
     const [winner, setWinner] = useState(null); // 'PLAYER' | 'BOT'
-    
+    const [isShotResolving, setIsShotResolving] = useState(false);
+    const shotLockRef = useRef(false);
+
     // Statistics
     const [stats, setStats] = useState({
         turns: 0,
@@ -628,6 +630,8 @@ function Game() {
     }, [saveMatchStats, addLog]);
 
     const startPlayerTurn = () => {
+        shotLockRef.current = false;
+        setIsShotResolving(false);
         setGameState('PLAYER_TURN');
         setTurnTimer(30);
         addLog("Your turn started.", "info");
@@ -701,9 +705,13 @@ function Game() {
 
     const handleEnemyCellClick = (r, c) => {
         if (gameState !== 'PLAYER_TURN') return;
+        if (shotLockRef.current) return;
         
         // We only check this to prevent obvious double clicks on already hit cells
         if (enemyBoard[r][c].isHit && !enemyBoard[r][c].autoMarked) return;
+
+        shotLockRef.current = true;
+        setIsShotResolving(true);
 
         clearInterval(timerRef.current);
         
@@ -1422,7 +1430,7 @@ function Game() {
                 {/* Board Surface */}
                 <div
                     ref={boardSide === "player" ? playerBoardRef : null}
-                    className={`ocean-board-surface relative ${isMobile && (gameState === 'PLACEMENT' || gameState === 'READY') ? 'touch-none' : ''}`}
+                    className={`ocean-board-surface relative ${isMobile && (gameState === 'PLACEMENT' || gameState === 'READY') ? 'touch-none' : ''} ${isEnemy && isShotResolving ? 'pointer-events-none' : ''}`}
                     style={{ 
                         gridColumn: `3 / ${BOARD_SIZE + 3}`,
                         gridRow: `3 / ${BOARD_SIZE + 3}`,
