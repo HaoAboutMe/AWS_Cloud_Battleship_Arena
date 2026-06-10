@@ -430,10 +430,18 @@
 }
 
 @media (max-width: 767px) {
+    .game-status {
+        min-height: auto;
+        padding: 6px 12px;
+        margin-bottom: 6px;
+    }
+
     .board-heading {
         height: auto;
         margin-bottom: 8px;
         padding-top: 0;
+        flex-direction: column;
+        align-items: center;
     }
 
     .board-heading h3 {
@@ -446,11 +454,38 @@
         margin-top: 0;
         margin-bottom: 10px;
         min-height: auto;
+        position: relative;
     }
 
     .fleet-image-list {
         padding-top: 4px;
         padding-bottom: 4px;
+    }
+
+    .mobile-mini-battle-log {
+        margin-top: 12px;
+        padding: 12px 14px;
+        border-radius: 14px;
+        background: rgba(8, 24, 38, 0.85);
+        border: 1px solid rgba(140, 220, 255, 0.25);
+    }
+
+    .mini-turn-status {
+        font-size: 18px;
+        font-weight: 800;
+        letter-spacing: 2px;
+    }
+
+    .mini-turn-hint {
+        margin-top: 4px;
+        font-size: 13px;
+        opacity: 0.85;
+    }
+
+    .mini-log-list {
+        margin-top: 8px;
+        font-size: 12px;
+        opacity: 0.9;
     }
 }
 
