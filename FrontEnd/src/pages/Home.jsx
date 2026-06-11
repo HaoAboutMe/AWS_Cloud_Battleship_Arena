@@ -1,7 +1,11 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { getLoggedInUser, logoutUser } from "../services/authService";
 
 function Home() {
+  const navigate = useNavigate();
+  const [currentUser, setCurrentUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
   const [isLightMode, setIsLightMode] = useState(false);
   const [botDifficulty, setBotDifficulty] = useState("easy");
   const [stats, setStats] = useState({ totalMatches: 0, wins: 0, losses: 0, totalShots: 0, totalHits: 0 });
@@ -47,6 +51,22 @@ function Home() {
   };
 
   useEffect(() => {
+    const loadUser = async () => {
+      try {
+        const user = await getLoggedInUser();
+        setCurrentUser(user);
+      } catch {
+        setCurrentUser(null);
+      } finally {
+        setAuthLoading(false);
+      }
+    };
+
+    loadUser();
+
+    const handleAuthChanged = () => loadUser();
+    window.addEventListener("battleship-auth-changed", handleAuthChanged);
+
     const savedStats = JSON.parse(localStorage.getItem('battleshipStats')) || {
         totalMatches: 0,
         wins: 0,
@@ -78,12 +98,20 @@ function Home() {
     });
 
     return () => {
+      window.removeEventListener("battleship-auth-changed", handleAuthChanged);
       cards.forEach((card) => {
         card.removeEventListener("mousemove", handleMouseMove);
         card.removeEventListener("mouseleave", handleMouseLeave);
       });
     };
   }, []);
+
+  const handleLogout = async () => {
+    await logoutUser();
+    localStorage.removeItem("battleshipSession");
+    window.dispatchEvent(new Event("battleship-auth-changed"));
+    navigate("/login");
+  };
 
   return (
     <div className="bg-background text-on-background font-body-md min-h-screen selection:bg-secondary/30">
@@ -117,40 +145,62 @@ function Home() {
             </nav>
           </div>
           <div className="flex items-center gap-4">
-            <Link
-              to="/login"
-              className="hidden md:inline-flex items-center gap-2 text-[10px] uppercase font-bold text-secondary border border-secondary/30 px-3 py-1.5 rounded-sm hover:bg-secondary/10 transition-colors"
-            >
-              <span className="material-symbols-outlined text-[16px]">login</span>
-              Sign in
-            </Link>
-            <button 
-              onClick={toggleTheme}
-              className="material-symbols-outlined text-on-surface-variant hover:text-secondary active:scale-95 transition-all p-2 rounded-full hover:bg-white/5"
-            >
-              {isLightMode ? 'dark_mode' : 'light_mode'}
-            </button>
-            <button className="hidden sm:block material-symbols-outlined text-on-surface-variant hover:text-secondary active:scale-95 transition-all p-2 rounded-full hover:bg-white/5">
-              notifications
-            </button>
-            <button className="hidden sm:block material-symbols-outlined text-on-surface-variant hover:text-secondary active:scale-95 transition-all p-2 rounded-full hover:bg-white/5">
-              settings
-            </button>
-            <div className="flex items-center gap-3 pl-2 sm:pl-4 border-l border-white/10">
-              <div className="hidden sm:block text-right">
-                <p className="font-label-md text-label-md text-on-surface">
-                  Commander
-                </p>
-                <span className="text-[10px] font-bold text-[#FFD700] uppercase tracking-widest bg-[#FFD700]/10 px-1.5 py-0.5 rounded-sm">
-                  Admiral
-                </span>
-              </div>
-              <img
-                alt="User profile with rank badge"
-                className="w-10 h-10 rounded-full border border-secondary/30 p-0.5 bg-surface-container"
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuBaat_LefR8zmWVQ9CHx0bp9dTekwkF9c9AQAo9FxlAx2bSsRi_lWU3tRBK1vdpC50zM3NdKJAB5hHd5ZusN0HuCxBcpe1IbzSlreCalSVomkgeQwYwz9iKrXYvj55d42PgtFMDfCUosVO6NBFPXtM_vVCTYDxnC7xz1DxkbcIvRSfpehGpD-kbu7XuQbuktassmbGVExYQy0GTNC_jJHX3hmbFNDIdyfqO5-uwHYbgPtFdacF4kVhq0AnscPv4dWSz-e_6DYUDMSxe"
-              />
-            </div>
+            {!currentUser ? (
+              <>
+                <Link
+                  to="/login"
+                  className="hidden md:inline-flex items-center gap-2 text-[10px] uppercase font-bold text-secondary border border-secondary/30 px-3 py-1.5 rounded-sm hover:bg-secondary/10 transition-colors"
+                >
+                  <span className="material-symbols-outlined text-[16px]">login</span>
+                  Sign in
+                </Link>
+                <button 
+                  onClick={toggleTheme}
+                  className="material-symbols-outlined text-on-surface-variant hover:text-secondary active:scale-95 transition-all p-2 rounded-full hover:bg-white/5"
+                >
+                  {isLightMode ? 'dark_mode' : 'light_mode'}
+                </button>
+              </>
+            ) : (
+              <>
+                <button 
+                  onClick={toggleTheme}
+                  className="material-symbols-outlined text-on-surface-variant hover:text-secondary active:scale-95 transition-all p-2 rounded-full hover:bg-white/5"
+                >
+                  {isLightMode ? 'dark_mode' : 'light_mode'}
+                </button>
+                <button className="hidden sm:block material-symbols-outlined text-on-surface-variant hover:text-secondary active:scale-95 transition-all p-2 rounded-full hover:bg-white/5">
+                  notifications
+                </button>
+                <button className="hidden sm:block material-symbols-outlined text-on-surface-variant hover:text-secondary active:scale-95 transition-all p-2 rounded-full hover:bg-white/5">
+                  settings
+                </button>
+                <div className="flex items-center gap-3 pl-2 sm:pl-4 border-l border-white/10 relative group">
+                  <div className="hidden sm:block text-right cursor-pointer">
+                    <p className="font-label-md text-label-md text-on-surface">
+                      {currentUser?.signInDetails?.loginId || currentUser?.username || "Commander"}
+                    </p>
+                    <span className="text-[10px] font-bold text-[#FFD700] uppercase tracking-widest bg-[#FFD700]/10 px-1.5 py-0.5 rounded-sm">
+                      Admiral
+                    </span>
+                  </div>
+                  <img
+                    alt="User profile with rank badge"
+                    className="w-10 h-10 rounded-full border border-secondary/30 p-0.5 bg-surface-container cursor-pointer"
+                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuBaat_LefR8zmWVQ9CHx0bp9dTekwkF9c9AQAo9FxlAx2bSsRi_lWU3tRBK1vdpC50zM3NdKJAB5hHd5ZusN0HuCxBcpe1IbzSlreCalSVomkgeQwYwz9iKrXYvj55d42PgtFMDfCUosVO6NBFPXtM_vVCTYDxnC7xz1DxkbcIvRSfpehGpD-kbu7XuQbuktassmbGVExYQy0GTNC_jJHX3hmbFNDIdyfqO5-uwHYbgPtFdacF4kVhq0AnscPv4dWSz-e_6DYUDMSxe"
+                  />
+                  {/* Dropdown Menu */}
+                  <div className="absolute right-0 top-full pt-2 hidden group-hover:flex flex-col min-w-[150px] z-50">
+                    <div className="bg-surface border border-white/10 rounded-md shadow-lg p-2 w-full">
+                      <button onClick={handleLogout} className="text-left w-full px-3 py-2 text-sm text-error hover:bg-white/5 rounded-sm flex items-center gap-2">
+                        <span className="material-symbols-outlined text-[16px]">logout</span>
+                        Sign out
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </header>
