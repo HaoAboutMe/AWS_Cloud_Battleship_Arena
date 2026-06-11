@@ -117,6 +117,13 @@ function Home() {
             </nav>
           </div>
           <div className="flex items-center gap-4">
+            <Link
+              to="/login"
+              className="hidden md:inline-flex items-center gap-2 text-[10px] uppercase font-bold text-secondary border border-secondary/30 px-3 py-1.5 rounded-sm hover:bg-secondary/10 transition-colors"
+            >
+              <span className="material-symbols-outlined text-[16px]">login</span>
+              Sign in
+            </Link>
             <button 
               onClick={toggleTheme}
               className="material-symbols-outlined text-on-surface-variant hover:text-secondary active:scale-95 transition-all p-2 rounded-full hover:bg-white/5"
