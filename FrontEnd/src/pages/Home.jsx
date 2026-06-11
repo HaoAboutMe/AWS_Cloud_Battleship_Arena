@@ -4,6 +4,7 @@ import CommandHeader from "../components/CommandHeader";
 import { useLanguage } from "../contexts/LanguageContext";
 import { getLoggedInUser, logoutUser } from "../services/authService";
 import "./HomeHeader.css";
+import "./Home.css";
 
 function Home() {
   const navigate = useNavigate();
@@ -99,7 +100,7 @@ function Home() {
     const handleAuthChanged = () => loadUser();
     window.addEventListener("battleship-auth-changed", handleAuthChanged);
 
-    // Subtle mouse tracking glow effect for cards
+    // Track the pointer for the card highlight without overriding theme colors.
     const cards = document.querySelectorAll(".glass-card");
     const handleMouseMove = (e) => {
       const card = e.currentTarget;
@@ -108,23 +109,16 @@ function Home() {
       const y = e.clientY - rect.top;
       card.style.setProperty("--mouse-x", `${x}px`);
       card.style.setProperty("--mouse-y", `${y}px`);
-      card.style.background = `radial-gradient(400px circle at ${x}px ${y}px, rgba(165, 231, 255, 0.05), transparent 40%)`;
-    };
-
-    const handleMouseLeave = (e) => {
-      e.currentTarget.style.background = "rgba(18, 33, 49, 0.4)";
     };
 
     cards.forEach((card) => {
       card.addEventListener("mousemove", handleMouseMove);
-      card.addEventListener("mouseleave", handleMouseLeave);
     });
 
     return () => {
       window.removeEventListener("battleship-auth-changed", handleAuthChanged);
       cards.forEach((card) => {
         card.removeEventListener("mousemove", handleMouseMove);
-        card.removeEventListener("mouseleave", handleMouseLeave);
       });
     };
   }, []);
@@ -157,7 +151,7 @@ function Home() {
   };
 
   return (
-    <div id="top" className="bg-background text-on-background font-body-md min-h-screen selection:bg-secondary/30">
+    <div id="top" className="home-page bg-background text-on-background font-body-md min-h-screen selection:bg-secondary/30">
       <CommandHeader
         currentUser={currentUser}
         authLoading={authLoading}
@@ -182,9 +176,9 @@ function Home() {
           </button>
         </div>
       )}
-      <main className="max-w-[1440px] mx-auto px-gutter pb-6 overflow-hidden flex flex-col gap-6">
+      <main className="home-main max-w-[1440px] mx-auto px-gutter pb-6 overflow-hidden flex flex-col gap-6">
         {/*  Hero Section  */}
-        <section className="relative grid grid-cols-1 md:grid-cols-2 items-center gap-x-8 gap-y-4 md:gap-y-6 py-2">
+        <section className="home-hero relative grid grid-cols-1 md:grid-cols-2 items-center gap-x-8 gap-y-4 md:gap-y-6 py-2">
           <div className="z-10 order-1 md:col-start-1 md:row-start-1 self-end text-center md:text-left">
             <h1 className="font-display-lg text-on-surface leading-tight text-[24px] md:text-[32px]">
               {t("home.heroOne")} <span className="text-secondary glow-text">{t("home.heroFleet")}</span>
@@ -203,14 +197,14 @@ function Home() {
           </div>
 
           <div className="z-10 order-3 md:col-start-1 md:row-start-2 self-start flex flex-col sm:flex-row gap-3 md:gap-4 w-full">
-            <button className="w-full sm:w-auto justify-center border border-secondary/50 text-secondary font-label-md text-label-md px-8 py-3 rounded-sm hover:bg-secondary/5 transition-all active:scale-95">
+            <button className="home-tactics-button w-full sm:w-auto justify-center border border-secondary/50 text-secondary font-label-md text-label-md px-8 py-3 rounded-sm transition-all active:scale-95">
               {t("home.learn")}
             </button>
           </div>
         </section>
         {/*  Game Modes Section  */}
         <section id="deployment" className="command-section-anchor">
-          <div className="flex items-center gap-3 mb-4">
+          <div className="home-section-heading flex items-center gap-3 mb-4">
             <span className="material-symbols-outlined text-secondary">
               grid_view
             </span>
@@ -242,7 +236,7 @@ function Home() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/*  Mode 1: Play vs Bot  */}
-            <div className={`glass-card p-6 md:p-8 rounded-xl flex flex-col group h-full ${activeModeTab !== 'bot' ? 'hidden md:flex' : 'flex'}`}>
+            <div className={`home-mode-card glass-card p-6 md:p-8 rounded-xl flex flex-col group h-full ${activeModeTab !== 'bot' ? 'hidden md:flex' : 'flex'}`}>
               <div className="flex items-center gap-4 mb-4 md:mb-6">
                 <div className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center bg-secondary/10 rounded-lg text-secondary group-hover:scale-110 transition-transform shrink-0">
                   <span className="material-symbols-outlined text-2xl md:text-3xl">
@@ -287,7 +281,7 @@ function Home() {
               </div>
             </div>
             {/*  Mode 2: Play vs Player  */}
-            <div className={`glass-card p-6 rounded-xl flex flex-col group h-full border-secondary/20 relative overflow-hidden ${activeModeTab !== 'player' ? 'hidden md:flex' : 'flex'}`}>
+            <div className={`home-mode-card glass-card p-6 rounded-xl flex flex-col group h-full border-secondary/20 relative overflow-hidden ${activeModeTab !== 'player' ? 'hidden md:flex' : 'flex'}`}>
               <div className="absolute top-0 right-0 p-2">
                 <span className="text-[10px] bg-secondary text-on-secondary-fixed px-2 py-0.5 font-black uppercase rounded-bl-sm">
                   {t("home.competitive")}
@@ -319,7 +313,7 @@ function Home() {
               </div>
             </div>
             {/*  Mode 3: Create Private Room  */}
-            <div className={`glass-card p-6 rounded-xl flex flex-col group h-full ${activeModeTab !== 'room' ? 'hidden md:flex' : 'flex'}`}>
+            <div className={`home-mode-card glass-card p-6 rounded-xl flex flex-col group h-full ${activeModeTab !== 'room' ? 'hidden md:flex' : 'flex'}`}>
               <div className="flex items-center gap-4 mb-4">
                 <div className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center bg-secondary/10 rounded-lg text-secondary group-hover:scale-110 transition-transform shrink-0">
                   <span className="material-symbols-outlined text-2xl md:text-3xl">
@@ -369,7 +363,7 @@ function Home() {
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/*  Leaderboard Preview  */}
-            <div id="leaderboard" className={`command-section-anchor lg:col-span-5 glass-card p-4 rounded-xl ${activeStatsTab !== 'leaderboard' ? 'hidden lg:block' : 'block'}`}>
+            <div id="leaderboard" className={`home-stats-card command-section-anchor lg:col-span-5 glass-card p-4 rounded-xl ${activeStatsTab !== 'leaderboard' ? 'hidden lg:block' : 'block'}`}>
             <div className="flex justify-between items-center mb-4">
               <div className="flex items-center gap-3">
                 <span className="material-symbols-outlined text-secondary">
@@ -436,7 +430,7 @@ function Home() {
           </div>
           {/*  Player Statistics Widget  */}
           <div className={`flex flex-col gap-6 lg:col-span-7 ${activeStatsTab !== 'record' ? 'hidden lg:flex' : 'flex'}`}>
-            <div className="glass-card rounded-xl h-full border-l-4 border-l-secondary p-4">
+            <div className="home-stats-card glass-card rounded-xl h-full border-l-4 border-l-secondary p-4">
               <div className="flex items-center gap-3 mb-4">
                 <span className="material-symbols-outlined text-secondary">
                   analytics

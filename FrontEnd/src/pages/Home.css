@@ -1,0 +1,195 @@
+.home-page {
+  position: relative;
+  background:
+    radial-gradient(circle at 78% 7%, rgba(48, 176, 218, 0.08), transparent 25%),
+    linear-gradient(180deg, #051424, #03111e 72%);
+}
+
+.home-main {
+  padding-top: 18px;
+}
+
+.home-hero {
+  min-height: 248px;
+  padding: 26px 26px 28px;
+  overflow: hidden;
+  border-bottom: 1px solid rgba(117, 223, 255, 0.11);
+}
+
+.home-hero::before {
+  content: "";
+  position: absolute;
+  inset: 12px 0 20px;
+  z-index: -1;
+  border: 1px solid rgba(117, 223, 255, 0.07);
+  border-radius: 6px;
+  background:
+    linear-gradient(105deg, rgba(9, 34, 51, 0.56), rgba(7, 27, 42, 0.12) 62%),
+    rgba(6, 23, 37, 0.24);
+}
+
+.home-hero h1 {
+  max-width: 620px;
+  letter-spacing: 0;
+}
+
+.home-hero img {
+  border: 1px solid rgba(117, 223, 255, 0.18);
+  box-shadow: 0 24px 55px rgba(0, 0, 0, 0.28);
+}
+
+.home-tactics-button {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  border-color: rgba(117, 223, 255, 0.38);
+  background: rgba(117, 223, 255, 0.06);
+  color: #bceeff;
+  font-weight: 900;
+  text-transform: uppercase;
+  box-shadow: inset 0 0 18px rgba(71, 214, 255, 0.04);
+}
+
+.home-tactics-button:hover {
+  border-color: #a5e7ff;
+  background: rgba(117, 223, 255, 0.12);
+}
+
+.home-section-heading {
+  padding: 5px 0 12px;
+  border-bottom: 1px solid rgba(117, 223, 255, 0.1);
+}
+
+.home-mode-card,
+.home-stats-card {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.home-mode-card::before,
+.home-stats-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(
+    420px circle at var(--mouse-x, 50%) var(--mouse-y, 30%),
+    rgba(117, 223, 255, 0.08),
+    transparent 46%
+  );
+  opacity: 0;
+  transition: opacity 180ms ease;
+}
+
+.home-mode-card:hover::before,
+.home-stats-card:hover::before {
+  opacity: 1;
+}
+
+.home-mode-card {
+  min-height: 364px;
+  border-color: rgba(117, 223, 255, 0.11);
+  background:
+    linear-gradient(180deg, rgba(17, 39, 56, 0.72), rgba(8, 27, 42, 0.72)),
+    rgba(8, 27, 42, 0.7);
+}
+
+.home-mode-card:hover {
+  transform: translateY(-2px);
+}
+
+.home-mode-card h3 {
+  color: #e8f7ff;
+}
+
+.home-stats-card {
+  border-color: rgba(117, 223, 255, 0.11);
+  background: rgba(8, 27, 42, 0.76);
+}
+
+.light-mode-active .home-page {
+  background:
+    radial-gradient(circle at 79% 5%, rgba(0, 119, 182, 0.13), transparent 27%),
+    linear-gradient(180deg, #dce8ef, #d3e1e9 72%) !important;
+}
+
+.light-mode-active .home-hero {
+  border-bottom-color: rgba(25, 78, 104, 0.15);
+}
+
+.light-mode-active .home-hero::before {
+  border-color: rgba(25, 78, 104, 0.12);
+  background:
+    linear-gradient(105deg, rgba(247, 252, 254, 0.88), rgba(226, 239, 246, 0.54) 65%),
+    rgba(238, 247, 251, 0.72);
+  box-shadow: 0 16px 38px rgba(23, 58, 78, 0.07);
+}
+
+.light-mode-active .home-tactics-button {
+  border-color: #087eaf !important;
+  background: #087eaf;
+  color: #ffffff !important;
+  box-shadow: 0 8px 20px rgba(8, 126, 175, 0.18);
+}
+
+.light-mode-active .home-tactics-button:hover {
+  border-color: #056b96 !important;
+  background: #056b96;
+}
+
+.light-mode-active .home-section-heading {
+  border-bottom-color: rgba(25, 78, 104, 0.15);
+}
+
+.light-mode-active .home-mode-card,
+.light-mode-active .home-stats-card {
+  border-color: rgba(25, 78, 104, 0.16) !important;
+  background:
+    linear-gradient(180deg, rgba(249, 253, 255, 0.98), rgba(238, 246, 250, 0.96)) !important;
+  box-shadow: 0 12px 28px rgba(23, 58, 78, 0.08) !important;
+}
+
+.light-mode-active .home-mode-card::before,
+.light-mode-active .home-stats-card::before {
+  background: radial-gradient(
+    420px circle at var(--mouse-x, 50%) var(--mouse-y, 30%),
+    rgba(0, 119, 182, 0.1),
+    transparent 48%
+  );
+}
+
+.light-mode-active .home-mode-card:hover,
+.light-mode-active .home-stats-card:hover {
+  border-color: rgba(0, 119, 182, 0.42) !important;
+  box-shadow: 0 16px 34px rgba(23, 85, 116, 0.13) !important;
+}
+
+.light-mode-active .home-mode-card h3 {
+  color: #112b3e !important;
+}
+
+@media (max-width: 767px) {
+  .home-main {
+    padding-top: 8px;
+  }
+
+  .home-hero {
+    padding: 20px 12px 24px;
+  }
+
+  .home-mode-card {
+    min-height: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-mode-card {
+    transition: none;
+  }
+
+  .home-mode-card:hover {
+    transform: none;
+  }
+}

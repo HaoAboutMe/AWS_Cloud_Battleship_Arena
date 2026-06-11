@@ -396,20 +396,39 @@ const BattleEffectsLayer = forwardRef(function BattleEffectsLayer(
     const gameRef = useRef(null);
     const queueRef = useRef([]);
     const sleepTimerRef = useRef(null);
+    const wakeDeadlineRef = useRef(0);
     const smokeCellsRef = useRef([]);
     const smokeEventRef = useRef(null);
+
+    const scheduleSleep = (scene) => {
+        window.clearTimeout(sleepTimerRef.current);
+
+        const remaining = Math.max(0, wakeDeadlineRef.current - Date.now());
+        sleepTimerRef.current = window.setTimeout(() => {
+            if (sceneRef.current !== scene) return;
+            if (smokeCellsRef.current.length > 0) return;
+
+            const nextRemaining = wakeDeadlineRef.current - Date.now();
+            if (nextRemaining > 16) {
+                scheduleSleep(scene);
+                return;
+            }
+
+            wakeDeadlineRef.current = 0;
+            scene.scene.sleep();
+            scene.game.loop.sleep();
+        }, remaining);
+    };
 
     const wakeFor = (scene, duration) => {
         scene.game.loop.wake();
         scene.scene.wake();
         scene.game.loop.resetDelta?.();
-        window.clearTimeout(sleepTimerRef.current);
-        sleepTimerRef.current = window.setTimeout(() => {
-            if (sceneRef.current !== scene) return;
-            if (smokeCellsRef.current.length > 0) return;
-            scene.scene.sleep();
-            scene.game.loop.sleep();
-        }, duration);
+        wakeDeadlineRef.current = Math.max(
+            wakeDeadlineRef.current,
+            Date.now() + duration
+        );
+        scheduleSleep(scene);
     };
 
     const cellCenter = (row, col) => ({
@@ -467,6 +486,7 @@ const BattleEffectsLayer = forwardRef(function BattleEffectsLayer(
                 return;
             }
 
+            wakeDeadlineRef.current = 0;
             scene.game.loop.wake();
             scene.scene.wake();
             scene.game.loop.resetDelta?.();
@@ -619,6 +639,7 @@ const BattleEffectsLayer = forwardRef(function BattleEffectsLayer(
         return () => {
             cancelled = true;
             window.clearTimeout(sleepTimerRef.current);
+            wakeDeadlineRef.current = 0;
             smokeEventRef.current?.remove(false);
             smokeEventRef.current = null;
             smokeCellsRef.current = [];
