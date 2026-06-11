@@ -156,7 +156,10 @@
         mix-blend-mode: normal;
       }
       .light-mode-active body, .light-mode-active .bg-background {
-        background-color: #f4f7fb !important;
+        background-color: #dce7ef !important;
+        background-image:
+          linear-gradient(rgba(255, 255, 255, 0.2), rgba(213, 229, 239, 0.34)),
+          radial-gradient(circle at 82% 8%, rgba(0, 119, 182, 0.1), transparent 28%) !important;
       }
       .light-mode-active .text-on-background, .light-mode-active .text-on-surface {
         color: #0d1b2a !important;
@@ -165,18 +168,18 @@
         color: #4a5568 !important;
       }
       .light-mode-active .glass-card {
-        background: rgba(255, 255, 255, 0.7) !important;
-        border: 1px solid rgba(0, 0, 0, 0.05) !important;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05) !important;
+        background: rgba(246, 251, 253, 0.94) !important;
+        border: 1px solid rgba(25, 78, 104, 0.14) !important;
+        box-shadow: 0 10px 26px rgba(23, 58, 78, 0.08) !important;
       }
       .light-mode-active .glass-card:hover {
-        border-color: #00d2ff !important;
-        box-shadow: 0 8px 32px rgba(0, 210, 255, 0.2) !important;
+        border-color: #1686b8 !important;
+        box-shadow: 0 12px 30px rgba(18, 105, 145, 0.16) !important;
       }
       .light-mode-active header {
-        background: rgba(255, 255, 255, 0.7) !important;
-        border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05) !important;
+        background: rgba(5, 30, 45, 0.96) !important;
+        border-bottom: 1px solid rgba(117, 223, 255, 0.2) !important;
+        box-shadow: 0 6px 22px rgba(12, 45, 64, 0.18) !important;
       }
       .light-mode-active .text-secondary {
         color: #0077b6 !important;
@@ -184,12 +187,15 @@
       .light-mode-active .glow-text {
         text-shadow: 0 0 10px rgba(0, 119, 182, 0.3) !important;
       }
-      .light-mode-active .bg-surface-container, .light-mode-active .bg-surface-container\/30, .light-mode-active .bg-white\/5 {
-        background-color: rgba(255, 255, 255, 0.6) !important;
-        border-color: rgba(0, 0, 0, 0.1) !important;
+      .light-mode-active .bg-surface-container,
+      .light-mode-active .bg-surface-container\/30,
+      .light-mode-active .bg-surface-container\/50,
+      .light-mode-active .bg-white\/5 {
+        background-color: rgba(221, 235, 243, 0.92) !important;
+        border-color: rgba(25, 78, 104, 0.16) !important;
       }
       .light-mode-active .border-white\/5, .light-mode-active .border-white\/10 {
-        border-color: rgba(0, 0, 0, 0.1) !important;
+        border-color: rgba(25, 78, 104, 0.14) !important;
       }
       .light-mode-active .bg-secondary\/10 {
         background-color: rgba(0, 119, 182, 0.1) !important;
@@ -206,6 +212,19 @@
       }
       .light-mode-active .text-on-secondary-fixed {
         color: #ffffff !important;
+      }
+      .light-mode-active select {
+        color: #123047 !important;
+      }
+      .light-mode-active select option {
+        background: #eef6fa;
+        color: #123047;
+      }
+      .light-mode-active ::-webkit-scrollbar-track {
+        background: #cfdee7;
+      }
+      .light-mode-active ::-webkit-scrollbar-thumb {
+        background: #7094a8;
       }
     </style>
   </head>

@@ -1,0 +1,18 @@
+.register-page .auth-layout {
+  padding-top: 30px;
+  padding-bottom: 36px;
+}
+
+.register-page .auth-form-heading {
+  margin-bottom: 22px;
+}
+
+.register-page .auth-form {
+  gap: 13px;
+}
+
+@media (max-width: 520px) {
+  .register-page .auth-layout {
+    padding-top: 24px;
+  }
+}

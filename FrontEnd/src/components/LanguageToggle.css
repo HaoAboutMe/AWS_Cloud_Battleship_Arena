@@ -1,0 +1,102 @@
+.language-toggle {
+  position: relative;
+  isolation: isolate;
+  height: 36px;
+  display: inline-grid;
+  grid-template-columns: 24px 34px 34px;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid rgba(117, 223, 255, 0.18);
+  border-radius: 5px;
+  background: rgba(0, 12, 22, 0.42);
+  box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.16);
+}
+
+.language-toggle::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: 3px;
+  left: 29px;
+  width: 34px;
+  height: 28px;
+  border-radius: 3px;
+  background: #9ce4fb;
+  box-shadow: 0 0 10px rgba(117, 223, 255, 0.2);
+  transform: translateX(0);
+  transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.language-toggle[data-language="vi"]::before {
+  transform: translateX(36px);
+}
+
+.language-toggle-icon {
+  display: grid;
+  place-items: center;
+  color: rgba(165, 231, 255, 0.54);
+  font-size: 16px;
+}
+
+.language-toggle button {
+  position: relative;
+  z-index: 1;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: rgba(212, 228, 250, 0.58);
+  font-size: 9px;
+  font-weight: 900;
+  cursor: pointer;
+  transition: color 150ms ease, background 150ms ease, box-shadow 150ms ease;
+}
+
+.language-toggle button:hover {
+  color: #d9f4ff;
+  background: rgba(117, 223, 255, 0.08);
+}
+
+.language-toggle button.is-active {
+  color: #032535;
+  background: transparent;
+  box-shadow: none;
+}
+
+.language-toggle button:focus-visible {
+  outline: 1px solid #bceeff;
+  outline-offset: 1px;
+}
+
+.light-mode-active .command-header .language-toggle {
+  border-color: rgba(165, 231, 255, 0.2);
+  background: rgba(0, 12, 22, 0.46);
+}
+
+@media (max-width: 640px) {
+  .language-toggle {
+    grid-template-columns: 30px 30px;
+  }
+
+  .language-toggle-icon {
+    display: none;
+  }
+
+  .language-toggle::before {
+    left: 3px;
+    width: 30px;
+  }
+
+  .language-toggle[data-language="vi"]::before {
+    transform: translateX(32px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .language-toggle::before {
+    transition: none;
+  }
+}

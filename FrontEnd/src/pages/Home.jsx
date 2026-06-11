@@ -1,14 +1,46 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
+import CommandHeader from "../components/CommandHeader";
+import { useLanguage } from "../contexts/LanguageContext";
 import { getLoggedInUser, logoutUser } from "../services/authService";
+import "./HomeHeader.css";
 
 function Home() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { t } = useLanguage();
   const [currentUser, setCurrentUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
+  const [authToast, setAuthToast] = useState(() => {
+    if (location.state?.authEvent === "signed-in") {
+      return {
+        titleKey: "home.signedInTitle",
+        messageKey: "home.signedInBody",
+      };
+    }
+    if (location.state?.authEvent === "signed-out") {
+      return {
+        titleKey: "home.signedOutTitle",
+        messageKey: "home.signedOutBody",
+      };
+    }
+    return null;
+  });
   const [isLightMode, setIsLightMode] = useState(false);
   const [botDifficulty, setBotDifficulty] = useState("easy");
-  const [stats, setStats] = useState({ totalMatches: 0, wins: 0, losses: 0, totalShots: 0, totalHits: 0 });
+  const [stats] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("battleshipStats")) || {
+        totalMatches: 0,
+        wins: 0,
+        losses: 0,
+        totalShots: 0,
+        totalHits: 0,
+      };
+    } catch {
+      return { totalMatches: 0, wins: 0, losses: 0, totalShots: 0, totalHits: 0 };
+    }
+  });
   const [activeModeTab, setActiveModeTab] = useState('bot');
   const [activeStatsTab, setActiveStatsTab] = useState('record');
 
@@ -67,15 +99,6 @@ function Home() {
     const handleAuthChanged = () => loadUser();
     window.addEventListener("battleship-auth-changed", handleAuthChanged);
 
-    const savedStats = JSON.parse(localStorage.getItem('battleshipStats')) || {
-        totalMatches: 0,
-        wins: 0,
-        losses: 0,
-        totalShots: 0,
-        totalHits: 0,
-    };
-    setStats(savedStats);
-
     // Subtle mouse tracking glow effect for cards
     const cards = document.querySelectorAll(".glass-card");
     const handleMouseMove = (e) => {
@@ -106,112 +129,67 @@ function Home() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!authToast) return undefined;
+    const timer = window.setTimeout(() => setAuthToast(null), 4200);
+    return () => window.clearTimeout(timer);
+  }, [authToast]);
+
   const handleLogout = async () => {
-    await logoutUser();
-    localStorage.removeItem("battleshipSession");
-    window.dispatchEvent(new Event("battleship-auth-changed"));
-    navigate("/login");
+    try {
+      await logoutUser();
+      localStorage.removeItem("battleshipSession");
+      window.dispatchEvent(new Event("battleship-auth-changed"));
+      setCurrentUser(null);
+      setAuthToast({
+        type: "success",
+        titleKey: "home.signedOutTitle",
+        messageKey: "home.signedOutBody",
+      });
+      navigate("/", { replace: true, state: null });
+    } catch {
+      setAuthToast({
+        type: "error",
+        titleKey: "home.signOutErrorTitle",
+        messageKey: "home.signOutErrorBody",
+      });
+    }
   };
 
   return (
-    <div className="bg-background text-on-background font-body-md min-h-screen selection:bg-secondary/30">
-      {/*  TopNavBar  */}
-      <header className="w-full top-0 sticky z-50 border-b border-white/5 bg-surface/40 backdrop-blur-xl shadow-[0_0_20px_rgba(0,210,255,0.1)]">
-        <div className="flex justify-between items-center w-full px-gutter max-w-[1440px] mx-auto h-12">
-          <div className="flex items-center gap-8">
-            <span className="font-display-lg text-[20px] md:text-[24px] font-black text-secondary tracking-tighter uppercase">
-              <span className="hidden sm:inline">Cloud Battleship Arena</span>
-              <span className="sm:hidden">Battleship</span>
-            </span>
-            <nav className="hidden md:flex gap-6 items-center">
-              <a
-                className="font-label-md text-label-md text-secondary border-b-2 border-secondary pb-1 transition-all"
-                href="#"
-              >
-                Home
-              </a>
-              <a
-                className="font-label-md text-label-md text-on-surface-variant hover:text-secondary transition-colors transition-all"
-                href="#"
-              >
-                Leaderboard
-              </a>
-              <a
-                className="font-label-md text-label-md text-on-surface-variant hover:text-secondary transition-colors transition-all"
-                href="#"
-              >
-                Profile
-              </a>
-            </nav>
-          </div>
-          <div className="flex items-center gap-4">
-            {!currentUser ? (
-              <>
-                <Link
-                  to="/login"
-                  className="hidden md:inline-flex items-center gap-2 text-[10px] uppercase font-bold text-secondary border border-secondary/30 px-3 py-1.5 rounded-sm hover:bg-secondary/10 transition-colors"
-                >
-                  <span className="material-symbols-outlined text-[16px]">login</span>
-                  Sign in
-                </Link>
-                <button 
-                  onClick={toggleTheme}
-                  className="material-symbols-outlined text-on-surface-variant hover:text-secondary active:scale-95 transition-all p-2 rounded-full hover:bg-white/5"
-                >
-                  {isLightMode ? 'dark_mode' : 'light_mode'}
-                </button>
-              </>
-            ) : (
-              <>
-                <button 
-                  onClick={toggleTheme}
-                  className="material-symbols-outlined text-on-surface-variant hover:text-secondary active:scale-95 transition-all p-2 rounded-full hover:bg-white/5"
-                >
-                  {isLightMode ? 'dark_mode' : 'light_mode'}
-                </button>
-                <button className="hidden sm:block material-symbols-outlined text-on-surface-variant hover:text-secondary active:scale-95 transition-all p-2 rounded-full hover:bg-white/5">
-                  notifications
-                </button>
-                <button className="hidden sm:block material-symbols-outlined text-on-surface-variant hover:text-secondary active:scale-95 transition-all p-2 rounded-full hover:bg-white/5">
-                  settings
-                </button>
-                <div className="flex items-center gap-3 pl-2 sm:pl-4 border-l border-white/10 relative group">
-                  <div className="hidden sm:block text-right cursor-pointer">
-                    <p className="font-label-md text-label-md text-on-surface">
-                      {currentUser?.signInDetails?.loginId || currentUser?.username || "Commander"}
-                    </p>
-                    <span className="text-[10px] font-bold text-[#FFD700] uppercase tracking-widest bg-[#FFD700]/10 px-1.5 py-0.5 rounded-sm">
-                      Admiral
-                    </span>
-                  </div>
-                  <img
-                    alt="User profile with rank badge"
-                    className="w-10 h-10 rounded-full border border-secondary/30 p-0.5 bg-surface-container cursor-pointer"
-                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuBaat_LefR8zmWVQ9CHx0bp9dTekwkF9c9AQAo9FxlAx2bSsRi_lWU3tRBK1vdpC50zM3NdKJAB5hHd5ZusN0HuCxBcpe1IbzSlreCalSVomkgeQwYwz9iKrXYvj55d42PgtFMDfCUosVO6NBFPXtM_vVCTYDxnC7xz1DxkbcIvRSfpehGpD-kbu7XuQbuktassmbGVExYQy0GTNC_jJHX3hmbFNDIdyfqO5-uwHYbgPtFdacF4kVhq0AnscPv4dWSz-e_6DYUDMSxe"
-                  />
-                  {/* Dropdown Menu */}
-                  <div className="absolute right-0 top-full pt-2 hidden group-hover:flex flex-col min-w-[150px] z-50">
-                    <div className="bg-surface border border-white/10 rounded-md shadow-lg p-2 w-full">
-                      <button onClick={handleLogout} className="text-left w-full px-3 py-2 text-sm text-error hover:bg-white/5 rounded-sm flex items-center gap-2">
-                        <span className="material-symbols-outlined text-[16px]">logout</span>
-                        Sign out
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
+    <div id="top" className="bg-background text-on-background font-body-md min-h-screen selection:bg-secondary/30">
+      <CommandHeader
+        currentUser={currentUser}
+        authLoading={authLoading}
+        isLightMode={isLightMode}
+        onToggleTheme={toggleTheme}
+        onLogout={handleLogout}
+      />
+
+      {authToast && (
+        <div
+          className={`command-toast ${authToast.type === "error" ? "is-error" : ""}`}
+          role="status"
+          aria-live="polite"
+        >
+          <span className="command-toast-icon" aria-hidden="true"><i /></span>
+          <span>
+            <strong>{t(authToast.titleKey)}</strong>
+            <small>{t(authToast.messageKey)}</small>
+          </span>
+          <button type="button" onClick={() => setAuthToast(null)} aria-label={t("common.dismiss")}>
+            <span className="material-symbols-outlined">close</span>
+          </button>
         </div>
-      </header>
+      )}
       <main className="max-w-[1440px] mx-auto px-gutter pb-6 overflow-hidden flex flex-col gap-6">
         {/*  Hero Section  */}
         <section className="relative grid grid-cols-1 md:grid-cols-2 items-center gap-x-8 gap-y-4 md:gap-y-6 py-2">
           <div className="z-10 order-1 md:col-start-1 md:row-start-1 self-end text-center md:text-left">
             <h1 className="font-display-lg text-on-surface leading-tight text-[24px] md:text-[32px]">
-              Command your <span className="text-secondary glow-text">fleet.</span>
+              {t("home.heroOne")} <span className="text-secondary glow-text">{t("home.heroFleet")}</span>
               <br />
-              Outsmart your enemies.
+              {t("home.heroTwo")}
             </h1>
           </div>
 
@@ -226,18 +204,18 @@ function Home() {
 
           <div className="z-10 order-3 md:col-start-1 md:row-start-2 self-start flex flex-col sm:flex-row gap-3 md:gap-4 w-full">
             <button className="w-full sm:w-auto justify-center border border-secondary/50 text-secondary font-label-md text-label-md px-8 py-3 rounded-sm hover:bg-secondary/5 transition-all active:scale-95">
-              LEARN TACTICS
+              {t("home.learn")}
             </button>
           </div>
         </section>
         {/*  Game Modes Section  */}
-        <section className="">
+        <section id="deployment" className="command-section-anchor">
           <div className="flex items-center gap-3 mb-4">
             <span className="material-symbols-outlined text-secondary">
               grid_view
             </span>
             <h2 className="font-headline-md text-headline-md text-on-surface uppercase tracking-tight">
-              Deployment Modes
+              {t("home.deployment")}
             </h2>
           </div>
           {/* Mobile Tabs */}
@@ -246,19 +224,19 @@ function Home() {
               onClick={() => setActiveModeTab('bot')}
               className={`flex-1 py-2 text-xs font-bold uppercase rounded-md transition-all ${activeModeTab === 'bot' ? 'bg-secondary text-on-secondary-fixed shadow-[0_0_10px_rgba(0,210,255,0.2)]' : 'text-on-surface-variant'}`}
             >
-              Bot
+              {t("home.bot")}
             </button>
             <button 
               onClick={() => setActiveModeTab('player')}
               className={`flex-1 py-2 text-xs font-bold uppercase rounded-md transition-all ${activeModeTab === 'player' ? 'bg-secondary text-on-secondary-fixed shadow-[0_0_10px_rgba(0,210,255,0.2)]' : 'text-on-surface-variant'}`}
             >
-              Player
+              {t("home.player")}
             </button>
             <button 
               onClick={() => setActiveModeTab('room')}
               className={`flex-1 py-2 text-xs font-bold uppercase rounded-md transition-all ${activeModeTab === 'room' ? 'bg-secondary text-on-secondary-fixed shadow-[0_0_10px_rgba(0,210,255,0.2)]' : 'text-on-surface-variant'}`}
             >
-              Room
+              {t("home.room")}
             </button>
           </div>
 
@@ -272,39 +250,38 @@ function Home() {
                   </span>
                 </div>
                 <h3 className="font-title-lg text-[20px] md:text-title-lg text-on-surface leading-tight">
-                  Play vs Bot
+                  {t("home.playBot")}
                 </h3>
               </div>
               <p className="font-body-md text-body-md text-on-surface-variant mb-6 md:mb-8 flex-grow">
-                Sharpen your strategic edge against our advanced tactical AI.
-                Choose from Recruit to Elite difficulty levels.
+                {t("home.botBody")}
               </p>
               <div className="flex flex-col gap-4">
                 <div className="flex gap-2">
                   <span className="text-[10px] px-2 py-1 bg-surface-container text-on-surface-variant font-bold uppercase rounded-sm border border-white/5">
-                    AI Opponent
+                    {t("home.aiOpponent")}
                   </span>
                   <span className="text-[10px] px-2 py-1 bg-surface-container text-on-surface-variant font-bold uppercase rounded-sm border border-white/5">
-                    Practice
+                    {t("home.practice")}
                   </span>
                 </div>
                 
                 <div className="flex flex-col gap-2 mb-1">
-                  <span className="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider">Select Difficulty:</span>
+                  <span className="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider">{t("home.difficulty")}</span>
                   <select 
                     value={botDifficulty} 
                     onChange={(e) => setBotDifficulty(e.target.value)}
                     className="bg-surface-container/50 text-secondary font-label-md p-2 rounded-sm border border-secondary/20 outline-none focus:border-secondary transition-colors cursor-pointer"
                   >
-                    <option value="easy">Recruit (Easy)</option>
-                    <option value="normal">Veteran (Normal)</option>
-                    <option value="hard">Elite (Hard)</option>
+                    <option value="easy">{t("home.easy")}</option>
+                    <option value="normal">{t("home.normal")}</option>
+                    <option value="hard">{t("home.hard")}</option>
                   </select>
                 </div>
 
                 <Link to={`/game?mode=pve&difficulty=${botDifficulty}`} className="w-full block">
                   <button className="w-full bg-secondary text-on-secondary-fixed font-label-md text-label-md py-3 rounded-sm hover:bg-secondary-container transition-all active:scale-95 tracking-widest">
-                    BATTLE NOW
+                    {t("home.battle")}
                   </button>
                 </Link>
               </div>
@@ -313,7 +290,7 @@ function Home() {
             <div className={`glass-card p-6 rounded-xl flex flex-col group h-full border-secondary/20 relative overflow-hidden ${activeModeTab !== 'player' ? 'hidden md:flex' : 'flex'}`}>
               <div className="absolute top-0 right-0 p-2">
                 <span className="text-[10px] bg-secondary text-on-secondary-fixed px-2 py-0.5 font-black uppercase rounded-bl-sm">
-                  Competitive
+                  {t("home.competitive")}
                 </span>
               </div>
               <div className="flex items-center gap-4 mb-4 mt-2 md:mt-0">
@@ -321,24 +298,23 @@ function Home() {
                   <span className="material-symbols-outlined text-2xl md:text-3xl">groups</span>
                 </div>
                 <h3 className="font-title-lg text-[20px] md:text-title-lg text-on-surface leading-tight pr-16">
-                  Play vs Player
+                  {t("home.playPlayer")}
                 </h3>
               </div>
               <p className="font-body-md text-body-md text-on-surface-variant mb-4 flex-grow">
-                Match against global commanders in real-time ranked battles.
-                Climb the tiers and claim your glory.
+                {t("home.playerBody")}
               </p>
               <div className="flex flex-col gap-4">
                 <div className="flex gap-2">
                   <span className="text-[10px] px-2 py-1 bg-secondary/20 text-secondary font-bold uppercase rounded-sm border border-secondary/20">
-                    Online Matchmaking
+                    {t("home.matchmaking")}
                   </span>
                 </div>
                 <button 
-                  onClick={() => alert("This mode is under development.")}
+                  onClick={() => alert(t("home.underDevelopment"))}
                   className="w-full bg-secondary opacity-50 cursor-not-allowed text-on-secondary-fixed font-label-md text-label-md py-3 rounded-sm hover:bg-secondary-container transition-all active:scale-95 tracking-widest"
                 >
-                  JOIN QUEUE
+                  {t("home.joinQueue")}
                 </button>
               </div>
             </div>
@@ -351,57 +327,56 @@ function Home() {
                   </span>
                 </div>
                 <h3 className="font-title-lg text-[20px] md:text-title-lg text-on-surface leading-tight">
-                  Private Room
+                  {t("home.privateRoom")}
                 </h3>
               </div>
               <p className="font-body-md text-body-md text-on-surface-variant mb-4 flex-grow">
-                Host a custom engagement with friends. Share a secure room code
-                and define your own naval rules.
+                {t("home.roomBody")}
               </p>
               <div className="flex flex-col gap-4">
                 <div className="flex gap-2">
                   <span className="text-[10px] px-2 py-1 bg-surface-container text-on-surface-variant font-bold uppercase rounded-sm border border-white/5">
-                    Custom Match
+                    {t("home.customMatch")}
                   </span>
                 </div>
                 <button 
-                  onClick={() => alert("This mode is under development.")}
+                  onClick={() => alert(t("home.underDevelopment"))}
                   className="w-full bg-transparent opacity-50 cursor-not-allowed border border-secondary text-secondary font-label-md text-label-md py-3 rounded-sm hover:bg-secondary/10 transition-all active:scale-95 tracking-widest"
                 >
-                  CREATE ROOM
+                  {t("home.createRoom")}
                 </button>
               </div>
             </div>
           </div>
         </section>
         {/*  Secondary Content Row  */}
-        <section>
+        <section id="records" className="command-section-anchor">
           {/* Mobile Tabs */}
           <div className="lg:hidden flex bg-surface-container/30 rounded-lg p-1 mb-4">
             <button 
               onClick={() => setActiveStatsTab('record')}
               className={`flex-1 py-2 text-xs font-bold uppercase rounded-md transition-all ${activeStatsTab === 'record' ? 'bg-secondary text-on-secondary-fixed shadow-[0_0_10px_rgba(0,210,255,0.2)]' : 'text-on-surface-variant'}`}
             >
-              Service Record
+              {t("home.serviceRecord")}
             </button>
             <button 
               onClick={() => setActiveStatsTab('leaderboard')}
               className={`flex-1 py-2 text-xs font-bold uppercase rounded-md transition-all ${activeStatsTab === 'leaderboard' ? 'bg-secondary text-on-secondary-fixed shadow-[0_0_10px_rgba(0,210,255,0.2)]' : 'text-on-surface-variant'}`}
             >
-              Top Commanders
+              {t("home.topCommanders")}
             </button>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/*  Leaderboard Preview  */}
-            <div className={`lg:col-span-5 glass-card p-4 rounded-xl ${activeStatsTab !== 'leaderboard' ? 'hidden lg:block' : 'block'}`}>
+            <div id="leaderboard" className={`command-section-anchor lg:col-span-5 glass-card p-4 rounded-xl ${activeStatsTab !== 'leaderboard' ? 'hidden lg:block' : 'block'}`}>
             <div className="flex justify-between items-center mb-4">
               <div className="flex items-center gap-3">
                 <span className="material-symbols-outlined text-secondary">
                   emoji_events
                 </span>
                 <h3 className="font-headline-md text-[18px] text-on-surface uppercase tracking-tight">
-                  Top 3 Commanders
+                  {t("home.topThree")}
                 </h3>
               </div>
             </div>
@@ -456,7 +431,7 @@ function Home() {
               </div>
             </div>
             <button className="w-full mt-4 border border-secondary/30 text-secondary font-label-md text-[10px] py-2 rounded-sm hover:bg-secondary/5 transition-all uppercase tracking-widest">
-              View Full Leaderboard
+              {t("home.fullLeaderboard")}
             </button>
           </div>
           {/*  Player Statistics Widget  */}
@@ -467,13 +442,13 @@ function Home() {
                   analytics
                 </span>
                 <h3 className="font-headline-md text-[20px] text-on-surface">
-                  Service Record
+                  {t("home.serviceRecord")}
                 </h3>
               </div>
               <div className="space-y-4">
                 <div className="flex justify-between items-end border-b border-white/5 pb-2">
                   <span className="font-label-md text-label-md text-on-surface-variant uppercase tracking-widest">
-                    Rank Tier
+                    {t("home.rankTier")}
                   </span>
                   <span className="font-headline-md text-[18px] text-[#FFD700] glow-text">
                     Admiral IV
@@ -482,25 +457,25 @@ function Home() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="bg-surface-container/30 p-4 rounded-sm border border-white/5">
                     <p className="text-[10px] text-on-surface-variant uppercase font-bold mb-1">
-                      Total Engagements
+                      {t("home.totalEngagements")}
                     </p>
                     <p className="text-xl font-black text-on-surface">{stats.totalMatches}</p>
                   </div>
                   <div className="bg-surface-container/30 p-4 rounded-sm border border-white/5">
                     <p className="text-[10px] text-on-surface-variant uppercase font-bold mb-1">
-                      Victories
+                      {t("home.victories")}
                     </p>
                     <p className="text-xl font-black text-secondary">{stats.wins}</p>
                   </div>
                   <div className="bg-surface-container/30 p-4 rounded-sm border border-white/5">
                     <p className="text-[10px] text-on-surface-variant uppercase font-bold mb-1">
-                      Defeats
+                      {t("home.defeats")}
                     </p>
                     <p className="text-xl font-black text-error">{stats.losses}</p>
                   </div>
                   <div className="bg-surface-container/30 p-4 rounded-sm border border-white/5">
                     <p className="text-[10px] text-on-surface-variant uppercase font-bold mb-1">
-                      Win Rate
+                      {t("home.winRate")}
                     </p>
                     <p className="text-xl font-black text-secondary">
                       {stats.totalMatches > 0 ? ((stats.wins / stats.totalMatches) * 100).toFixed(1) : 0}%
@@ -509,7 +484,7 @@ function Home() {
                 </div>
                 <div className="pt-4">
                   <div className="flex justify-between text-[10px] font-bold uppercase text-on-surface-variant mb-2">
-                    <span>XP to Next Rank</span>
+                    <span>{t("home.xp")}</span>
                     <span>85%</span>
                   </div>
                   <div className="w-full h-2 bg-surface-container rounded-full overflow-hidden">
