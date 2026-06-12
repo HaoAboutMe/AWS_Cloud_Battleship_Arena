@@ -9,6 +9,7 @@ import {
   resetPassword,
   confirmResetPassword,
   fetchUserAttributes,
+  signInWithRedirect,
 } from "aws-amplify/auth";
 
 export async function resendConfirmCode(email) {
@@ -38,6 +39,12 @@ export async function loginUser({ email, password }) {
   });
 }
 
+export async function loginWithSocialProvider(provider) {
+  return await signInWithRedirect({
+    provider,
+  });
+}
+
 export async function requestPasswordReset(email) {
   return await resetPassword({
     username: email,
@@ -62,6 +69,11 @@ export async function getLoggedInUser() {
 
 export async function getLoggedInUserAttributes() {
   return await fetchUserAttributes();
+}
+
+export async function getLoggedInIdentityClaims() {
+  const { tokens } = await fetchAuthSession();
+  return tokens?.idToken?.payload || {};
 }
 
 export async function getAccessToken() {

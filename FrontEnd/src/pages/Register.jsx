@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AuthNotice, AuthShell, AuthSubmitButton } from "../components/AuthShell";
+import SocialAuthButtons from "../components/SocialAuthButtons";
 import { useLanguage } from "../contexts/LanguageContext";
 import { confirmRegister, registerUser, resendConfirmCode } from "../services/authService";
 import "./Register.css";
@@ -150,6 +151,8 @@ function Register() {
             {errorText}
           </AuthNotice>
         )}
+
+        {!isConfirmStep && <SocialAuthButtons onError={setError} />}
 
         <label className="auth-field">
           <span>{t("common.email")}</span>

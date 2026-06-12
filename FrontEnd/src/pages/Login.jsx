@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AuthNotice, AuthShell, AuthSubmitButton } from "../components/AuthShell";
+import SocialAuthButtons from "../components/SocialAuthButtons";
+import { useAuth } from "../contexts/AuthContext";
 import { useLanguage } from "../contexts/LanguageContext";
 import { getLoggedInUser, loginUser } from "../services/authService";
 import "./Login.css";
@@ -11,6 +13,7 @@ function Login() {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useLanguage();
+  const { isAuthenticated, loading: authLoading } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(true);
@@ -33,12 +36,19 @@ function Login() {
       : null;
 
   useEffect(() => {
+    if (!authLoading && isAuthenticated) {
+      sessionStorage.removeItem("battleshipSocialAuthPending");
+      window.dispatchEvent(new Event("battleship-auth-changed"));
+      navigate("/", { replace: true, state: { authEvent: "signed-in" } });
+      return;
+    }
+
     getLoggedInUser()
       .then((user) => {
-        if (user) navigate("/", { replace: true });
+        if (user) navigate("/", { replace: true, state: { authEvent: "signed-in" } });
       })
       .catch(() => {});
-  }, [navigate]);
+  }, [authLoading, isAuthenticated, navigate]);
 
   const errors = useMemo(() => {
     const nextErrors = {};
@@ -105,6 +115,8 @@ function Login() {
             {errorText}
           </AuthNotice>
         )}
+
+        <SocialAuthButtons onError={setError} />
 
         <label className="auth-field">
           <span>{t("common.email")}</span>
