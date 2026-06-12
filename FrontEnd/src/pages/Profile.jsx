@@ -1,12 +1,8 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import CommandHeader from "../components/CommandHeader";
+import { useAuth } from "../contexts/AuthContext";
 import { useLanguage } from "../contexts/LanguageContext";
-import {
-  getLoggedInUser,
-  getLoggedInUserAttributes,
-  logoutUser,
-} from "../services/authService";
 import "./HomeHeader.css";
 import "./Profile.css";
 
@@ -32,34 +28,16 @@ function readStats() {
 function Profile() {
   const navigate = useNavigate();
   const { t } = useLanguage();
-  const [currentUser, setCurrentUser] = useState(null);
-  const [attributes, setAttributes] = useState({});
-  const [loading, setLoading] = useState(true);
+  const {
+    user: currentUser,
+    attributes,
+    loading,
+    logout,
+  } = useAuth();
   const [isLightMode, setIsLightMode] = useState(() =>
     document.documentElement.classList.contains("light-mode-active"),
   );
   const [stats] = useState(readStats);
-
-  useEffect(() => {
-    let active = true;
-
-    Promise.all([getLoggedInUser(), getLoggedInUserAttributes()])
-      .then(([user, userAttributes]) => {
-        if (!active) return;
-        setCurrentUser(user);
-        setAttributes(userAttributes);
-      })
-      .catch(() => {
-        if (active) setCurrentUser(null);
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-
-    return () => {
-      active = false;
-    };
-  }, []);
 
   const toggleTheme = (event) => {
     const nextLightMode = !isLightMode;
@@ -100,18 +78,25 @@ function Profile() {
   };
 
   const handleLogout = async () => {
-    await logoutUser();
+    await logout();
     localStorage.removeItem("battleshipSession");
-    window.dispatchEvent(new Event("battleship-auth-changed"));
     navigate("/", { replace: true, state: { authEvent: "signed-out" } });
   };
 
   const email =
     attributes.email ||
     currentUser?.signInDetails?.loginId ||
-    currentUser?.username ||
+    t("profile.emailUnavailable");
+  const callsign =
+    attributes.preferred_username ||
+    attributes.name ||
+    attributes.given_name ||
+    attributes.nickname ||
+    (attributes.email ? attributes.email.split("@")[0] : null) ||
     t("profile.commander");
-  const callsign = attributes.preferred_username || attributes.name || t("profile.commander");
+  const avatarUrl = typeof attributes.picture === "string"
+    ? attributes.picture
+    : COMMANDER_AVATAR;
   const accuracy = stats.totalShots > 0
     ? Math.round((stats.totalHits / stats.totalShots) * 100)
     : 0;
@@ -123,6 +108,7 @@ function Profile() {
     <div className="profile-page">
       <CommandHeader
         currentUser={currentUser}
+        attributes={attributes}
         authLoading={loading}
         isLightMode={isLightMode}
         onToggleTheme={toggleTheme}
@@ -151,7 +137,14 @@ function Profile() {
           <>
             <section className="profile-identity">
               <div className="profile-avatar-frame">
-                <img src={COMMANDER_AVATAR} alt={t("profile.avatarAlt")} />
+                <img
+                  src={avatarUrl}
+                  alt={t("profile.avatarAlt")}
+                  referrerPolicy="no-referrer"
+                  onError={(event) => {
+                    event.currentTarget.src = COMMANDER_AVATAR;
+                  }}
+                />
                 <span>{t("profile.operational")}</span>
               </div>
               <div className="profile-identity-copy">

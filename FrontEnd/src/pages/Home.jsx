@@ -1,8 +1,8 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import CommandHeader from "../components/CommandHeader";
+import { useAuth } from "../contexts/AuthContext";
 import { useLanguage } from "../contexts/LanguageContext";
-import { getLoggedInUser, logoutUser } from "../services/authService";
 import "./HomeHeader.css";
 import "./Home.css";
 
@@ -10,8 +10,12 @@ function Home() {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useLanguage();
-  const [currentUser, setCurrentUser] = useState(null);
-  const [authLoading, setAuthLoading] = useState(true);
+  const {
+    user: currentUser,
+    attributes,
+    loading: authLoading,
+    logout,
+  } = useAuth();
   const [authToast, setAuthToast] = useState(() => {
     if (location.state?.authEvent === "signed-in") {
       return {
@@ -84,22 +88,6 @@ function Home() {
   };
 
   useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const user = await getLoggedInUser();
-        setCurrentUser(user);
-      } catch {
-        setCurrentUser(null);
-      } finally {
-        setAuthLoading(false);
-      }
-    };
-
-    loadUser();
-
-    const handleAuthChanged = () => loadUser();
-    window.addEventListener("battleship-auth-changed", handleAuthChanged);
-
     // Track the pointer for the card highlight without overriding theme colors.
     const cards = document.querySelectorAll(".glass-card");
     const handleMouseMove = (e) => {
@@ -116,7 +104,6 @@ function Home() {
     });
 
     return () => {
-      window.removeEventListener("battleship-auth-changed", handleAuthChanged);
       cards.forEach((card) => {
         card.removeEventListener("mousemove", handleMouseMove);
       });
@@ -131,10 +118,8 @@ function Home() {
 
   const handleLogout = async () => {
     try {
-      await logoutUser();
+      await logout();
       localStorage.removeItem("battleshipSession");
-      window.dispatchEvent(new Event("battleship-auth-changed"));
-      setCurrentUser(null);
       setAuthToast({
         type: "success",
         titleKey: "home.signedOutTitle",
@@ -154,6 +139,7 @@ function Home() {
     <div id="top" className="home-page bg-background text-on-background font-body-md min-h-screen selection:bg-secondary/30">
       <CommandHeader
         currentUser={currentUser}
+        attributes={attributes}
         authLoading={authLoading}
         isLightMode={isLightMode}
         onToggleTheme={toggleTheme}

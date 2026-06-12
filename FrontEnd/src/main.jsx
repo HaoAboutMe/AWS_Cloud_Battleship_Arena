@@ -1,9 +1,9 @@
-import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import App from "./App";
 import { Amplify } from "aws-amplify";
 import { awsConfig } from "./awsConfig";
+import "aws-amplify/auth/enable-oauth-listener";
 
 Amplify.configure(awsConfig);
 

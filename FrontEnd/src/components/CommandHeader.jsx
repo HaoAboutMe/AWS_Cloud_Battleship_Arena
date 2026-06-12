@@ -7,6 +7,7 @@ const COMMANDER_AVATAR =
 
 function CommandHeader({
   currentUser,
+  attributes = {},
   authLoading = false,
   isLightMode = false,
   onToggleTheme,
@@ -14,7 +15,17 @@ function CommandHeader({
 }) {
   const location = useLocation();
   const { t } = useLanguage();
-  const identity = currentUser?.signInDetails?.loginId || currentUser?.username || "Commander";
+  const identity =
+    attributes.preferred_username ||
+    attributes.name ||
+    attributes.given_name ||
+    attributes.nickname ||
+    attributes.email ||
+    currentUser?.signInDetails?.loginId ||
+    "Commander";
+  const avatarUrl = typeof attributes.picture === "string"
+    ? attributes.picture
+    : COMMANDER_AVATAR;
 
   return (
     <header className="command-header">
@@ -59,7 +70,15 @@ function CommandHeader({
               </button>
               <div className="command-account">
                 <button type="button" className="command-account-trigger" aria-label={t("common.openAccount")}>
-                  <img className="command-avatar" src={COMMANDER_AVATAR} alt="" />
+                  <img
+                    className="command-avatar"
+                    src={avatarUrl}
+                    alt=""
+                    referrerPolicy="no-referrer"
+                    onError={(event) => {
+                      event.currentTarget.src = COMMANDER_AVATAR;
+                    }}
+                  />
                   <span className="command-account-copy">
                     <strong title={identity}>{identity}</strong>
                     <small><i /> {t("common.admiralClearance")}</small>
