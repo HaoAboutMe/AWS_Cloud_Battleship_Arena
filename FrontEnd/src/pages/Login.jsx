@@ -2,9 +2,11 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AuthNotice, AuthShell, AuthSubmitButton } from "../components/AuthShell";
 import SocialAuthButtons from "../components/SocialAuthButtons";
+import { fetchUserAttributes } from "aws-amplify/auth";
 import { useAuth } from "../contexts/AuthContext";
 import { useLanguage } from "../contexts/LanguageContext";
 import { getLoggedInUser, loginUser } from "../services/authService";
+import { createUser } from "../services/userService";
 import "./Login.css";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -38,8 +40,24 @@ function Login() {
   useEffect(() => {
     if (!authLoading && isAuthenticated) {
       sessionStorage.removeItem("battleshipSocialAuthPending");
-      window.dispatchEvent(new Event("battleship-auth-changed"));
-      navigate("/", { replace: true, state: { authEvent: "signed-in" } });
+      
+      const finalizeSocialLogin = async () => {
+        try {
+          const attrs = await fetchUserAttributes();
+          await createUser({
+            userId: attrs.sub,
+            email: attrs.email,
+            username: attrs.name || attrs.email.split("@")[0]
+          });
+        } catch (err) {
+          console.error("Failed to process user data after social login:", err);
+        } finally {
+          window.dispatchEvent(new Event("battleship-auth-changed"));
+          navigate("/", { replace: true, state: { authEvent: "signed-in" } });
+        }
+      };
+
+      finalizeSocialLogin();
       return;
     }
 
@@ -74,6 +92,18 @@ function Login() {
 
     try {
       await loginUser({ email: email.trim(), password });
+      
+      try {
+        const attrs = await fetchUserAttributes();
+        await createUser({
+          userId: attrs.sub,
+          email: attrs.email,
+          username: attrs.name || attrs.email.split("@")[0]
+        });
+      } catch (err) {
+        console.error("Failed to process user data after login:", err);
+      }
+
       localStorage.setItem(
         "battleshipSession",
         JSON.stringify({ callsign: "Commander", email: email.trim(), remember }),

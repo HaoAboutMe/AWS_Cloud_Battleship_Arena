@@ -1,0 +1,329 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: Cloud Battleship Arena serverless backend.
+
+Globals:
+  Function:
+    Runtime: nodejs20.x
+    Architectures:
+      - x86_64
+    Timeout: 10
+    MemorySize: 256
+    Environment:
+      Variables:
+        ROOMS_TABLE: !Ref RoomsTable
+        CONNECTIONS_TABLE: !Ref ConnectionsTable
+        CORS_ORIGIN: !Ref CorsOrigin
+
+Parameters:
+  CorsOrigin:
+    Type: String
+    Default: "http://localhost:5173"
+    Description: Frontend origin allowed to call the HTTP API.
+
+Resources:
+  RoomsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: roomCode
+          AttributeType: S
+      KeySchema:
+        - AttributeName: roomCode
+          KeyType: HASH
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+
+  ConnectionsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: connectionId
+          AttributeType: S
+        - AttributeName: roomCode
+          AttributeType: S
+      KeySchema:
+        - AttributeName: connectionId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: byRoomCode
+          KeySchema:
+            - AttributeName: roomCode
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+
+  BattleshipHttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      CorsConfiguration:
+        AllowOrigins:
+          - !Ref CorsOrigin
+        AllowMethods:
+          - GET
+          - POST
+          - OPTIONS
+        AllowHeaders:
+          - content-type
+          - authorization
+
+  BattleshipWebSocketApi:
+    Type: AWS::ApiGatewayV2::Api
+    Properties:
+      Name: CloudBattleshipWebSocket
+      ProtocolType: WEBSOCKET
+      RouteSelectionExpression: "$request.body.action"
+
+  CreateRoomFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Handler: src/handlers/createRoom.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref RoomsTable
+      Events:
+        CreateRoom:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref BattleshipHttpApi
+            Path: /rooms
+            Method: POST
+
+  JoinRoomFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Handler: src/handlers/joinRoom.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref RoomsTable
+      Events:
+        JoinRoom:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref BattleshipHttpApi
+            Path: /rooms/{roomCode}/join
+            Method: POST
+
+  GetRoomFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Handler: src/handlers/getRoom.handler
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref RoomsTable
+      Events:
+        GetRoom:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref BattleshipHttpApi
+            Path: /rooms/{roomCode}
+            Method: GET
+
+  ReadyRoomFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Handler: src/handlers/readyRoom.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref RoomsTable
+      Events:
+        ReadyRoom:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref BattleshipHttpApi
+            Path: /rooms/{roomCode}/ready
+            Method: POST
+
+  LobbyReadyRoomFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Handler: src/handlers/lobbyReadyRoom.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref RoomsTable
+      Events:
+        LobbyReadyRoom:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref BattleshipHttpApi
+            Path: /rooms/{roomCode}/lobby-ready
+            Method: POST
+
+  RematchRoomFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Handler: src/handlers/rematchRoom.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref RoomsTable
+      Events:
+        RematchRoom:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref BattleshipHttpApi
+            Path: /rooms/{roomCode}/rematch
+            Method: POST
+
+  LeaveRoomFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Handler: src/handlers/leaveRoom.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref RoomsTable
+      Events:
+        LeaveRoom:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref BattleshipHttpApi
+            Path: /rooms/{roomCode}/leave
+            Method: POST
+
+  WebSocketConnectFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Handler: src/handlers/wsConnect.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ConnectionsTable
+
+  WebSocketDisconnectFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Handler: src/handlers/wsDisconnect.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ConnectionsTable
+
+  WebSocketMessageFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Handler: src/handlers/wsMessage.handler
+      Environment:
+        Variables:
+          ROOMS_TABLE: !Ref RoomsTable
+          CONNECTIONS_TABLE: !Ref ConnectionsTable
+          CORS_ORIGIN: !Ref CorsOrigin
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ConnectionsTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref RoomsTable
+        - Statement:
+            Effect: Allow
+            Action:
+              - execute-api:ManageConnections
+            Resource: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${BattleshipWebSocketApi}/*"
+
+  ConnectIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref BattleshipWebSocketApi
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub
+        - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${FunctionArn}/invocations
+        - FunctionArn: !GetAtt WebSocketConnectFunction.Arn
+
+  DisconnectIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref BattleshipWebSocketApi
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub
+        - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${FunctionArn}/invocations
+        - FunctionArn: !GetAtt WebSocketDisconnectFunction.Arn
+
+  MessageIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref BattleshipWebSocketApi
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub
+        - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${FunctionArn}/invocations
+        - FunctionArn: !GetAtt WebSocketMessageFunction.Arn
+
+  ConnectRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref BattleshipWebSocketApi
+      RouteKey: $connect
+      Target: !Sub integrations/${ConnectIntegration}
+
+  DisconnectRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref BattleshipWebSocketApi
+      RouteKey: $disconnect
+      Target: !Sub integrations/${DisconnectIntegration}
+
+  DefaultRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref BattleshipWebSocketApi
+      RouteKey: $default
+      Target: !Sub integrations/${MessageIntegration}
+
+  WebSocketDeployment:
+    Type: AWS::ApiGatewayV2::Deployment
+    DependsOn:
+      - ConnectRoute
+      - DisconnectRoute
+      - DefaultRoute
+    Properties:
+      ApiId: !Ref BattleshipWebSocketApi
+
+  WebSocketStage:
+    Type: AWS::ApiGatewayV2::Stage
+    Properties:
+      ApiId: !Ref BattleshipWebSocketApi
+      DeploymentId: !Ref WebSocketDeployment
+      StageName: prod
+      AutoDeploy: true
+
+  ConnectPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref WebSocketConnectFunction
+      Principal: apigateway.amazonaws.com
+
+  DisconnectPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref WebSocketDisconnectFunction
+      Principal: apigateway.amazonaws.com
+
+  MessagePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref WebSocketMessageFunction
+      Principal: apigateway.amazonaws.com
+
+Outputs:
+  HttpApiUrl:
+    Description: HTTP API base URL.
+    Value: !Sub "https://${BattleshipHttpApi}.execute-api.${AWS::Region}.amazonaws.com"
+  WebSocketUrl:
+    Description: WebSocket API URL.
+    Value: !Sub "wss://${BattleshipWebSocketApi}.execute-api.${AWS::Region}.amazonaws.com/prod"
+  RoomsTableName:
+    Description: DynamoDB rooms table name.
+    Value: !Ref RoomsTable
