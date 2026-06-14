@@ -9,62 +9,52 @@ import "./Lobby.css";
 
 const LOBBY_COPY = {
   en: {
-    kicker: "Private Command Channel",
     title: "Battle Room",
-    intro: "Create a private room or enter a room code to prepare for PvP. When two commanders are present, both must press Ready to enter fleet deployment.",
-    createTitle: "Create room",
-    createBody: "Open a private command channel, then send the room code to the second player.",
+    intro: "Create a private room or enter a room code to prepare for PvP.",
+    createTitle: "Create Room",
+    createBody: "Open a private command channel.",
     createButton: "Create room",
-    joinTitle: "Join room",
-    joinBody: "Paste a received room code. Player status will stay synchronized.",
+    joinTitle: "Join Room",
+    joinBody: "Paste a received room code to connect.",
     joinButton: "Join room",
-    processing: "Processing",
-    roomStatus: "Room status",
-    roomCode: "Room code",
+    placeholder: "ENTER ROOM CODE",
+    processing: "Processing...",
     copy: "Copy",
-    copied: "Copied",
-    players: "Players",
+    copied: "Copied!",
+    leaveRoom: "Leave Room",
     ready: "Ready",
     standby: "Standby",
-    waitingSecond: "Waiting for the second player. Status refreshes every 5 seconds.",
-    readyInstruction: "Both players are present. Press Ready to enter fleet deployment.",
-    updated: "Updated:",
-    waitTwo: "Waiting for 2 players",
-    waitingOpponent: "Waiting opponent",
-    syncing: "Syncing",
-    empty: "No room selected. Create a new room or enter a room code to begin.",
-    openSlot: "Awaiting commander",
+    waitingSecond: "Waiting for a commander to join...",
+    waitingMessage: "Waiting for opponent to ready up...",
+    startDeployment: "Start Deployment",
+    syncing: "Syncing...",
+    openSlot: "Awaiting commander...",
     loadError: "Unable to load room information.",
     createError: "Unable to create room.",
     joinError: "Unable to join room.",
     readyError: "Unable to update ready status.",
   },
   vi: {
-    kicker: "Kênh chỉ huy riêng",
     title: "Phòng chiến đấu",
-    intro: "Tạo phòng riêng hoặc nhập mã phòng để chuẩn bị trận PvP. Khi đủ hai chỉ huy, cả hai bấm Sẵn sàng để vào màn xếp tàu.",
+    intro: "Tạo phòng riêng hoặc nhập mã phòng để chuẩn bị trận PvP.",
     createTitle: "Tạo phòng",
-    createBody: "Mở một kênh riêng, sau đó gửi mã phòng cho người chơi thứ hai.",
+    createBody: "Mở một kênh riêng để chơi với bạn bè.",
     createButton: "Tạo phòng",
     joinTitle: "Vào phòng",
-    joinBody: "Dán mã phòng đã nhận. Trạng thái người chơi sẽ được đồng bộ.",
+    joinBody: "Nhập mã phòng đã nhận để kết nối.",
     joinButton: "Vào phòng",
-    processing: "Đang xử lý",
-    roomStatus: "Trạng thái phòng",
-    roomCode: "Mã phòng",
+    placeholder: "NHẬP MÃ PHÒNG",
+    processing: "Đang xử lý...",
     copy: "Copy",
-    copied: "Đã copy",
-    players: "Người chơi",
+    copied: "Đã copy!",
+    leaveRoom: "Rời phòng",
     ready: "Sẵn sàng",
     standby: "Chờ",
-    waitingSecond: "Đang chờ người chơi thứ hai. Trạng thái tự cập nhật mỗi 5 giây.",
-    readyInstruction: "Đã đủ người chơi. Cả hai bấm Sẵn sàng để vào màn xếp tàu.",
-    updated: "Cập nhật:",
-    waitTwo: "Chờ đủ 2 người",
-    waitingOpponent: "Đang chờ đối thủ",
-    syncing: "Đang đồng bộ",
-    empty: "Chưa có phòng nào được chọn. Tạo phòng mới hoặc nhập mã phòng để bắt đầu.",
-    openSlot: "Đang chờ chỉ huy",
+    waitingSecond: "Đang chờ chỉ huy thứ hai vào phòng...",
+    waitingMessage: "Đang chờ đối thủ sẵn sàng...",
+    startDeployment: "Bắt đầu xếp tàu",
+    syncing: "Đang đồng bộ...",
+    openSlot: "Đang chờ chỉ huy...",
     loadError: "Không thể tải thông tin phòng.",
     createError: "Không thể tạo phòng.",
     joinError: "Không thể vào phòng.",
@@ -84,7 +74,6 @@ function Lobby() {
   const [loading, setLoading] = useState(Boolean(initialRoomCode));
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
-  const [lastUpdatedAt, setLastUpdatedAt] = useState("");
   const [readyLoading, setReadyLoading] = useState(false);
 
   const player = useMemo(() => {
@@ -119,7 +108,6 @@ function Lobby() {
         const nextRoom = await getRoom(initialRoomCode);
         if (!cancelled) {
           setRoom(nextRoom);
-          setLastUpdatedAt(new Date().toLocaleTimeString());
         }
       } catch (loadError) {
         if (!cancelled) setError(loadError.message || copy.loadError);
@@ -142,7 +130,6 @@ function Lobby() {
       try {
         const nextRoom = await getRoom(room.roomCode);
         setRoom(nextRoom);
-        setLastUpdatedAt(new Date().toLocaleTimeString());
         if (nextRoom.status === "DEPLOYING") {
           navigate(`/game?mode=pvp&roomCode=${nextRoom.roomCode}`);
         }
@@ -161,7 +148,6 @@ function Lobby() {
       setCopied(false);
       const nextRoom = await createRoom({ difficulty: "easy", player });
       setRoom(nextRoom);
-      setLastUpdatedAt(new Date().toLocaleTimeString());
       setRoomCodeInput(nextRoom.roomCode);
       setSearchParams({ roomCode: nextRoom.roomCode });
     } catch (createError) {
@@ -173,6 +159,7 @@ function Lobby() {
 
   const handleJoinRoom = async (event) => {
     event.preventDefault();
+    if (!roomCodeInput.trim()) return;
 
     try {
       setLoading(true);
@@ -180,7 +167,6 @@ function Lobby() {
       setCopied(false);
       const nextRoom = await joinRoom({ roomCode: roomCodeInput, player });
       setRoom(nextRoom);
-      setLastUpdatedAt(new Date().toLocaleTimeString());
       setRoomCodeInput(nextRoom.roomCode);
       setSearchParams({ roomCode: nextRoom.roomCode });
     } catch (joinError) {
@@ -206,7 +192,6 @@ function Lobby() {
       setError("");
       const nextRoom = await markLobbyReady({ roomCode: room.roomCode, player });
       setRoom(nextRoom);
-      setLastUpdatedAt(new Date().toLocaleTimeString());
 
       if (nextRoom.status === "DEPLOYING") {
         navigate(`/game?mode=pvp&roomCode=${nextRoom.roomCode}`);
@@ -223,10 +208,10 @@ function Lobby() {
     (roomPlayer.email && player.email && roomPlayer.email === player.email) ||
     (roomPlayer.baseUserId && roomPlayer.baseUserId === player.baseUserId)
   ));
+  
   const isLobbyReady = Boolean(currentPlayerInRoom?.lobbyReady);
   const playerCount = room?.players?.length || 0;
-  const readyCount = room?.players?.filter((roomPlayer) => roomPlayer.lobbyReady).length || 0;
-  const readinessPercent = Math.round((readyCount / 2) * 100);
+  
   const playerSlots = room
     ? [
       ...(room.players || []),
@@ -239,6 +224,9 @@ function Lobby() {
     ]
     : [];
 
+  const otherPlayer = room?.players?.find(p => p.userId !== currentPlayerInRoom?.userId);
+  const isOtherPlayerReady = Boolean(otherPlayer?.lobbyReady);
+
   return (
     <div className="lobby-page">
       <CommandHeader
@@ -249,132 +237,144 @@ function Lobby() {
       />
 
       <main className="lobby-shell">
-        <section className="lobby-command">
-          <div className="lobby-panel lobby-hero">
-            <div className="lobby-heading-row">
-              <div>
-                <span className="lobby-kicker">{copy.kicker}</span>
-                <h1 className="lobby-title">{copy.title}</h1>
-                <p className="lobby-copy">{copy.intro}</p>
-              </div>
-              <div className="lobby-radar-badge" aria-hidden="true">
-                <span className="material-symbols-outlined">radar</span>
-              </div>
-            </div>
-
-            <div className="lobby-actions">
-              <article className="lobby-card">
-                <div className="lobby-card-title">
-                  <span className="material-symbols-outlined">add_home</span>
-                  <h2>{copy.createTitle}</h2>
-                </div>
-                <p>{copy.createBody}</p>
-                <button className="lobby-button" type="button" onClick={handleCreateRoom} disabled={loading}>
-                  <span className="material-symbols-outlined">add_circle</span>
-                  {loading ? copy.processing : copy.createButton}
-                </button>
-              </article>
-
-              <article className="lobby-card">
-                <div className="lobby-card-title">
-                  <span className="material-symbols-outlined">login</span>
-                  <h2>{copy.joinTitle}</h2>
-                </div>
-                <p>{copy.joinBody}</p>
-                <form onSubmit={handleJoinRoom}>
-                  <input
-                    className="lobby-input"
-                    value={roomCodeInput}
-                    onChange={(event) => setRoomCodeInput(event.target.value.toUpperCase())}
-                    placeholder="ABC123"
-                    maxLength={8}
-                  />
-                  <div style={{ height: 12 }} />
-                  <button className="lobby-button secondary" type="submit" disabled={loading || !roomCodeInput.trim()}>
-                    <span className="material-symbols-outlined">login</span>
-                    {copy.joinButton}
+        {!room ? (
+          // State 1: User not in a room
+          <section className="lobby-centered-container">
+            <div className="lobby-centered-card">
+              <h1 className="lobby-centered-title">{copy.title}</h1>
+              <p className="lobby-centered-intro">{copy.intro}</p>
+              
+              <div className="lobby-action-group">
+                <div className="lobby-action-section">
+                  <h3>{copy.createTitle}</h3>
+                  <p className="lobby-action-desc">{copy.createBody}</p>
+                  <button 
+                    className="lobby-button primary-action" 
+                    type="button" 
+                    onClick={handleCreateRoom} 
+                    disabled={loading}
+                  >
+                    <span className="material-symbols-outlined">add_circle</span>
+                    {loading ? copy.processing : copy.createButton}
                   </button>
-                </form>
-              </article>
+                </div>
+                
+                <div className="lobby-divider">OR</div>
+                
+                <div className="lobby-action-section">
+                  <h3>{copy.joinTitle}</h3>
+                  <p className="lobby-action-desc">{copy.joinBody}</p>
+                  <form onSubmit={handleJoinRoom} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <input
+                      className="lobby-input"
+                      value={roomCodeInput}
+                      onChange={(event) => setRoomCodeInput(event.target.value.toUpperCase())}
+                      placeholder={copy.placeholder}
+                      maxLength={8}
+                    />
+                    <button 
+                      className="lobby-button secondary" 
+                      type="submit" 
+                      disabled={loading || !roomCodeInput.trim()}
+                    >
+                      <span className="material-symbols-outlined">login</span>
+                      {copy.joinButton}
+                    </button>
+                  </form>
+                </div>
+              </div>
+              
+              {error && <div className="lobby-error">{error}</div>}
             </div>
-
-            {error && <div className="lobby-error">{error}</div>}
-          </div>
-
-          <aside className="lobby-panel lobby-status">
-            <div className="lobby-status-head">
-              <span className="lobby-kicker">{copy.roomStatus}</span>
-              {room && <span className={`lobby-state-chip is-${String(room.status).toLowerCase()}`}>{room.status}</span>}
-            </div>
-            {room ? (
-              <>
-                <div className="lobby-room-code">
-                  <div>
-                    <small>{copy.roomCode}</small>
-                    <strong>{room.roomCode}</strong>
+          </section>
+        ) : (
+          // State 2 & 3: Room View
+          <section className="lobby-room-container">
+            {/* Left Column: Player Info */}
+            <div className="lobby-panel">
+              <h2 className="lobby-panel-title">Commanders ({playerCount}/2)</h2>
+              <div className="lobby-player-list">
+                {playerSlots.map((roomPlayer) => (
+                  <div
+                    className={`lobby-player ${roomPlayer.lobbyReady ? "is-ready" : ""} ${roomPlayer.isEmpty ? "is-empty" : ""}`}
+                    key={roomPlayer.userId}
+                  >
+                    <span className="lobby-player-name">{roomPlayer.displayName}</span>
+                    <span className={`lobby-player-state ${roomPlayer.lobbyReady ? "ready-text" : ""}`}>
+                      <i />
+                      {roomPlayer.isEmpty ? copy.standby : roomPlayer.lobbyReady ? copy.ready : copy.standby}
+                    </span>
                   </div>
-                  <button className="lobby-button secondary" type="button" onClick={handleCopyRoomCode}>
+                ))}
+              </div>
+            </div>
+
+            {/* Right Column: Actions & Controls */}
+            <div className="lobby-panel">
+              <div className="lobby-room-code-display">
+                <small>Room Code</small>
+                <strong>{room.roomCode}</strong>
+                <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                  <button 
+                    className="lobby-button secondary" 
+                    style={{ width: 'auto', padding: '0 20px', height: '40px' }} 
+                    type="button" 
+                    onClick={handleCopyRoomCode}
+                  >
                     <span className="material-symbols-outlined">{copied ? "done" : "content_copy"}</span>
                     {copied ? copy.copied : copy.copy}
                   </button>
+                  <button 
+                    className="lobby-button secondary" 
+                    style={{ width: 'auto', padding: '0 20px', height: '40px', borderColor: 'rgba(255, 112, 112, 0.4)', color: '#ffb7b7' }} 
+                    type="button" 
+                    onClick={() => {
+                      setRoom(null);
+                      setSearchParams({});
+                    }}
+                  >
+                    <span className="material-symbols-outlined">logout</span>
+                    {copy.leaveRoom}
+                  </button>
                 </div>
+              </div>
 
-                <div className="lobby-readiness">
-                  <div>
-                    <span>{copy.players}</span>
-                    <strong>{playerCount}/2</strong>
-                  </div>
-                  <div>
-                    <span>{copy.ready}</span>
-                    <strong>{readyCount}/2</strong>
-                  </div>
+              {error && <div className="lobby-error" style={{ marginBottom: '20px' }}>{error}</div>}
+
+              {/* Action Area based on State */}
+              {playerCount < 2 ? (
+                // State 3: Waiting for second player
+                <div className="lobby-waiting-state">
+                  <span className="material-symbols-outlined">radar</span>
+                  <h3>Awaiting Connection</h3>
+                  <p>{copy.waitingSecond}</p>
                 </div>
-
-                <div className="lobby-progress" aria-hidden="true">
-                  <span style={{ width: `${readinessPercent}%` }} />
-                </div>
-
-                <div className="lobby-player-list">
-                  {playerSlots.map((roomPlayer) => (
-                    <div
-                      className={`lobby-player ${roomPlayer.lobbyReady ? "is-ready" : ""} ${roomPlayer.isEmpty ? "is-empty" : ""}`}
-                      key={roomPlayer.userId}
-                    >
-                      <span className="lobby-player-name">{roomPlayer.displayName}</span>
-                      <span className="lobby-player-state">
-                        <i />
-                        {roomPlayer.isEmpty ? copy.standby : roomPlayer.lobbyReady ? copy.ready : copy.standby}
-                      </span>
+              ) : (
+                // State 2: Both players present
+                <div className="lobby-mobile-sticky-action">
+                  {isLobbyReady ? (
+                    <div className="lobby-waiting-state" style={{ padding: '20px' }}>
+                      <span className="material-symbols-outlined" style={{ fontSize: '32px' }}>hourglass_top</span>
+                      <h3 style={{ fontSize: '18px', margin: 0 }}>{copy.waitingMessage}</h3>
                     </div>
-                  ))}
+                  ) : (
+                    <button
+                      className="lobby-button primary-action"
+                      type="button"
+                      disabled={readyLoading}
+                      onClick={handleLobbyReady}
+                    >
+                      <span className="material-symbols-outlined">
+                        {isOtherPlayerReady ? "rocket_launch" : "task_alt"}
+                      </span>
+                      {readyLoading ? copy.syncing : (isOtherPlayerReady ? copy.startDeployment : copy.ready)}
+                    </button>
+                  )}
                 </div>
-
-                <p className="lobby-sync-note">
-                  {playerCount < 2 ? copy.waitingSecond : copy.readyInstruction}
-                  {lastUpdatedAt && <span> {copy.updated} {lastUpdatedAt}</span>}
-                </p>
-
-                <button
-                  className="lobby-button"
-                  type="button"
-                  disabled={playerCount < 2 || readyLoading || isLobbyReady}
-                  onClick={handleLobbyReady}
-                >
-                  <span className="material-symbols-outlined">{isLobbyReady ? "hourglass_top" : "task_alt"}</span>
-                  {playerCount < 2
-                    ? copy.waitTwo
-                    : isLobbyReady
-                      ? copy.waitingOpponent
-                      : readyLoading
-                        ? copy.syncing
-                        : copy.ready}
-                </button>
-              </>
-            ) : (
-              <p className="lobby-empty">{copy.empty}</p>
-            )}
-          </aside>
-        </section>
+              )}
+            </div>
+          </section>
+        )}
       </main>
     </div>
   );

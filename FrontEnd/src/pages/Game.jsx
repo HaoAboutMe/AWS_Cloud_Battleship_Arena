@@ -2318,9 +2318,25 @@ function Game() {
                         {isMobile ? "BATTLESHIP" : "Cloud Battleship Arena"}
                     </Link>
                     <div className="flex items-center gap-4">
-                        <span className="text-[10px] uppercase font-bold text-secondary bg-secondary/10 px-2 py-1 rounded-sm border border-secondary/20">
-                            Difficulty: {difficulty}
-                        </span>
+                        {isPvpMode ? (
+                            <button
+                                onClick={(event) => {
+                                    if (!shouldConfirmPvpExit()) {
+                                        navigate("/");
+                                        return;
+                                    }
+                                    event.preventDefault();
+                                    requestGameExit("/");
+                                }}
+                                className="text-[10px] uppercase font-bold text-error bg-error/10 px-3 py-1.5 rounded-sm border border-error/20 hover:bg-error/20 hover:text-red-400 transition-colors"
+                            >
+                                {copy.leave || "Leave Match"}
+                            </button>
+                        ) : (
+                            <span className="text-[10px] uppercase font-bold text-secondary bg-secondary/10 px-2 py-1 rounded-sm border border-secondary/20">
+                                Difficulty: {difficulty}
+                            </span>
+                        )}
                         <Link
                             to="/"
                             onClick={(event) => {

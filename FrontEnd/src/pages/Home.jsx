@@ -154,23 +154,8 @@ function Home() {
     };
   };
 
-  const handleCreatePrivateRoom = async () => {
-    try {
-      setRoomCreating(true);
-      const room = await createRoom({
-        difficulty: "easy",
-        player: buildCurrentPlayer(),
-      });
-      navigate(`/lobby?roomCode=${room.roomCode}`);
-    } catch {
-      setAuthToast({
-        type: "error",
-        titleKey: "home.createRoom",
-        messageKey: "home.underDevelopment",
-      });
-    } finally {
-      setRoomCreating(false);
-    }
+  const handleCreatePrivateRoom = () => {
+    navigate("/lobby");
   };
 
   return (
