@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import CommandHeader from "../components/CommandHeader";
 import { useAuth } from "../contexts/AuthContext";
 import { useLanguage } from "../contexts/LanguageContext";
+import { createRoom } from "../services/matchService";
 import "./HomeHeader.css";
 import "./Home.css";
 
@@ -33,6 +34,7 @@ function Home() {
   });
   const [isLightMode, setIsLightMode] = useState(false);
   const [botDifficulty, setBotDifficulty] = useState("easy");
+  const [roomCreating, setRoomCreating] = useState(false);
   const [stats] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem("battleshipStats")) || {
@@ -132,6 +134,42 @@ function Home() {
         titleKey: "home.signOutErrorTitle",
         messageKey: "home.signOutErrorBody",
       });
+    }
+  };
+
+  const buildCurrentPlayer = () => {
+    const displayName =
+      attributes?.preferred_username ||
+      attributes?.name ||
+      attributes?.given_name ||
+      attributes?.nickname ||
+      attributes?.email ||
+      currentUser?.signInDetails?.loginId ||
+      "Commander";
+
+    return {
+      userId: currentUser?.userId || attributes?.sub || attributes?.email || `guest-${crypto.randomUUID()}`,
+      displayName,
+      email: attributes?.email,
+    };
+  };
+
+  const handleCreatePrivateRoom = async () => {
+    try {
+      setRoomCreating(true);
+      const room = await createRoom({
+        difficulty: "easy",
+        player: buildCurrentPlayer(),
+      });
+      navigate(`/lobby?roomCode=${room.roomCode}`);
+    } catch {
+      setAuthToast({
+        type: "error",
+        titleKey: "home.createRoom",
+        messageKey: "home.underDevelopment",
+      });
+    } finally {
+      setRoomCreating(false);
     }
   };
 
@@ -320,10 +358,11 @@ function Home() {
                   </span>
                 </div>
                 <button 
-                  onClick={() => alert(t("home.underDevelopment"))}
-                  className="w-full bg-transparent opacity-50 cursor-not-allowed border border-secondary text-secondary font-label-md text-label-md py-3 rounded-sm hover:bg-secondary/10 transition-all active:scale-95 tracking-widest"
+                  onClick={handleCreatePrivateRoom}
+                  disabled={roomCreating}
+                  className="w-full bg-transparent border border-secondary text-secondary font-label-md text-label-md py-3 rounded-sm hover:bg-secondary/10 transition-all active:scale-95 tracking-widest disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {t("home.createRoom")}
+                  {roomCreating ? "Creating..." : t("home.createRoom")}
                 </button>
               </div>
             </div>

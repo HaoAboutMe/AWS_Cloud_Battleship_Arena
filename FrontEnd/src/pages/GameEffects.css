@@ -790,6 +790,11 @@
     filter: grayscale(0.4);
 }
 
+.deployment-ship-card.is-locked {
+    cursor: not-allowed;
+    opacity: 0.32;
+}
+
 .deployment-ship-card.is-placed:hover {
     border-color: rgba(103, 193, 220, 0.18);
     background-color: transparent;
@@ -895,6 +900,11 @@
 .auto-arrange-button:hover {
     border-color: rgba(154, 232, 252, 0.72);
     background: rgba(56, 168, 201, 0.27);
+}
+
+.auto-arrange-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
 }
 
 .auto-arrange-button .material-symbols-outlined {

@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import ship1 from "../assets/ships/image/ship-1.png";
 import ship2 from "../assets/ships/image/ship-2.png";
 import ship3 from "../assets/ships/image/ship-3.png";
@@ -7,6 +7,9 @@ import ship4 from "../assets/ships/image/ship-4.png";
 import BattleEffectsLayer from "../game/BattleEffectsLayer";
 import { canPlaceShip, checkVictory, createBoard, fireAt, getShipBounds, getShipOffsets, markWaterAroundSunkShip, placeShip, placeShipsRandomly, SHIP_DEFS } from "../game/GameLogic";
 import { getBotMove, resetBotAI } from "../game/botAI";
+import { useAuth } from "../contexts/AuthContext";
+import { useLanguage } from "../contexts/LanguageContext";
+import { createRoomSocket, getRoom, getRoomPlayerId, markPlayerReady, resetRoomForRematch, sendSocketMessage } from "../services/matchService";
 import "./GameEffects.css";
 
 const BOARD_SIZE = 10;
@@ -25,6 +28,41 @@ const PATROL_IMAGE_OFFSET_Y = 0;
 const PATROL_VERTICAL_IMAGE_OFFSET_X = 1.5;
 const PATROL_VERTICAL_IMAGE_OFFSET_Y = 8;
 const GRID_SIZE_PX = BOARD_SIZE * CELL_SIZE + (BOARD_SIZE - 1) * CELL_GAP;
+
+const GAME_COPY = {
+    en: {
+        ready: "Ready",
+        syncing: "Syncing",
+        waitingPlayer: "Waiting player",
+        exitTitle: "Leave battle?",
+        exitBody: "Your current PvP match will be forfeited. The other commander will be declared the winner.",
+        stay: "Stay",
+        leave: "Leave match",
+        opponentLeftTitle: "Victory",
+        opponentLeftBody: "Opponent left the battle. Sector secured by default.",
+        playAgain: "Play again",
+        returnHome: "Return home",
+        opponentLeftLog: "Opponent left the battle. Victory secured.",
+        waitingFleetLog: "Fleet deployed. Waiting for the opponent fleet.",
+        bothReadyLog: "Both commanders are ready. Battle channel is active.",
+    },
+    vi: {
+        ready: "Sẵn sàng",
+        syncing: "Đồng bộ",
+        waitingPlayer: "Chờ người chơi",
+        exitTitle: "Thoát trận?",
+        exitBody: "Trận PvP hiện tại sẽ bị hủy. Đối thủ sẽ được tính thắng vì bạn rời trận.",
+        stay: "Ở lại",
+        leave: "Thoát trận",
+        opponentLeftTitle: "Chiến thắng",
+        opponentLeftBody: "Đối thủ đã rời trận. Khu vực đã được bảo toàn.",
+        playAgain: "Chơi lại",
+        returnHome: "Về trang chủ",
+        opponentLeftLog: "Đối thủ đã rời trận. Bạn giành chiến thắng.",
+        waitingFleetLog: "Đã triển khai hạm đội. Đang chờ đối thủ xếp tàu.",
+        bothReadyLog: "Cả hai chỉ huy đã sẵn sàng. Kênh chiến đấu đã hoạt động.",
+    },
+};
 
 const SHIP_SPRITES = {
     carrier: { 0: ship1, 90: ship1, 180: ship1, 270: ship1 },
@@ -112,7 +150,14 @@ const useIsMobile = () => {
 
 function Game() {
     const location = useLocation();
+    const navigate = useNavigate();
+    const { user, attributes } = useAuth();
+    const { language } = useLanguage();
+    const copy = GAME_COPY[language] || GAME_COPY.en;
     const isMobile = useIsMobile();
+    const searchParams = new URLSearchParams(location.search);
+    const isPvpMode = searchParams.get("mode") === "pvp";
+    const roomCode = searchParams.get("roomCode") || "";
     const [difficulty, setDifficulty] = useState("easy");
 
     const [gameState, setGameState] = useState('PLACEMENT'); // PLACEMENT, READY, PLAYER_TURN, BOT_TURN, GAME_OVER
@@ -157,6 +202,15 @@ function Game() {
     const [touchData, setTouchData] = useState(null);
     const [showMobileLog, setShowMobileLog] = useState(false);
     const [activeBattleTab, setActiveBattleTab] = useState("enemy");
+    const [pvpRoom, setPvpRoom] = useState(null);
+    const [pvpReadyLoading, setPvpReadyLoading] = useState(false);
+    const [pvpSocketReady, setPvpSocketReady] = useState(false);
+    const [pvpTurnUserId, setPvpTurnUserId] = useState("");
+    const [pvpFleetSubmitted, setPvpFleetSubmitted] = useState(false);
+    const [exitPromptOpen, setExitPromptOpen] = useState(false);
+    const [pendingExitTarget, setPendingExitTarget] = useState("/");
+    const [gameOverReason, setGameOverReason] = useState("");
+    const [rematchLoading, setRematchLoading] = useState(false);
 
     const logContainerRef = useRef(null);
     const timerRef = useRef(null);
@@ -164,11 +218,96 @@ function Game() {
     const playerEffectsRef = useRef(null);
     const enemyEffectsRef = useRef(null);
     const playerBoardRef = useRef(null);
+    const pvpSocketRef = useRef(null);
+    const pvpInProgressLoggedRef = useRef(false);
+    const pvpEnemyBoardLoadedRef = useRef(false);
+    const pvpProcessedShotIdsRef = useRef(new Set());
+    const playerBoardStateRef = useRef(playerBoard);
+    const enemyBoardStateRef = useRef(enemyBoard);
+    const pvpRoomRef = useRef(pvpRoom);
+    const roomPlayerRef = useRef(null);
+    const pvpExitSentRef = useRef(false);
+    const pvpFleetSubmittedRef = useRef(false);
+    const activePvpShotIdRef = useRef("");
+    const pvpShotTimeoutRef = useRef(null);
+    const applyIncomingPvpShotRequestRef = useRef(null);
+    const applyPvpShotResultRef = useRef(null);
+    const handleOpponentLeftRef = useRef(null);
+    // Ref theo dõi gameState để dùng trong async callbacks (tránh stale closure)
+    const gameStateRef = useRef('PLACEMENT');
     const currentShip = shipsToPlace[currentShipIndex];
+    const isWaitingForOpponentFleet = isPvpMode && pvpFleetSubmitted && pvpRoom?.status !== "IN_PROGRESS";
+    const isPlacementLocked = isWaitingForOpponentFleet;
+    const addLog = useCallback((msg, type = "info") => {
+        setLogs(prev => [...prev, { id: Date.now() + Math.random(), msg, type }]);
+    }, []);
     const playerSunkShipTypeIds = playerBoard
         .flat()
         .filter(cell => cell.shipRoot && playerShipsSunk.includes(cell.shipId))
         .map(cell => cell.shipTypeId);
+    const roomPlayer = useMemo(() => {
+        const displayName =
+            attributes?.preferred_username ||
+            attributes?.name ||
+            attributes?.given_name ||
+            attributes?.nickname ||
+            attributes?.email ||
+            user?.signInDetails?.loginId ||
+            "Commander";
+        const baseUserId = user?.userId || attributes?.sub || attributes?.email || "guest";
+
+        return {
+            userId: getRoomPlayerId(baseUserId, roomCode || "global"),
+            baseUserId,
+            displayName,
+            email: attributes?.email,
+        };
+    }, [
+        attributes?.email,
+        attributes?.given_name,
+        attributes?.name,
+        attributes?.nickname,
+        attributes?.preferred_username,
+        attributes?.sub,
+        roomCode,
+        user?.signInDetails?.loginId,
+        user?.userId,
+    ]);
+
+    useEffect(() => {
+        playerBoardStateRef.current = playerBoard;
+    }, [playerBoard]);
+
+    useEffect(() => {
+        enemyBoardStateRef.current = enemyBoard;
+    }, [enemyBoard]);
+
+    useEffect(() => {
+        pvpRoomRef.current = pvpRoom;
+    }, [pvpRoom]);
+
+    useEffect(() => {
+        pvpFleetSubmittedRef.current = pvpFleetSubmitted;
+    }, [pvpFleetSubmitted]);
+
+    useEffect(() => {
+        roomPlayerRef.current = roomPlayer;
+    }, [roomPlayer]);
+
+    useEffect(() => {
+        gameStateRef.current = gameState;
+    }, [gameState]);
+
+    useEffect(() => () => {
+        if (pvpShotTimeoutRef.current) {
+            window.clearTimeout(pvpShotTimeoutRef.current);
+            pvpShotTimeoutRef.current = null;
+        }
+    }, []);
+
+    useEffect(() => {
+        pvpEnemyBoardLoadedRef.current = false;
+    }, [roomCode]);
 
     const renderFleetStatus = (sunkShipTypeIds, isScanning = false) => (
         <div className="fleet-image-panel">
@@ -240,9 +379,43 @@ function Game() {
         }
     }, [logs]);
 
-    const addLog = useCallback((msg, type = "info") => {
-        setLogs(prev => [...prev, { id: Date.now() + Math.random(), msg, type }]);
-    }, []);
+    useEffect(() => {
+        // Poll ngay khi vào PvP mode (không phụ thuộc gameState)
+        // để load enemy board kịp thời khi room chuyển sang IN_PROGRESS
+        if (!isPvpMode || !roomCode) return undefined;
+
+        let cancelled = false;
+        const pollRoom = async () => {
+            // Dừng poll khi game đã kết thúc
+            if (gameStateRef.current === 'GAME_OVER') return;
+
+            try {
+                const nextRoom = await getRoom(roomCode);
+                if (cancelled) return;
+
+                setPvpRoom(nextRoom);
+                if (nextRoom.status === "IN_PROGRESS" && !pvpInProgressLoggedRef.current) {
+                    pvpInProgressLoggedRef.current = true;
+                    setPvpFleetSubmitted(true);
+                    setGameState("PLAYER_TURN");
+                    setTurnTimer(30);
+                    addLog(copy.bothReadyLog, "info");
+                }
+            } catch {
+                if (!cancelled) {
+                    addLog("Unable to refresh room readiness.", "warning");
+                }
+            }
+        };
+
+        pollRoom();
+        const timer = window.setInterval(pollRoom, 3000);
+
+        return () => {
+            cancelled = true;
+            window.clearInterval(timer);
+        };
+    }, [addLog, copy.bothReadyLog, isPvpMode, roomCode]);
 
     const triggerSunkEffect = (boardSide, shipTypeId, shipId, cells) => {
         const shipDef = shipsToPlace.find(ship => ship.id === shipTypeId);
@@ -266,6 +439,151 @@ function Game() {
     };
 
     const cloneBoard = (board) => board.map(row => row.map(cell => ({ ...cell })));
+
+    const getRoomPlayerKey = (player) => player?.userId || player?.baseUserId || player?.email || "";
+
+    const isSameRoomPlayer = (left, right) => {
+        if (!left || !right) return false;
+        if (left.userId && right.userId && left.userId === right.userId) return true;
+        if (left.baseUserId && right.baseUserId && left.baseUserId === right.baseUserId) return true;
+        if (left.email && right.email && left.email === right.email) return true;
+        return false;
+    };
+
+    const getOpponentPlayer = (room = pvpRoomRef.current, player = roomPlayerRef.current) => (
+        (room?.players || []).find((candidate) => !isSameRoomPlayer(candidate, player)) || null
+    );
+
+    const getCurrentRoomPlayer = (room = pvpRoomRef.current, player = roomPlayerRef.current) => (
+        (room?.players || []).find((candidate) => isSameRoomPlayer(candidate, player)) || player
+    );
+
+    const releaseShotLock = useCallback((shotId = "") => {
+        if (shotId && activePvpShotIdRef.current && activePvpShotIdRef.current !== shotId) return;
+
+        if (pvpShotTimeoutRef.current) {
+            window.clearTimeout(pvpShotTimeoutRef.current);
+            pvpShotTimeoutRef.current = null;
+        }
+
+        activePvpShotIdRef.current = "";
+        shotLockRef.current = false;
+        setIsShotResolving(false);
+    }, []);
+
+    const shouldConfirmPvpExit = useCallback(() => (
+        isPvpMode
+        && Boolean(roomCode)
+        && gameStateRef.current !== "GAME_OVER"
+        && (
+            pvpRoomRef.current?.status === "IN_PROGRESS"
+            || pvpFleetSubmittedRef.current
+            || gameStateRef.current === "PLACEMENT"
+            || gameStateRef.current === "READY"
+            || gameStateRef.current === "PLAYER_TURN"
+            || gameStateRef.current === "BOT_TURN"
+        )
+    ), [isPvpMode, roomCode]);
+
+    const notifyPvpExit = useCallback(() => {
+        if (!isPvpMode || !roomCode || pvpExitSentRef.current) return;
+
+        const currentPlayer = getCurrentRoomPlayer();
+        const currentPlayerId = getRoomPlayerKey(currentPlayer);
+        if (!currentPlayerId) return;
+
+        pvpExitSentRef.current = true;
+        sendSocketMessage(pvpSocketRef.current, {
+            action: "BROADCAST_ROOM",
+            roomCode,
+            payload: {
+                type: "PVP_PLAYER_LEFT",
+                playerId: currentPlayerId,
+                reason: "intentional_exit",
+            },
+        });
+    }, [isPvpMode, roomCode]);
+
+    const requestGameExit = useCallback((target = "/") => {
+        if (!shouldConfirmPvpExit()) {
+            navigate(target);
+            return;
+        }
+
+        setPendingExitTarget(target);
+        setExitPromptOpen(true);
+    }, [navigate, shouldConfirmPvpExit]);
+
+    const confirmGameExit = useCallback(() => {
+        notifyPvpExit();
+        setExitPromptOpen(false);
+        navigate(pendingExitTarget || "/");
+    }, [navigate, notifyPvpExit, pendingExitTarget]);
+
+    const handlePlayAgain = useCallback(async () => {
+        if (!isPvpMode || !roomCode) {
+            window.location.reload();
+            return;
+        }
+
+        try {
+            setRematchLoading(true);
+            await resetRoomForRematch({ roomCode, player: roomPlayer });
+            navigate(`/lobby?roomCode=${roomCode}`);
+        } catch (rematchError) {
+            addLog(rematchError.message || "Unable to reset room for rematch.", "warning");
+        } finally {
+            setRematchLoading(false);
+        }
+    }, [addLog, isPvpMode, navigate, roomCode, roomPlayer]);
+
+    useEffect(() => {
+        if (!isPvpMode) return undefined;
+
+        const handleBeforeUnload = (event) => {
+            if (!shouldConfirmPvpExit()) return;
+            event.preventDefault();
+            event.returnValue = "";
+        };
+
+        const handlePageHide = () => {
+            if (shouldConfirmPvpExit()) {
+                notifyPvpExit();
+            }
+        };
+
+        window.addEventListener("beforeunload", handleBeforeUnload);
+        window.addEventListener("pagehide", handlePageHide);
+
+        return () => {
+            window.removeEventListener("beforeunload", handleBeforeUnload);
+            window.removeEventListener("pagehide", handlePageHide);
+        };
+    }, [isPvpMode, notifyPvpExit, shouldConfirmPvpExit]);
+
+    const buildBoardFromFleetPayload = (fleetPayload) => {
+        const nextBoard = createBoard();
+        const ships = fleetPayload?.ships || [];
+
+        ships.forEach((ship) => {
+            const shipDef = shipsToPlace.find((candidate) => candidate.id === ship.shipTypeId);
+            if (!shipDef) return;
+            placeShip(nextBoard, ship.row, ship.col, shipDef, ship.rotation);
+        });
+
+        return nextBoard;
+    };
+
+    const getPvpStatusText = () => {
+        if (!pvpSocketReady) return `Room ${roomCode}: connecting room channel...`;
+        if (pvpRoom?.status !== "IN_PROGRESS") return `Room ${roomCode}: fleet deployed. Waiting for opponent fleet.`;
+
+        const currentPlayerId = getRoomPlayerKey(getCurrentRoomPlayer(pvpRoom, roomPlayer));
+        if (!pvpTurnUserId) return `Room ${roomCode}: battle channel connected.`;
+        return pvpTurnUserId === currentPlayerId
+            ? `Room ${roomCode}: your turn.`
+            : `Room ${roomCode}: opponent turn.`;
+    };
 
     const clearShipFromBoard = (board, shipId) => {
         board.forEach((row) => {
@@ -542,6 +860,7 @@ function Game() {
     }, []);
 
     const rotateShip = useCallback(() => {
+        if (isPlacementLocked) return;
         if (gameState !== 'PLACEMENT' && gameState !== 'READY') return;
 
         setDraggedShip(prev => {
@@ -562,7 +881,7 @@ function Game() {
             }
             return prev;
         });
-    }, [gameState]);
+    }, [gameState, isPlacementLocked]);
 
     useEffect(() => {
         const handleKeyDown = (e) => {
@@ -583,6 +902,8 @@ function Game() {
 
     // Timer Tick
     useEffect(() => {
+        if (isPvpMode) return undefined;
+
         if (gameState === 'PLAYER_TURN') {
             timerRef.current = setInterval(() => {
                 setTurnTimer(prev => {
@@ -599,7 +920,7 @@ function Game() {
             clearInterval(timerRef.current);
         }
         return () => clearInterval(timerRef.current);
-    }, [gameState]);
+    }, [gameState, isPvpMode]);
 
     const saveMatchStats = useCallback((isVictory) => {
         const key = 'battleshipStats';
@@ -622,12 +943,31 @@ function Game() {
     }, [stats]);
 
     const endGame = useCallback((isPlayerVictory) => {
+        setGameOverReason("");
+        gameStateRef.current = "GAME_OVER";
         setGameState('GAME_OVER');
         setWinner(isPlayerVictory ? 'PLAYER' : 'BOT');
+        releaseShotLock();
         addLog(isPlayerVictory ? "VICTORY! Enemy fleet destroyed!" : "DEFEAT! Your fleet was destroyed.", isPlayerVictory ? "victory" : "defeat");
         saveMatchStats(isPlayerVictory);
         setTimeout(() => setShowModal(true), 1500);
-    }, [saveMatchStats, addLog]);
+    }, [addLog, releaseShotLock, saveMatchStats]);
+
+    const handleOpponentLeft = useCallback(() => {
+        if (gameStateRef.current === "GAME_OVER") return;
+        gameStateRef.current = "GAME_OVER";
+        setGameOverReason("opponent_left");
+        setGameState("GAME_OVER");
+        setWinner("PLAYER");
+        releaseShotLock();
+        addLog(copy.opponentLeftLog, "victory");
+        saveMatchStats(true);
+        window.setTimeout(() => setShowModal(true), 450);
+    }, [addLog, copy.opponentLeftLog, releaseShotLock, saveMatchStats]);
+
+    useEffect(() => {
+        handleOpponentLeftRef.current = handleOpponentLeft;
+    }, [handleOpponentLeft]);
 
     const startPlayerTurn = () => {
         shotLockRef.current = false;
@@ -639,6 +979,12 @@ function Game() {
     };
 
     const startBotTurn = () => {
+        if (isPvpMode) {
+            setGameState('PLAYER_TURN');
+            addLog("Waiting for opponent move through the room channel.", "info");
+            return;
+        }
+
         setGameState('BOT_TURN');
         addLog("Enemy is thinking...", "info");
         
@@ -650,6 +996,7 @@ function Game() {
     };
 
     const performBotMove = () => {
+        if (isPvpMode) return;
         if (gameState === 'GAME_OVER') return;
         
         setPlayerBoard(prevBoard => {
@@ -703,8 +1050,365 @@ function Game() {
         });
     };
 
+    const resolvePvpShotOnBoard = ({ board, row, col, boardSide, isOutgoing }) => {
+        const nextBoard = cloneBoard(board);
+        let sunkCells = [];
+
+        if (nextBoard[row]?.[col]?.isHit && !nextBoard[row][col].autoMarked) {
+            return { board: nextBoard, ignored: true };
+        }
+
+        const shotResult = fireAt(nextBoard, row, col);
+        const colLetter = String.fromCharCode(65 + col);
+        const rowNum = row + 1;
+        const cellName = `${colLetter}${rowNum}`;
+        const effectsRef = boardSide === "enemy" ? enemyEffectsRef : playerEffectsRef;
+
+        if (shotResult.result === "HIT") {
+            if (shotResult.isSunk) {
+                sunkCells = markWaterAroundSunkShip(nextBoard, shotResult.shipId, false);
+                if (boardSide === "enemy") {
+                    setStats(prev => ({ ...prev, shipsDestroyed: prev.shipsDestroyed + 1 }));
+                    setEnemyShipsSunk(prev => prev.includes(shotResult.shipTypeId) ? prev : [...prev, shotResult.shipTypeId]);
+                    setEnemySunkShipIds(prev => prev.includes(shotResult.shipId) ? prev : [...prev, shotResult.shipId]);
+                    addLog(`You destroyed an enemy ship (size ${shotResult.shipLength}) at ${cellName}!`, "destroy");
+                } else {
+                    setPlayerShipsSunk(prev => prev.includes(shotResult.shipId) ? prev : [...prev, shotResult.shipId]);
+                    addLog(`Enemy DESTROYED your ship (size ${shotResult.shipLength}) at ${cellName}!`, "defeat");
+                }
+                window.requestAnimationFrame(() => {
+                    effectsRef.current?.playHit(row, col);
+                    triggerSunkEffect(boardSide, shotResult.shipTypeId, shotResult.shipId, sunkCells);
+                });
+            } else {
+                window.requestAnimationFrame(() => {
+                    effectsRef.current?.playHit(row, col);
+                });
+                addLog(isOutgoing ? `Direct hit at ${cellName}!` : `Enemy hit your ship at ${cellName}!`, isOutgoing ? "player_hit" : "enemy_hit");
+            }
+        } else if (shotResult.result === "MISS") {
+            window.requestAnimationFrame(() => {
+                effectsRef.current?.playMiss(row, col);
+            });
+            addLog(isOutgoing ? `Missed at ${cellName}.` : `Enemy missed at ${cellName}.`, isOutgoing ? "player_miss" : "enemy_miss");
+        }
+
+        return {
+            board: nextBoard,
+            shotResult,
+            sunkCells,
+            isVictory: checkVictory(nextBoard),
+        };
+    };
+
+    const applyPvpShotResult = (payload) => {
+        const currentPlayer = getCurrentRoomPlayer();
+        const currentPlayerId = getRoomPlayerKey(currentPlayer);
+
+        if (
+            payload.shooterUserId !== currentPlayerId
+            && payload.shotId !== activePvpShotIdRef.current
+        ) return;
+
+        const row = payload.row;
+        const col = payload.col;
+        const shotResult = payload.shotResult || { result: payload.result };
+        const colLetter = String.fromCharCode(65 + col);
+        const rowNum = row + 1;
+        const cellName = `${colLetter}${rowNum}`;
+
+        setEnemyBoard(prevBoard => {
+            const nextBoard = cloneBoard(prevBoard);
+            const cell = nextBoard[row]?.[col];
+            if (!cell) return prevBoard;
+
+            cell.isHit = true;
+            cell.autoMarked = false;
+
+            if (shotResult.result === "HIT") {
+                cell.hasShip = true;
+                cell.shipId = shotResult.shipId || `enemy-hit-${payload.shotId}`;
+                cell.shipTypeId = shotResult.shipTypeId || null;
+                cell.shipLength = shotResult.shipLength || null;
+
+                if (shotResult.isSunk && Array.isArray(payload.sunkCells)) {
+                    payload.sunkCells.forEach((sunkCell, index) => {
+                        const targetCell = nextBoard[sunkCell.row]?.[sunkCell.col];
+                        if (!targetCell) return;
+                        targetCell.isHit = true;
+                        targetCell.hasShip = true;
+                        targetCell.shipId = shotResult.shipId || `enemy-sunk-${payload.shotId}`;
+                        targetCell.shipTypeId = shotResult.shipTypeId || null;
+                        targetCell.shipLength = shotResult.shipLength || payload.sunkCells.length;
+                        if (index === 0) {
+                            targetCell.shipRoot = true;
+                        }
+                    });
+                }
+            }
+
+            return nextBoard;
+        });
+
+        if (shotResult.result === "HIT") {
+            setStats(prev => ({
+                ...prev,
+                hits: prev.hits + 1,
+                shipsDestroyed: shotResult.isSunk ? prev.shipsDestroyed + 1 : prev.shipsDestroyed,
+            }));
+
+            if (shotResult.isSunk) {
+                setEnemyShipsSunk(prev => prev.includes(shotResult.shipTypeId) ? prev : [...prev, shotResult.shipTypeId]);
+                setEnemySunkShipIds(prev => prev.includes(shotResult.shipId) ? prev : [...prev, shotResult.shipId]);
+                window.requestAnimationFrame(() => {
+                    enemyEffectsRef.current?.playHit(row, col);
+                    triggerSunkEffect("enemy", shotResult.shipTypeId, shotResult.shipId, payload.sunkCells || []);
+                });
+                addLog(`You destroyed an enemy ship (size ${shotResult.shipLength}) at ${cellName}!`, "destroy");
+            } else {
+                window.requestAnimationFrame(() => {
+                    enemyEffectsRef.current?.playHit(row, col);
+                });
+                addLog(`Direct hit at ${cellName}!`, "player_hit");
+            }
+
+            if (payload.isVictory) {
+                endGame(true);
+            }
+        } else {
+            setStats(prev => ({ ...prev, misses: prev.misses + 1 }));
+            window.requestAnimationFrame(() => {
+                enemyEffectsRef.current?.playMiss(row, col);
+            });
+            addLog(`Missed at ${cellName}.`, "player_miss");
+        }
+
+        setPvpTurnUserId(payload.nextTurnUserId);
+        releaseShotLock(payload.shotId);
+    };
+
+    const applyIncomingPvpShotRequest = (payload) => {
+        const currentPlayer = getCurrentRoomPlayer();
+        const currentPlayerId = getRoomPlayerKey(currentPlayer);
+
+        if (payload.shooterUserId === currentPlayerId) return;
+        if (payload.targetUserId && payload.targetUserId !== currentPlayerId) return;
+        if (pvpProcessedShotIdsRef.current.has(payload.shotId)) return;
+        pvpProcessedShotIdsRef.current.add(payload.shotId);
+
+        const { board, shotResult, ignored, sunkCells, isVictory } = resolvePvpShotOnBoard({
+            board: playerBoardStateRef.current,
+            row: payload.row,
+            col: payload.col,
+            boardSide: "player",
+            isOutgoing: false,
+        });
+
+        if (ignored || !shotResult) {
+            releaseShotLock();
+            return;
+        }
+
+        if (!ignored) {
+            setPlayerBoard(board);
+            if (isVictory) {
+                endGame(false);
+            }
+        }
+
+        const nextTurnUserId = shotResult.result === "HIT" ? payload.shooterUserId : currentPlayerId;
+        setPvpTurnUserId(nextTurnUserId);
+        setGameState('PLAYER_TURN');
+        releaseShotLock();
+
+        sendSocketMessage(pvpSocketRef.current, {
+            action: "BROADCAST_ROOM",
+            roomCode,
+            payload: {
+                type: "PVP_SHOT_RESULT",
+                shotId: payload.shotId,
+                shooterUserId: payload.shooterUserId,
+                targetUserId: currentPlayerId,
+                row: payload.row,
+                col: payload.col,
+                shotResult,
+                sunkCells,
+                isVictory,
+                nextTurnUserId,
+            },
+        });
+    };
+
+    const firePvpShot = (row, col) => {
+        const currentRoom = pvpRoomRef.current;
+        const currentPlayer = getCurrentRoomPlayer(currentRoom);
+        const opponentPlayer = getOpponentPlayer(currentRoom);
+        const currentPlayerId = getRoomPlayerKey(currentPlayer);
+        const opponentPlayerId = getRoomPlayerKey(opponentPlayer);
+
+        if (!pvpSocketReady || currentRoom?.status !== "IN_PROGRESS") {
+            addLog("Room channel is still connecting. Wait a moment.", "warning");
+            return;
+        }
+
+        if (!opponentPlayerId) {
+            addLog("Opponent is not available in this room.", "warning");
+            return;
+        }
+
+        if (pvpTurnUserId && pvpTurnUserId !== currentPlayerId) {
+            addLog("Waiting for opponent turn.", "warning");
+            return;
+        }
+
+        if (enemyBoardStateRef.current[row][col].isHit && !enemyBoardStateRef.current[row][col].autoMarked) return;
+
+        shotLockRef.current = true;
+        setIsShotResolving(true);
+        setStats(prev => ({ ...prev, shots: prev.shots + 1 }));
+
+        const shotId = crypto.randomUUID();
+        activePvpShotIdRef.current = shotId;
+        const sent = sendSocketMessage(pvpSocketRef.current, {
+            action: "BROADCAST_ROOM",
+            roomCode,
+            payload: {
+                type: "PVP_SHOT_REQUEST",
+                shotId,
+                shooterUserId: currentPlayerId,
+                targetUserId: opponentPlayerId,
+                row,
+                col,
+            },
+        });
+
+        if (!sent) {
+            setStats(prev => ({ ...prev, shots: Math.max(0, prev.shots - 1) }));
+            releaseShotLock(shotId);
+            addLog("Room channel is reconnecting. Try that shot again.", "warning");
+            return;
+        }
+
+        window.setTimeout(() => {
+            if (!shotLockRef.current || activePvpShotIdRef.current !== shotId) return;
+            addLog("Waiting for opponent shot result...", "info");
+        }, 800);
+
+        pvpShotTimeoutRef.current = window.setTimeout(() => {
+            if (!shotLockRef.current || activePvpShotIdRef.current !== shotId) return;
+            releaseShotLock(shotId);
+            addLog("Shot result timed out. Try firing again.", "warning");
+        }, 12000);
+    };
+
+    applyIncomingPvpShotRequestRef.current = applyIncomingPvpShotRequest;
+    applyPvpShotResultRef.current = applyPvpShotResult;
+
+    useEffect(() => {
+        if (!isPvpMode || !roomCode) return undefined;
+
+        const socketUserId = getRoomPlayerKey(roomPlayerRef.current || roomPlayer);
+        let socket;
+        try {
+            socket = createRoomSocket({
+                roomCode,
+                userId: socketUserId,
+                onOpen: () => {
+                    pvpSocketRef.current = socket;
+                    setPvpSocketReady(true);
+                    sendSocketMessage(socket, {
+                        action: "SUBSCRIBE_ROOM",
+                        roomCode,
+                    });
+                    addLog("Room channel connected.", "info");
+                },
+                onMessage: (message) => {
+                    if (message.type === "ROOM_SUBSCRIBED") {
+                        setPvpSocketReady(true);
+                        return;
+                    }
+
+                    if (message.type !== "ROOM_EVENT") return;
+                    const payload = message.payload || {};
+                    if (payload.type === "PVP_SHOT_REQUEST") {
+                        applyIncomingPvpShotRequestRef.current?.(payload);
+                    }
+                    if (payload.type === "PVP_SHOT_RESULT") {
+                        applyPvpShotResultRef.current?.(payload);
+                    }
+                    if (payload.type === "PVP_PLAYER_LEFT") {
+                        const currentPlayerId = getRoomPlayerKey(getCurrentRoomPlayer());
+                        if (
+                            payload.reason === "intentional_exit"
+                            && payload.playerId
+                            && payload.playerId !== currentPlayerId
+                        ) {
+                            handleOpponentLeftRef.current?.();
+                        }
+                    }
+                    // Xử lý các event type khác trong tương lai tại đây
+                },
+                onClose: () => {
+                    setPvpSocketReady(false);
+                    if (pvpSocketRef.current === socket) {
+                        pvpSocketRef.current = null;
+                    }
+                },
+                onError: () => {
+                    setPvpSocketReady(false);
+                    addLog("Room channel connection failed.", "warning");
+                },
+            });
+            pvpSocketRef.current = socket;
+        } catch (socketError) {
+            setPvpSocketReady(false);
+            addLog(socketError.message || "Room channel is not configured.", "warning");
+        }
+
+        return () => {
+            setPvpSocketReady(false);
+            if (socket && socket.readyState <= WebSocket.OPEN) {
+                socket.close();
+            }
+            if (pvpSocketRef.current === socket) {
+                pvpSocketRef.current = null;
+            }
+        };
+    }, [addLog, isPvpMode, roomCode, roomPlayer.userId]);
+
+    useEffect(() => {
+        if (!isPvpMode || pvpRoom?.status !== "IN_PROGRESS") return;
+
+        if (!pvpEnemyBoardLoadedRef.current) {
+            pvpEnemyBoardLoadedRef.current = true;
+            setEnemyBoard(createBoard());
+            addLog("Enemy waters synced. Shot results will be verified by opponent fleet.", "info");
+        }
+
+        if (false) {
+            if (opponentPlayer?.board?.ships?.length) {
+                // Board đối thủ đã có → dựng lên local board để tính HIT/MISS client-side
+                pvpEnemyBoardLoadedRef.current = true;
+                const builtBoard = buildBoardFromFleetPayload(opponentPlayer.board);
+                setEnemyBoard(builtBoard);
+                addLog("Enemy fleet deployed. Battle positions locked.", "info");
+            } else if (opponentPlayer && !opponentPlayer.fleetReady) {
+                // Đối thủ đã join nhưng chưa submit fleet — chờ tiếp
+                addLog("Waiting for opponent to deploy their fleet...", "info");
+            }
+        }
+
+        // Xác định người đi trước (players[0] là host)
+        const starterPlayer = pvpRoom.players?.[0];
+        setPvpTurnUserId(current => current || getRoomPlayerKey(starterPlayer));
+    }, [addLog, isPvpMode, pvpRoom, roomPlayer]);
+
     const handleEnemyCellClick = (r, c) => {
         if (gameState !== 'PLAYER_TURN') return;
+        if (isPvpMode) {
+            firePvpShot(r, c);
+            return;
+        }
         if (shotLockRef.current) return;
         
         // We only check this to prevent obvious double clicks on already hit cells
@@ -761,7 +1465,7 @@ function Game() {
                     endGame(true);
                 } else {
                     // Extra turn for player
-                    setTimeout(() => startPlayerTurn(), 800);
+                    setTimeout(() => startPlayerTurn(), 250);
                 }
             } else {
                 window.requestAnimationFrame(() => {
@@ -777,6 +1481,7 @@ function Game() {
     };
 
     const handlePlayerCellHover = (r, c) => {
+        if (isPlacementLocked) return;
         if (gameState === 'PLACEMENT' || gameState === 'READY') {
             setHoverCell({ r, c });
             if (invalidRotationPreview) {
@@ -887,6 +1592,7 @@ function Game() {
     }, [draggedShip, isMobile]);
 
     const handlePlayerCellClick = (event, r, c) => {
+        if (isPlacementLocked) return;
         if (gameState !== 'PLACEMENT' && gameState !== 'READY') return;
 
         if (draggedShip) {
@@ -948,6 +1654,7 @@ function Game() {
         event.preventDefault();
         event.stopPropagation();
 
+        if (isPlacementLocked) return;
         if (gameState !== 'PLACEMENT' && gameState !== 'READY') return;
 
         if (draggedShip) {
@@ -962,6 +1669,7 @@ function Game() {
     };
 
     const handleTouchStart = (e, r, c) => {
+        if (isPlacementLocked) return;
         if (!isMobile || (gameState !== 'PLACEMENT' && gameState !== 'READY')) return;
         const placedShip = getPlacedShipSelectionAt(r, c);
         if (!placedShip) return;
@@ -977,6 +1685,7 @@ function Game() {
     };
 
     const handleTouchMove = (e) => {
+        if (isPlacementLocked) return;
         if (!isMobile || !touchData || draggedShip || (gameState !== 'PLACEMENT' && gameState !== 'READY')) return;
         
         const dx = e.touches[0].clientX - touchData.x;
@@ -1028,6 +1737,7 @@ function Game() {
     };
 
     const handleTouchEnd = (e, r, c) => {
+        if (isPlacementLocked) return;
         if (!isMobile || !touchData) return;
         
         if (draggedShip) {
@@ -1044,6 +1754,7 @@ function Game() {
     };
 
     const handleTrayShipClick = (event, shipDef) => {
+        if (isPlacementLocked) return;
         if (gameState !== 'PLACEMENT') return;
         event.preventDefault();
         
@@ -1082,6 +1793,7 @@ function Game() {
 
     const handleTrayShipContextMenu = (event, shipDef) => {
         event.preventDefault();
+        if (isPlacementLocked) return;
         const rotations = shipDef.rotations;
         const currentRotation = trayRotations[shipDef.id] ?? rotations[0];
         const currentIndex = rotations.indexOf(currentRotation);
@@ -1092,6 +1804,7 @@ function Game() {
     };
 
     const autoArrangeFleet = () => {
+        if (isPlacementLocked) return;
         const arrangedBoard = createBoard();
         placeShipsRandomly(arrangedBoard, shipsToPlace);
         setPlayerBoard(arrangedBoard);
@@ -1104,8 +1817,56 @@ function Game() {
         addLog("Fleet auto-arranged. Press again for another formation or press Ready.", "info");
     };
 
-    const beginBattle = () => {
+    const beginBattle = async () => {
         if (invalidRotationPreview || unplacedShipIds.length > 0 || draggedShip) return;
+        if (isWaitingForOpponentFleet) return;
+
+        if (isPvpMode) {
+            try {
+                setPvpReadyLoading(true);
+                const nextRoom = await markPlayerReady({
+                    roomCode,
+                    player: roomPlayer,
+                    board: {
+                        placedAt: new Date().toISOString(),
+                        ships: playerBoard
+                            .flat()
+                            .filter(cell => cell.shipRoot)
+                            .map(cell => ({
+                                shipId: cell.shipId,
+                                shipTypeId: cell.shipTypeId,
+                                row: cell.row,
+                                col: cell.col,
+                                rotation: cell.shipRotation,
+                            })),
+                    },
+                });
+                setPvpRoom(nextRoom);
+                setPvpFleetSubmitted(true);
+                setSelectedShip(null);
+                setHoverCell(null);
+                setDraggedShip(null);
+                setDragPointer(null);
+                setInvalidRotationPreview(null);
+                if (nextRoom.status === "IN_PROGRESS") {
+                    setGameState('PLAYER_TURN');
+                    setTurnTimer(30);
+                } else {
+                    setGameState('PLACEMENT');
+                }
+                addLog(
+                    nextRoom.status === "IN_PROGRESS"
+                        ? copy.bothReadyLog
+                        : copy.waitingFleetLog,
+                    "info"
+                );
+            } catch (readyError) {
+                addLog(readyError.message || "Unable to mark fleet ready.", "warning");
+            } finally {
+                setPvpReadyLoading(false);
+            }
+            return;
+        }
 
         const newEnemyBoard = [...enemyBoard.map(row => [...row.map(c => ({...c}))])];
         placeShipsRandomly(newEnemyBoard, shipsToPlace);
@@ -1528,14 +2289,30 @@ function Game() {
         <div className="game-shell bg-background text-on-background font-body-md min-h-screen selection:bg-secondary/30 flex flex-col">
             <header className="w-full top-0 sticky z-50 border-b border-white/5 bg-surface/40 backdrop-blur-xl shadow-[0_0_20px_rgba(0,210,255,0.1)]">
                 <div className="flex justify-between items-center w-full px-gutter max-w-[1440px] mx-auto h-12">
-                    <Link to="/" className="font-display-lg text-[20px] font-black text-secondary tracking-tighter uppercase hover:text-white transition-colors truncate">
+                    <Link
+                        to="/"
+                        onClick={(event) => {
+                            if (!shouldConfirmPvpExit()) return;
+                            event.preventDefault();
+                            requestGameExit("/");
+                        }}
+                        className="font-display-lg text-[20px] font-black text-secondary tracking-tighter uppercase hover:text-white transition-colors truncate"
+                    >
                         {isMobile ? "BATTLESHIP" : "Cloud Battleship Arena"}
                     </Link>
                     <div className="flex items-center gap-4">
                         <span className="text-[10px] uppercase font-bold text-secondary bg-secondary/10 px-2 py-1 rounded-sm border border-secondary/20">
                             Difficulty: {difficulty}
                         </span>
-                        <Link to="/" className="material-symbols-outlined text-on-surface-variant hover:text-secondary active:scale-95 transition-all p-2 rounded-full hover:bg-white/5">
+                        <Link
+                            to="/"
+                            onClick={(event) => {
+                                if (!shouldConfirmPvpExit()) return;
+                                event.preventDefault();
+                                requestGameExit("/");
+                            }}
+                            className="material-symbols-outlined text-on-surface-variant hover:text-secondary active:scale-95 transition-all p-2 rounded-full hover:bg-white/5"
+                        >
                             home
                         </Link>
                     </div>
@@ -1554,14 +2331,22 @@ function Game() {
                             </h2>
                             <p className="text-on-surface-variant text-xs md:text-sm mt-1 hidden md:block">
                                 {gameState === 'PLACEMENT' && (
-                                    unplacedShipIds.length > 0
+                                    isWaitingForOpponentFleet
+                                        ? copy.waitingFleetLog
+                                        : unplacedShipIds.length > 0
                                         ? "Drag ships from staging onto your map. Right-click to rotate."
                                         : "Formation complete. Adjust ships, auto-arrange again, or press Ready."
                                 )}
                                 {gameState === 'READY' && (selectedShip
                                     ? "Move the selected ship or right-click to rotate it, then press Ready."
                                     : "Select any ship to move or rotate it, then press Ready.")}
-                                {gameState === 'PLAYER_TURN' && <span className="text-secondary glow-text">Your turn! Target enemy waters.</span>}
+                                {gameState === 'PLAYER_TURN' && (
+                                    isPvpMode
+                                        ? <span className="text-secondary glow-text">
+                                            {getPvpStatusText()}
+                                        </span>
+                                        : <span className="text-secondary glow-text">Your turn! Target enemy waters.</span>
+                                )}
                                 {gameState === 'BOT_TURN' && <span className="text-error">Enemy is firing! Brace for impact!</span>}
                                 {gameState === 'GAME_OVER' && (winner === 'PLAYER' ? <span className="text-green-400">Sector Secured!</span> : <span className="text-error">Fleet Annihilated!</span>)}
                             </p>
@@ -1569,17 +2354,17 @@ function Game() {
                         {(gameState === 'PLACEMENT' || gameState === 'READY') && unplacedShipIds.length === 0 && (
                             <button
                                 onClick={beginBattle}
-                                disabled={Boolean(invalidRotationPreview) || unplacedShipIds.length > 0 || Boolean(draggedShip)}
+                                disabled={Boolean(invalidRotationPreview) || unplacedShipIds.length > 0 || Boolean(draggedShip) || pvpReadyLoading || isWaitingForOpponentFleet}
                                 className={`font-bold px-4 py-1.5 md:px-8 md:py-2 text-sm md:text-base rounded-sm transition-all tracking-widest ${
-                                    (invalidRotationPreview || draggedShip)
+                                    (invalidRotationPreview || draggedShip || pvpReadyLoading || isWaitingForOpponentFleet)
                                         ? "bg-surface-container text-on-surface-variant/40 cursor-not-allowed opacity-50"
                                         : "bg-secondary text-on-secondary-fixed hover:bg-secondary-container active:scale-95"
                                 }`}
                             >
-                                READY
+                                {pvpReadyLoading ? copy.syncing : isWaitingForOpponentFleet ? copy.waitingPlayer : copy.ready}
                             </button>
                         )}
-                        {(gameState === 'PLAYER_TURN' || gameState === 'BOT_TURN') && (
+                        {!isPvpMode && (gameState === 'PLAYER_TURN' || gameState === 'BOT_TURN') && (
                             <div className="text-center">
                                 <span className="text-[10px] text-on-surface-variant uppercase font-bold tracking-widest">Time</span>
                                 <div className={`text-3xl font-black ${turnTimer <= 10 ? 'text-error animate-pulse' : 'text-secondary'}`}>
@@ -1680,6 +2465,7 @@ function Game() {
                                             type="button"
                                             className="auto-arrange-button"
                                             onClick={autoArrangeFleet}
+                                            disabled={isPlacementLocked}
                                         >
                                             <span className="material-symbols-outlined" aria-hidden="true">auto_fix_high</span>
                                             AUTO ARRANGE
@@ -1717,6 +2503,8 @@ function Game() {
                                                         key={shipDef.id}
                                                         className={`deployment-ship-card deployment-${shipDef.id} ${
                                                             isPlaced ? "is-placed" : ""
+                                                        } ${
+                                                            isPlacementLocked ? "is-locked" : ""
                                                         }`}
                                                         onClick={(event) => {
                                                             if (!isPlaced) handleTrayShipClick(event, shipDef);
@@ -1776,6 +2564,7 @@ function Game() {
                                             type="button"
                                             className="auto-arrange-button"
                                             onClick={autoArrangeFleet}
+                                            disabled={isPlacementLocked}
                                         >
                                             <span className="material-symbols-outlined" aria-hidden="true">auto_fix_high</span>
                                             AUTO ARRANGE
@@ -1927,6 +2716,38 @@ function Game() {
                 </>
             )}
 
+            {exitPromptOpen && (
+                <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-fade-in">
+                    <div className="game-exit-dialog glass-card max-w-md w-full p-7 rounded-2xl border border-white/10 shadow-2xl text-center">
+                        <span className="material-symbols-outlined text-[56px] text-error drop-shadow-[0_0_18px_rgba(255,87,87,0.45)]">
+                            warning
+                        </span>
+                        <h2 className="font-display-lg text-3xl mt-3 mb-3 uppercase tracking-widest text-on-surface">
+                            {copy.exitTitle}
+                        </h2>
+                        <p className="text-on-surface-variant text-sm leading-6 mb-6">
+                            {copy.exitBody}
+                        </p>
+                        <div className="flex gap-3">
+                            <button
+                                type="button"
+                                onClick={() => setExitPromptOpen(false)}
+                                className="flex-1 bg-surface-container border border-white/10 text-on-surface font-bold py-3 rounded-full hover:bg-white/5 transition-all active:scale-95"
+                            >
+                                {copy.stay}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={confirmGameExit}
+                                className="flex-1 bg-error text-white font-bold py-3 rounded-full hover:brightness-110 transition-all active:scale-95"
+                            >
+                                {copy.leave}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Victory/Defeat Modal */}
             {showModal && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-fade-in">
@@ -1940,10 +2761,10 @@ function Game() {
                         </div>
                         
                         <h2 className={`font-display-lg text-4xl mb-2 ${winner === 'PLAYER' ? 'text-green-400 glow-text' : 'text-error glow-text-error'}`}>
-                            {winner === 'PLAYER' ? 'VICTORY' : 'DEFEAT'}
+                            {winner === 'PLAYER' ? (gameOverReason === "opponent_left" ? copy.opponentLeftTitle : 'VICTORY') : 'DEFEAT'}
                         </h2>
                         <p className="text-on-surface-variant text-sm mb-6 uppercase tracking-widest font-bold">
-                            Difficulty: {difficulty}
+                            {gameOverReason === "opponent_left" ? copy.opponentLeftBody : `Difficulty: ${difficulty}`}
                         </p>
                         
                         <div className="w-full bg-surface-container/50 rounded-lg p-4 mb-6 grid grid-cols-2 gap-4 text-left">
@@ -1967,13 +2788,14 @@ function Game() {
 
                         <div className="flex gap-4 w-full">
                             <button 
-                                onClick={() => window.location.reload()}
+                                onClick={handlePlayAgain}
+                                disabled={rematchLoading}
                                 className="flex-1 bg-secondary text-on-secondary-fixed font-bold py-3 rounded-full hover:bg-secondary-container transition-all active:scale-95"
                             >
-                                PLAY AGAIN
+                                {rematchLoading ? copy.syncing : copy.playAgain}
                             </button>
                             <Link to="/" className="flex-1 bg-surface-container border border-white/10 text-on-surface font-bold py-3 rounded-full hover:bg-white/5 transition-all active:scale-95 block">
-                                RETURN HOME
+                                {copy.returnHome}
                             </Link>
                         </div>
                     </div>

@@ -1,0 +1,16 @@
+{
+  "name": "cloud-battleship-backend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Serverless backend for Cloud Battleship Arena.",
+  "type": "commonjs",
+  "scripts": {
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@aws-sdk/client-apigatewaymanagementapi": "^3.821.0",
+    "@aws-sdk/client-dynamodb": "^3.821.0",
+    "@aws-sdk/lib-dynamodb": "^3.821.0"
+  },
+  "devDependencies": {}
+}

@@ -470,7 +470,7 @@ const BattleEffectsLayer = forwardRef(function BattleEffectsLayer(
         }
 
         if (command.type === "miss") {
-            wakeFor(scene, 1100);
+            wakeFor(scene, 2200);
             const { x, y } = cellCenter(command.row, command.col);
             playMiss(scene, x, y);
         }
@@ -502,7 +502,7 @@ const BattleEffectsLayer = forwardRef(function BattleEffectsLayer(
 
         if (command.type === "sunk") {
             const cells = command.cells || [];
-            wakeFor(scene, 8500);
+            wakeFor(scene, 10000);
             playSunkFinisher(scene, cells, cellCenter);
             cells.forEach((cell, index) => {
                 const { x, y } = cellCenter(cell.row, cell.col);
