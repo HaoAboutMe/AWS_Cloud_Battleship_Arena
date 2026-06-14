@@ -9,7 +9,7 @@ import { canPlaceShip, checkVictory, createBoard, fireAt, getShipBounds, getShip
 import { getBotMove, resetBotAI } from "../game/botAI";
 import { useAuth } from "../contexts/AuthContext";
 import { useLanguage } from "../contexts/LanguageContext";
-import { createRoomSocket, getRoom, getRoomPlayerId, markPlayerReady, resetRoomForRematch, sendSocketMessage } from "../services/matchService";
+import { createRoomSocket, getRoom, getRoomPlayerId, leaveRoom, markPlayerReady, resetRoomForRematch, sendSocketMessage } from "../services/matchService";
 import "./GameEffects.css";
 
 const BOARD_SIZE = 10;
@@ -211,6 +211,7 @@ function Game() {
     const [pendingExitTarget, setPendingExitTarget] = useState("/");
     const [gameOverReason, setGameOverReason] = useState("");
     const [rematchLoading, setRematchLoading] = useState(false);
+    const [returnHomeLoading, setReturnHomeLoading] = useState(false);
 
     const logContainerRef = useRef(null);
     const timerRef = useRef(null);
@@ -534,6 +535,22 @@ function Game() {
             addLog(rematchError.message || "Unable to reset room for rematch.", "warning");
         } finally {
             setRematchLoading(false);
+        }
+    }, [addLog, isPvpMode, navigate, roomCode, roomPlayer]);
+
+    const handleReturnHome = useCallback(async () => {
+        if (!isPvpMode || !roomCode || gameStateRef.current !== "GAME_OVER") {
+            navigate("/");
+            return;
+        }
+
+        try {
+            setReturnHomeLoading(true);
+            await leaveRoom({ roomCode, player: roomPlayer });
+        } catch (leaveError) {
+            addLog(leaveError.message || "Unable to leave room cleanly.", "warning");
+        } finally {
+            navigate("/");
         }
     }, [addLog, isPvpMode, navigate, roomCode, roomPlayer]);
 
@@ -2794,9 +2811,14 @@ function Game() {
                             >
                                 {rematchLoading ? copy.syncing : copy.playAgain}
                             </button>
-                            <Link to="/" className="flex-1 bg-surface-container border border-white/10 text-on-surface font-bold py-3 rounded-full hover:bg-white/5 transition-all active:scale-95 block">
-                                {copy.returnHome}
-                            </Link>
+                            <button
+                                type="button"
+                                onClick={handleReturnHome}
+                                disabled={returnHomeLoading}
+                                className="flex-1 bg-surface-container border border-white/10 text-on-surface font-bold py-3 rounded-full hover:bg-white/5 transition-all active:scale-95 block"
+                            >
+                                {returnHomeLoading ? copy.syncing : copy.returnHome}
+                            </button>
                         </div>
                     </div>
                 </div>

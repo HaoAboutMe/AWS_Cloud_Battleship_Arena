@@ -126,6 +126,23 @@ export const resetRoomForRematch = async ({ roomCode, player }) => {
   return data.room;
 };
 
+export const leaveRoom = async ({ roomCode, player }) => {
+  const normalizedRoomCode = String(roomCode || "").trim().toUpperCase();
+
+  if (!normalizedRoomCode) {
+    throw new Error("Room code is required.");
+  }
+
+  const data = await requestJson(`/rooms/${encodeURIComponent(normalizedRoomCode)}/leave`, {
+    method: "POST",
+    body: JSON.stringify({
+      player,
+    }),
+  });
+
+  return data.room;
+};
+
 export const getRoomPlayerId = (baseUserId = "guest", roomCode = "global") => {
   const safeBaseUserId = String(baseUserId || "guest");
   const safeRoomCode = String(roomCode || "global").trim().toUpperCase();

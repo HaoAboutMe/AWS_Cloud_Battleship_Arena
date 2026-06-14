@@ -260,10 +260,44 @@ const resetRoomForRematch = async ({ roomCode, player }) => {
   return putRoom(nextRoom);
 };
 
+const leaveRoom = async ({ roomCode, player }) => {
+  const normalizedCode = String(roomCode || "").trim().toUpperCase();
+  const room = await getRoom(normalizedCode);
+
+  if (!room) {
+    throw createHttpError(404, "Room not found.");
+  }
+
+  const leavingPlayer = normalizePlayer(player);
+  const remainingPlayers = (room.players || [])
+    .filter((candidate) => !isSamePlayer(candidate, leavingPlayer))
+    .map((candidate) => ({
+      ...candidate,
+      lobbyReady: false,
+      fleetReady: false,
+      board: undefined,
+      lobbyReadyAt: undefined,
+      fleetReadyAt: undefined,
+    }));
+
+  const nextRoom = {
+    ...room,
+    players: remainingPlayers,
+    hostUserId: remainingPlayers[0]?.userId,
+    status: remainingPlayers.length >= MAX_PLAYERS ? "READY" : "WAITING",
+    startedAt: undefined,
+    updatedAt: nowIso(),
+    ttl: buildTtl(),
+  };
+
+  return putRoom(nextRoom);
+};
+
 module.exports = {
   createRoom,
   getRoom,
   joinRoom,
+  leaveRoom,
   markPlayerLobbyReady,
   markPlayerReady,
   resetRoomForRematch,

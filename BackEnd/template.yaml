@@ -176,6 +176,22 @@ Resources:
             Path: /rooms/{roomCode}/rematch
             Method: POST
 
+  LeaveRoomFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Handler: src/handlers/leaveRoom.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref RoomsTable
+      Events:
+        LeaveRoom:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref BattleshipHttpApi
+            Path: /rooms/{roomCode}/leave
+            Method: POST
+
   WebSocketConnectFunction:
     Type: AWS::Serverless::Function
     Properties:

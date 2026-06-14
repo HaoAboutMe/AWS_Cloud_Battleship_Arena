@@ -1,8 +1,9 @@
 .lobby-page {
   min-height: 100vh;
   background:
-    radial-gradient(circle at 76% 12%, rgba(117, 223, 255, 0.12), transparent 30%),
-    linear-gradient(180deg, #051424, #03111e 72%);
+    radial-gradient(circle at 76% 12%, rgba(117, 223, 255, 0.14), transparent 28%),
+    radial-gradient(circle at 18% 72%, rgba(41, 148, 184, 0.13), transparent 34%),
+    linear-gradient(180deg, #061725, #03111e 72%);
   color: #e8f7ff;
 }
 
@@ -22,14 +23,33 @@
 .lobby-panel {
   border: 1px solid rgba(117, 223, 255, 0.16);
   background:
-    linear-gradient(180deg, rgba(17, 39, 56, 0.78), rgba(8, 27, 42, 0.82)),
+    linear-gradient(145deg, rgba(19, 49, 70, 0.88), rgba(6, 23, 37, 0.9)),
     rgba(8, 27, 42, 0.7);
-  border-radius: 10px;
+  border-radius: 14px;
   box-shadow: 0 24px 70px rgba(0, 0, 0, 0.24);
+  position: relative;
+  overflow: hidden;
+}
+
+.lobby-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(117, 223, 255, 0.08), transparent 28%),
+    radial-gradient(circle at 100% 0%, rgba(158, 232, 255, 0.11), transparent 26%);
+  opacity: 0.82;
 }
 
 .lobby-hero {
   padding: 30px;
+}
+
+.lobby-hero > *,
+.lobby-status > * {
+  position: relative;
+  z-index: 1;
 }
 
 .lobby-heading-row {
@@ -67,9 +87,11 @@
 
 .lobby-title {
   margin: 12px 0 8px;
-  font-size: clamp(42px, 5vw, 72px);
+  font-size: clamp(44px, 5vw, 76px);
   line-height: 0.96;
   text-transform: uppercase;
+  letter-spacing: 0.02em;
+  text-shadow: 0 0 26px rgba(158, 232, 255, 0.14);
 }
 
 .lobby-copy {
@@ -83,22 +105,23 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 18px;
-  margin-top: 30px;
+  margin-top: 34px;
 }
 
 .lobby-card {
-  padding: 20px;
-  border: 1px solid rgba(117, 223, 255, 0.14);
+  padding: 22px;
+  border: 1px solid rgba(117, 223, 255, 0.16);
   background:
-    linear-gradient(180deg, rgba(11, 39, 58, 0.72), rgba(4, 19, 32, 0.72)),
+    linear-gradient(180deg, rgba(11, 43, 63, 0.78), rgba(4, 19, 32, 0.76)),
     rgba(5, 20, 33, 0.56);
-  border-radius: 8px;
-  transition: border-color 180ms ease, transform 180ms ease, background 180ms ease;
+  border-radius: 12px;
+  transition: border-color 180ms ease, transform 180ms ease, background 180ms ease, box-shadow 180ms ease;
 }
 
 .lobby-card:hover {
   border-color: rgba(117, 223, 255, 0.34);
   transform: translateY(-1px);
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.18);
 }
 
 .lobby-card-title {
@@ -129,11 +152,11 @@
 .lobby-input {
   width: 100%;
   height: 48px;
-  padding: 0 15px;
+  padding: 0 16px;
   border: 1px solid rgba(117, 223, 255, 0.24);
   background: rgba(3, 17, 30, 0.82);
   color: #e8f7ff;
-  border-radius: 5px;
+  border-radius: 8px;
   font-weight: 900;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -155,15 +178,22 @@
   border: 1px solid rgba(117, 223, 255, 0.36);
   background: #9ee8ff;
   color: #03111e;
-  border-radius: 5px;
+  border-radius: 8px;
   font-weight: 1000;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   cursor: pointer;
+  transition: transform 160ms ease, background 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+  box-shadow: 0 12px 30px rgba(117, 223, 255, 0.12);
 }
 
 .lobby-button:hover {
   background: #c4f2ff;
+  transform: translateY(-1px);
+}
+
+.lobby-button:active {
+  transform: translateY(0);
 }
 
 .lobby-button:disabled {
@@ -174,6 +204,7 @@
 .lobby-button.secondary {
   background: transparent;
   color: #9ee8ff;
+  box-shadow: none;
 }
 
 .lobby-button.secondary:hover {
@@ -181,7 +212,7 @@
 }
 
 .lobby-status {
-  padding: 26px;
+  padding: 28px;
 }
 
 .lobby-status-head {
@@ -217,16 +248,21 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 18px;
-  border: 1px solid rgba(117, 223, 255, 0.22);
-  background: rgba(117, 223, 255, 0.08);
-  border-radius: 8px;
+  padding: 22px;
+  border: 1px solid rgba(117, 223, 255, 0.28);
+  background:
+    linear-gradient(135deg, rgba(117, 223, 255, 0.13), rgba(117, 223, 255, 0.04)),
+    rgba(117, 223, 255, 0.06);
+  border-radius: 12px;
 }
 
 .lobby-room-code strong {
   display: block;
-  font-size: 36px;
+  font-size: clamp(32px, 4vw, 44px);
   letter-spacing: 0.18em;
+  line-height: 1;
+  color: #ffffff;
+  text-shadow: 0 0 18px rgba(158, 232, 255, 0.18);
 }
 
 .lobby-room-code small {
@@ -244,10 +280,11 @@
 }
 
 .lobby-readiness > div {
-  padding: 12px;
-  border: 1px solid rgba(117, 223, 255, 0.11);
-  border-radius: 7px;
-  background: rgba(255, 255, 255, 0.04);
+  padding: 14px;
+  border: 1px solid rgba(117, 223, 255, 0.14);
+  border-radius: 10px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.025));
 }
 
 .lobby-readiness span {
@@ -262,7 +299,25 @@
   display: block;
   margin-top: 4px;
   color: #e8f7ff;
-  font-size: 24px;
+  font-size: 28px;
+}
+
+.lobby-progress {
+  height: 8px;
+  margin: 4px 0 16px;
+  overflow: hidden;
+  border: 1px solid rgba(117, 223, 255, 0.12);
+  border-radius: 999px;
+  background: rgba(3, 17, 30, 0.72);
+}
+
+.lobby-progress span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #74ffd1, #9ee8ff);
+  box-shadow: 0 0 18px rgba(117, 223, 255, 0.24);
+  transition: width 280ms ease;
 }
 
 .lobby-player-list {
@@ -276,10 +331,11 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 12px 14px;
-  border: 1px solid rgba(117, 223, 255, 0.1);
-  background: rgba(255, 255, 255, 0.04);
-  border-radius: 6px;
+  min-height: 56px;
+  padding: 13px 15px;
+  border: 1px solid rgba(117, 223, 255, 0.13);
+  background: rgba(255, 255, 255, 0.045);
+  border-radius: 10px;
 }
 
 .lobby-player.is-ready {
@@ -287,9 +343,17 @@
   background: rgba(54, 255, 176, 0.07);
 }
 
+.lobby-player.is-empty {
+  border-style: dashed;
+  opacity: 0.7;
+}
+
 .lobby-player-name {
   color: #e8f7ff;
   font-weight: 900;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .lobby-player-state {

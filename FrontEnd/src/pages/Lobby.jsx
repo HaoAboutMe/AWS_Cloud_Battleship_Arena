@@ -33,6 +33,7 @@ const LOBBY_COPY = {
     waitingOpponent: "Waiting opponent",
     syncing: "Syncing",
     empty: "No room selected. Create a new room or enter a room code to begin.",
+    openSlot: "Awaiting commander",
     loadError: "Unable to load room information.",
     createError: "Unable to create room.",
     joinError: "Unable to join room.",
@@ -63,6 +64,7 @@ const LOBBY_COPY = {
     waitingOpponent: "Đang chờ đối thủ",
     syncing: "Đang đồng bộ",
     empty: "Chưa có phòng nào được chọn. Tạo phòng mới hoặc nhập mã phòng để bắt đầu.",
+    openSlot: "Đang chờ chỉ huy",
     loadError: "Không thể tải thông tin phòng.",
     createError: "Không thể tạo phòng.",
     joinError: "Không thể vào phòng.",
@@ -224,6 +226,18 @@ function Lobby() {
   const isLobbyReady = Boolean(currentPlayerInRoom?.lobbyReady);
   const playerCount = room?.players?.length || 0;
   const readyCount = room?.players?.filter((roomPlayer) => roomPlayer.lobbyReady).length || 0;
+  const readinessPercent = Math.round((readyCount / 2) * 100);
+  const playerSlots = room
+    ? [
+      ...(room.players || []),
+      ...Array.from({ length: Math.max(0, 2 - playerCount) }, (_, index) => ({
+        userId: `empty-${index}`,
+        displayName: copy.openSlot,
+        lobbyReady: false,
+        isEmpty: true,
+      })),
+    ]
+    : [];
 
   return (
     <div className="lobby-page">
@@ -316,13 +330,20 @@ function Lobby() {
                   </div>
                 </div>
 
+                <div className="lobby-progress" aria-hidden="true">
+                  <span style={{ width: `${readinessPercent}%` }} />
+                </div>
+
                 <div className="lobby-player-list">
-                  {(room.players || []).map((roomPlayer) => (
-                    <div className={`lobby-player ${roomPlayer.lobbyReady ? "is-ready" : ""}`} key={roomPlayer.userId}>
+                  {playerSlots.map((roomPlayer) => (
+                    <div
+                      className={`lobby-player ${roomPlayer.lobbyReady ? "is-ready" : ""} ${roomPlayer.isEmpty ? "is-empty" : ""}`}
+                      key={roomPlayer.userId}
+                    >
                       <span className="lobby-player-name">{roomPlayer.displayName}</span>
                       <span className="lobby-player-state">
                         <i />
-                        {roomPlayer.lobbyReady ? copy.ready : copy.standby}
+                        {roomPlayer.isEmpty ? copy.standby : roomPlayer.lobbyReady ? copy.ready : copy.standby}
                       </span>
                     </div>
                   ))}
