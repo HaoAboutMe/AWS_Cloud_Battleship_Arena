@@ -986,10 +986,13 @@ console.log("P2 KEY", getRoomPlayerKey(player2));
             matchId: crypto.randomUUID(),
             roomCode: roomCode,
             player1Id: player1.baseUserId,
+            player1Email: player1.email, // THÊM DÒNG NÀY
             player1Name: player1.displayName || "Unknown",
             player2Id: player2.baseUserId,
+            player2Email: player2.email, // THÊM DÒNG NÀY
             player2Name: player2.displayName || "Unknown",
             winnerId: currentPlayer.baseUserId,
+            winnerEmail: currentPlayer.email, // THÊM DÒNG NÀY
             startedAt: matchStartedAtRef.current || new Date().toISOString(),
             endedAt: new Date().toISOString(),
             totalTurns: stats.turns || 0,
@@ -997,7 +1000,7 @@ console.log("P2 KEY", getRoomPlayerKey(player2));
         };
 
         try {
-            await fetch(`${import.meta.env.VITE_HAO_API_BASE_URL}/matchHistory`, {
+            await fetch(`${import.meta.env.VITE_API_BASE_URL}/matches/save`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
