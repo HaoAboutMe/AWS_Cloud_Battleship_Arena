@@ -9,8 +9,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-apigatewaymanagementapi": "^3.821.0",
-    "@aws-sdk/client-dynamodb": "^3.821.0",
-    "@aws-sdk/lib-dynamodb": "^3.821.0"
-  },
-  "devDependencies": {}
+    "@aws-sdk/client-dynamodb": "^3.1068.0",
+    "@aws-sdk/lib-dynamodb": "^3.1068.0"
+  }
 }

@@ -317,6 +317,93 @@ Resources:
       FunctionName: !Ref WebSocketMessageFunction
       Principal: apigateway.amazonaws.com
 
+  UserTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: User
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: userId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: userId
+          KeyType: HASH
+
+  EmailIndexTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: EmailIndex
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: email
+          AttributeType: S
+      KeySchema:
+        - AttributeName: email
+          KeyType: HASH
+
+  MatchHistoryTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: MatchHistory
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: matchId
+          AttributeType: S
+        - AttributeName: player1Id
+          AttributeType: S
+        - AttributeName: player2Id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: matchId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: Player1Index
+          KeySchema:
+            - AttributeName: player1Id
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+        - IndexName: Player2Index
+          KeySchema:
+            - AttributeName: player2Id
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+
+  # ==========================================
+  # LAMBDA FUNCTIONS (Phân hệ User & History)
+  # ==========================================
+  CreateUserFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Handler: src/handlers/users/createUser.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UserTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EmailIndexTable
+
+  SaveMatchHistoryFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Handler: src/handlers/users/saveMatchHistory.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref MatchHistoryTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UserTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref EmailIndexTable
+      Events:
+        SaveMatch:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref BattleshipHttpApi
+            Path: /matches/save
+            Method: POST
+
 Outputs:
   HttpApiUrl:
     Description: HTTP API base URL.
@@ -327,3 +414,5 @@ Outputs:
   RoomsTableName:
     Description: DynamoDB rooms table name.
     Value: !Ref RoomsTable
+
+
