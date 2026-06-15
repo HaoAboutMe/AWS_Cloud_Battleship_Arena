@@ -25,6 +25,7 @@ Resources:
   RoomsTable:
     Type: AWS::DynamoDB::Table
     Properties:
+      TableName: Rooms
       BillingMode: PAY_PER_REQUEST
       AttributeDefinitions:
         - AttributeName: roomCode
@@ -39,6 +40,7 @@ Resources:
   ConnectionsTable:
     Type: AWS::DynamoDB::Table
     Properties:
+      TableName: Connections
       BillingMode: PAY_PER_REQUEST
       AttributeDefinitions:
         - AttributeName: connectionId
@@ -83,6 +85,7 @@ Resources:
   CreateRoomFunction:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: CreateRoom
       CodeUri: .
       Handler: src/handlers/createRoom.handler
       Policies:
@@ -99,6 +102,7 @@ Resources:
   JoinRoomFunction:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: JoinRoom
       CodeUri: .
       Handler: src/handlers/joinRoom.handler
       Policies:
@@ -115,6 +119,7 @@ Resources:
   GetRoomFunction:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: GetRoom
       CodeUri: .
       Handler: src/handlers/getRoom.handler
       Policies:
@@ -131,6 +136,7 @@ Resources:
   ReadyRoomFunction:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: ReadyRoom
       CodeUri: .
       Handler: src/handlers/readyRoom.handler
       Policies:
@@ -147,6 +153,7 @@ Resources:
   LobbyReadyRoomFunction:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: LobbyReadyRoom
       CodeUri: .
       Handler: src/handlers/lobbyReadyRoom.handler
       Policies:
@@ -163,6 +170,7 @@ Resources:
   RematchRoomFunction:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: RematchRoom
       CodeUri: .
       Handler: src/handlers/rematchRoom.handler
       Policies:
@@ -179,6 +187,7 @@ Resources:
   LeaveRoomFunction:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: LeaveRoom
       CodeUri: .
       Handler: src/handlers/leaveRoom.handler
       Policies:
@@ -195,6 +204,7 @@ Resources:
   WebSocketConnectFunction:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: WebSocketConnect
       CodeUri: .
       Handler: src/handlers/wsConnect.handler
       Policies:
@@ -204,6 +214,7 @@ Resources:
   WebSocketDisconnectFunction:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: WebSocketDisconnect
       CodeUri: .
       Handler: src/handlers/wsDisconnect.handler
       Policies:
@@ -213,6 +224,7 @@ Resources:
   WebSocketMessageFunction:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: WebSocketMessage
       CodeUri: .
       Handler: src/handlers/wsMessage.handler
       Environment:
@@ -376,6 +388,7 @@ Resources:
   CreateUserFunction:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: CreateUser
       CodeUri: .
       Handler: src/handlers/users/createUser.handler
       Policies:
@@ -387,6 +400,7 @@ Resources:
   SaveMatchHistoryFunction:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: SaveMatchHistory
       CodeUri: .
       Handler: src/handlers/users/saveMatchHistory.handler
       Policies:
