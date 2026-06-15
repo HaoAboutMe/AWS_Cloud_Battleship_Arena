@@ -231,6 +231,7 @@ function Game() {
     const pvpFleetSubmittedRef = useRef(false);
     const activePvpShotIdRef = useRef("");
     const pvpShotTimeoutRef = useRef(null);
+    const matchStartedAtRef = useRef(null);
     const applyIncomingPvpShotRequestRef = useRef(null);
     const applyPvpShotResultRef = useRef(null);
     const handleOpponentLeftRef = useRef(null);
@@ -255,6 +256,9 @@ function Game() {
             attributes?.email ||
             user?.signInDetails?.loginId ||
             "Commander";
+
+        console.log("USER", user);
+        console.log("ATTRIBUTES", attributes);
         const baseUserId = user?.userId || attributes?.sub || attributes?.email || "guest";
 
         return {
@@ -959,6 +963,54 @@ function Game() {
         localStorage.setItem(key, JSON.stringify(savedStats));
     }, [stats]);
 
+    const savePvpMatchHistory = useCallback(async (isPlayerVictory) => {
+        if (!isPvpMode || !pvpRoomRef.current || !isPlayerVictory) return;
+        
+        const currentRoom = pvpRoomRef.current;
+        if (!currentRoom.players || currentRoom.players.length < 2) return;
+
+        const player1 = currentRoom.players[0];
+        const player2 = currentRoom.players[1];
+        
+        const currentPlayer = getCurrentRoomPlayer(currentRoom);
+        const winnerId = getRoomPlayerKey(currentPlayer);
+
+        console.log("PLAYER1", player1);
+        console.log("PLAYER2", player2);
+        console.log("CURRENT", currentPlayer);
+
+        console.log("P1 KEY", getRoomPlayerKey(player1));
+console.log("P2 KEY", getRoomPlayerKey(player2));
+
+        const payload = {
+            matchId: crypto.randomUUID(),
+            roomCode: roomCode,
+            player1Id: player1.baseUserId,
+            player1Email: player1.email, // THÊM DÒNG NÀY
+            player1Name: player1.displayName || "Unknown",
+            player2Id: player2.baseUserId,
+            player2Email: player2.email, // THÊM DÒNG NÀY
+            player2Name: player2.displayName || "Unknown",
+            winnerId: currentPlayer.baseUserId,
+            winnerEmail: currentPlayer.email, // THÊM DÒNG NÀY
+            startedAt: matchStartedAtRef.current || new Date().toISOString(),
+            endedAt: new Date().toISOString(),
+            totalTurns: stats.turns || 0,
+            createdAt: new Date().toISOString()
+        };
+
+        try {
+            await fetch(`${import.meta.env.VITE_API_BASE_URL}/matches/save`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            console.log("Match history saved successfully.");
+        } catch (error) {
+            console.error("Failed to save match history", error);
+        }
+    }, [isPvpMode, roomCode, stats.turns]);
+
     const endGame = useCallback((isPlayerVictory) => {
         setGameOverReason("");
         gameStateRef.current = "GAME_OVER";
@@ -967,8 +1019,9 @@ function Game() {
         releaseShotLock();
         addLog(isPlayerVictory ? "VICTORY! Enemy fleet destroyed!" : "DEFEAT! Your fleet was destroyed.", isPlayerVictory ? "victory" : "defeat");
         saveMatchStats(isPlayerVictory);
+        if (isPlayerVictory) savePvpMatchHistory(true);
         setTimeout(() => setShowModal(true), 1500);
-    }, [addLog, releaseShotLock, saveMatchStats]);
+    }, [addLog, releaseShotLock, saveMatchStats, savePvpMatchHistory]);
 
     const handleOpponentLeft = useCallback(() => {
         if (gameStateRef.current === "GAME_OVER") return;
@@ -979,8 +1032,9 @@ function Game() {
         releaseShotLock();
         addLog(copy.opponentLeftLog, "victory");
         saveMatchStats(true);
+        savePvpMatchHistory(true);
         window.setTimeout(() => setShowModal(true), 450);
-    }, [addLog, copy.opponentLeftLog, releaseShotLock, saveMatchStats]);
+    }, [addLog, copy.opponentLeftLog, releaseShotLock, saveMatchStats, savePvpMatchHistory]);
 
     useEffect(() => {
         handleOpponentLeftRef.current = handleOpponentLeft;
@@ -1399,6 +1453,7 @@ function Game() {
         if (!pvpEnemyBoardLoadedRef.current) {
             pvpEnemyBoardLoadedRef.current = true;
             setEnemyBoard(createBoard());
+            matchStartedAtRef.current = new Date().toISOString();
             addLog("Enemy waters synced. Shot results will be verified by opponent fleet.", "info");
         }
 

@@ -25,6 +25,7 @@ Resources:
   RoomsTable:
     Type: AWS::DynamoDB::Table
     Properties:
+      TableName: Rooms
       BillingMode: PAY_PER_REQUEST
       AttributeDefinitions:
         - AttributeName: roomCode
@@ -39,6 +40,7 @@ Resources:
   ConnectionsTable:
     Type: AWS::DynamoDB::Table
     Properties:
+      TableName: Connections
       BillingMode: PAY_PER_REQUEST
       AttributeDefinitions:
         - AttributeName: connectionId
@@ -83,6 +85,7 @@ Resources:
   CreateRoomFunction:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: CreateRoom
       CodeUri: .
       Handler: src/handlers/createRoom.handler
       Policies:
@@ -99,6 +102,7 @@ Resources:
   JoinRoomFunction:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: JoinRoom
       CodeUri: .
       Handler: src/handlers/joinRoom.handler
       Policies:
@@ -115,6 +119,7 @@ Resources:
   GetRoomFunction:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: GetRoom
       CodeUri: .
       Handler: src/handlers/getRoom.handler
       Policies:
@@ -131,6 +136,7 @@ Resources:
   ReadyRoomFunction:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: ReadyRoom
       CodeUri: .
       Handler: src/handlers/readyRoom.handler
       Policies:
@@ -147,6 +153,7 @@ Resources:
   LobbyReadyRoomFunction:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: LobbyReadyRoom
       CodeUri: .
       Handler: src/handlers/lobbyReadyRoom.handler
       Policies:
@@ -163,6 +170,7 @@ Resources:
   RematchRoomFunction:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: RematchRoom
       CodeUri: .
       Handler: src/handlers/rematchRoom.handler
       Policies:
@@ -179,6 +187,7 @@ Resources:
   LeaveRoomFunction:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: LeaveRoom
       CodeUri: .
       Handler: src/handlers/leaveRoom.handler
       Policies:
@@ -195,6 +204,7 @@ Resources:
   WebSocketConnectFunction:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: WebSocketConnect
       CodeUri: .
       Handler: src/handlers/wsConnect.handler
       Policies:
@@ -204,6 +214,7 @@ Resources:
   WebSocketDisconnectFunction:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: WebSocketDisconnect
       CodeUri: .
       Handler: src/handlers/wsDisconnect.handler
       Policies:
@@ -213,6 +224,7 @@ Resources:
   WebSocketMessageFunction:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: WebSocketMessage
       CodeUri: .
       Handler: src/handlers/wsMessage.handler
       Environment:
@@ -317,6 +329,95 @@ Resources:
       FunctionName: !Ref WebSocketMessageFunction
       Principal: apigateway.amazonaws.com
 
+  UserTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: User
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: userId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: userId
+          KeyType: HASH
+
+  EmailIndexTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: EmailIndex
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: email
+          AttributeType: S
+      KeySchema:
+        - AttributeName: email
+          KeyType: HASH
+
+  MatchHistoryTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: MatchHistory
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: matchId
+          AttributeType: S
+        - AttributeName: player1Id
+          AttributeType: S
+        - AttributeName: player2Id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: matchId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: Player1Index
+          KeySchema:
+            - AttributeName: player1Id
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+        - IndexName: Player2Index
+          KeySchema:
+            - AttributeName: player2Id
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+
+  # ==========================================
+  # LAMBDA FUNCTIONS (Phân hệ User & History)
+  # ==========================================
+  CreateUserFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: CreateUser
+      CodeUri: .
+      Handler: src/handlers/users/createUser.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UserTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EmailIndexTable
+
+  SaveMatchHistoryFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: SaveMatchHistory
+      CodeUri: .
+      Handler: src/handlers/users/saveMatchHistory.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref MatchHistoryTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UserTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref EmailIndexTable
+      Events:
+        SaveMatch:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref BattleshipHttpApi
+            Path: /matches/save
+            Method: POST
+
 Outputs:
   HttpApiUrl:
     Description: HTTP API base URL.
@@ -327,3 +428,5 @@ Outputs:
   RoomsTableName:
     Description: DynamoDB rooms table name.
     Value: !Ref RoomsTable
+
+

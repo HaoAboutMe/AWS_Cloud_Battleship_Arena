@@ -4,7 +4,6 @@ version = 0.1
 stack_name = "cloud-battleship-backend-dev"
 resolve_s3 = true
 s3_prefix = "cloud-battleship-backend-dev"
-region = "ap-southeast-1"
 confirm_changeset = true
 capabilities = "CAPABILITY_IAM"
 parameter_overrides = "CorsOrigin=\"http://localhost:5173\""
