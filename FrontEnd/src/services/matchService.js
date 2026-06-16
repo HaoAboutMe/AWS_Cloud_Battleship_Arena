@@ -63,6 +63,19 @@ export const joinRoom = async ({ roomCode, player }) => {
   return data.room;
 };
 
+export const findMatch = async ({ mode = "casual", difficulty = "easy", player }) => {
+  const data = await requestJson("/matchmaking", {
+    method: "POST",
+    body: JSON.stringify({
+      mode,
+      difficulty,
+      player,
+    }),
+  });
+
+  return data.room;
+};
+
 export const getRoom = async (roomCode) => {
   const normalizedRoomCode = String(roomCode || "").trim().toUpperCase();
 

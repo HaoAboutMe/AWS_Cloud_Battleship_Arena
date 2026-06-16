@@ -116,6 +116,23 @@ Resources:
             Path: /rooms/{roomCode}/join
             Method: POST
 
+  MatchmakeRoomFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: MatchmakeRoom
+      CodeUri: .
+      Handler: src/handlers/matchmakeRoom.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref RoomsTable
+      Events:
+        MatchmakeRoom:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref BattleshipHttpApi
+            Path: /matchmaking
+            Method: POST
+
   GetRoomFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -396,6 +413,23 @@ Resources:
             TableName: !Ref UserTable
         - DynamoDBCrudPolicy:
             TableName: !Ref EmailIndexTable
+
+  CheckUsernameFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: CheckUsername
+      CodeUri: .
+      Handler: src/handlers/users/checkUsername.handler
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref UserTable
+      Events:
+        CheckUsername:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref BattleshipHttpApi
+            Path: /users/check-username
+            Method: GET
 
   SaveMatchHistoryFunction:
     Type: AWS::Serverless::Function

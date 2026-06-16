@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import CommandHeader from "../components/CommandHeader";
 import { useAuth } from "../contexts/AuthContext";
 import { useLanguage } from "../contexts/LanguageContext";
-import { createRoom } from "../services/matchService";
+import { findMatch, getRoom, leaveRoom } from "../services/matchService";
 import "./HomeHeader.css";
 import "./Home.css";
 
@@ -14,6 +14,7 @@ function Home() {
   const {
     user: currentUser,
     attributes,
+    isAuthenticated,
     loading: authLoading,
     logout,
   } = useAuth();
@@ -35,6 +36,11 @@ function Home() {
   const [isLightMode, setIsLightMode] = useState(false);
   const [botDifficulty, setBotDifficulty] = useState("easy");
   const [roomCreating, setRoomCreating] = useState(false);
+  const [pvpModeOpen, setPvpModeOpen] = useState(false);
+  const [matchmakingMode, setMatchmakingMode] = useState(null);
+  const [matchmakingRoomCode, setMatchmakingRoomCode] = useState("");
+  const [matchmakingError, setMatchmakingError] = useState("");
+  const [guestUserId] = useState(() => `guest-${crypto.randomUUID()}`);
   const [stats] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem("battleshipStats")) || {
@@ -118,6 +124,18 @@ function Home() {
     return () => window.clearTimeout(timer);
   }, [authToast]);
 
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const requestedMode = params.get("pvpMode");
+    const shouldSearch = params.get("matchmaking") === "1";
+
+    if (!shouldSearch || !["casual", "ranked"].includes(requestedMode)) return;
+    if (requestedMode === "ranked" && !isAuthenticated) return;
+
+    setMatchmakingMode(requestedMode);
+    navigate("/", { replace: true, state: location.state || null });
+  }, [isAuthenticated, location.search, location.state, navigate]);
+
   const handleLogout = async () => {
     try {
       await logout();
@@ -148,7 +166,7 @@ function Home() {
       "Commander";
 
     return {
-      userId: currentUser?.userId || attributes?.sub || attributes?.email || `guest-${crypto.randomUUID()}`,
+      userId: currentUser?.userId || attributes?.sub || attributes?.email || guestUserId,
       displayName,
       email: attributes?.email,
     };
@@ -156,6 +174,91 @@ function Home() {
 
   const handleCreatePrivateRoom = () => {
     navigate("/lobby");
+  };
+
+  const handleSelectPvpMode = (mode) => {
+    if (mode === "ranked" && !isAuthenticated) {
+      setPvpModeOpen(false);
+      navigate("/login", {
+        state: {
+          reason: "ranked-pvp",
+          returnTo: "/?pvpMode=ranked&matchmaking=1",
+        },
+      });
+      return;
+    }
+
+    setPvpModeOpen(false);
+    setMatchmakingError("");
+    setMatchmakingRoomCode("");
+    setMatchmakingMode(mode);
+  };
+
+  useEffect(() => {
+    if (!matchmakingMode) return undefined;
+
+    let cancelled = false;
+    let timerId;
+
+    const scheduleNextPoll = () => {
+      timerId = window.setTimeout(runMatchmaking, 2200);
+    };
+
+    const runMatchmaking = async () => {
+      try {
+        setMatchmakingError("");
+        const player = buildCurrentPlayer();
+        const nextRoom = matchmakingRoomCode
+          ? await getRoom(matchmakingRoomCode)
+          : await findMatch({
+            mode: matchmakingMode,
+            difficulty: botDifficulty,
+            player,
+          });
+
+        if (cancelled) return;
+
+        if (nextRoom?.roomCode && !matchmakingRoomCode) {
+          setMatchmakingRoomCode(nextRoom.roomCode);
+        }
+
+        if ((nextRoom?.players || []).length >= 2) {
+          navigate(`/lobby?roomCode=${nextRoom.roomCode}&matchmaking=1`);
+          return;
+        }
+
+        scheduleNextPoll();
+      } catch (error) {
+        if (cancelled) return;
+        setMatchmakingError(error.message || "Unable to search for a match.");
+        scheduleNextPoll();
+      }
+    };
+
+    runMatchmaking();
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timerId);
+    };
+  }, [attributes, botDifficulty, currentUser, guestUserId, matchmakingMode, matchmakingRoomCode, navigate]);
+
+  const handleCancelMatchmaking = async () => {
+    const roomCodeToLeave = matchmakingRoomCode;
+    setMatchmakingMode(null);
+    setMatchmakingRoomCode("");
+    setMatchmakingError("");
+
+    if (!roomCodeToLeave) return;
+
+    try {
+      await leaveRoom({
+        roomCode: roomCodeToLeave,
+        player: buildCurrentPlayer(),
+      });
+    } catch {
+      // Best-effort cleanup only. Stale matchmaking rooms expire by DynamoDB TTL.
+    }
   };
 
   return (
@@ -183,6 +286,66 @@ function Home() {
           <button type="button" onClick={() => setAuthToast(null)} aria-label={t("common.dismiss")}>
             <span className="material-symbols-outlined">close</span>
           </button>
+        </div>
+      )}
+      {pvpModeOpen && (
+        <div
+          className="pvp-mode-modal"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="pvp-mode-title"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setPvpModeOpen(false);
+          }}
+        >
+          <div className="pvp-mode-panel">
+            <button
+              type="button"
+              className="pvp-mode-close"
+              onClick={() => setPvpModeOpen(false)}
+              aria-label={t("common.dismiss")}
+            >
+              <span className="material-symbols-outlined">close</span>
+            </button>
+            <span className="pvp-mode-kicker">{t("home.pvpModalKicker")}</span>
+            <h2 id="pvp-mode-title">{t("home.pvpModalTitle")}</h2>
+            <p>{t("home.pvpModalBody")}</p>
+
+            <div className="pvp-mode-grid">
+              <button type="button" className="pvp-mode-option" onClick={() => handleSelectPvpMode("casual")}>
+                <span className="material-symbols-outlined">sports_esports</span>
+                <strong>{t("home.casualPvp")}</strong>
+                <small>{t("home.casualPvpBody")}</small>
+                <em>{t("home.noLoginRequired")}</em>
+              </button>
+              <button type="button" className="pvp-mode-option ranked" onClick={() => handleSelectPvpMode("ranked")}>
+                <span className="material-symbols-outlined">military_tech</span>
+                <strong>{t("home.rankedPvp")}</strong>
+                <small>{t("home.rankedPvpBody")}</small>
+                <em>{t("home.loginRequired")}</em>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {matchmakingMode && (
+        <div className="pvp-mode-modal pvp-search-modal" role="dialog" aria-modal="true" aria-labelledby="pvp-search-title">
+          <div className="pvp-search-panel">
+            <div className="pvp-search-radar" aria-hidden="true">
+              <span />
+              <i />
+            </div>
+            <span className="pvp-mode-kicker">{matchmakingMode === "ranked" ? t("home.rankedPvp") : t("home.casualPvp")}</span>
+            <h2 id="pvp-search-title">{t("home.searchingMatch")}</h2>
+            <p>{t("home.searchingMatchBody")}</p>
+            <div className="pvp-search-status">
+              <b />
+              <span>{matchmakingError || t("home.scanningCommanders")}</span>
+            </div>
+            <button type="button" className="pvp-search-cancel" onClick={handleCancelMatchmaking}>
+              {t("home.cancelSearch")}
+            </button>
+          </div>
         </div>
       )}
       <main className="home-main max-w-[1440px] mx-auto px-gutter pb-6 overflow-hidden flex flex-col gap-6">
@@ -314,8 +477,8 @@ function Home() {
                   </span>
                 </div>
                 <button 
-                  onClick={() => alert(t("home.underDevelopment"))}
-                  className="w-full bg-secondary opacity-50 cursor-not-allowed text-on-secondary-fixed font-label-md text-label-md py-3 rounded-sm hover:bg-secondary-container transition-all active:scale-95 tracking-widest"
+                  onClick={() => setPvpModeOpen(true)}
+                  className="w-full bg-secondary text-on-secondary-fixed font-label-md text-label-md py-3 rounded-sm hover:bg-secondary-container transition-all active:scale-95 tracking-widest"
                 >
                   {t("home.joinQueue")}
                 </button>

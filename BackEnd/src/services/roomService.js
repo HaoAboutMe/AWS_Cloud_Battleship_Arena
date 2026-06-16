@@ -1,5 +1,5 @@
 const { randomUUID } = require("node:crypto");
-const { GetCommand, PutCommand } = require("@aws-sdk/lib-dynamodb");
+const { GetCommand, PutCommand, ScanCommand } = require("@aws-sdk/lib-dynamodb");
 const { documentClient } = require("../lib/dynamodb");
 
 const ROOMS_TABLE = process.env.ROOMS_TABLE;
@@ -68,12 +68,13 @@ const putRoom = async (room) => {
   return room;
 };
 
-const createRoom = async ({ player, difficulty = "easy" }) => {
+const createRoom = async ({ player, difficulty = "easy", matchmakingMode }) => {
   const host = normalizePlayer(player);
   const room = {
     roomCode: createRoomCode(),
     status: "WAITING",
     difficulty,
+    matchmakingMode: matchmakingMode ? String(matchmakingMode) : undefined,
     hostUserId: host.userId,
     players: [host],
     createdAt: nowIso(),
@@ -90,6 +91,42 @@ const createRoom = async ({ player, difficulty = "easy" }) => {
   );
 
   return room;
+};
+
+const findMatchmakingRoom = async ({ player, difficulty = "easy", mode = "casual" }) => {
+  const nextPlayer = normalizePlayer(player);
+  const normalizedMode = String(mode || "casual").trim().toLowerCase();
+  const response = await documentClient.send(
+    new ScanCommand({
+      TableName: ROOMS_TABLE,
+      Limit: 25,
+      FilterExpression: "#status = :waiting AND matchmakingMode = :mode",
+      ExpressionAttributeNames: {
+        "#status": "status",
+      },
+      ExpressionAttributeValues: {
+        ":waiting": "WAITING",
+        ":mode": normalizedMode,
+      },
+    }),
+  );
+
+  const candidate = (response.Items || [])
+    .filter((room) => {
+      const players = room.players || [];
+      return players.length < MAX_PLAYERS && !players.some((candidatePlayer) => isSamePlayer(candidatePlayer, nextPlayer));
+    })
+    .sort((first, second) => String(first.createdAt || "").localeCompare(String(second.createdAt || "")))[0];
+
+  if (candidate) {
+    return joinRoom({ roomCode: candidate.roomCode, player: nextPlayer });
+  }
+
+  return createRoom({
+    player: nextPlayer,
+    difficulty,
+    matchmakingMode: normalizedMode,
+  });
 };
 
 const joinRoom = async ({ roomCode, player }) => {
@@ -290,11 +327,17 @@ const leaveRoom = async ({ roomCode, player }) => {
     ttl: buildTtl(),
   };
 
+  if (remainingPlayers.length === 0) {
+    delete nextRoom.matchmakingMode;
+    nextRoom.status = "CLOSED";
+  }
+
   return putRoom(nextRoom);
 };
 
 module.exports = {
   createRoom,
+  findMatchmakingRoom,
   getRoom,
   joinRoom,
   leaveRoom,
