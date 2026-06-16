@@ -18,10 +18,16 @@ export async function resendConfirmCode(email) {
   });
 }
 
-export async function registerUser({ email, password }) {
+export async function registerUser({ email, password, attributes }) {
   return await signUp({
     username: email,
     password,
+    options: {
+      userAttributes: {
+        email: email,
+        ...attributes
+      }
+    }
   });
 }
 

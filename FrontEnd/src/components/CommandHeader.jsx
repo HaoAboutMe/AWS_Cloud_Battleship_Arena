@@ -1,5 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { useLanguage } from "../contexts/LanguageContext";
+import { useAuth } from "../contexts/AuthContext";
 import LanguageToggle from "./LanguageToggle";
 
 const COMMANDER_AVATAR =
@@ -24,9 +25,10 @@ function CommandHeader({
     attributes.email ||
     currentUser?.signInDetails?.loginId ||
     "Commander";
-  const avatarUrl = typeof attributes.picture === "string"
+  const { customAvatarUrl } = useAuth();
+  const avatarUrl = customAvatarUrl || (typeof attributes.picture === "string"
     ? attributes.picture
-    : COMMANDER_AVATAR;
+    : COMMANDER_AVATAR);
   const handleNavigation = (event, targetPath) => {
     if (!onNavigateRequest) return;
 

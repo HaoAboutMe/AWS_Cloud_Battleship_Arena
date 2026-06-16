@@ -70,6 +70,8 @@ Resources:
         AllowMethods:
           - GET
           - POST
+          - PUT
+          - DELETE
           - OPTIONS
         AllowHeaders:
           - content-type
@@ -354,9 +356,18 @@ Resources:
       AttributeDefinitions:
         - AttributeName: userId
           AttributeType: S
+        - AttributeName: username
+          AttributeType: S
       KeySchema:
         - AttributeName: userId
           KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: UsernameIndex
+          KeySchema:
+            - AttributeName: username
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
 
   EmailIndexTable:
     Type: AWS::DynamoDB::Table
@@ -399,6 +410,39 @@ Resources:
           Projection:
             ProjectionType: ALL
 
+  AvatarBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders:
+              - "*"
+            AllowedMethods:
+              - PUT
+              - GET
+              - POST
+              - HEAD
+            AllowedOrigins:
+              - !Ref CorsOrigin
+            MaxAge: 3600
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: false
+        IgnorePublicAcls: false
+        BlockPublicPolicy: false
+        RestrictPublicBuckets: false
+
+  AvatarBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref AvatarBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal: "*"
+            Action: "s3:GetObject"
+            Resource: !Sub "arn:aws:s3:::${AvatarBucket}/*"
+
   # ==========================================
   # LAMBDA FUNCTIONS (Phân hệ User & History)
   # ==========================================
@@ -413,6 +457,28 @@ Resources:
             TableName: !Ref UserTable
         - DynamoDBCrudPolicy:
             TableName: !Ref EmailIndexTable
+
+  GetUserFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: GetUser
+      CodeUri: .
+      Handler: src/handlers/users/getUser.handler
+      Environment:
+        Variables:
+          AVATAR_BUCKET_NAME: !Ref AvatarBucket
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref UserTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref EmailIndexTable
+      Events:
+        GetUser:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref BattleshipHttpApi
+            Path: /user
+            Method: GET
 
   CheckUsernameFunction:
     Type: AWS::Serverless::Function
@@ -452,6 +518,47 @@ Resources:
             Path: /matches/save
             Method: POST
 
+  UpdateUsernameFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: UpdateUsername
+      CodeUri: .
+      Handler: src/handlers/users/updateUsername.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UserTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref EmailIndexTable
+      Events:
+        UpdateUsername:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref BattleshipHttpApi
+            Path: /user/username
+            Method: PUT
+
+  GetAvatarUploadUrlFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: GetAvatarUploadUrl
+      CodeUri: .
+      Handler: src/handlers/users/getAvatarUploadUrl.handler
+      Environment:
+        Variables:
+          AVATAR_BUCKET_NAME: !Ref AvatarBucket
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref EmailIndexTable
+        - S3WritePolicy:
+            BucketName: !Ref AvatarBucket
+      Events:
+        GetAvatarUploadUrl:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref BattleshipHttpApi
+            Path: /users/avatar-upload-url
+            Method: GET
+
 Outputs:
   HttpApiUrl:
     Description: HTTP API base URL.
@@ -462,5 +569,3 @@ Outputs:
   RoomsTableName:
     Description: DynamoDB rooms table name.
     Value: !Ref RoomsTable
-
-

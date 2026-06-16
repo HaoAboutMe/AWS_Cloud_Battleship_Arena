@@ -3,7 +3,14 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import CommandHeader from "../components/CommandHeader";
 import { useAuth } from "../contexts/AuthContext";
 import { useLanguage } from "../contexts/LanguageContext";
-import { createRoom, getRoom, getRoomPlayerId, joinRoom, leaveRoom, markLobbyReady } from "../services/matchService";
+import {
+  createRoom,
+  getRoom,
+  getRoomPlayerId,
+  joinRoom,
+  leaveRoom,
+  markLobbyReady,
+} from "../services/matchService";
 import "./HomeHeader.css";
 import "./Lobby.css";
 
@@ -86,10 +93,14 @@ function Lobby() {
       user?.signInDetails?.loginId ||
       "Commander";
 
-    const baseUserId = user?.userId || attributes?.sub || attributes?.email || "guest";
+    const baseUserId =
+      user?.userId || attributes?.sub || attributes?.email || "guest";
 
     return {
-      userId: getRoomPlayerId(baseUserId, initialRoomCode || roomCodeInput || "global"),
+      userId: getRoomPlayerId(
+        baseUserId,
+        initialRoomCode || roomCodeInput || "global",
+      ),
       baseUserId,
       displayName: identity,
       email: attributes?.email,
@@ -190,7 +201,10 @@ function Lobby() {
     try {
       setReadyLoading(true);
       setError("");
-      const nextRoom = await markLobbyReady({ roomCode: room.roomCode, player });
+      const nextRoom = await markLobbyReady({
+        roomCode: room.roomCode,
+        player,
+      });
       setRoom(nextRoom);
 
       if (nextRoom.status === "DEPLOYING") {
@@ -232,28 +246,31 @@ function Lobby() {
     handleLeaveRoom(targetPath);
   };
 
-  const currentPlayerInRoom = room?.players?.find((roomPlayer) => (
-    roomPlayer.userId === player.userId ||
-    (roomPlayer.email && player.email && roomPlayer.email === player.email) ||
-    (roomPlayer.baseUserId && roomPlayer.baseUserId === player.baseUserId)
-  ));
-  
+  const currentPlayerInRoom = room?.players?.find(
+    (roomPlayer) =>
+      roomPlayer.userId === player.userId ||
+      (roomPlayer.email && player.email && roomPlayer.email === player.email) ||
+      (roomPlayer.baseUserId && roomPlayer.baseUserId === player.baseUserId),
+  );
+
   const isLobbyReady = Boolean(currentPlayerInRoom?.lobbyReady);
   const playerCount = room?.players?.length || 0;
-  
+
   const playerSlots = room
     ? [
-      ...(room.players || []),
-      ...Array.from({ length: Math.max(0, 2 - playerCount) }, (_, index) => ({
-        userId: `empty-${index}`,
-        displayName: copy.openSlot,
-        lobbyReady: false,
-        isEmpty: true,
-      })),
-    ]
+        ...(room.players || []),
+        ...Array.from({ length: Math.max(0, 2 - playerCount) }, (_, index) => ({
+          userId: `empty-${index}`,
+          displayName: copy.openSlot,
+          lobbyReady: false,
+          isEmpty: true,
+        })),
+      ]
     : [];
 
-  const otherPlayer = room?.players?.find(p => p.userId !== currentPlayerInRoom?.userId);
+  const otherPlayer = room?.players?.find(
+    (p) => p.userId !== currentPlayerInRoom?.userId,
+  );
   const isOtherPlayerReady = Boolean(otherPlayer?.lobbyReady);
 
   return (
@@ -273,38 +290,49 @@ function Lobby() {
             <div className="lobby-centered-card">
               <h1 className="lobby-centered-title">{copy.title}</h1>
               <p className="lobby-centered-intro">{copy.intro}</p>
-              
+
               <div className="lobby-action-group">
                 <div className="lobby-action-section">
                   <h3>{copy.createTitle}</h3>
                   <p className="lobby-action-desc">{copy.createBody}</p>
-                  <button 
-                    className="lobby-button primary-action" 
-                    type="button" 
-                    onClick={handleCreateRoom} 
+                  <button
+                    className="lobby-button primary-action"
+                    type="button"
+                    onClick={handleCreateRoom}
                     disabled={loading}
                   >
-                    <span className="material-symbols-outlined">add_circle</span>
+                    <span className="material-symbols-outlined">
+                      add_circle
+                    </span>
                     {loading ? copy.processing : copy.createButton}
                   </button>
                 </div>
-                
+
                 <div className="lobby-divider">OR</div>
-                
+
                 <div className="lobby-action-section">
                   <h3>{copy.joinTitle}</h3>
                   <p className="lobby-action-desc">{copy.joinBody}</p>
-                  <form onSubmit={handleJoinRoom} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <form
+                    onSubmit={handleJoinRoom}
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "10px",
+                    }}
+                  >
                     <input
                       className="lobby-input"
                       value={roomCodeInput}
-                      onChange={(event) => setRoomCodeInput(event.target.value.toUpperCase())}
+                      onChange={(event) =>
+                        setRoomCodeInput(event.target.value.toUpperCase())
+                      }
                       placeholder={copy.placeholder}
                       maxLength={8}
                     />
-                    <button 
-                      className="lobby-button secondary" 
-                      type="submit" 
+                    <button
+                      className="lobby-button secondary"
+                      type="submit"
                       disabled={loading || !roomCodeInput.trim()}
                     >
                       <span className="material-symbols-outlined">login</span>
@@ -313,7 +341,7 @@ function Lobby() {
                   </form>
                 </div>
               </div>
-              
+
               {error && <div className="lobby-error">{error}</div>}
             </div>
           </section>
@@ -322,17 +350,27 @@ function Lobby() {
           <section className="lobby-room-container">
             {/* Left Column: Player Info */}
             <div className="lobby-panel">
-              <h2 className="lobby-panel-title">Commanders ({playerCount}/2)</h2>
+              <h2 className="lobby-panel-title">
+                Commanders ({playerCount}/2)
+              </h2>
               <div className="lobby-player-list">
                 {playerSlots.map((roomPlayer) => (
                   <div
                     className={`lobby-player ${roomPlayer.lobbyReady ? "is-ready" : ""} ${roomPlayer.isEmpty ? "is-empty" : ""}`}
                     key={roomPlayer.userId}
                   >
-                    <span className="lobby-player-name">{roomPlayer.displayName}</span>
-                    <span className={`lobby-player-state ${roomPlayer.lobbyReady ? "ready-text" : ""}`}>
+                    <span className="lobby-player-name">
+                      {roomPlayer.displayName}
+                    </span>
+                    <span
+                      className={`lobby-player-state ${roomPlayer.lobbyReady ? "ready-text" : ""}`}
+                    >
                       <i />
-                      {roomPlayer.isEmpty ? copy.standby : roomPlayer.lobbyReady ? copy.ready : copy.standby}
+                      {roomPlayer.isEmpty
+                        ? copy.standby
+                        : roomPlayer.lobbyReady
+                          ? copy.ready
+                          : copy.standby}
                     </span>
                   </div>
                 ))}
@@ -344,20 +382,35 @@ function Lobby() {
               <div className="lobby-room-code-display">
                 <small>Room Code</small>
                 <strong>{room.roomCode}</strong>
-                <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
-                  <button 
-                    className="lobby-button secondary" 
-                    style={{ width: 'auto', padding: '0 20px', height: '40px' }} 
-                    type="button" 
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "10px",
+                    justifyContent: "center",
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <button
+                    className="lobby-button secondary"
+                    style={{ width: "auto", padding: "0 20px", height: "40px" }}
+                    type="button"
                     onClick={handleCopyRoomCode}
                   >
-                    <span className="material-symbols-outlined">{copied ? "done" : "content_copy"}</span>
+                    <span className="material-symbols-outlined">
+                      {copied ? "done" : "content_copy"}
+                    </span>
                     {copied ? copy.copied : copy.copy}
                   </button>
-                  <button 
-                    className="lobby-button secondary" 
-                    style={{ width: 'auto', padding: '0 20px', height: '40px', borderColor: 'rgba(255, 112, 112, 0.4)', color: '#ffb7b7' }} 
-                    type="button" 
+                  <button
+                    className="lobby-button secondary"
+                    style={{
+                      width: "auto",
+                      padding: "0 20px",
+                      height: "40px",
+                      borderColor: "rgba(255, 112, 112, 0.4)",
+                      color: "#ffb7b7",
+                    }}
+                    type="button"
                     disabled={loading}
                     onClick={() => handleLeaveRoom("/")}
                   >
@@ -367,7 +420,11 @@ function Lobby() {
                 </div>
               </div>
 
-              {error && <div className="lobby-error" style={{ marginBottom: '20px' }}>{error}</div>}
+              {error && (
+                <div className="lobby-error" style={{ marginBottom: "20px" }}>
+                  {error}
+                </div>
+              )}
 
               {/* Action Area based on State */}
               {playerCount < 2 ? (
@@ -381,9 +438,19 @@ function Lobby() {
                 // State 2: Both players present
                 <div className="lobby-mobile-sticky-action">
                   {isLobbyReady ? (
-                    <div className="lobby-waiting-state" style={{ padding: '20px' }}>
-                      <span className="material-symbols-outlined" style={{ fontSize: '32px' }}>hourglass_top</span>
-                      <h3 style={{ fontSize: '18px', margin: 0 }}>{copy.waitingMessage}</h3>
+                    <div
+                      className="lobby-waiting-state"
+                      style={{ padding: "20px" }}
+                    >
+                      <span
+                        className="material-symbols-outlined"
+                        style={{ fontSize: "32px" }}
+                      >
+                        hourglass_top
+                      </span>
+                      <h3 style={{ fontSize: "18px", margin: 0 }}>
+                        {copy.waitingMessage}
+                      </h3>
                     </div>
                   ) : (
                     <button
@@ -395,7 +462,11 @@ function Lobby() {
                       <span className="material-symbols-outlined">
                         {isOtherPlayerReady ? "rocket_launch" : "task_alt"}
                       </span>
-                      {readyLoading ? copy.syncing : (isOtherPlayerReady ? copy.startDeployment : copy.ready)}
+                      {readyLoading
+                        ? copy.syncing
+                        : isOtherPlayerReady
+                          ? copy.startDeployment
+                          : copy.ready}
                     </button>
                   )}
                 </div>
