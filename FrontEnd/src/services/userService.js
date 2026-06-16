@@ -1,7 +1,7 @@
 export const createUser = async (userData) => {
   try {
     const response = await fetch(
-      "https://8pqp3ldn5d.execute-api.ap-southeast-1.amazonaws.com/dev/user",
+      `${import.meta.env.VITE_API_BASE_URL}/user`,
       {
         method: "POST",
         headers: {

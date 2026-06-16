@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AuthNotice, AuthShell, AuthSubmitButton } from "../components/AuthShell";
 import SocialAuthButtons from "../components/SocialAuthButtons";
@@ -14,6 +14,10 @@ function Register() {
   const { t } = useLanguage();
   const [step, setStep] = useState(location.state?.needsConfirmation ? "confirm" : "register");
   const [email, setEmail] = useState(location.state?.email || "");
+  const [username, setUsername] = useState("");
+  const [tag, setTag] = useState("VIE");
+  const [isChecking, setIsChecking] = useState(false);
+  const [isTaken, setIsTaken] = useState(false);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [confirmationCode, setConfirmationCode] = useState("");
@@ -34,6 +38,33 @@ function Register() {
 
   const isConfirmStep = step === "confirm";
   const errorText = error?.key ? t(error.key) : error?.message;
+
+  const fullUsername = `${username}#${tag}`;
+
+  useEffect(() => {
+    if (isConfirmStep || username.length < 3) {
+      setIsChecking(false);
+      setIsTaken(false);
+      return;
+    }
+
+    setIsChecking(true);
+    const timeoutId = setTimeout(async () => {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/users/check-username?username=${encodeURIComponent(fullUsername)}`);
+        if (response.ok) {
+          const data = await response.json();
+          setIsTaken(data.isTaken);
+        }
+      } catch (err) {
+        console.error("Failed to check username:", err);
+      } finally {
+        setIsChecking(false);
+      }
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [username, tag, isConfirmStep, fullUsername]);
 
   const errors = useMemo(() => {
     const nextErrors = {};
@@ -59,13 +90,13 @@ function Register() {
   const handleRegister = async (event) => {
     event.preventDefault();
     setTouched({ email: true, password: true, confirmPassword: true, terms: true });
-    if (Object.keys(errors).length > 0) return;
+    if (Object.keys(errors).length > 0 || isTaken || username.length < 3) return;
 
     setLoading(true);
     setError(null);
     setNotice(null);
     try {
-      await registerUser({ email: email.trim(), password });
+      await registerUser({ email: email.trim(), password, attributes: { preferred_username: fullUsername } });
       setStep("confirm");
       setTouched({});
       setNotice({
@@ -153,6 +184,37 @@ function Register() {
         )}
 
         {!isConfirmStep && <SocialAuthButtons onError={setError} />}
+
+        {!isConfirmStep && (
+          <label className="auth-field">
+            <span>{t("common.username", "Username")}</span>
+            <div className="auth-input-shell" style={{ display: 'flex', alignItems: 'center' }}>
+              <span className="auth-glyph auth-input-glyph" aria-hidden="true">👤</span>
+              <input
+                type="text"
+                value={username}
+                onChange={(event) => setUsername(event.target.value)}
+                placeholder="Commander"
+                disabled={isConfirmStep}
+                style={{ flex: 1 }}
+              />
+              <span className="auth-glyph" style={{ margin: '0 4px', fontSize: '18px' }}>#</span>
+              <input
+                type="text"
+                value={tag}
+                onChange={(event) => setTag(event.target.value)}
+                maxLength={5}
+                disabled={isConfirmStep}
+                style={{ width: '60px', padding: '0 8px', textAlign: 'center' }}
+              />
+            </div>
+            {username.length > 0 && (
+              <div style={{ marginTop: '8px', fontSize: '13px', color: isChecking ? '#888' : isTaken ? '#ff4d4d' : username.length >= 3 ? '#4caf50' : '#ff4d4d' }}>
+                {isChecking ? "Đang kiểm tra..." : username.length < 3 ? "Tên phải có ít nhất 3 ký tự" : isTaken ? "Tên đã bị trùng" : "Tên hợp lệ"}
+              </div>
+            )}
+          </label>
+        )}
 
         <label className="auth-field">
           <span>{t("common.email")}</span>

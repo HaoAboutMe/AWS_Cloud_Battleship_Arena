@@ -28,12 +28,7 @@ function readStats() {
 function Profile() {
   const navigate = useNavigate();
   const { t } = useLanguage();
-  const {
-    user: currentUser,
-    attributes,
-    loading,
-    logout,
-  } = useAuth();
+  const { user: currentUser, attributes, loading, logout } = useAuth();
   const [isLightMode, setIsLightMode] = useState(() =>
     document.documentElement.classList.contains("light-mode-active"),
   );
@@ -43,7 +38,10 @@ function Profile() {
     const nextLightMode = !isLightMode;
 
     if (!document.startViewTransition) {
-      document.documentElement.classList.toggle("light-mode-active", nextLightMode);
+      document.documentElement.classList.toggle(
+        "light-mode-active",
+        nextLightMode,
+      );
       setIsLightMode(nextLightMode);
       return;
     }
@@ -56,7 +54,10 @@ function Profile() {
     );
 
     const transition = document.startViewTransition(() => {
-      document.documentElement.classList.toggle("light-mode-active", nextLightMode);
+      document.documentElement.classList.toggle(
+        "light-mode-active",
+        nextLightMode,
+      );
       setIsLightMode(nextLightMode);
     });
 
@@ -94,15 +95,18 @@ function Profile() {
     attributes.nickname ||
     (attributes.email ? attributes.email.split("@")[0] : null) ||
     t("profile.commander");
-  const avatarUrl = typeof attributes.picture === "string"
-    ? attributes.picture
-    : COMMANDER_AVATAR;
-  const accuracy = stats.totalShots > 0
-    ? Math.round((stats.totalHits / stats.totalShots) * 100)
-    : 0;
-  const winRate = stats.totalMatches > 0
-    ? Math.round((stats.wins / stats.totalMatches) * 100)
-    : 0;
+  const avatarUrl =
+    typeof attributes.picture === "string"
+      ? attributes.picture
+      : COMMANDER_AVATAR;
+  const accuracy =
+    stats.totalShots > 0
+      ? Math.round((stats.totalHits / stats.totalShots) * 100)
+      : 0;
+  const winRate =
+    stats.totalMatches > 0
+      ? Math.round((stats.wins / stats.totalMatches) * 100)
+      : 0;
 
   return (
     <div className="profile-page">
@@ -118,7 +122,9 @@ function Profile() {
       <main className="profile-main">
         {loading ? (
           <div className="profile-loading" aria-label={t("profile.loading")}>
-            <i /><i /><i />
+            <i />
+            <i />
+            <i />
           </div>
         ) : !currentUser ? (
           <section className="profile-empty">
@@ -152,7 +158,9 @@ function Profile() {
                 <h1>{callsign}</h1>
                 <p>{email}</p>
                 <div className="profile-badges">
-                  <span><i /> {t("common.admiralClearance")}</span>
+                  <span>
+                    <i /> {t("common.admiralClearance")}
+                  </span>
                   <span>{t("profile.cloudFleet")}</span>
                 </div>
               </div>
@@ -172,26 +180,52 @@ function Profile() {
                   </div>
                 </div>
                 <div className="profile-stat-grid">
-                  <article><span>{t("profile.totalBattles")}</span><strong>{stats.totalMatches}</strong></article>
-                  <article><span>{t("profile.victories")}</span><strong>{stats.wins}</strong></article>
-                  <article><span>{t("profile.winRate")}</span><strong>{winRate}%</strong></article>
-                  <article><span>{t("profile.accuracy")}</span><strong>{accuracy}%</strong></article>
+                  <article>
+                    <span>{t("profile.totalBattles")}</span>
+                    <strong>{stats.totalMatches}</strong>
+                  </article>
+                  <article>
+                    <span>{t("profile.victories")}</span>
+                    <strong>{stats.wins}</strong>
+                  </article>
+                  <article>
+                    <span>{t("profile.winRate")}</span>
+                    <strong>{winRate}%</strong>
+                  </article>
+                  <article>
+                    <span>{t("profile.accuracy")}</span>
+                    <strong>{accuracy}%</strong>
+                  </article>
                 </div>
               </div>
 
               <aside className="profile-security">
                 <div className="profile-section-heading">
-                  <span className="material-symbols-outlined">verified_user</span>
+                  <span className="material-symbols-outlined">
+                    verified_user
+                  </span>
                   <div>
                     <h2>{t("profile.identity")}</h2>
                     <p>{t("profile.identityBody")}</p>
                   </div>
                 </div>
                 <dl>
-                  <div><dt>Email</dt><dd title={email}>{email}</dd></div>
-                  <div><dt>{t("profile.verification")}</dt><dd className="is-online">{t("profile.verified")}</dd></div>
-                  <div><dt>{t("profile.rank")}</dt><dd>{t("common.admiral")}</dd></div>
-                  <div><dt>{t("profile.accountId")}</dt><dd title={currentUser.userId}>{currentUser.userId}</dd></div>
+                  <div>
+                    <dt>Email</dt>
+                    <dd title={email}>{email}</dd>
+                  </div>
+                  <div>
+                    <dt>{t("profile.verification")}</dt>
+                    <dd className="is-online">{t("profile.verified")}</dd>
+                  </div>
+                  <div>
+                    <dt>{t("profile.rank")}</dt>
+                    <dd>{t("common.admiral")}</dd>
+                  </div>
+                  <div>
+                    <dt>{t("profile.accountId")}</dt>
+                    <dd title={currentUser.userId}>{currentUser.userId}</dd>
+                  </div>
                 </dl>
                 <Link to="/forgot-password" className="profile-security-link">
                   <span className="material-symbols-outlined">key</span>

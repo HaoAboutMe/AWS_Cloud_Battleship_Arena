@@ -337,9 +337,18 @@ Resources:
       AttributeDefinitions:
         - AttributeName: userId
           AttributeType: S
+        - AttributeName: username
+          AttributeType: S
       KeySchema:
         - AttributeName: userId
           KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: UsernameIndex
+          KeySchema:
+            - AttributeName: username
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
 
   EmailIndexTable:
     Type: AWS::DynamoDB::Table
@@ -397,6 +406,42 @@ Resources:
         - DynamoDBCrudPolicy:
             TableName: !Ref EmailIndexTable
 
+  GetUserFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: GetUser
+      CodeUri: .
+      Handler: src/handlers/users/getUser.handler
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref UserTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref EmailIndexTable
+      Events:
+        GetUser:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref BattleshipHttpApi
+            Path: /user
+            Method: GET
+
+  CheckUsernameFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: CheckUsername
+      CodeUri: .
+      Handler: src/handlers/users/checkUsername.handler
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref UserTable
+      Events:
+        CheckUsername:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref BattleshipHttpApi
+            Path: /users/check-username
+            Method: GET
+
   SaveMatchHistoryFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -428,5 +473,3 @@ Outputs:
   RoomsTableName:
     Description: DynamoDB rooms table name.
     Value: !Ref RoomsTable
-
-

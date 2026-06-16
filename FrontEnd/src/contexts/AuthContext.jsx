@@ -25,19 +25,34 @@ export function AuthProvider({ children }) {
         getLoggedInUserAttributes(),
         getLoggedInIdentityClaims(),
       ]);
-      const userAttributes = attributeResult.status === "fulfilled"
-        ? attributeResult.value
-        : {};
-      const identityClaims = claimResult.status === "fulfilled"
-        ? claimResult.value
-        : {};
+      const userAttributes =
+        attributeResult.status === "fulfilled" ? attributeResult.value : {};
+      const identityClaims =
+        claimResult.status === "fulfilled" ? claimResult.value : {};
 
       // Cognito attributes are authoritative, while ID-token claims provide
       // social profile fields that may not be returned by fetchUserAttributes.
-      setAttributes({
+      const mergedAttributes = {
         ...identityClaims,
         ...userAttributes,
-      });
+      };
+
+      const email = mergedAttributes.email;
+      if (email) {
+        try {
+          const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/user?email=${encodeURIComponent(email)}`);
+          if (res.ok) {
+            const dbData = await res.json();
+            if (dbData && dbData.username) {
+              mergedAttributes.preferred_username = dbData.username;
+            }
+          }
+        } catch (e) {
+          console.error("Failed to fetch DB user data:", e);
+        }
+      }
+
+      setAttributes(mergedAttributes);
     } catch {
       setUser(null);
       setAttributes({});
@@ -86,7 +101,17 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, attributes, isAuthenticated, loading, login, logout, checkAuth }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        attributes,
+        isAuthenticated,
+        loading,
+        login,
+        logout,
+        checkAuth,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

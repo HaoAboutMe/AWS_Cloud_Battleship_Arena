@@ -28,6 +28,7 @@ exports.handler = async (event) => {
 
         if (!res.Item) {
             const user_id = attrs.sub || event.userName;
+            const customUsername = attrs.preferred_username || `${email.split('@')[0]}#VIE`;
 
             await docClient.send(new PutCommand({
                 TableName: "User",
@@ -36,7 +37,7 @@ exports.handler = async (event) => {
                     email: email,
                     cognitoSub: user_id,
                     providers: new Set([provider_name]), 
-                    username: email.split('@')[0],
+                    username: customUsername,
                     avatarUrl: '/avatars/default.png',
                     wins: 0,
                     losses: 0,
