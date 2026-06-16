@@ -46,6 +46,9 @@ export function AuthProvider({ children }) {
             if (dbData && dbData.username) {
               mergedAttributes.preferred_username = dbData.username;
             }
+            if (dbData && dbData.lastUsernameChange) {
+              mergedAttributes.lastUsernameChange = dbData.lastUsernameChange;
+            }
           }
         } catch (e) {
           console.error("Failed to fetch DB user data:", e);

@@ -70,6 +70,8 @@ Resources:
         AllowMethods:
           - GET
           - POST
+          - PUT
+          - DELETE
           - OPTIONS
         AllowHeaders:
           - content-type
@@ -462,6 +464,25 @@ Resources:
             ApiId: !Ref BattleshipHttpApi
             Path: /matches/save
             Method: POST
+
+  UpdateUsernameFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: UpdateUsername
+      CodeUri: .
+      Handler: src/handlers/users/updateUsername.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UserTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref EmailIndexTable
+      Events:
+        UpdateUsername:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref BattleshipHttpApi
+            Path: /user/username
+            Method: PUT
 
 Outputs:
   HttpApiUrl:

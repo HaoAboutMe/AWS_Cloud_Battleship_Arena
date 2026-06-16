@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import CommandHeader from "../components/CommandHeader";
 import { useAuth } from "../contexts/AuthContext";
 import { useLanguage } from "../contexts/LanguageContext";
 import "./HomeHeader.css";
 import "./Profile.css";
+import { updateUsername } from "../services/userService";
 
 const COMMANDER_AVATAR =
   "https://lh3.googleusercontent.com/aida-public/AB6AXuBaat_LefR8zmWVQ9CHx0bp9dTekwkF9c9AQAo9FxlAx2bSsRi_lWU3tRBK1vdpC50zM3NdKJAB5hHd5ZusN0HuCxBcpe1IbzSlreCalSVomkgeQwYwz9iKrXYvj55d42PgtFMDfCUosVO6NBFPXtM_vVCTYDxnC7xz1DxkbcIvRSfpehGpD-kbu7XuQbuktassmbGVExYQy0GTNC_jJHX3hmbFNDIdyfqO5-uwHYbgPtFdacF4kVhq0AnscPv4dWSz-e_6DYUDMSxe";
@@ -28,11 +29,94 @@ function readStats() {
 function Profile() {
   const navigate = useNavigate();
   const { t } = useLanguage();
-  const { user: currentUser, attributes, loading, logout } = useAuth();
+  const { user: currentUser, attributes, loading, logout, checkAuth } = useAuth();
   const [isLightMode, setIsLightMode] = useState(() =>
     document.documentElement.classList.contains("light-mode-active"),
   );
   const [stats] = useState(readStats);
+
+  // States for Username Edit
+  const [newUsername, setNewUsername] = useState("");
+  const [newTag, setNewTag] = useState("VIE");
+  const [isChecking, setIsChecking] = useState(false);
+  const [isTaken, setIsTaken] = useState(false);
+  const [cooldownMessage, setCooldownMessage] = useState("");
+  const [updateError, setUpdateError] = useState("");
+  const [updateSuccess, setUpdateSuccess] = useState("");
+
+  useEffect(() => {
+    if (attributes.preferred_username && !newUsername) {
+      const parts = attributes.preferred_username.split("#");
+      if (parts.length === 2) {
+        setNewUsername(parts[0]);
+        setNewTag(parts[1]);
+      } else {
+        setNewUsername(attributes.preferred_username);
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [attributes.preferred_username]);
+
+  const nextChangeDate = attributes.lastUsernameChange 
+    ? new Date(new Date(attributes.lastUsernameChange).getTime() + 30 * 24 * 60 * 60 * 1000)
+    : null;
+  const formattedNextChangeDate = nextChangeDate 
+    ? `${(nextChangeDate.getMonth() + 1).toString().padStart(2, '0')}/${nextChangeDate.getDate().toString().padStart(2, '0')}/${nextChangeDate.getFullYear()}`
+    : "";
+
+  useEffect(() => {
+    if (attributes.lastUsernameChange) {
+      const daysSinceChange = (Date.now() - new Date(attributes.lastUsernameChange).getTime()) / (1000 * 60 * 60 * 24);
+      if (daysSinceChange < 30) {
+        setCooldownMessage(`Bạn cần chờ ${Math.ceil(30 - daysSinceChange)} ngày nữa để đổi tên.`);
+      } else {
+        setCooldownMessage("");
+      }
+    }
+  }, [attributes.lastUsernameChange]);
+
+  const fullUsername = `${newUsername}#${newTag}`;
+
+  useEffect(() => {
+    if (newUsername.length < 3 || attributes.preferred_username === fullUsername) {
+      setIsChecking(false);
+      setIsTaken(false);
+      return;
+    }
+
+    setIsChecking(true);
+    const timeoutId = setTimeout(async () => {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/users/check-username?username=${encodeURIComponent(fullUsername)}`);
+        if (response.ok) {
+          const data = await response.json();
+          setIsTaken(data.isTaken);
+        }
+      } catch (err) {
+        console.error("Failed to check username:", err);
+      } finally {
+        setIsChecking(false);
+      }
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [newUsername, newTag, fullUsername, attributes.preferred_username]);
+
+  const handleUpdateUsername = async (e) => {
+    e.preventDefault();
+    if (isTaken || isChecking || cooldownMessage || newUsername.length < 3) return;
+
+    setUpdateError("");
+    setUpdateSuccess("");
+    try {
+      const currentEmail = attributes.email || currentUser?.signInDetails?.loginId;
+      await updateUsername(currentEmail, newUsername, newTag);
+      setUpdateSuccess("Đổi tên thành công!");
+      await checkAuth(); // Refresh UI
+    } catch (err) {
+      setUpdateError(err.message || "Lỗi khi đổi tên.");
+    }
+  };
 
   const toggleTheme = (event) => {
     const nextLightMode = !isLightMode;
@@ -168,6 +252,108 @@ function Profile() {
                 {t("profile.deploy")}
                 <span className="material-symbols-outlined">arrow_forward</span>
               </Link>
+            </section>
+
+            <section className="profile-riot-id-section" style={{
+              display: 'flex',
+              flexDirection: 'row',
+              flexWrap: 'wrap',
+              gap: '32px',
+              padding: '32px',
+              background: 'var(--surface)',
+              borderRadius: '8px',
+              border: '1px solid var(--border)'
+            }}>
+              {/* Cột Trái */}
+              <div style={{ flex: '1 1 300px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div>
+                  <h2 style={{ fontSize: '24px', fontWeight: 'bold', margin: '0 0 8px 0', letterSpacing: '0.5px' }}>Battleship ID</h2>
+                  <p style={{ color: 'var(--text-muted)', fontSize: '14px', margin: 0, lineHeight: '1.5' }}>
+                    Your Battleship ID is used by other commanders to search for you in the system.
+                  </p>
+                </div>
+                {cooldownMessage && (
+                  <div style={{
+                    display: 'flex', gap: '12px', background: 'rgba(255, 77, 77, 0.05)', border: '1px solid rgba(255, 77, 77, 0.3)', padding: '16px', borderRadius: '4px', color: '#ff4d4d', alignItems: 'flex-start'
+                  }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>error</span>
+                    <p style={{ fontSize: '12px', lineHeight: '1.5', margin: 0, fontWeight: '600', letterSpacing: '0.5px' }}>
+                      BATTLESHIP ID CAN BE CHANGED EVERY 30 DAYS. YOU WILL BE ABLE TO CHANGE IT AGAIN ON {formattedNextChangeDate}.
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Cột Phải */}
+              <div style={{ flex: '2 1 400px', display: 'flex', flexDirection: 'column' }}>
+                <form onSubmit={handleUpdateUsername} style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                  <div style={{ display: 'flex', gap: '16px', flexWrap: 'nowrap', marginBottom: '12px' }}>
+                    <div style={{ flex: '1', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <label style={{ fontSize: '11px', fontWeight: 'bold', letterSpacing: '1px', color: 'var(--text-muted)' }}>COMMANDER NAME</label>
+                      <input
+                        type="text"
+                        value={newUsername}
+                        onChange={(e) => {
+                          setNewUsername(e.target.value);
+                          setUpdateError("");
+                          setUpdateSuccess("");
+                        }}
+                        disabled={!!cooldownMessage}
+                        style={{ padding: '12px 16px', borderRadius: '6px', border: '2px solid rgba(255, 255, 255, 0.15)', background: 'rgba(0, 0, 0, 0.2)', boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.2)', color: 'var(--text-main)', fontSize: '16px', outline: 'none', opacity: cooldownMessage ? 0.5 : 1, cursor: cooldownMessage ? 'not-allowed' : 'text', width: '100%', boxSizing: 'border-box', transition: 'border-color 0.2s' }}
+                      />
+                    </div>
+                    <div style={{ width: '140px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <label style={{ fontSize: '11px', fontWeight: 'bold', letterSpacing: '1px', color: 'var(--text-muted)' }}>TAGLINE</label>
+                      <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(0, 0, 0, 0.2)', border: '2px solid rgba(255, 255, 255, 0.15)', boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.2)', borderRadius: '6px', opacity: cooldownMessage ? 0.5 : 1, transition: 'border-color 0.2s' }}>
+                        <span style={{ paddingLeft: '16px', color: 'var(--text-muted)', fontWeight: 'bold', fontSize: '16px' }}>#</span>
+                        <input
+                          type="text"
+                          value={newTag}
+                          onChange={(e) => {
+                            setNewTag(e.target.value.toUpperCase());
+                            setUpdateError("");
+                            setUpdateSuccess("");
+                          }}
+                          maxLength={5}
+                          disabled={!!cooldownMessage}
+                          style={{ width: '100%', padding: '12px 16px 12px 8px', border: 'none', background: 'transparent', color: 'var(--text-main)', fontSize: '16px', outline: 'none', cursor: cooldownMessage ? 'not-allowed' : 'text', boxSizing: 'border-box', boxShadow: 'none' }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexGrow: 1 }}>
+                    <div style={{ fontSize: '13px', color: isChecking ? '#888' : isTaken ? '#ff4d4d' : newUsername.length >= 3 ? '#4caf50' : '#ff4d4d' }}>
+                      {newUsername.length > 0 && newUsername !== (attributes.preferred_username?.split("#")[0] || "") && (
+                        isChecking ? "Checking..." : newUsername.length < 3 ? "Tên phải có ít nhất 3 ký tự" : isTaken ? "Tên đã bị trùng" : "Tên hợp lệ"
+                      )}
+                      {updateError && <div style={{ color: '#ff4d4d', marginTop: '4px' }}>{updateError}</div>}
+                      {updateSuccess && <div style={{ color: '#4caf50', marginTop: '4px' }}>{updateSuccess}</div>}
+                    </div>
+
+                    <button 
+                      type="submit" 
+                      disabled={isTaken || isChecking || newUsername.length < 3 || !!cooldownMessage || (attributes.preferred_username === fullUsername)}
+                      style={{
+                        padding: '12px 24px', 
+                        background: (isTaken || isChecking || newUsername.length < 3 || !!cooldownMessage || (attributes.preferred_username === fullUsername)) ? 'var(--surface-sunken)' : '#d32f2f', 
+                        color: (isTaken || isChecking || newUsername.length < 3 || !!cooldownMessage || (attributes.preferred_username === fullUsername)) ? '#666' : 'white', 
+                        borderRadius: '4px', 
+                        fontWeight: 'bold', 
+                        fontSize: '13px',
+                        letterSpacing: '1px',
+                        border: 'none',
+                        cursor: (isTaken || isChecking || newUsername.length < 3 || !!cooldownMessage || (attributes.preferred_username === fullUsername)) ? 'not-allowed' : 'pointer',
+                        transition: 'all 0.2s ease',
+                        alignSelf: 'flex-end',
+                        marginTop: 'auto'
+                      }}
+                    >
+                      SAVE CHANGES
+                    </button>
+                  </div>
+                </form>
+              </div>
             </section>
 
             <section className="profile-content">

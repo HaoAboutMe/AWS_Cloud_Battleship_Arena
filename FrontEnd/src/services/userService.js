@@ -22,3 +22,27 @@ export const createUser = async (userData) => {
     return null;
   }
 };
+export const updateUsername = async (email, newUsername, newTag) => {
+  try {
+    const response = await fetch(
+      `${import.meta.env.VITE_API_BASE_URL}/user/username`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, newUsername, newTag }),
+      }
+    );
+
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.message || `API call failed with status: ${response.status}`);
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Failed to update username:", error);
+    throw error;
+  }
+};
