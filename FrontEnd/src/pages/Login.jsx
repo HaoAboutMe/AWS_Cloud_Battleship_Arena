@@ -24,6 +24,15 @@ function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const errorText = error?.key ? t(error.key) : error?.message;
+  const returnTo = typeof location.state?.returnTo === "string" && location.state.returnTo.startsWith("/")
+    ? location.state.returnTo
+    : "/";
+  const navigateAfterLogin = () => {
+    navigate(returnTo, {
+      replace: true,
+      state: returnTo === "/" ? { authEvent: "signed-in" } : null,
+    });
+  };
 
   const successMessage = location.state?.passwordReset
     ? {
@@ -53,7 +62,7 @@ function Login() {
           console.error("Failed to process user data after social login:", err);
         } finally {
           window.dispatchEvent(new Event("battleship-auth-changed"));
-          navigate("/", { replace: true, state: { authEvent: "signed-in" } });
+          navigateAfterLogin();
         }
       };
 
@@ -63,10 +72,10 @@ function Login() {
 
     getLoggedInUser()
       .then((user) => {
-        if (user) navigate("/", { replace: true, state: { authEvent: "signed-in" } });
+        if (user) navigateAfterLogin();
       })
       .catch(() => {});
-  }, [authLoading, isAuthenticated, navigate]);
+  }, [authLoading, isAuthenticated, navigate, returnTo]);
 
   const errors = useMemo(() => {
     const nextErrors = {};
@@ -109,7 +118,7 @@ function Login() {
         JSON.stringify({ callsign: "Commander", email: email.trim(), remember }),
       );
       window.dispatchEvent(new Event("battleship-auth-changed"));
-      navigate("/", { replace: true, state: { authEvent: "signed-in" } });
+      navigateAfterLogin();
     } catch (err) {
       if (err.name === "UserNotConfirmedException") {
         navigate("/register", { state: { email: email.trim(), needsConfirmation: true } });

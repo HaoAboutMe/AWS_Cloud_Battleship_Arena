@@ -12,6 +12,7 @@ function CommandHeader({
   isLightMode = false,
   onToggleTheme,
   onLogout,
+  onNavigateRequest,
 }) {
   const location = useLocation();
   const { t } = useLanguage();
@@ -26,11 +27,22 @@ function CommandHeader({
   const avatarUrl = typeof attributes.picture === "string"
     ? attributes.picture
     : COMMANDER_AVATAR;
+  const handleNavigation = (event, targetPath) => {
+    if (!onNavigateRequest) return;
+
+    event.preventDefault();
+    onNavigateRequest(targetPath);
+  };
 
   return (
     <header className="command-header">
       <div className="command-header-inner">
-        <Link to="/" className="command-brand" aria-label="Cloud Battleship Arena home">
+        <Link
+          to="/"
+          className="command-brand"
+          aria-label="Cloud Battleship Arena home"
+          onClick={(event) => handleNavigation(event, "/")}
+        >
           <span className="command-brand-mark" aria-hidden="true"><i /></span>
           <span className="command-brand-copy">
             <strong>Cloud Battleship</strong>
@@ -39,9 +51,26 @@ function CommandHeader({
         </Link>
 
         <nav className="command-nav" aria-label="Primary navigation">
-          <Link className={location.pathname === "/" ? "is-active" : ""} to="/">{t("common.home")}</Link>
-          <Link to="/#leaderboard">{t("common.leaderboard")}</Link>
-          <Link className={location.pathname === "/profile" ? "is-active" : ""} to="/profile">{t("common.profile")}</Link>
+          <Link
+            className={location.pathname === "/" ? "is-active" : ""}
+            to="/"
+            onClick={(event) => handleNavigation(event, "/")}
+          >
+            {t("common.home")}
+          </Link>
+          <Link
+            to="/#leaderboard"
+            onClick={(event) => handleNavigation(event, "/#leaderboard")}
+          >
+            {t("common.leaderboard")}
+          </Link>
+          <Link
+            className={location.pathname === "/profile" ? "is-active" : ""}
+            to="/profile"
+            onClick={(event) => handleNavigation(event, "/profile")}
+          >
+            {t("common.profile")}
+          </Link>
         </nav>
 
         <div className="command-actions">
@@ -88,7 +117,10 @@ function CommandHeader({
                 <div className="command-account-menu">
                   <div>
                     <span className="command-menu-label">{t("common.accountControls")}</span>
-                    <Link to="/profile">
+                    <Link
+                      to="/profile"
+                      onClick={(event) => handleNavigation(event, "/profile")}
+                    >
                       <span className="material-symbols-outlined">person</span>
                       {t("common.viewProfile")}
                     </Link>

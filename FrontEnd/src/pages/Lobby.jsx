@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import CommandHeader from "../components/CommandHeader";
 import { useAuth } from "../contexts/AuthContext";
 import { useLanguage } from "../contexts/LanguageContext";
-import { createRoom, getRoom, getRoomPlayerId, joinRoom, markLobbyReady } from "../services/matchService";
+import { createRoom, getRoom, getRoomPlayerId, joinRoom, leaveRoom, markLobbyReady } from "../services/matchService";
 import "./HomeHeader.css";
 import "./Lobby.css";
 
@@ -136,7 +136,7 @@ function Lobby() {
       } catch {
         // Keep the current room visible; user actions will surface errors.
       }
-    }, 5000);
+    }, 2000);
 
     return () => window.clearInterval(timer);
   }, [navigate, room?.roomCode]);
@@ -203,6 +203,35 @@ function Lobby() {
     }
   };
 
+  const handleLeaveRoom = async (targetPath = "/") => {
+    const roomCode = room?.roomCode;
+
+    if (!roomCode) {
+      setRoom(null);
+      setSearchParams({});
+      navigate(targetPath, { replace: targetPath === "/" });
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError("");
+      await leaveRoom({ roomCode, player });
+      setRoom(null);
+      setRoomCodeInput("");
+      setSearchParams({});
+      navigate(targetPath, { replace: targetPath === "/" });
+    } catch (leaveError) {
+      setError(leaveError.message || copy.loadError);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleHeaderNavigate = (targetPath) => {
+    handleLeaveRoom(targetPath);
+  };
+
   const currentPlayerInRoom = room?.players?.find((roomPlayer) => (
     roomPlayer.userId === player.userId ||
     (roomPlayer.email && player.email && roomPlayer.email === player.email) ||
@@ -234,6 +263,7 @@ function Lobby() {
         attributes={attributes}
         authLoading={authLoading}
         onLogout={logout}
+        onNavigateRequest={handleHeaderNavigate}
       />
 
       <main className="lobby-shell">
@@ -328,10 +358,8 @@ function Lobby() {
                     className="lobby-button secondary" 
                     style={{ width: 'auto', padding: '0 20px', height: '40px', borderColor: 'rgba(255, 112, 112, 0.4)', color: '#ffb7b7' }} 
                     type="button" 
-                    onClick={() => {
-                      setRoom(null);
-                      setSearchParams({});
-                    }}
+                    disabled={loading}
+                    onClick={() => handleLeaveRoom("/")}
                   >
                     <span className="material-symbols-outlined">logout</span>
                     {copy.leaveRoom}
