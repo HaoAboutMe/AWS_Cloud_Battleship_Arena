@@ -14,6 +14,14 @@ export function AuthProvider({ children }) {
   const [attributes, setAttributes] = useState({});
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [customAvatarUrl, setCustomAvatarUrl] = useState(() => {
+    return localStorage.getItem("customAvatarUrl") || null;
+  });
+
+  const updateAvatar = (url) => {
+    setCustomAvatarUrl(url);
+    localStorage.setItem("customAvatarUrl", url);
+  };
 
   const checkAuth = async () => {
     try {
@@ -49,6 +57,9 @@ export function AuthProvider({ children }) {
             if (dbData && dbData.lastUsernameChange) {
               mergedAttributes.lastUsernameChange = dbData.lastUsernameChange;
             }
+            if (dbData && dbData.avatarUrl) {
+              mergedAttributes.picture = dbData.avatarUrl;
+            }
           }
         } catch (e) {
           console.error("Failed to fetch DB user data:", e);
@@ -78,6 +89,8 @@ export function AuthProvider({ children }) {
         setUser(null);
         setAttributes({});
         setIsAuthenticated(false);
+        setCustomAvatarUrl(null);
+        localStorage.removeItem("customAvatarUrl");
         window.dispatchEvent(new Event("battleship-auth-changed"));
       }
     });
@@ -98,6 +111,8 @@ export function AuthProvider({ children }) {
       setUser(null);
       setAttributes({});
       setIsAuthenticated(false);
+      setCustomAvatarUrl(null);
+      localStorage.removeItem("customAvatarUrl");
     } catch (error) {
       console.error("Error logging out: ", error);
     }
@@ -113,6 +128,8 @@ export function AuthProvider({ children }) {
         login,
         logout,
         checkAuth,
+        customAvatarUrl,
+        updateAvatar,
       }}
     >
       {children}

@@ -1,5 +1,9 @@
 const { randomUUID } = require("node:crypto");
-const { GetCommand, PutCommand, ScanCommand } = require("@aws-sdk/lib-dynamodb");
+const {
+  GetCommand,
+  PutCommand,
+  ScanCommand,
+} = require("@aws-sdk/lib-dynamodb");
 const { documentClient } = require("../lib/dynamodb");
 
 const ROOMS_TABLE = process.env.ROOMS_TABLE;
@@ -21,7 +25,8 @@ const createRoomCode = () => {
   let code = "";
 
   for (let index = 0; index < 6; index += 1) {
-    code += ROOM_CODE_ALPHABET[Math.floor(Math.random() * ROOM_CODE_ALPHABET.length)];
+    code +=
+      ROOM_CODE_ALPHABET[Math.floor(Math.random() * ROOM_CODE_ALPHABET.length)];
   }
 
   return code;
@@ -39,8 +44,14 @@ const normalizePlayer = (input = {}) => ({
 
 const isSamePlayer = (candidate, player) => {
   if (candidate.userId === player.userId) return true;
-  if (candidate.email && player.email && candidate.email === player.email) return true;
-  if (candidate.baseUserId && player.baseUserId && candidate.baseUserId === player.baseUserId) return true;
+  if (candidate.email && player.email && candidate.email === player.email)
+    return true;
+  if (
+    candidate.baseUserId &&
+    player.baseUserId &&
+    candidate.baseUserId === player.baseUserId
+  )
+    return true;
   return false;
 };
 
@@ -93,9 +104,15 @@ const createRoom = async ({ player, difficulty = "easy", matchmakingMode }) => {
   return room;
 };
 
-const findMatchmakingRoom = async ({ player, difficulty = "easy", mode = "casual" }) => {
+const findMatchmakingRoom = async ({
+  player,
+  difficulty = "easy",
+  mode = "casual",
+}) => {
   const nextPlayer = normalizePlayer(player);
-  const normalizedMode = String(mode || "casual").trim().toLowerCase();
+  const normalizedMode = String(mode || "casual")
+    .trim()
+    .toLowerCase();
   const response = await documentClient.send(
     new ScanCommand({
       TableName: ROOMS_TABLE,
@@ -114,9 +131,18 @@ const findMatchmakingRoom = async ({ player, difficulty = "easy", mode = "casual
   const candidate = (response.Items || [])
     .filter((room) => {
       const players = room.players || [];
-      return players.length < MAX_PLAYERS && !players.some((candidatePlayer) => isSamePlayer(candidatePlayer, nextPlayer));
+      return (
+        players.length < MAX_PLAYERS &&
+        !players.some((candidatePlayer) =>
+          isSamePlayer(candidatePlayer, nextPlayer),
+        )
+      );
     })
-    .sort((first, second) => String(first.createdAt || "").localeCompare(String(second.createdAt || "")))[0];
+    .sort((first, second) =>
+      String(first.createdAt || "").localeCompare(
+        String(second.createdAt || ""),
+      ),
+    )[0];
 
   if (candidate) {
     return joinRoom({ roomCode: candidate.roomCode, player: nextPlayer });
@@ -130,7 +156,9 @@ const findMatchmakingRoom = async ({ player, difficulty = "easy", mode = "casual
 };
 
 const joinRoom = async ({ roomCode, player }) => {
-  const normalizedCode = String(roomCode || "").trim().toUpperCase();
+  const normalizedCode = String(roomCode || "")
+    .trim()
+    .toUpperCase();
   const room = await getRoom(normalizedCode);
 
   if (!room) {
@@ -143,13 +171,17 @@ const joinRoom = async ({ roomCode, player }) => {
 
   const nextPlayer = normalizePlayer(player);
   const existingPlayers = room.players || [];
-  const isAlreadyJoined = existingPlayers.some((candidate) => isSamePlayer(candidate, nextPlayer));
+  const isAlreadyJoined = existingPlayers.some((candidate) =>
+    isSamePlayer(candidate, nextPlayer),
+  );
 
   if (!isAlreadyJoined && existingPlayers.length >= MAX_PLAYERS) {
     throw createHttpError(409, "Room is full.");
   }
 
-  const players = isAlreadyJoined ? existingPlayers : [...existingPlayers, nextPlayer];
+  const players = isAlreadyJoined
+    ? existingPlayers
+    : [...existingPlayers, nextPlayer];
   const nextRoom = {
     ...room,
     players,
@@ -162,7 +194,9 @@ const joinRoom = async ({ roomCode, player }) => {
 };
 
 const markPlayerLobbyReady = async ({ roomCode, player }) => {
-  const normalizedCode = String(roomCode || "").trim().toUpperCase();
+  const normalizedCode = String(roomCode || "")
+    .trim()
+    .toUpperCase();
   const room = await getRoom(normalizedCode);
 
   if (!room) {
@@ -171,7 +205,9 @@ const markPlayerLobbyReady = async ({ roomCode, player }) => {
 
   const nextPlayer = normalizePlayer(player);
   const existingPlayers = room.players || [];
-  const playerIndex = existingPlayers.findIndex((candidate) => isSamePlayer(candidate, nextPlayer));
+  const playerIndex = existingPlayers.findIndex((candidate) =>
+    isSamePlayer(candidate, nextPlayer),
+  );
 
   if (playerIndex === -1) {
     if (existingPlayers.length >= MAX_PLAYERS) {
@@ -197,11 +233,17 @@ const markPlayerLobbyReady = async ({ roomCode, player }) => {
     };
   });
 
-  const allLobbyReady = players.length >= MAX_PLAYERS && players.every((candidate) => candidate.lobbyReady);
+  const allLobbyReady =
+    players.length >= MAX_PLAYERS &&
+    players.every((candidate) => candidate.lobbyReady);
   const nextRoom = {
     ...room,
     players,
-    status: allLobbyReady ? "DEPLOYING" : players.length >= MAX_PLAYERS ? "READY" : "WAITING",
+    status: allLobbyReady
+      ? "DEPLOYING"
+      : players.length >= MAX_PLAYERS
+        ? "READY"
+        : "WAITING",
     updatedAt: nowIso(),
     ttl: buildTtl(),
   };
@@ -210,7 +252,9 @@ const markPlayerLobbyReady = async ({ roomCode, player }) => {
 };
 
 const markPlayerReady = async ({ roomCode, player, board }) => {
-  const normalizedCode = String(roomCode || "").trim().toUpperCase();
+  const normalizedCode = String(roomCode || "")
+    .trim()
+    .toUpperCase();
   const room = await getRoom(normalizedCode);
 
   if (!room) {
@@ -219,7 +263,9 @@ const markPlayerReady = async ({ roomCode, player, board }) => {
 
   const nextPlayer = normalizePlayer(player);
   const existingPlayers = room.players || [];
-  const playerIndex = existingPlayers.findIndex((candidate) => isSamePlayer(candidate, nextPlayer));
+  const playerIndex = existingPlayers.findIndex((candidate) =>
+    isSamePlayer(candidate, nextPlayer),
+  );
 
   if (playerIndex === -1) {
     if (existingPlayers.length >= MAX_PLAYERS) {
@@ -246,11 +292,17 @@ const markPlayerReady = async ({ roomCode, player, board }) => {
     };
   });
 
-  const allFleetReady = players.length >= MAX_PLAYERS && players.every((candidate) => candidate.fleetReady);
+  const allFleetReady =
+    players.length >= MAX_PLAYERS &&
+    players.every((candidate) => candidate.fleetReady);
   const nextRoom = {
     ...room,
     players,
-    status: allFleetReady ? "IN_PROGRESS" : players.length >= MAX_PLAYERS ? "DEPLOYING" : "WAITING",
+    status: allFleetReady
+      ? "IN_PROGRESS"
+      : players.length >= MAX_PLAYERS
+        ? "DEPLOYING"
+        : "WAITING",
     updatedAt: nowIso(),
     startedAt: allFleetReady ? room.startedAt || nowIso() : room.startedAt,
     ttl: buildTtl(),
@@ -260,7 +312,9 @@ const markPlayerReady = async ({ roomCode, player, board }) => {
 };
 
 const resetRoomForRematch = async ({ roomCode, player }) => {
-  const normalizedCode = String(roomCode || "").trim().toUpperCase();
+  const normalizedCode = String(roomCode || "")
+    .trim()
+    .toUpperCase();
   const room = await getRoom(normalizedCode);
 
   if (!room) {
@@ -269,7 +323,9 @@ const resetRoomForRematch = async ({ roomCode, player }) => {
 
   const requestingPlayer = normalizePlayer(player);
   const existingPlayers = room.players || [];
-  const isRoomPlayer = existingPlayers.some((candidate) => isSamePlayer(candidate, requestingPlayer));
+  const isRoomPlayer = existingPlayers.some((candidate) =>
+    isSamePlayer(candidate, requestingPlayer),
+  );
 
   if (!isRoomPlayer) {
     throw createHttpError(403, "Only room players can request a rematch.");
@@ -298,7 +354,9 @@ const resetRoomForRematch = async ({ roomCode, player }) => {
 };
 
 const leaveRoom = async ({ roomCode, player }) => {
-  const normalizedCode = String(roomCode || "").trim().toUpperCase();
+  const normalizedCode = String(roomCode || "")
+    .trim()
+    .toUpperCase();
   const room = await getRoom(normalizedCode);
 
   if (!room) {

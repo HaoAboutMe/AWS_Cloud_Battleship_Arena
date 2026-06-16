@@ -410,6 +410,39 @@ Resources:
           Projection:
             ProjectionType: ALL
 
+  AvatarBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders:
+              - "*"
+            AllowedMethods:
+              - PUT
+              - GET
+              - POST
+              - HEAD
+            AllowedOrigins:
+              - !Ref CorsOrigin
+            MaxAge: 3600
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: false
+        IgnorePublicAcls: false
+        BlockPublicPolicy: false
+        RestrictPublicBuckets: false
+
+  AvatarBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref AvatarBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal: "*"
+            Action: "s3:GetObject"
+            Resource: !Sub "arn:aws:s3:::${AvatarBucket}/*"
+
   # ==========================================
   # LAMBDA FUNCTIONS (Phân hệ User & History)
   # ==========================================
@@ -431,6 +464,9 @@ Resources:
       FunctionName: GetUser
       CodeUri: .
       Handler: src/handlers/users/getUser.handler
+      Environment:
+        Variables:
+          AVATAR_BUCKET_NAME: !Ref AvatarBucket
       Policies:
         - DynamoDBReadPolicy:
             TableName: !Ref UserTable
@@ -500,6 +536,28 @@ Resources:
             ApiId: !Ref BattleshipHttpApi
             Path: /user/username
             Method: PUT
+
+  GetAvatarUploadUrlFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: GetAvatarUploadUrl
+      CodeUri: .
+      Handler: src/handlers/users/getAvatarUploadUrl.handler
+      Environment:
+        Variables:
+          AVATAR_BUCKET_NAME: !Ref AvatarBucket
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref EmailIndexTable
+        - S3WritePolicy:
+            BucketName: !Ref AvatarBucket
+      Events:
+        GetAvatarUploadUrl:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref BattleshipHttpApi
+            Path: /users/avatar-upload-url
+            Method: GET
 
 Outputs:
   HttpApiUrl:

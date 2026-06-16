@@ -6,6 +6,7 @@ import { useLanguage } from "../contexts/LanguageContext";
 import "./HomeHeader.css";
 import "./Profile.css";
 import { updateUsername } from "../services/userService";
+import AvatarUpload from "../components/AvatarUpload";
 
 const COMMANDER_AVATAR =
   "https://lh3.googleusercontent.com/aida-public/AB6AXuBaat_LefR8zmWVQ9CHx0bp9dTekwkF9c9AQAo9FxlAx2bSsRi_lWU3tRBK1vdpC50zM3NdKJAB5hHd5ZusN0HuCxBcpe1IbzSlreCalSVomkgeQwYwz9iKrXYvj55d42PgtFMDfCUosVO6NBFPXtM_vVCTYDxnC7xz1DxkbcIvRSfpehGpD-kbu7XuQbuktassmbGVExYQy0GTNC_jJHX3hmbFNDIdyfqO5-uwHYbgPtFdacF4kVhq0AnscPv4dWSz-e_6DYUDMSxe";
@@ -29,7 +30,7 @@ function readStats() {
 function Profile() {
   const navigate = useNavigate();
   const { t } = useLanguage();
-  const { user: currentUser, attributes, loading, logout, checkAuth } = useAuth();
+  const { user: currentUser, attributes, loading, logout, checkAuth, customAvatarUrl, updateAvatar } = useAuth();
   const [isLightMode, setIsLightMode] = useState(() =>
     document.documentElement.classList.contains("light-mode-active"),
   );
@@ -179,10 +180,9 @@ function Profile() {
     attributes.nickname ||
     (attributes.email ? attributes.email.split("@")[0] : null) ||
     t("profile.commander");
-  const avatarUrl =
-    typeof attributes.picture === "string"
+  const avatarUrl = customAvatarUrl || (typeof attributes.picture === "string"
       ? attributes.picture
-      : COMMANDER_AVATAR;
+      : COMMANDER_AVATAR);
   const accuracy =
     stats.totalShots > 0
       ? Math.round((stats.totalHits / stats.totalShots) * 100)
@@ -235,7 +235,7 @@ function Profile() {
                     event.currentTarget.src = COMMANDER_AVATAR;
                   }}
                 />
-                <span>{t("profile.operational")}</span>
+                <AvatarUpload currentAvatarUrl={avatarUrl} onAvatarUpdate={updateAvatar} />
               </div>
               <div className="profile-identity-copy">
                 <span className="profile-eyebrow">{t("profile.dossier")}</span>
