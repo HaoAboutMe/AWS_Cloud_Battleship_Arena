@@ -37,6 +37,7 @@ const normalizePlayer = (input = {}) => ({
   baseUserId: input.baseUserId ? String(input.baseUserId) : undefined,
   displayName: String(input.displayName || input.email || "Commander"),
   email: input.email ? String(input.email) : undefined,
+  avatarUrl: input.avatarUrl || input.picture ? String(input.avatarUrl || input.picture) : undefined,
   joinedAt: nowIso(),
   lobbyReady: false,
   fleetReady: false,

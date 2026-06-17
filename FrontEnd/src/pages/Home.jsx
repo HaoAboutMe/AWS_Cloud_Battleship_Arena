@@ -169,6 +169,7 @@ function Home() {
       userId: currentUser?.userId || attributes?.sub || attributes?.email || guestUserId,
       displayName,
       email: attributes?.email,
+      avatarUrl: attributes?.picture || attributes?.avatarUrl,
     };
   };
 

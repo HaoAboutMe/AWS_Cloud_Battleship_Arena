@@ -595,6 +595,63 @@ function Game() {
         return nextBoard;
     };
 
+    const revealSunkShipOnBoard = (board, shotResult, sunkCells = []) => {
+        const shipCells = sunkCells
+            .filter((cell) => Number.isInteger(cell?.row) && Number.isInteger(cell?.col))
+            .sort((left, right) => (left.row - right.row) || (left.col - right.col));
+
+        if (!shipCells.length) return;
+
+        const shipDef = shipsToPlace.find((candidate) => candidate.id === shotResult.shipTypeId);
+        const shipId = shotResult.shipId || `enemy-sunk-${shipCells[0].row}-${shipCells[0].col}`;
+        const fallbackRotation = shipDef?.rotations?.[0] ?? 0;
+        const minRow = Math.min(...shipCells.map((cell) => cell.row));
+        const minCol = Math.min(...shipCells.map((cell) => cell.col));
+        const cellKey = (cell) => `${cell.row - minRow}:${cell.col - minCol}`;
+        const normalizedCellSet = new Set(shipCells.map(cellKey));
+
+        const matchedRotation = shipDef?.rotations.find((candidateRotation) => {
+            const offsets = getShipOffsets(shipDef, candidateRotation);
+            if (offsets.length !== shipCells.length) return false;
+            return offsets.every(([rowOffset, colOffset]) => (
+                normalizedCellSet.has(`${rowOffset}:${colOffset}`)
+            ));
+        }) ?? fallbackRotation;
+
+        const offsets = shipDef
+            ? getShipOffsets(shipDef, matchedRotation)
+            : shipCells.map((cell) => [cell.row - minRow, cell.col - minCol]);
+        const bounds = getShipBounds(offsets);
+        const rootOffset = offsets[0] || [0, 0];
+        const rootRow = minRow + rootOffset[0];
+        const rootCol = minCol + rootOffset[1];
+
+        board.forEach((row) => {
+            row.forEach((cell) => {
+                if (cell.shipId === shipId) {
+                    cell.shipRoot = false;
+                    cell.shipBounds = null;
+                }
+            });
+        });
+
+        shipCells.forEach(({ row, col }) => {
+            const cell = board[row]?.[col];
+            if (!cell) return;
+            cell.isHit = true;
+            cell.autoMarked = false;
+            cell.hasShip = true;
+            cell.shipId = shipId;
+            cell.shipTypeId = shotResult.shipTypeId || shipDef?.id || null;
+            cell.shipLength = shotResult.shipLength || shipDef?.size || shipCells.length;
+            cell.shipRotation = matchedRotation;
+            cell.shipOriginRow = minRow;
+            cell.shipOriginCol = minCol;
+            cell.shipRoot = row === rootRow && col === rootCol;
+            cell.shipBounds = cell.shipRoot ? bounds : null;
+        });
+    };
+
     const getPvpStatusText = () => {
         if (!pvpSocketReady) return `Room ${roomCode}: connecting room channel...`;
         if (pvpRoom?.status !== "IN_PROGRESS") return `Room ${roomCode}: fleet deployed. Waiting for opponent fleet.`;
@@ -1203,18 +1260,7 @@ console.log("P2 KEY", getRoomPlayerKey(player2));
                 cell.shipLength = shotResult.shipLength || null;
 
                 if (shotResult.isSunk && Array.isArray(payload.sunkCells)) {
-                    payload.sunkCells.forEach((sunkCell, index) => {
-                        const targetCell = nextBoard[sunkCell.row]?.[sunkCell.col];
-                        if (!targetCell) return;
-                        targetCell.isHit = true;
-                        targetCell.hasShip = true;
-                        targetCell.shipId = shotResult.shipId || `enemy-sunk-${payload.shotId}`;
-                        targetCell.shipTypeId = shotResult.shipTypeId || null;
-                        targetCell.shipLength = shotResult.shipLength || payload.sunkCells.length;
-                        if (index === 0) {
-                            targetCell.shipRoot = true;
-                        }
-                    });
+                    revealSunkShipOnBoard(nextBoard, shotResult, payload.sunkCells);
                 }
             }
 

@@ -10,7 +10,7 @@
 .lobby-shell {
   width: min(1240px, calc(100% - 40px));
   margin: 0 auto;
-  padding: 34px 0 48px;
+  padding: 24px 0 34px;
 }
 
 /* State 1: Centered Card */
@@ -130,6 +130,13 @@
   align-items: flex-start;
 }
 
+.lobby-room-container.is-matchmaking-room {
+  width: min(1180px, 100%);
+  margin: 0 auto;
+  gap: 24px;
+  align-items: stretch;
+}
+
 .lobby-panel {
   border: 1px solid rgba(117, 223, 255, 0.16);
   background:
@@ -183,6 +190,46 @@
   border-radius: 10px;
 }
 
+.lobby-room-container.is-matchmaking-room .lobby-player {
+  min-height: 76px;
+  padding: 14px 18px;
+}
+
+.lobby-player-identity {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.lobby-player-avatar {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 1px solid rgba(117, 223, 255, 0.36);
+  border-radius: 10px;
+  background:
+    radial-gradient(circle at 50% 35%, rgba(117, 223, 255, 0.18), transparent 58%),
+    rgba(3, 17, 30, 0.76);
+  box-shadow: 0 0 18px rgba(117, 223, 255, 0.11);
+}
+
+.lobby-player-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.lobby-player-avatar .material-symbols-outlined {
+  color: rgba(158, 232, 255, 0.62);
+  font-size: 25px;
+}
+
 .lobby-player.is-ready {
   border-color: rgba(54, 255, 176, 0.3);
   background: rgba(54, 255, 176, 0.1);
@@ -194,8 +241,16 @@
 }
 
 .lobby-player-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-size: 18px;
   font-weight: bold;
+}
+
+.lobby-room-container.is-matchmaking-room .lobby-player-name {
+  font-size: 17px;
 }
 
 .lobby-player-state {
@@ -240,6 +295,179 @@
   color: #ffffff;
   text-shadow: 0 0 20px rgba(158, 232, 255, 0.3);
   margin-bottom: 15px;
+}
+
+.lobby-panel.is-matchmaking {
+  min-height: 100%;
+}
+
+.lobby-matchmaking-display {
+  text-align: center;
+  margin-bottom: 18px;
+  padding: 0;
+}
+
+.lobby-mode-kicker {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 28px;
+  padding: 0 14px;
+  border: 1px solid rgba(117, 223, 255, 0.26);
+  background: rgba(117, 223, 255, 0.08);
+  color: #7be4ff;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.lobby-matchmaking-display h2 {
+  margin: 14px 0 14px;
+  color: #ffffff;
+  font-size: clamp(28px, 3vw, 38px);
+  font-weight: 500;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.lobby-queue-orb {
+  width: 92px;
+  aspect-ratio: 1;
+  margin: 0 auto 14px;
+  border-radius: 50%;
+  position: relative;
+  border: 1px solid rgba(117, 223, 255, 0.44);
+  background:
+    radial-gradient(circle at 50% 50%, rgba(117, 223, 255, 0.2) 0 7px, transparent 8px),
+    radial-gradient(circle at 50% 50%, transparent 0 32px, rgba(117, 223, 255, 0.18) 33px 34px, transparent 35px),
+    rgba(3, 17, 30, 0.48);
+  box-shadow:
+    inset 0 0 32px rgba(117, 223, 255, 0.08),
+    0 0 36px rgba(117, 223, 255, 0.12);
+}
+
+.lobby-queue-orb::before,
+.lobby-queue-orb::after {
+  content: "";
+  position: absolute;
+  inset: 12px;
+  border-radius: 50%;
+  border: 1px solid rgba(117, 223, 255, 0.26);
+}
+
+.lobby-queue-orb::after {
+  inset: 25px;
+}
+
+.lobby-queue-orb span {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  width: 38px;
+  height: 38px;
+  transform-origin: 0 0;
+  background: conic-gradient(from -34deg, rgba(158, 232, 255, 0.86), transparent 42deg);
+  clip-path: polygon(0 0, 100% 14%, 74% 100%);
+  filter: drop-shadow(0 0 12px rgba(117, 223, 255, 0.42));
+  animation: lobbyRadarSweep 2.2s linear infinite;
+}
+
+.lobby-matchmaking-display p {
+  max-width: 420px;
+  margin: 0 auto 14px;
+  color: rgba(232, 247, 255, 0.66);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.lobby-queue-status {
+  width: min(420px, 100%);
+  margin: 0 auto 14px;
+  padding: 13px 16px;
+  border: 1px solid rgba(117, 223, 255, 0.2);
+  background: rgba(3, 17, 30, 0.46);
+  border-radius: 10px;
+  text-align: left;
+}
+
+.lobby-queue-status small {
+  display: block;
+  margin-bottom: 6px;
+  color: rgba(232, 247, 255, 0.52);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.lobby-queue-status strong {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #e8f7ff;
+  font-size: 17px;
+}
+
+.lobby-queue-status strong::before {
+  content: "";
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #74ffd1;
+  box-shadow: 0 0 14px rgba(116, 255, 209, 0.72);
+}
+
+.lobby-leave-queue-button {
+  width: min(420px, 100%);
+  border-color: rgba(255, 112, 112, 0.38);
+  color: #ffb7b7;
+}
+
+.lobby-room-container.is-matchmaking-room .lobby-panel {
+  padding: 26px 34px;
+}
+
+.lobby-room-container.is-matchmaking-room .lobby-panel-title {
+  margin-bottom: 16px;
+  font-size: 22px;
+}
+
+.lobby-room-container.is-matchmaking-room .lobby-player-list {
+  gap: 12px;
+}
+
+.lobby-room-container.is-matchmaking-room .lobby-waiting-state {
+  padding: 18px 18px;
+}
+
+.lobby-room-container.is-matchmaking-room .lobby-waiting-state .material-symbols-outlined {
+  margin-bottom: 8px;
+  font-size: 34px;
+}
+
+.lobby-room-container.is-matchmaking-room .lobby-waiting-state h3 {
+  margin-bottom: 6px;
+  font-size: 17px;
+}
+
+.lobby-room-container.is-matchmaking-room .lobby-button.primary-action {
+  height: 58px;
+}
+
+.lobby-leave-queue-button:hover:not(:disabled) {
+  border-color: rgba(255, 112, 112, 0.68);
+  background: rgba(255, 112, 112, 0.1);
+  color: #ffd0d0;
+}
+
+@keyframes lobbyRadarSweep {
+  from {
+    rotate: 0deg;
+  }
+  to {
+    rotate: 360deg;
+  }
 }
 
 /* Common UI Elements */
