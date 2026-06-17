@@ -14,6 +14,9 @@ import {
 import "./HomeHeader.css";
 import "./Lobby.css";
 
+const COMMANDER_AVATAR =
+  "https://lh3.googleusercontent.com/aida-public/AB6AXuBaat_LefR8zmWVQ9CHx0bp9dTekwkF9c9AQAo9FxlAx2bSsRi_lWU3tRBK1vdpC50zM3NdKJAB5hHd5ZusN0HuCxBcpe1IbzSlreCalSVomkgeQwYwz9iKrXYvj55d42PgtFMDfCUosVO6NBFPXtM_vVCTYDxnC7xz1DxkbcIvRSfpehGpD-kbu7XuQbuktassmbGVExYQy0GTNC_jJHX3hmbFNDIdyfqO5-uwHYbgPtFdacF4kVhq0AnscPv4dWSz-e_6DYUDMSxe";
+
 const LOBBY_COPY = {
   en: {
     title: "Battle Room",
@@ -29,8 +32,17 @@ const LOBBY_COPY = {
     copy: "Copy",
     copied: "Copied!",
     leaveRoom: "Leave Room",
+    leaveQueue: "Leave Queue",
     ready: "Ready",
     standby: "Standby",
+    matchmakingTitle: "Matchmaking Channel",
+    casualBattle: "Casual Battle",
+    rankedBattle: "Ranked Battle",
+    queueStatus: "Queue Status",
+    searchingOpponent: "Searching for an opponent...",
+    opponentFound: "Opponent found",
+    secureRoom:
+      "Secure battle channel is active. Room code is hidden during matchmaking.",
     waitingSecond: "Waiting for a commander to join...",
     waitingMessage: "Waiting for opponent to ready up...",
     startDeployment: "Start Deployment",
@@ -69,6 +81,31 @@ const LOBBY_COPY = {
   },
 };
 
+const MATCHMAKING_COPY = {
+  en: {
+    leaveQueue: "Leave Queue",
+    matchmakingTitle: "Matchmaking Channel",
+    casualBattle: "Casual Battle",
+    rankedBattle: "Ranked Battle",
+    queueStatus: "Queue Status",
+    searchingOpponent: "Searching for an opponent...",
+    opponentFound: "Opponent found",
+    secureRoom:
+      "Secure battle channel is active. Room code is hidden during matchmaking.",
+  },
+  vi: {
+    leaveQueue: "Roi hang cho",
+    matchmakingTitle: "Kenh ghep tran",
+    casualBattle: "Dau thuong",
+    rankedBattle: "Dau hang",
+    queueStatus: "Trang thai hang cho",
+    searchingOpponent: "Dang tim doi thu...",
+    opponentFound: "Da tim thay doi thu",
+    secureRoom:
+      "Kenh tran dau da duoc bao mat. Ma phong duoc an trong che do ghep tran.",
+  },
+};
+
 function Lobby() {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -104,6 +141,7 @@ function Lobby() {
       baseUserId,
       displayName: identity,
       email: attributes?.email,
+      avatarUrl: attributes?.picture || attributes?.avatarUrl,
     };
   }, [attributes, initialRoomCode, roomCodeInput, user]);
 
@@ -255,6 +293,14 @@ function Lobby() {
 
   const isLobbyReady = Boolean(currentPlayerInRoom?.lobbyReady);
   const playerCount = room?.players?.length || 0;
+  const isMatchmakingRoom = Boolean(
+    room?.matchmakingMode || searchParams.get("matchmaking") === "1",
+  );
+  const matchmakingCopy = MATCHMAKING_COPY[language] || MATCHMAKING_COPY.en;
+  const matchmakingLabel =
+    room?.matchmakingMode === "ranked"
+      ? matchmakingCopy.rankedBattle
+      : matchmakingCopy.casualBattle;
 
   const playerSlots = room
     ? [
@@ -262,6 +308,7 @@ function Lobby() {
         ...Array.from({ length: Math.max(0, 2 - playerCount) }, (_, index) => ({
           userId: `empty-${index}`,
           displayName: copy.openSlot,
+          avatarUrl: "",
           lobbyReady: false,
           isEmpty: true,
         })),
@@ -347,7 +394,9 @@ function Lobby() {
           </section>
         ) : (
           // State 2 & 3: Room View
-          <section className="lobby-room-container">
+          <section
+            className={`lobby-room-container ${isMatchmakingRoom ? "is-matchmaking-room" : ""}`}
+          >
             {/* Left Column: Player Info */}
             <div className="lobby-panel">
               <h2 className="lobby-panel-title">
@@ -359,8 +408,26 @@ function Lobby() {
                     className={`lobby-player ${roomPlayer.lobbyReady ? "is-ready" : ""} ${roomPlayer.isEmpty ? "is-empty" : ""}`}
                     key={roomPlayer.userId}
                   >
-                    <span className="lobby-player-name">
-                      {roomPlayer.displayName}
+                    <span className="lobby-player-identity">
+                      <span className="lobby-player-avatar">
+                        {roomPlayer.avatarUrl ? (
+                          <img
+                            src={roomPlayer.avatarUrl}
+                            alt=""
+                            referrerPolicy="no-referrer"
+                            onError={(event) => {
+                              event.currentTarget.src = COMMANDER_AVATAR;
+                            }}
+                          />
+                        ) : roomPlayer.isEmpty ? (
+                          <span className="material-symbols-outlined">person_add</span>
+                        ) : (
+                          <img src={COMMANDER_AVATAR} alt="" />
+                        )}
+                      </span>
+                      <span className="lobby-player-name">
+                        {roomPlayer.displayName}
+                      </span>
                     </span>
                     <span
                       className={`lobby-player-state ${roomPlayer.lobbyReady ? "ready-text" : ""}`}
@@ -378,47 +445,79 @@ function Lobby() {
             </div>
 
             {/* Right Column: Actions & Controls */}
-            <div className="lobby-panel">
-              <div className="lobby-room-code-display">
-                <small>Room Code</small>
-                <strong>{room.roomCode}</strong>
-                <div
-                  style={{
-                    display: "flex",
-                    gap: "10px",
-                    justifyContent: "center",
-                    flexWrap: "wrap",
-                  }}
-                >
+            <div className={`lobby-panel ${isMatchmakingRoom ? "is-matchmaking" : ""}`}>
+              {isMatchmakingRoom ? (
+                <div className="lobby-matchmaking-display">
+                  <span className="lobby-mode-kicker">{matchmakingLabel}</span>
+                  <h2>{matchmakingCopy.matchmakingTitle}</h2>
+                  <div className="lobby-queue-orb" aria-hidden="true">
+                    <span />
+                  </div>
+                  <p>{matchmakingCopy.secureRoom}</p>
+                  <div className="lobby-queue-status">
+                    <small>{matchmakingCopy.queueStatus}</small>
+                    <strong>
+                      {playerCount >= 2
+                        ? matchmakingCopy.opponentFound
+                        : matchmakingCopy.searchingOpponent}
+                    </strong>
+                  </div>
                   <button
-                    className="lobby-button secondary"
-                    style={{ width: "auto", padding: "0 20px", height: "40px" }}
-                    type="button"
-                    onClick={handleCopyRoomCode}
-                  >
-                    <span className="material-symbols-outlined">
-                      {copied ? "done" : "content_copy"}
-                    </span>
-                    {copied ? copy.copied : copy.copy}
-                  </button>
-                  <button
-                    className="lobby-button secondary"
-                    style={{
-                      width: "auto",
-                      padding: "0 20px",
-                      height: "40px",
-                      borderColor: "rgba(255, 112, 112, 0.4)",
-                      color: "#ffb7b7",
-                    }}
+                    className="lobby-button secondary lobby-leave-queue-button"
                     type="button"
                     disabled={loading}
                     onClick={() => handleLeaveRoom("/")}
                   >
                     <span className="material-symbols-outlined">logout</span>
-                    {copy.leaveRoom}
+                    {matchmakingCopy.leaveQueue}
                   </button>
                 </div>
-              </div>
+              ) : (
+                <div className="lobby-room-code-display">
+                  <small>Room Code</small>
+                  <strong>{room.roomCode}</strong>
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: "10px",
+                      justifyContent: "center",
+                      flexWrap: "wrap",
+                    }}
+                  >
+                    <button
+                      className="lobby-button secondary"
+                      style={{
+                        width: "auto",
+                        padding: "0 20px",
+                        height: "40px",
+                      }}
+                      type="button"
+                      onClick={handleCopyRoomCode}
+                    >
+                      <span className="material-symbols-outlined">
+                        {copied ? "done" : "content_copy"}
+                      </span>
+                      {copied ? copy.copied : copy.copy}
+                    </button>
+                    <button
+                      className="lobby-button secondary"
+                      style={{
+                        width: "auto",
+                        padding: "0 20px",
+                        height: "40px",
+                        borderColor: "rgba(255, 112, 112, 0.4)",
+                        color: "#ffb7b7",
+                      }}
+                      type="button"
+                      disabled={loading}
+                      onClick={() => handleLeaveRoom("/")}
+                    >
+                      <span className="material-symbols-outlined">logout</span>
+                      {copy.leaveRoom}
+                    </button>
+                  </div>
+                </div>
+              )}
 
               {error && (
                 <div className="lobby-error" style={{ marginBottom: "20px" }}>
