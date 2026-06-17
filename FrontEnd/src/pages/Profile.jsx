@@ -505,7 +505,15 @@ function Profile() {
                               style={{ width: '40px', height: '40px', borderRadius: '4px', border: '1px solid var(--border)', objectFit: 'cover' }}
                               onError={(e) => { e.currentTarget.src = COMMANDER_AVATAR; }}
                             />
-                            <span style={{ fontWeight: 'bold', fontSize: '15px', color: 'var(--text-main)' }}>{match.player1Name || "Unknown"}</span>
+                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                              <span style={{ fontWeight: 'bold', fontSize: '15px', color: 'var(--text-main)' }}>
+                                {match.player1Name || "Unknown"}
+                                {match.leaverId === match.player1Id && <span style={{ color: '#f44336', fontSize: '11px', marginLeft: '6px', fontStyle: 'italic', display: 'inline-block' }}>{t("profile.surrendered")}</span>}
+                              </span>
+                              <span style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                                {match.player1Shots || 0} {t("profile.shots")} &bull; {match.player1Misses || 0} {t("profile.misses")} ({match.player1Shots > 0 ? Math.round(((match.player1Misses || 0) / match.player1Shots) * 100) : 0}%)
+                              </span>
+                            </div>
                           </div>
                           
                           {/* VS */}
@@ -514,8 +522,16 @@ function Profile() {
                           </div>
                           
                           {/* Player 2 */}
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, justifyContent: 'flex-end' }}>
-                            <span style={{ fontWeight: 'bold', fontSize: '15px', color: 'var(--text-main)' }}>{match.player2Name || "Unknown"}</span>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, justifyContent: 'flex-end', textAlign: 'right' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                              <span style={{ fontWeight: 'bold', fontSize: '15px', color: 'var(--text-main)' }}>
+                                {match.leaverId === match.player2Id && <span style={{ color: '#f44336', fontSize: '11px', marginRight: '6px', fontStyle: 'italic', display: 'inline-block' }}>{t("profile.surrendered")}</span>}
+                                {match.player2Name || "Unknown"}
+                              </span>
+                              <span style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                                {match.player2Shots || 0} {t("profile.shots")} &bull; {match.player2Misses || 0} {t("profile.misses")} ({match.player2Shots > 0 ? Math.round(((match.player2Misses || 0) / match.player2Shots) * 100) : 0}%)
+                              </span>
+                            </div>
                             <img 
                               src={match.player2Avatar || COMMANDER_AVATAR} 
                               alt="Player 2" 

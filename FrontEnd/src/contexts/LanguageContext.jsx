@@ -225,6 +225,9 @@ const translations = {
       win: "Victory",
       loss: "Defeat",
       room: "Room",
+      shots: "Shots",
+      misses: "Misses",
+      surrendered: "(AFK)",
     },
   },
   vi: {
@@ -451,6 +454,9 @@ const translations = {
       win: "Thắng",
       loss: "Thua",
       room: "Phòng",
+      shots: "Đã bắn",
+      misses: "Trượt",
+      surrendered: "(AFK)",
     },
   },
 };

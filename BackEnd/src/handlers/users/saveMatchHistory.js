@@ -45,6 +45,7 @@ exports.handler = async (event) => {
         p2.avatarUrl = getAvatarUrl(p2.userId);
 
         const endedAt = body.endedAt || new Date().toISOString();
+        const leaverId = body.leaverEmail ? (await getRealUserIdAndName(body.leaverEmail, body.leaverId, "")).userId : (body.leaverId || null);
 
         // 1. Lưu Match History (Dual-write)
         const baseMatchData = {
@@ -57,7 +58,12 @@ exports.handler = async (event) => {
             player2Name: p2.username,
             player2Avatar: p2.avatarUrl,
             winnerId: realWinnerId,
-            endedAt: endedAt
+            endedAt: endedAt,
+            player1Shots: typeof body.player1Shots === 'number' ? body.player1Shots : 0,
+            player1Misses: typeof body.player1Misses === 'number' ? body.player1Misses : 0,
+            player2Shots: typeof body.player2Shots === 'number' ? body.player2Shots : 0,
+            player2Misses: typeof body.player2Misses === 'number' ? body.player2Misses : 0,
+            leaverId: leaverId
         };
 
         // Write for Player 1
