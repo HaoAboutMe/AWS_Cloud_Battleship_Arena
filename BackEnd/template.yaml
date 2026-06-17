@@ -384,31 +384,18 @@ Resources:
   MatchHistoryTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: MatchHistory
+      TableName: MatchHistoryV2
       BillingMode: PAY_PER_REQUEST
       AttributeDefinitions:
-        - AttributeName: matchId
+        - AttributeName: userId
           AttributeType: S
-        - AttributeName: player1Id
-          AttributeType: S
-        - AttributeName: player2Id
+        - AttributeName: endedAt
           AttributeType: S
       KeySchema:
-        - AttributeName: matchId
+        - AttributeName: userId
           KeyType: HASH
-      GlobalSecondaryIndexes:
-        - IndexName: Player1Index
-          KeySchema:
-            - AttributeName: player1Id
-              KeyType: HASH
-          Projection:
-            ProjectionType: ALL
-        - IndexName: Player2Index
-          KeySchema:
-            - AttributeName: player2Id
-              KeyType: HASH
-          Projection:
-            ProjectionType: ALL
+        - AttributeName: endedAt
+          KeyType: RANGE
 
   AvatarBucket:
     Type: AWS::S3::Bucket
@@ -503,6 +490,10 @@ Resources:
       FunctionName: SaveMatchHistory
       CodeUri: .
       Handler: src/handlers/users/saveMatchHistory.handler
+      Environment:
+        Variables:
+          AVATAR_BUCKET_NAME: !Ref AvatarBucket
+          MATCH_HISTORY_TABLE: !Ref MatchHistoryTable
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref MatchHistoryTable
@@ -517,6 +508,28 @@ Resources:
             ApiId: !Ref BattleshipHttpApi
             Path: /matches/save
             Method: POST
+
+  GetMatchHistoryFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: GetMatchHistory
+      CodeUri: .
+      Handler: src/handlers/users/getMatchHistory.handler
+      Environment:
+        Variables:
+          MATCH_HISTORY_TABLE: !Ref MatchHistoryTable
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref MatchHistoryTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref EmailIndexTable
+      Events:
+        GetMatchHistory:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref BattleshipHttpApi
+            Path: /matches
+            Method: GET
 
   UpdateUsernameFunction:
     Type: AWS::Serverless::Function

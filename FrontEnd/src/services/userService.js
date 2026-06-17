@@ -70,3 +70,27 @@ export const getUserProfile = async (email) => {
     return null;
   }
 };
+
+export const getMatchHistory = async (email) => {
+  try {
+    const response = await fetch(
+      `${import.meta.env.VITE_API_BASE_URL}/matches?email=${encodeURIComponent(email)}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (!response.ok) {
+      if (response.status === 404) return [];
+      throw new Error(`API call failed with status: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Failed to get match history:", error);
+    return [];
+  }
+};
