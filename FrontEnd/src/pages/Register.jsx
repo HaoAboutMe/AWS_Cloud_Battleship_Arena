@@ -90,7 +90,7 @@ function Register() {
   const handleRegister = async (event) => {
     event.preventDefault();
     setTouched({ email: true, password: true, confirmPassword: true, terms: true });
-    if (Object.keys(errors).length > 0 || isTaken || username.length < 3) return;
+    if (Object.keys(errors).length > 0 || isTaken || username.length < 3 || tag.length === 0) return;
 
     setLoading(true);
     setError(null);
@@ -187,30 +187,32 @@ function Register() {
 
         {!isConfirmStep && (
           <label className="auth-field">
-            <span>{t("common.username", "Username")}</span>
-            <div className="auth-input-shell" style={{ display: 'flex', alignItems: 'center' }}>
-              <span className="auth-glyph auth-input-glyph" aria-hidden="true">👤</span>
-              <input
-                type="text"
-                value={username}
-                onChange={(event) => setUsername(event.target.value)}
-                placeholder="Commander"
-                disabled={isConfirmStep}
-                style={{ flex: 1 }}
-              />
-              <span className="auth-glyph" style={{ margin: '0 4px', fontSize: '18px' }}>#</span>
-              <input
-                type="text"
-                value={tag}
-                onChange={(event) => setTag(event.target.value)}
-                maxLength={5}
-                disabled={isConfirmStep}
-                style={{ width: '60px', padding: '0 8px', textAlign: 'center' }}
-              />
+            <span>{t("common.username")}</span>
+            <div className="auth-input-shell">
+              <span className="auth-glyph auth-input-glyph" aria-hidden="true">*</span>
+              <div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
+                <input
+                  type="text"
+                  value={username}
+                  onChange={(event) => setUsername(event.target.value)}
+                  placeholder="Commander"
+                  disabled={isConfirmStep}
+                  style={{ flex: 1 }}
+                />
+                <span className="auth-glyph" style={{ margin: '0 4px', fontSize: '14px', color: 'rgba(165, 231, 255, 0.56)' }}>#</span>
+                <input
+                  type="text"
+                  value={tag}
+                  onChange={(event) => setTag(event.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))}
+                  maxLength={5}
+                  disabled={isConfirmStep}
+                  style={{ width: '60px', padding: '0 8px', textAlign: 'center' }}
+                />
+              </div>
             </div>
             {username.length > 0 && (
-              <div style={{ marginTop: '8px', fontSize: '13px', color: isChecking ? '#888' : isTaken ? '#ff4d4d' : username.length >= 3 ? '#4caf50' : '#ff4d4d' }}>
-                {isChecking ? "Đang kiểm tra..." : username.length < 3 ? "Tên phải có ít nhất 3 ký tự" : isTaken ? "Tên đã bị trùng" : "Tên hợp lệ"}
+              <div style={{ marginTop: '8px', fontSize: '13px', color: isChecking ? '#888' : isTaken ? '#ff4d4d' : (username.length < 3 || tag.length === 0) ? '#ff4d4d' : '#4caf50' }}>
+                {isChecking ? t("profile.checking") : username.length < 3 ? t("profile.nameTooShort") : tag.length === 0 ? t("profile.tagEmpty") : isTaken ? t("profile.nameTaken") : t("profile.nameValid")}
               </div>
             )}
           </label>

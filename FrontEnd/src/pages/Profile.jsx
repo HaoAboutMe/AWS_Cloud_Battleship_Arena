@@ -69,7 +69,7 @@ function Profile() {
     if (attributes.lastUsernameChange) {
       const daysSinceChange = (Date.now() - new Date(attributes.lastUsernameChange).getTime()) / (1000 * 60 * 60 * 24);
       if (daysSinceChange < 30) {
-        setCooldownMessage(`Bạn cần chờ ${Math.ceil(30 - daysSinceChange)} ngày nữa để đổi tên.`);
+        setCooldownMessage(t("profile.cooldownMessageJs", { days: Math.ceil(30 - daysSinceChange) }));
       } else {
         setCooldownMessage("");
       }
@@ -105,17 +105,17 @@ function Profile() {
 
   const handleUpdateUsername = async (e) => {
     e.preventDefault();
-    if (isTaken || isChecking || cooldownMessage || newUsername.length < 3) return;
+    if (isTaken || isChecking || cooldownMessage || newUsername.length < 3 || newTag.length === 0) return;
 
     setUpdateError("");
     setUpdateSuccess("");
     try {
       const currentEmail = attributes.email || currentUser?.signInDetails?.loginId;
       await updateUsername(currentEmail, newUsername, newTag);
-      setUpdateSuccess("Đổi tên thành công!");
+      setUpdateSuccess(t("profile.updateSuccess"));
       await checkAuth(); // Refresh UI
     } catch (err) {
-      setUpdateError(err.message || "Lỗi khi đổi tên.");
+      setUpdateError(err.message || t("profile.updateError"));
     }
   };
 
@@ -267,9 +267,9 @@ function Profile() {
               {/* Cột Trái */}
               <div style={{ flex: '1 1 300px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <div>
-                  <h2 style={{ fontSize: '24px', fontWeight: 'bold', margin: '0 0 8px 0', letterSpacing: '0.5px' }}>Battleship ID</h2>
+                  <h2 style={{ fontSize: '24px', fontWeight: 'bold', margin: '0 0 8px 0', letterSpacing: '0.5px' }}>{t("profile.battleshipIdTitle")}</h2>
                   <p style={{ color: 'var(--text-muted)', fontSize: '14px', margin: 0, lineHeight: '1.5' }}>
-                    Your Battleship ID is used by other commanders to search for you in the system.
+                    {t("profile.battleshipIdBody")}
                   </p>
                 </div>
                 {cooldownMessage && (
@@ -278,7 +278,7 @@ function Profile() {
                   }}>
                     <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>error</span>
                     <p style={{ fontSize: '12px', lineHeight: '1.5', margin: 0, fontWeight: '600', letterSpacing: '0.5px' }}>
-                      BATTLESHIP ID CAN BE CHANGED EVERY 30 DAYS. YOU WILL BE ABLE TO CHANGE IT AGAIN ON {formattedNextChangeDate}.
+                      {t("profile.cooldownMessage", { date: formattedNextChangeDate })}
                     </p>
                   </div>
                 )}
@@ -289,7 +289,7 @@ function Profile() {
                 <form onSubmit={handleUpdateUsername} style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
                   <div style={{ display: 'flex', gap: '16px', flexWrap: 'nowrap', marginBottom: '12px' }}>
                     <div style={{ flex: '1', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                      <label style={{ fontSize: '11px', fontWeight: 'bold', letterSpacing: '1px', color: 'var(--text-muted)' }}>COMMANDER NAME</label>
+                      <label style={{ fontSize: '11px', fontWeight: 'bold', letterSpacing: '1px', color: 'var(--text-muted)' }}>{t("profile.commanderName")}</label>
                       <input
                         type="text"
                         value={newUsername}
@@ -303,14 +303,15 @@ function Profile() {
                       />
                     </div>
                     <div style={{ width: '140px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                      <label style={{ fontSize: '11px', fontWeight: 'bold', letterSpacing: '1px', color: 'var(--text-muted)' }}>TAGLINE</label>
+                      <label style={{ fontSize: '11px', fontWeight: 'bold', letterSpacing: '1px', color: 'var(--text-muted)' }}>{t("profile.tagline")}</label>
                       <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(0, 0, 0, 0.2)', border: '2px solid rgba(255, 255, 255, 0.15)', boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.2)', borderRadius: '6px', opacity: cooldownMessage ? 0.5 : 1, transition: 'border-color 0.2s' }}>
                         <span style={{ paddingLeft: '16px', color: 'var(--text-muted)', fontWeight: 'bold', fontSize: '16px' }}>#</span>
                         <input
                           type="text"
                           value={newTag}
                           onChange={(e) => {
-                            setNewTag(e.target.value.toUpperCase());
+                            const value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+                            setNewTag(value);
                             setUpdateError("");
                             setUpdateSuccess("");
                           }}
@@ -323,9 +324,9 @@ function Profile() {
                   </div>
 
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexGrow: 1 }}>
-                    <div style={{ fontSize: '13px', color: isChecking ? '#888' : isTaken ? '#ff4d4d' : newUsername.length >= 3 ? '#4caf50' : '#ff4d4d' }}>
+                    <div style={{ fontSize: '13px', color: isChecking ? '#888' : isTaken ? '#ff4d4d' : (newUsername.length < 3 || newTag.length === 0) ? '#ff4d4d' : '#4caf50' }}>
                       {newUsername.length > 0 && newUsername !== (attributes.preferred_username?.split("#")[0] || "") && (
-                        isChecking ? "Checking..." : newUsername.length < 3 ? "Tên phải có ít nhất 3 ký tự" : isTaken ? "Tên đã bị trùng" : "Tên hợp lệ"
+                        isChecking ? t("profile.checking") : newUsername.length < 3 ? t("profile.nameTooShort") : newTag.length === 0 ? t("profile.tagEmpty") : isTaken ? t("profile.nameTaken") : t("profile.nameValid")
                       )}
                       {updateError && <div style={{ color: '#ff4d4d', marginTop: '4px' }}>{updateError}</div>}
                       {updateSuccess && <div style={{ color: '#4caf50', marginTop: '4px' }}>{updateSuccess}</div>}
@@ -333,23 +334,23 @@ function Profile() {
 
                     <button 
                       type="submit" 
-                      disabled={isTaken || isChecking || newUsername.length < 3 || !!cooldownMessage || (attributes.preferred_username === fullUsername)}
+                      disabled={isTaken || isChecking || newUsername.length < 3 || newTag.length === 0 || !!cooldownMessage || (attributes.preferred_username === fullUsername)}
                       style={{
                         padding: '12px 24px', 
-                        background: (isTaken || isChecking || newUsername.length < 3 || !!cooldownMessage || (attributes.preferred_username === fullUsername)) ? 'var(--surface-sunken)' : '#d32f2f', 
-                        color: (isTaken || isChecking || newUsername.length < 3 || !!cooldownMessage || (attributes.preferred_username === fullUsername)) ? '#666' : 'white', 
+                        background: (isTaken || isChecking || newUsername.length < 3 || newTag.length === 0 || !!cooldownMessage || (attributes.preferred_username === fullUsername)) ? 'var(--surface-sunken)' : '#d32f2f', 
+                        color: (isTaken || isChecking || newUsername.length < 3 || newTag.length === 0 || !!cooldownMessage || (attributes.preferred_username === fullUsername)) ? '#666' : 'white', 
                         borderRadius: '4px', 
                         fontWeight: 'bold', 
                         fontSize: '13px',
                         letterSpacing: '1px',
                         border: 'none',
-                        cursor: (isTaken || isChecking || newUsername.length < 3 || !!cooldownMessage || (attributes.preferred_username === fullUsername)) ? 'not-allowed' : 'pointer',
+                        cursor: (isTaken || isChecking || newUsername.length < 3 || newTag.length === 0 || !!cooldownMessage || (attributes.preferred_username === fullUsername)) ? 'not-allowed' : 'pointer',
                         transition: 'all 0.2s ease',
                         alignSelf: 'flex-end',
                         marginTop: 'auto'
                       }}
                     >
-                      SAVE CHANGES
+                      {t("profile.saveChanges")}
                     </button>
                   </div>
                 </form>
