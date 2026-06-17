@@ -4,6 +4,7 @@ import CommandHeader from "../components/CommandHeader";
 import { useAuth } from "../contexts/AuthContext";
 import { useLanguage } from "../contexts/LanguageContext";
 import { findMatch, getRoom, leaveRoom } from "../services/matchService";
+import { getUserProfile } from "../services/userService";
 import "./HomeHeader.css";
 import "./Home.css";
 
@@ -41,19 +42,30 @@ function Home() {
   const [matchmakingRoomCode, setMatchmakingRoomCode] = useState("");
   const [matchmakingError, setMatchmakingError] = useState("");
   const [guestUserId] = useState(() => `guest-${crypto.randomUUID()}`);
-  const [stats] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem("battleshipStats")) || {
-        totalMatches: 0,
-        wins: 0,
-        losses: 0,
-        totalShots: 0,
-        totalHits: 0,
-      };
-    } catch {
-      return { totalMatches: 0, wins: 0, losses: 0, totalShots: 0, totalHits: 0 };
-    }
+  const [stats, setStats] = useState({
+    totalGames: 0,
+    wins: 0,
+    losses: 0,
   });
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      const userEmail = attributes?.email || currentUser?.signInDetails?.loginId;
+      if (userEmail) {
+        const userProfile = await getUserProfile(userEmail);
+        if (userProfile) {
+          setStats({
+            totalGames: userProfile.totalGames || 0,
+            wins: userProfile.wins || 0,
+            losses: userProfile.losses || 0,
+          });
+        }
+      }
+    };
+    if (isAuthenticated) {
+      fetchStats();
+    }
+  }, [attributes, currentUser, isAuthenticated]);
   const [activeModeTab, setActiveModeTab] = useState('bot');
   const [activeStatsTab, setActiveStatsTab] = useState('record');
 
@@ -625,9 +637,9 @@ function Home() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="bg-surface-container/30 p-4 rounded-sm border border-white/5">
                     <p className="text-[10px] text-on-surface-variant uppercase font-bold mb-1">
-                      {t("home.totalEngagements")}
+                      {t("profile.totalBattles")}
                     </p>
-                    <p className="text-xl font-black text-on-surface">{stats.totalMatches}</p>
+                    <p className="text-xl font-black text-on-surface">{stats.totalGames}</p>
                   </div>
                   <div className="bg-surface-container/30 p-4 rounded-sm border border-white/5">
                     <p className="text-[10px] text-on-surface-variant uppercase font-bold mb-1">
@@ -646,7 +658,7 @@ function Home() {
                       {t("home.winRate")}
                     </p>
                     <p className="text-xl font-black text-secondary">
-                      {stats.totalMatches > 0 ? ((stats.wins / stats.totalMatches) * 100).toFixed(1) : 0}%
+                      {stats.totalGames > 0 ? ((stats.wins / stats.totalGames) * 100).toFixed(1) : 0}%
                     </p>
                   </div>
                 </div>
