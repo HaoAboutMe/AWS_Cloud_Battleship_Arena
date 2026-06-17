@@ -46,3 +46,27 @@ export const updateUsername = async (email, newUsername, newTag) => {
     throw error;
   }
 };
+
+export const getUserProfile = async (email) => {
+  try {
+    const response = await fetch(
+      `${import.meta.env.VITE_API_BASE_URL}/user?email=${encodeURIComponent(email)}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (!response.ok) {
+      if (response.status === 404) return null;
+      throw new Error(`API call failed with status: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Failed to get user from DynamoDB:", error);
+    return null;
+  }
+};

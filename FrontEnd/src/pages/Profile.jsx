@@ -5,27 +5,17 @@ import { useAuth } from "../contexts/AuthContext";
 import { useLanguage } from "../contexts/LanguageContext";
 import "./HomeHeader.css";
 import "./Profile.css";
-import { updateUsername } from "../services/userService";
+import { updateUsername, getUserProfile } from "../services/userService";
 import AvatarUpload from "../components/AvatarUpload";
 
 const COMMANDER_AVATAR =
   "https://lh3.googleusercontent.com/aida-public/AB6AXuBaat_LefR8zmWVQ9CHx0bp9dTekwkF9c9AQAo9FxlAx2bSsRi_lWU3tRBK1vdpC50zM3NdKJAB5hHd5ZusN0HuCxBcpe1IbzSlreCalSVomkgeQwYwz9iKrXYvj55d42PgtFMDfCUosVO6NBFPXtM_vVCTYDxnC7xz1DxkbcIvRSfpehGpD-kbu7XuQbuktassmbGVExYQy0GTNC_jJHX3hmbFNDIdyfqO5-uwHYbgPtFdacF4kVhq0AnscPv4dWSz-e_6DYUDMSxe";
 
 const EMPTY_STATS = {
-  totalMatches: 0,
+  totalGames: 0,
   wins: 0,
   losses: 0,
-  totalShots: 0,
-  totalHits: 0,
 };
-
-function readStats() {
-  try {
-    return JSON.parse(localStorage.getItem("battleshipStats")) || EMPTY_STATS;
-  } catch {
-    return EMPTY_STATS;
-  }
-}
 
 function Profile() {
   const navigate = useNavigate();
@@ -34,7 +24,26 @@ function Profile() {
   const [isLightMode, setIsLightMode] = useState(() =>
     document.documentElement.classList.contains("light-mode-active"),
   );
-  const [stats] = useState(readStats);
+  const [stats, setStats] = useState(EMPTY_STATS);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      const userEmail = attributes.email || currentUser?.signInDetails?.loginId;
+      if (userEmail) {
+        const userProfile = await getUserProfile(userEmail);
+        if (userProfile) {
+          setStats({
+            totalGames: userProfile.totalGames || 0,
+            wins: userProfile.wins || 0,
+            losses: userProfile.losses || 0,
+          });
+        }
+      }
+    };
+    if (currentUser) {
+      fetchStats();
+    }
+  }, [attributes.email, currentUser]);
 
   // States for Username Edit
   const [newUsername, setNewUsername] = useState("");
@@ -183,13 +192,9 @@ function Profile() {
   const avatarUrl = customAvatarUrl || (typeof attributes.picture === "string"
       ? attributes.picture
       : COMMANDER_AVATAR);
-  const accuracy =
-    stats.totalShots > 0
-      ? Math.round((stats.totalHits / stats.totalShots) * 100)
-      : 0;
   const winRate =
-    stats.totalMatches > 0
-      ? Math.round((stats.wins / stats.totalMatches) * 100)
+    stats.totalGames > 0
+      ? Math.round((stats.wins / stats.totalGames) * 100)
       : 0;
 
   return (
@@ -369,19 +374,19 @@ function Profile() {
                 <div className="profile-stat-grid">
                   <article>
                     <span>{t("profile.totalBattles")}</span>
-                    <strong>{stats.totalMatches}</strong>
+                    <strong>{stats.totalGames}</strong>
                   </article>
                   <article>
                     <span>{t("profile.victories")}</span>
                     <strong>{stats.wins}</strong>
                   </article>
                   <article>
-                    <span>{t("profile.winRate")}</span>
-                    <strong>{winRate}%</strong>
+                    <span>{t("home.defeats")}</span>
+                    <strong>{stats.losses}</strong>
                   </article>
                   <article>
-                    <span>{t("profile.accuracy")}</span>
-                    <strong>{accuracy}%</strong>
+                    <span>{t("profile.winRate")}</span>
+                    <strong>{winRate}%</strong>
                   </article>
                 </div>
               </div>
