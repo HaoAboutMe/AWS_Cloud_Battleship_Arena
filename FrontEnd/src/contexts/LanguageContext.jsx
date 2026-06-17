@@ -220,6 +220,11 @@ const translations = {
       updateSuccess: "Name changed successfully!",
       updateError: "Error changing name.",
       saveChanges: "SAVE CHANGES",
+      matchHistory: "Match History",
+      matchHistoryBody: "Your recent match results.",
+      win: "Victory",
+      loss: "Defeat",
+      room: "Room",
     },
   },
   vi: {
@@ -441,6 +446,11 @@ const translations = {
       updateSuccess: "Đổi tên thành công!",
       updateError: "Lỗi khi đổi tên.",
       saveChanges: "LƯU THAY ĐỔI",
+      matchHistory: "Lịch sử trận đấu",
+      matchHistoryBody: "Kết quả các trận đấu gần đây của bạn.",
+      win: "Thắng",
+      loss: "Thua",
+      room: "Phòng",
     },
   },
 };

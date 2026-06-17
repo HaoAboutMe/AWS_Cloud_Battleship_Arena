@@ -5,7 +5,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { useLanguage } from "../contexts/LanguageContext";
 import "./HomeHeader.css";
 import "./Profile.css";
-import { updateUsername, getUserProfile } from "../services/userService";
+import { updateUsername, getUserProfile, getMatchHistory } from "../services/userService";
 import AvatarUpload from "../components/AvatarUpload";
 
 const COMMANDER_AVATAR =
@@ -25,6 +25,8 @@ function Profile() {
     document.documentElement.classList.contains("light-mode-active"),
   );
   const [stats, setStats] = useState(EMPTY_STATS);
+  const [matchHistory, setMatchHistory] = useState([]);
+  const [loadingHistory, setLoadingHistory] = useState(true);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -38,6 +40,9 @@ function Profile() {
             losses: userProfile.losses || 0,
           });
         }
+        const history = await getMatchHistory(userEmail);
+        setMatchHistory(history);
+        setLoadingHistory(false);
       }
     };
     if (currentUser) {
@@ -424,6 +429,106 @@ function Profile() {
                   {t("profile.resetPassword")}
                 </Link>
               </aside>
+            </section>
+
+            <section className="profile-history-section" style={{
+              marginTop: '32px',
+              padding: '32px',
+              background: 'var(--surface)',
+              borderRadius: '8px',
+              border: '1px solid var(--border)'
+            }}>
+              <div className="profile-section-heading" style={{ marginBottom: '24px' }}>
+                <span className="material-symbols-outlined">history</span>
+                <div>
+                  <h2>{t("profile.matchHistory")}</h2>
+                  <p>{t("profile.matchHistoryBody")}</p>
+                </div>
+              </div>
+              
+              {loadingHistory ? (
+                <div style={{ textAlign: 'center', padding: '20px', color: 'var(--text-muted)' }}>Loading...</div>
+              ) : matchHistory.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '40px', background: 'rgba(0,0,0,0.2)', borderRadius: '8px', color: 'var(--text-muted)' }}>
+                  No match history found.
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  {matchHistory.map((match) => {
+                    const isWin = match.winnerId === match.userId;
+                    const dateObj = new Date(match.endedAt);
+                    const formattedDate = !isNaN(dateObj.getTime()) ? dateObj.toLocaleString() : match.endedAt;
+                    
+                    return (
+                      <div key={match.matchId} style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        background: isWin ? 'rgba(76, 175, 80, 0.05)' : 'rgba(244, 67, 54, 0.05)',
+                        border: `1px solid ${isWin ? 'rgba(76, 175, 80, 0.3)' : 'rgba(244, 67, 54, 0.3)'}`,
+                        borderRadius: '8px',
+                        overflow: 'hidden'
+                      }}>
+                        {/* Title Bar */}
+                        <div style={{
+                          padding: '8px 16px',
+                          background: isWin ? 'rgba(76, 175, 80, 0.1)' : 'rgba(244, 67, 54, 0.1)',
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          borderBottom: `1px solid ${isWin ? 'rgba(76, 175, 80, 0.2)' : 'rgba(244, 67, 54, 0.2)'}`
+                        }}>
+                          <strong style={{
+                            color: isWin ? '#4caf50' : '#f44336',
+                            fontSize: '14px',
+                            letterSpacing: '1px',
+                            textTransform: 'uppercase'
+                          }}>
+                            {isWin ? t("profile.win") : t("profile.loss")}
+                          </strong>
+                          <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                            {t("profile.room")}: {match.roomCode || "***"} &bull; {formattedDate}
+                          </span>
+                        </div>
+                        
+                        {/* Players Info */}
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '16px'
+                        }}>
+                          {/* Player 1 */}
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1 }}>
+                            <img 
+                              src={match.player1Avatar || COMMANDER_AVATAR} 
+                              alt="Player 1" 
+                              style={{ width: '40px', height: '40px', borderRadius: '4px', border: '1px solid var(--border)', objectFit: 'cover' }}
+                              onError={(e) => { e.currentTarget.src = COMMANDER_AVATAR; }}
+                            />
+                            <span style={{ fontWeight: 'bold', fontSize: '15px', color: 'var(--text-main)' }}>{match.player1Name || "Unknown"}</span>
+                          </div>
+                          
+                          {/* VS */}
+                          <div style={{ padding: '0 16px', color: 'var(--text-muted)', fontWeight: 'bold', fontStyle: 'italic', fontSize: '14px' }}>
+                            VS
+                          </div>
+                          
+                          {/* Player 2 */}
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, justifyContent: 'flex-end' }}>
+                            <span style={{ fontWeight: 'bold', fontSize: '15px', color: 'var(--text-main)' }}>{match.player2Name || "Unknown"}</span>
+                            <img 
+                              src={match.player2Avatar || COMMANDER_AVATAR} 
+                              alt="Player 2" 
+                              style={{ width: '40px', height: '40px', borderRadius: '4px', border: '1px solid var(--border)', objectFit: 'cover' }}
+                              onError={(e) => { e.currentTarget.src = COMMANDER_AVATAR; }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </section>
           </>
         )}
