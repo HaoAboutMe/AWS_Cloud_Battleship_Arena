@@ -42,6 +42,13 @@ exports.handler = async (event) => {
                     wins: 0,
                     losses: 0,
                     totalGames: 0,
+                    rank: "unranked",
+                    rankPoints: 0,
+                    peakRank: "unranked",
+                    rankedWins: 0,
+                    rankedLosses: 0,
+                    rankedMatches: 0,
+                    winStreak: 0,
                     createdAt: new Date().toISOString()
                 }
             }));

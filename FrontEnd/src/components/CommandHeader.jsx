@@ -2,6 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useAuth } from "../contexts/AuthContext";
 import LanguageToggle from "./LanguageToggle";
+import { RANKS, getRankMeta } from "../game/rankConfig";
 
 const COMMANDER_AVATAR =
   "https://lh3.googleusercontent.com/aida-public/AB6AXuBaat_LefR8zmWVQ9CHx0bp9dTekwkF9c9AQAo9FxlAx2bSsRi_lWU3tRBK1vdpC50zM3NdKJAB5hHd5ZusN0HuCxBcpe1IbzSlreCalSVomkgeQwYwz9iKrXYvj55d42PgtFMDfCUosVO6NBFPXtM_vVCTYDxnC7xz1DxkbcIvRSfpehGpD-kbu7XuQbuktassmbGVExYQy0GTNC_jJHX3hmbFNDIdyfqO5-uwHYbgPtFdacF4kVhq0AnscPv4dWSz-e_6DYUDMSxe";
@@ -29,6 +30,10 @@ function CommandHeader({
   const avatarUrl = customAvatarUrl || (typeof attributes.picture === "string"
     ? attributes.picture
     : COMMANDER_AVATAR);
+  const rankPoints = Number(attributes.rankPoints || 0);
+  const rankedMatches = Number(attributes.rankedMatches || 0);
+  const hasRank = rankedMatches > 0 && rankPoints >= RANKS[0].minRp;
+  const rankMeta = getRankMeta(hasRank ? attributes.rank || "bronze" : "bronze");
   const handleNavigation = (event, targetPath) => {
     if (!onNavigateRequest) return;
 
@@ -112,7 +117,14 @@ function CommandHeader({
                   />
                   <span className="command-account-copy">
                     <strong title={identity}>{identity}</strong>
-                    <small><i /> {t("common.admiralClearance")}</small>
+                    <small>
+                      {hasRank ? (
+                        <img src={rankMeta.badge} alt="" className="command-rank-badge" />
+                      ) : (
+                        <i className="command-empty-rank-badge" />
+                      )}
+                      {hasRank ? `${rankMeta.label} - ${rankPoints} RP` : "Unranked"}
+                    </small>
                   </span>
                   <span className="material-symbols-outlined command-account-chevron">expand_more</span>
                 </button>

@@ -1,12 +1,14 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import AvatarUpload from "../components/AvatarUpload";
 import CommandHeader from "../components/CommandHeader";
+import RankUpAnimation from "../components/RankUpAnimation";
 import { useAuth } from "../contexts/AuthContext";
 import { useLanguage } from "../contexts/LanguageContext";
+import { RANKS, getNextRank, getRankMeta } from "../game/rankConfig";
+import { getMatchHistory, getUserProfile, updateUsername } from "../services/userService";
 import "./HomeHeader.css";
 import "./Profile.css";
-import { updateUsername, getUserProfile, getMatchHistory } from "../services/userService";
-import AvatarUpload from "../components/AvatarUpload";
 
 const COMMANDER_AVATAR =
   "https://lh3.googleusercontent.com/aida-public/AB6AXuBaat_LefR8zmWVQ9CHx0bp9dTekwkF9c9AQAo9FxlAx2bSsRi_lWU3tRBK1vdpC50zM3NdKJAB5hHd5ZusN0HuCxBcpe1IbzSlreCalSVomkgeQwYwz9iKrXYvj55d42PgtFMDfCUosVO6NBFPXtM_vVCTYDxnC7xz1DxkbcIvRSfpehGpD-kbu7XuQbuktassmbGVExYQy0GTNC_jJHX3hmbFNDIdyfqO5-uwHYbgPtFdacF4kVhq0AnscPv4dWSz-e_6DYUDMSxe";
@@ -19,12 +21,15 @@ const EMPTY_STATS = {
 
 function Profile() {
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { user: currentUser, attributes, loading, logout, checkAuth, customAvatarUrl, updateAvatar } = useAuth();
   const [isLightMode, setIsLightMode] = useState(() =>
     document.documentElement.classList.contains("light-mode-active"),
   );
   const [stats, setStats] = useState(EMPTY_STATS);
+  const [rankLadderOpen, setRankLadderOpen] = useState(false);
+  const [rankAnimation, setRankAnimation] = useState(null);
+  const [selectedRankId, setSelectedRankId] = useState("unranked");
   const [matchHistory, setMatchHistory] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(true);
 
@@ -69,7 +74,6 @@ function Profile() {
         setNewUsername(attributes.preferred_username);
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [attributes.preferred_username]);
 
   const nextChangeDate = attributes.lastUsernameChange 
@@ -201,6 +205,56 @@ function Profile() {
     stats.totalGames > 0
       ? Math.round((stats.wins / stats.totalGames) * 100)
       : 0;
+  const rankedMatches = Number(attributes.rankedMatches || 0);
+  const rankPoints = Number(attributes.rankPoints || 0);
+  const hasRank = rankedMatches > 0 && rankPoints >= RANKS[0].minRp;
+  const rankMeta = getRankMeta(hasRank ? attributes.rank || "bronze" : "bronze");
+  const getRankDisplayName = (rank) => {
+    if (!rank) return t("profile.unranked");
+    return language === "vi" ? rank.viLabel || rank.label : rank.label;
+  };
+  const nextRank = getNextRank(rankMeta.id);
+  const rpToNextRank = nextRank ? Math.max(0, nextRank.minRp - rankPoints) : 0;
+  const rankLabel = hasRank ? `${getRankDisplayName(rankMeta)} - ${rankPoints} RP` : t("profile.unranked");
+  const selectedIsUnranked = selectedRankId === "unranked";
+  const selectedRank = selectedIsUnranked ? null : getRankMeta(selectedRankId);
+  const selectedTitle = selectedIsUnranked ? t("profile.unranked") : getRankDisplayName(selectedRank);
+  const currentRankIndex = hasRank ? RANKS.findIndex((rank) => rank.id === rankMeta.id) : -1;
+  const selectedNextRank = selectedRank ? getNextRank(selectedRank.id) : RANKS[0];
+  const selectedRankUnlocked = !!selectedRank && hasRank && rankPoints >= selectedRank.minRp;
+  const selectedRankCurrent = !!selectedRank && hasRank && selectedRank.id === rankMeta.id;
+  const selectedProgressStart = selectedRank?.minRp || 0;
+  const selectedProgressEnd = selectedNextRank?.minRp || selectedRank?.minRp || RANKS[0].minRp;
+  const selectedProgressRange = Math.max(1, selectedProgressEnd - selectedProgressStart);
+  const selectedProgressPercent = selectedIsUnranked
+    ? Math.min(100, Math.max(0, (rankPoints / RANKS[0].minRp) * 100))
+    : selectedRankCurrent
+    ? Math.min(100, Math.max(0, ((rankPoints - selectedProgressStart) / selectedProgressRange) * 100))
+    : selectedRankUnlocked
+      ? 100
+      : Math.min(100, Math.max(0, (rankPoints / selectedRank.minRp) * 100));
+  const selectedProgressLabel = selectedIsUnranked
+    ? `${Math.max(rankPoints, 0)} / ${RANKS[0].minRp} RP`
+    : selectedRankCurrent && selectedNextRank
+    ? `${Math.max(rankPoints, 0)} / ${selectedNextRank.minRp} RP`
+    : selectedRankUnlocked
+      ? t("profile.rpSecured", { points: selectedRank.minRp })
+      : `${Math.max(rankPoints, 0)} / ${selectedRank.minRp} RP`;
+  const rankRewards = {
+    bronze: [t("profile.rewardBronze1"), t("profile.rewardBronze2"), t("profile.rewardBronze3")],
+    silver: [t("profile.rewardSilver1"), t("profile.rewardSilver2"), t("profile.rewardSilver3")],
+    gold: [t("profile.rewardGold1"), t("profile.rewardGold2"), t("profile.rewardGold3")],
+    platinum: [t("profile.rewardPlatinum1"), t("profile.rewardPlatinum2"), t("profile.rewardPlatinum3")],
+    diamond: [t("profile.rewardDiamond1"), t("profile.rewardDiamond2"), t("profile.rewardDiamond3")],
+    master: [t("profile.rewardMaster1"), t("profile.rewardMaster2"), t("profile.rewardMaster3")],
+    admiral: [t("profile.rewardAdmiral1"), t("profile.rewardAdmiral2"), t("profile.rewardAdmiral3")],
+  };
+  const unrankedRewards = [t("profile.rankRewardUnlockBronze"), t("profile.rankRewardEarnRp"), t("profile.rankRewardBeginLadder")];
+  const testRankUp = () => {
+    const currentRank = hasRank ? rankMeta.id : "bronze";
+    const targetRank = getNextRank(currentRank)?.id || RANKS[0].id;
+    setRankAnimation({ oldRank: currentRank, newRank: targetRank });
+  };
 
   return (
     <div className="profile-page">
@@ -252,9 +306,24 @@ function Profile() {
                 <h1>{callsign}</h1>
                 <p>{email}</p>
                 <div className="profile-badges">
-                  <span>
-                    <i /> {t("common.admiralClearance")}
-                  </span>
+                  <button
+                    type="button"
+                    className={`profile-rank-pill ${hasRank ? "" : "is-unranked"}`}
+                    onClick={() => {
+                      setSelectedRankId(hasRank ? rankMeta.id : "unranked");
+                      setRankLadderOpen(true);
+                    }}
+                  >
+                    {hasRank ? (
+                      <img src={rankMeta.badge} alt="" />
+                    ) : (
+                      <i className="profile-empty-rank-badge" />
+                    )}
+                    {rankLabel}
+                  </button>
+                  <button type="button" className="profile-rank-test" onClick={testRankUp}>
+                    Test rank up
+                  </button>
                   <span>{t("profile.cloudFleet")}</span>
                 </div>
               </div>
@@ -274,7 +343,7 @@ function Profile() {
               borderRadius: '8px',
               border: '1px solid var(--border)'
             }}>
-              {/* Cột Trái */}
+              {/* Cá»™t TrÃ¡i */}
               <div style={{ flex: '1 1 300px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <div>
                   <h2 style={{ fontSize: '24px', fontWeight: 'bold', margin: '0 0 8px 0', letterSpacing: '0.5px' }}>{t("profile.battleshipIdTitle")}</h2>
@@ -294,7 +363,7 @@ function Profile() {
                 )}
               </div>
 
-              {/* Cột Phải */}
+              {/* Cá»™t Pháº£i */}
               <div style={{ flex: '2 1 400px', display: 'flex', flexDirection: 'column' }}>
                 <form onSubmit={handleUpdateUsername} style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
                   <div style={{ display: 'flex', gap: '16px', flexWrap: 'nowrap', marginBottom: '12px' }}>
@@ -417,7 +486,10 @@ function Profile() {
                   </div>
                   <div>
                     <dt>{t("profile.rank")}</dt>
-                    <dd>{t("common.admiral")}</dd>
+                    <dd>
+                      {rankLabel}
+                      {hasRank && nextRank ? ` - ${t("profile.rpToRank", { points: rpToNextRank, rank: getRankDisplayName(nextRank) })}` : ""}
+                    </dd>
                   </div>
                   <div>
                     <dt>{t("profile.accountId")}</dt>
@@ -549,6 +621,108 @@ function Profile() {
           </>
         )}
       </main>
+
+      {rankLadderOpen && (
+        <div
+          className="profile-rank-modal"
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setRankLadderOpen(false)}
+        >
+          <div className="profile-rank-panel" onClick={(event) => event.stopPropagation()}>
+            <button
+              type="button"
+              className="profile-rank-close"
+              onClick={() => setRankLadderOpen(false)}
+              aria-label={t("profile.closeRankLadder")}
+            >
+              <span className="material-symbols-outlined">close</span>
+            </button>
+            <div className="profile-rank-command-shell">
+              <section className="profile-rank-focus" key={selectedRankId}>
+                <span className="profile-rank-kicker">{t("profile.commanderLadder")}</span>
+                <h2>{selectedTitle}</h2>
+                <div className="profile-rank-radar">
+                  <span className="profile-rank-sonar one" />
+                  <span className="profile-rank-sonar two" />
+                  <span className="profile-rank-light left" />
+                  <span className="profile-rank-light right" />
+                  {selectedRank ? (
+                    <img src={selectedRank.badge} alt="" className="profile-rank-focus-badge" />
+                  ) : (
+                    <i className="profile-empty-rank-badge profile-rank-focus-empty" />
+                  )}
+                </div>
+                <div className="profile-rank-progress">
+                  <div>
+                    <span>{t("profile.pressureGauge")}</span>
+                    <strong>{selectedProgressLabel}</strong>
+                  </div>
+                  <i>
+                    <b style={{ width: `${selectedProgressPercent}%` }} />
+                  </i>
+                </div>
+                <div className="profile-rank-rewards">
+                  <span>{t("profile.rewardManifest")}</span>
+                  <ul>
+                    {(selectedRank ? rankRewards[selectedRank.id] : unrankedRewards).map((reward) => (
+                      <li key={reward}>{reward}</li>
+                    ))}
+                  </ul>
+                </div>
+              </section>
+
+              <section className="profile-rank-voyage">
+                <div className="profile-voyage-heading">
+                  <span>{t("profile.leagueLevels")}</span>
+                  <strong>{hasRank ? t("profile.rpSecured", { points: rankPoints }) : t("profile.rankedRouteLocked")}</strong>
+                </div>
+                <div className="profile-voyage-map profile-league-levels">
+                  {RANKS.map((rank, index) => {
+                    const isCurrent = hasRank && rank.id === rankMeta.id;
+                    const isUnlocked = hasRank && rankPoints >= rank.minRp;
+                    const isPassed = isUnlocked && index < currentRankIndex;
+                    const isSelected = selectedRank ? rank.id === selectedRank.id : false;
+                    const columnHeight = 38 + (index * 8);
+
+                    return (
+                      <button
+                        type="button"
+                        key={rank.id}
+                        className={[
+                          "profile-voyage-node",
+                          `rank-${rank.id}`,
+                          isCurrent ? "is-current" : "",
+                          isPassed ? "is-passed" : "",
+                          isUnlocked ? "is-unlocked" : "is-locked",
+                          isSelected ? "is-selected" : "",
+                        ].filter(Boolean).join(" ")}
+                        onClick={() => setSelectedRankId(rank.id)}
+                        style={{ "--node-color": rank.color, "--league-height": `${columnHeight}%` }}
+                      >
+                        {isCurrent && <i className="profile-rank-ship-marker" />}
+                        <span className="profile-league-column" />
+                        <img src={rank.badge} alt="" />
+                        <strong>{getRankDisplayName(rank)}</strong>
+                        <em>{rank.minRp}+ RP</em>
+                      </button>
+                    );
+                  })}
+                  <span className="profile-league-divisions">{t("profile.divisions")}</span>
+                </div>
+              </section>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {rankAnimation && (
+        <RankUpAnimation
+          oldRank={rankAnimation.oldRank}
+          newRank={rankAnimation.newRank}
+          onComplete={() => setRankAnimation(null)}
+        />
+      )}
     </div>
   );
 }
