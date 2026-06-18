@@ -4,8 +4,8 @@ import { getRankMeta } from "../game/rankConfig";
 import "./RankUpAnimation.css";
 
 const buildRankUpScene = ({ oldRank, newRank, onComplete }) => {
-  const oldMeta = getRankMeta(oldRank);
-  const newMeta = getRankMeta(newRank);
+  const oldMeta = getRankMeta(oldRank || "bronze");
+  const newMeta = getRankMeta(newRank || "bronze");
   const burst = (scene, x, y, color) => {
     const emitter = scene.add.particles(x, y, "rankParticle", {
       speed: { min: 100, max: 250 },
@@ -19,7 +19,9 @@ const buildRankUpScene = ({ oldRank, newRank, onComplete }) => {
       emitting: false,
     });
 
-    emitter.explode(40, x, y);
+    if (typeof emitter.explode === "function") {
+      emitter.explode(40, x, y);
+    }
     scene.time.delayedCall(1650, () => emitter.destroy());
   };
 
@@ -58,13 +60,9 @@ const buildRankUpScene = ({ oldRank, newRank, onComplete }) => {
       const ring3 = this.add.circle(0, 0, 58, 0x00d2ff, 0);
       ring3.setStrokeStyle(1, 0x8feaff, 0.28);
 
-      const sweep = this.add.graphics();
-      sweep.fillStyle(0x8feaff, 0.2);
-      sweep.slice(0, 0, 168, Phaser.Math.DegToRad(-18), Phaser.Math.DegToRad(26), false);
-      sweep.lineTo(0, 0);
-      sweep.closePath();
-      sweep.fillPath();
-      sweep.setAlpha(0.46);
+      const sweep = this.add.arc(0, 0, 168, -18, 26, false, 0x8feaff, 0.2);
+      sweep.setStrokeStyle(1, 0x8feaff, 0.25);
+      sweep.setAlpha(0.42);
       radarCore.add([ring, ring2, ring3, sweep]);
 
       const oldBadge = this.add.image(centerX, centerY, "oldBadge");
@@ -141,7 +139,7 @@ const buildRankUpScene = ({ oldRank, newRank, onComplete }) => {
               shockwave.setStrokeStyle(4, 0xffffff, 0.68);
               this.tweens.add({
                 targets: shockwave,
-                radius: Math.max(width, height) * 0.68,
+                scale: Math.max(width, height) * 0.68 / 36,
                 alpha: 0,
                 duration: 420,
                 ease: "Cubic.easeOut",

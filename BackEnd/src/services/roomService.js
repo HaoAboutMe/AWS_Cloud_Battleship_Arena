@@ -1,5 +1,6 @@
 const { randomUUID } = require("node:crypto");
 const {
+  DeleteCommand,
   GetCommand,
   PutCommand,
   ScanCommand,
@@ -78,6 +79,17 @@ const putRoom = async (room) => {
   );
 
   return room;
+};
+
+const deleteRoom = async (roomCode) => {
+  await documentClient.send(
+    new DeleteCommand({
+      TableName: ROOMS_TABLE,
+      Key: {
+        roomCode,
+      },
+    }),
+  );
 };
 
 const createRoom = async ({ player, difficulty = "easy", matchmakingMode }) => {
@@ -387,8 +399,13 @@ const leaveRoom = async ({ roomCode, player }) => {
   };
 
   if (remainingPlayers.length === 0) {
-    delete nextRoom.matchmakingMode;
-    nextRoom.status = "CLOSED";
+    await deleteRoom(normalizedCode);
+    return {
+      ...nextRoom,
+      matchmakingMode: undefined,
+      status: "CLOSED",
+      deleted: true,
+    };
   }
 
   return putRoom(nextRoom);
@@ -396,6 +413,7 @@ const leaveRoom = async ({ roomCode, player }) => {
 
 module.exports = {
   createRoom,
+  deleteRoom,
   findMatchmakingRoom,
   getRoom,
   joinRoom,

@@ -8,6 +8,12 @@ const RANKS = [
   { id: "admiral", label: "Admiral", minRp: 4000 },
 ];
 
+const UNRANKED = {
+  id: "unranked",
+  label: "Unranked",
+  minRp: 0,
+};
+
 const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 
 const normalizeRp = (value) => {
@@ -17,12 +23,13 @@ const normalizeRp = (value) => {
 
 const getRankForRp = (rankPoints = 0) => {
   const rp = normalizeRp(rankPoints);
-  return [...RANKS].reverse().find((rank) => rp >= rank.minRp) || RANKS[0];
+  return [...RANKS].reverse().find((rank) => rp >= rank.minRp) || UNRANKED;
 };
 
 const getRankIndex = (rankId) => {
+  if (rankId === UNRANKED.id) return -1;
   const index = RANKS.findIndex((rank) => rank.id === rankId);
-  return index === -1 ? 0 : index;
+  return index === -1 ? -1 : index;
 };
 
 const calculateRankDelta = ({
@@ -90,6 +97,7 @@ const buildRankUpdate = ({ currentUser = {}, delta = 0, isWinner }) => {
 
 module.exports = {
   RANKS,
+  UNRANKED,
   calculateRankDelta,
   buildRankUpdate,
   getRankForRp,
