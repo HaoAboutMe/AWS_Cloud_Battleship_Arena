@@ -1108,18 +1108,31 @@ function Game() {
         const loserPlayer = isSameRoomPlayer(player1, currentPlayer) ? player2 : player1;
         const isRankedMatch = currentRoom.matchmakingMode === "ranked";
         const latestStats = statsRef.current || stats;
+        
+        // Calculate shots and misses
+        const myShots = enemyBoardStateRef.current.flat().filter(c => c.isHit).length;
+        const myMisses = enemyBoardStateRef.current.flat().filter(c => c.isHit && !c.hasShip).length;
+        const opShots = playerBoardStateRef.current.flat().filter(c => c.isHit).length;
+        const opMisses = playerBoardStateRef.current.flat().filter(c => c.isHit && !c.hasShip).length;
+
+        const isPlayer1 = getRoomPlayerKey(player1) === currentPlayer.baseUserId;
+        const player1Shots = isPlayer1 ? myShots : opShots;
+        const player1Misses = isPlayer1 ? myMisses : opMisses;
+        const player2Shots = isPlayer1 ? opShots : myShots;
+        const player2Misses = isPlayer1 ? opMisses : myMisses;
+
         const winnerStats = {
             turns: latestStats.turns || 0,
-            shots: latestStats.shots || 0,
-            hits: latestStats.hits || 0,
-            misses: latestStats.misses || 0,
+            shots: myShots,
+            hits: myShots - myMisses,
+            misses: myMisses,
             shipsDestroyed: latestStats.shipsDestroyed || 0,
         };
         const loserStats = {
             turns: latestStats.turns || 0,
-            shots: 0,
-            hits: 0,
-            misses: 0,
+            shots: opShots,
+            hits: opShots - opMisses,
+            misses: opMisses,
             shipsDestroyed: 0,
         };
 
@@ -1137,6 +1150,10 @@ function Game() {
             winnerEmail: currentPlayer.email,
             loserId: loserPlayer.baseUserId,
             loserEmail: loserPlayer.email,
+            player1Shots,
+            player1Misses,
+            player2Shots,
+            player2Misses,
             winnerStats,
             loserStats,
             startedAt: matchStartedAtRef.current || new Date().toISOString(),
