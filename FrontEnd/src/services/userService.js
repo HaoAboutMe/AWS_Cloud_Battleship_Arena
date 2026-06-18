@@ -70,3 +70,21 @@ export const getUserProfile = async (email) => {
     return null;
   }
 };
+
+export const saveMatchHistory = async (payload) => {
+  const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/matches/save`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const data = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    throw new Error(data?.error || data?.message || `API call failed with status: ${response.status}`);
+  }
+
+  return data;
+};

@@ -4,12 +4,14 @@ import ship1 from "../assets/ships/image/ship-1.png";
 import ship2 from "../assets/ships/image/ship-2.png";
 import ship3 from "../assets/ships/image/ship-3.png";
 import ship4 from "../assets/ships/image/ship-4.png";
+import RankUpAnimation from "../components/RankUpAnimation";
+import { useAuth } from "../contexts/AuthContext";
+import { useLanguage } from "../contexts/LanguageContext";
 import BattleEffectsLayer from "../game/BattleEffectsLayer";
 import { canPlaceShip, checkVictory, createBoard, fireAt, getShipBounds, getShipOffsets, markWaterAroundSunkShip, placeShip, placeShipsRandomly, SHIP_DEFS } from "../game/GameLogic";
 import { getBotMove, resetBotAI } from "../game/botAI";
-import { useAuth } from "../contexts/AuthContext";
-import { useLanguage } from "../contexts/LanguageContext";
 import { createRoomSocket, getRoom, getRoomPlayerId, leaveRoom, markPlayerReady, resetRoomForRematch, sendSocketMessage } from "../services/matchService";
+import { saveMatchHistory } from "../services/userService";
 import "./GameEffects.css";
 
 const BOARD_SIZE = 10;
@@ -194,6 +196,7 @@ function Game() {
         misses: 0,
         shipsDestroyed: 0,
     });
+    const statsRef = useRef(stats);
     const [enemyShipsSunk, setEnemyShipsSunk] = useState([]);
     const [enemySunkShipIds, setEnemySunkShipIds] = useState([]);
     const [playerShipsSunk, setPlayerShipsSunk] = useState([]);
@@ -212,6 +215,8 @@ function Game() {
     const [gameOverReason, setGameOverReason] = useState("");
     const [rematchLoading, setRematchLoading] = useState(false);
     const [returnHomeLoading, setReturnHomeLoading] = useState(false);
+    const [rankedResult, setRankedResult] = useState(null);
+    const [showRankUpAnimation, setShowRankUpAnimation] = useState(false);
 
     const logContainerRef = useRef(null);
     const timerRef = useRef(null);
@@ -290,6 +295,10 @@ function Game() {
     useEffect(() => {
         pvpRoomRef.current = pvpRoom;
     }, [pvpRoom]);
+
+    useEffect(() => {
+        statsRef.current = stats;
+    }, [stats]);
 
     useEffect(() => {
         pvpFleetSubmittedRef.current = pvpFleetSubmitted;
@@ -526,6 +535,9 @@ function Game() {
     }, [navigate, notifyPvpExit, pendingExitTarget]);
 
     const handlePlayAgain = useCallback(async () => {
+        setRankedResult(null);
+        setShowRankUpAnimation(false);
+
         if (!isPvpMode || !roomCode) {
             window.location.reload();
             return;
@@ -1014,8 +1026,9 @@ function Game() {
         if (isVictory) savedStats.wins += 1;
         else savedStats.losses += 1;
         
-        savedStats.totalShots += stats.shots;
-        savedStats.totalHits += stats.hits;
+        const latestStats = statsRef.current || stats;
+        savedStats.totalShots += latestStats.shots;
+        savedStats.totalHits += latestStats.hits;
         
         localStorage.setItem(key, JSON.stringify(savedStats));
     }, [stats]);
@@ -1068,6 +1081,68 @@ console.log("P2 KEY", getRoomPlayerKey(player2));
         }
     }, [isPvpMode, roomCode, stats.turns]);
 
+    const savePvpRankedMatchHistory = useCallback(async (isPlayerVictory) => {
+        if (!isPvpMode || !pvpRoomRef.current || !isPlayerVictory) return;
+
+        const currentRoom = pvpRoomRef.current;
+        if (!currentRoom.players || currentRoom.players.length < 2) return;
+
+        const player1 = currentRoom.players[0];
+        const player2 = currentRoom.players[1];
+        const currentPlayer = getCurrentRoomPlayer(currentRoom);
+        const loserPlayer = isSameRoomPlayer(player1, currentPlayer) ? player2 : player1;
+        const isRankedMatch = currentRoom.matchmakingMode === "ranked";
+        const latestStats = statsRef.current || stats;
+        const winnerStats = {
+            turns: latestStats.turns || 0,
+            shots: latestStats.shots || 0,
+            hits: latestStats.hits || 0,
+            misses: latestStats.misses || 0,
+            shipsDestroyed: latestStats.shipsDestroyed || 0,
+        };
+        const loserStats = {
+            turns: latestStats.turns || 0,
+            shots: 0,
+            hits: 0,
+            misses: 0,
+            shipsDestroyed: 0,
+        };
+
+        const payload = {
+            matchId: crypto.randomUUID(),
+            roomCode,
+            mode: isRankedMatch ? "ranked" : "casual",
+            player1Id: player1.baseUserId,
+            player1Email: player1.email,
+            player1Name: player1.displayName || "Unknown",
+            player2Id: player2.baseUserId,
+            player2Email: player2.email,
+            player2Name: player2.displayName || "Unknown",
+            winnerId: currentPlayer.baseUserId,
+            winnerEmail: currentPlayer.email,
+            loserId: loserPlayer.baseUserId,
+            loserEmail: loserPlayer.email,
+            winnerStats,
+            loserStats,
+            startedAt: matchStartedAtRef.current || new Date().toISOString(),
+            endedAt: new Date().toISOString(),
+            totalTurns: latestStats.turns || 0,
+            createdAt: new Date().toISOString(),
+        };
+
+        try {
+            const result = await saveMatchHistory(payload);
+            if (result?.ranked?.winner) {
+                setRankedResult(result.ranked.winner);
+                if (result.ranked.winner.promoted) {
+                    setShowRankUpAnimation(true);
+                }
+            }
+        } catch (error) {
+            console.error("Failed to save match history", error);
+        }
+    }, [isPvpMode, roomCode, stats]);
+
     const endGame = useCallback((isPlayerVictory) => {
         setGameOverReason("");
         gameStateRef.current = "GAME_OVER";
@@ -1076,9 +1151,9 @@ console.log("P2 KEY", getRoomPlayerKey(player2));
         releaseShotLock();
         addLog(isPlayerVictory ? "VICTORY! Enemy fleet destroyed!" : "DEFEAT! Your fleet was destroyed.", isPlayerVictory ? "victory" : "defeat");
         saveMatchStats(isPlayerVictory);
-        if (isPlayerVictory) savePvpMatchHistory(true);
+        if (isPlayerVictory) savePvpRankedMatchHistory(true);
         setTimeout(() => setShowModal(true), 1500);
-    }, [addLog, releaseShotLock, saveMatchStats, savePvpMatchHistory]);
+    }, [addLog, releaseShotLock, saveMatchStats, savePvpRankedMatchHistory]);
 
     const handleOpponentLeft = useCallback(() => {
         if (gameStateRef.current === "GAME_OVER") return;
@@ -1089,9 +1164,9 @@ console.log("P2 KEY", getRoomPlayerKey(player2));
         releaseShotLock();
         addLog(copy.opponentLeftLog, "victory");
         saveMatchStats(true);
-        savePvpMatchHistory(true);
+        savePvpRankedMatchHistory(true);
         window.setTimeout(() => setShowModal(true), 450);
-    }, [addLog, copy.opponentLeftLog, releaseShotLock, saveMatchStats, savePvpMatchHistory]);
+    }, [addLog, copy.opponentLeftLog, releaseShotLock, saveMatchStats, savePvpRankedMatchHistory]);
 
     useEffect(() => {
         handleOpponentLeftRef.current = handleOpponentLeft;
@@ -1268,11 +1343,15 @@ console.log("P2 KEY", getRoomPlayerKey(player2));
         });
 
         if (shotResult.result === "HIT") {
-            setStats(prev => ({
-                ...prev,
-                hits: prev.hits + 1,
-                shipsDestroyed: shotResult.isSunk ? prev.shipsDestroyed + 1 : prev.shipsDestroyed,
-            }));
+            setStats(prev => {
+                const next = {
+                    ...prev,
+                    hits: prev.hits + 1,
+                    shipsDestroyed: shotResult.isSunk ? prev.shipsDestroyed + 1 : prev.shipsDestroyed,
+                };
+                statsRef.current = next;
+                return next;
+            });
 
             if (shotResult.isSunk) {
                 setEnemyShipsSunk(prev => prev.includes(shotResult.shipTypeId) ? prev : [...prev, shotResult.shipTypeId]);
@@ -1293,7 +1372,11 @@ console.log("P2 KEY", getRoomPlayerKey(player2));
                 endGame(true);
             }
         } else {
-            setStats(prev => ({ ...prev, misses: prev.misses + 1 }));
+            setStats(prev => {
+                const next = { ...prev, misses: prev.misses + 1 };
+                statsRef.current = next;
+                return next;
+            });
             window.requestAnimationFrame(() => {
                 enemyEffectsRef.current?.playMiss(row, col);
             });
@@ -1382,7 +1465,11 @@ console.log("P2 KEY", getRoomPlayerKey(player2));
 
         shotLockRef.current = true;
         setIsShotResolving(true);
-        setStats(prev => ({ ...prev, shots: prev.shots + 1 }));
+        setStats(prev => {
+            const next = { ...prev, shots: prev.shots + 1 };
+            statsRef.current = next;
+            return next;
+        });
 
         const shotId = crypto.randomUUID();
         activePvpShotIdRef.current = shotId;
@@ -1400,7 +1487,11 @@ console.log("P2 KEY", getRoomPlayerKey(player2));
         });
 
         if (!sent) {
-            setStats(prev => ({ ...prev, shots: Math.max(0, prev.shots - 1) }));
+            setStats(prev => {
+                const next = { ...prev, shots: Math.max(0, prev.shots - 1) };
+                statsRef.current = next;
+                return next;
+            });
             releaseShotLock(shotId);
             addLog("Room channel is reconnecting. Try that shot again.", "warning");
             return;
@@ -2920,6 +3011,25 @@ console.log("P2 KEY", getRoomPlayerKey(player2));
                             </div>
                         </div>
 
+                        {rankedResult && (
+                            <div className="w-full rounded-lg border border-secondary/30 bg-secondary/10 p-4 mb-6 text-left">
+                                <div className="flex items-center justify-between gap-3">
+                                    <p className="text-[10px] uppercase tracking-widest text-secondary font-black">
+                                        Ranked Result
+                                    </p>
+                                    <p className="text-2xl font-black text-secondary">
+                                        {rankedResult.delta > 0 ? "+" : ""}{rankedResult.delta} RP
+                                    </p>
+                                </div>
+                                <p className="mt-2 text-sm text-on-surface font-bold uppercase tracking-widest">
+                                    {rankedResult.oldRank} {'->'} {rankedResult.newRank}
+                                </p>
+                                <p className="text-xs text-on-surface-variant">
+                                    {rankedResult.oldRp} RP {'->'} {rankedResult.newRp} RP
+                                </p>
+                            </div>
+                        )}
+
                         <div className="flex gap-4 w-full">
                             <button 
                                 onClick={handlePlayAgain}
@@ -2939,6 +3049,14 @@ console.log("P2 KEY", getRoomPlayerKey(player2));
                         </div>
                     </div>
                 </div>
+            )}
+
+            {showRankUpAnimation && rankedResult?.promoted && (
+                <RankUpAnimation
+                    oldRank={rankedResult.oldRank}
+                    newRank={rankedResult.newRank}
+                    onComplete={() => setShowRankUpAnimation(false)}
+                />
             )}
         </div>
     );

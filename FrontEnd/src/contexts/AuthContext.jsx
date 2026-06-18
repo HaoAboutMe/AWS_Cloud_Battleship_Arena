@@ -60,6 +60,19 @@ export function AuthProvider({ children }) {
             if (dbData && dbData.avatarUrl) {
               mergedAttributes.picture = dbData.avatarUrl;
             }
+            [
+              "rank",
+              "rankPoints",
+              "peakRank",
+              "rankedWins",
+              "rankedLosses",
+              "rankedMatches",
+              "winStreak",
+            ].forEach((field) => {
+              if (dbData && dbData[field] !== undefined) {
+                mergedAttributes[field] = dbData[field];
+              }
+            });
           }
         } catch (e) {
           console.error("Failed to fetch DB user data:", e);

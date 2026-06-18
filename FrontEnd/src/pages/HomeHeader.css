@@ -260,18 +260,27 @@
   display: flex;
   align-items: center;
   gap: 5px;
-  color: #e1c84c;
+  color: #9de7ff;
   font-size: 8px;
   font-weight: 800;
   text-transform: uppercase;
 }
 
-.command-account-copy small i {
-  width: 5px;
-  height: 5px;
+.command-rank-badge {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 6px rgba(117, 223, 255, 0.45));
+}
+
+.command-empty-rank-badge {
+  width: 22px;
+  height: 22px;
+  border: 1px dashed rgba(165, 231, 255, 0.55);
   border-radius: 50%;
-  background: #58e6a9;
-  box-shadow: 0 0 6px rgba(88, 230, 169, 0.7);
+  background:
+    radial-gradient(circle, rgba(165, 231, 255, 0.2) 0 30%, transparent 32%),
+    rgba(4, 18, 28, 0.62);
 }
 
 .command-account-chevron {

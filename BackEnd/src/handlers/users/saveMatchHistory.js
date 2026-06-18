@@ -1,77 +1,219 @@
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
-// Đừng quên thêm GetCommand vào import
-const { DynamoDBDocumentClient, PutCommand, UpdateCommand, GetCommand } = require("@aws-sdk/lib-dynamodb");
+const {
+  DynamoDBDocumentClient,
+  GetCommand,
+  PutCommand,
+  UpdateCommand,
+} = require("@aws-sdk/lib-dynamodb");
+const {
+  buildRankUpdate,
+  calculateRankDelta,
+} = require("../../services/rankService");
 
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
 
-// Hàm phụ trợ: Dịch Email sang ID gốc
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "content-type",
+  "Access-Control-Allow-Methods": "OPTIONS,POST",
+};
+
 const getRealUserId = async (email, fallbackId) => {
-    if (!email) return fallbackId; // Nếu là Guest không có email, dùng tạm ID ảo
-    try {
-        const res = await docClient.send(new GetCommand({
-            TableName: "EmailIndex",
-            Key: { email: email }
-        }));
-        return res.Item ? res.Item.userId : fallbackId;
-    } catch (e) {
-        console.error("Lỗi khi tìm ID gốc:", e);
-        return fallbackId;
-    }
+  if (!email) return fallbackId;
+
+  try {
+    const response = await docClient.send(new GetCommand({
+      TableName: "EmailIndex",
+      Key: { email },
+    }));
+    return response.Item ? response.Item.userId : fallbackId;
+  } catch (error) {
+    console.error("Failed to resolve user id from email", error);
+    return fallbackId;
+  }
+};
+
+const getUser = async (userId) => {
+  if (!userId) return {};
+
+  const response = await docClient.send(new GetCommand({
+    TableName: "User",
+    Key: { userId },
+  }));
+
+  return response.Item || {};
+};
+
+const updateCasualStats = async ({ winnerId, loserId }) => {
+  await Promise.all([
+    docClient.send(new UpdateCommand({
+      TableName: "User",
+      Key: { userId: winnerId },
+      UpdateExpression: [
+        "SET wins = if_not_exists(wins, :zero) + :one",
+        "totalGames = if_not_exists(totalGames, :zero) + :one",
+      ].join(", "),
+      ExpressionAttributeValues: { ":zero": 0, ":one": 1 },
+    })),
+    docClient.send(new UpdateCommand({
+      TableName: "User",
+      Key: { userId: loserId },
+      UpdateExpression: [
+        "SET losses = if_not_exists(losses, :zero) + :one",
+        "totalGames = if_not_exists(totalGames, :zero) + :one",
+      ].join(", "),
+      ExpressionAttributeValues: { ":zero": 0, ":one": 1 },
+    })),
+  ]);
+};
+
+const updateRankedStats = async ({
+  winnerId,
+  loserId,
+  winnerStats,
+  loserStats,
+}) => {
+  const [winnerUser, loserUser] = await Promise.all([
+    getUser(winnerId),
+    getUser(loserId),
+  ]);
+  const winnerRank = winnerUser.rank || "bronze";
+  const loserRank = loserUser.rank || "bronze";
+  const winnerDelta = calculateRankDelta({
+    isWinner: true,
+    playerStats: winnerStats,
+    playerRank: winnerRank,
+    opponentRank: loserRank,
+  });
+  const loserDelta = calculateRankDelta({
+    isWinner: false,
+    playerStats: loserStats,
+    playerRank: loserRank,
+    opponentRank: winnerRank,
+  });
+  const winnerRankUpdate = buildRankUpdate({
+    currentUser: winnerUser,
+    delta: winnerDelta,
+    isWinner: true,
+  });
+  const loserRankUpdate = buildRankUpdate({
+    currentUser: loserUser,
+    delta: loserDelta,
+    isWinner: false,
+  });
+
+  await Promise.all([
+    docClient.send(new UpdateCommand({
+      TableName: "User",
+      Key: { userId: winnerId },
+      UpdateExpression: [
+        "SET rankPoints = :rankPoints",
+        "#rank = :rank",
+        "peakRank = :peakRank",
+        "winStreak = :winStreak",
+        "rankedWins = if_not_exists(rankedWins, :zero) + :one",
+        "rankedMatches = if_not_exists(rankedMatches, :zero) + :one",
+      ].join(", "),
+      ExpressionAttributeNames: { "#rank": "rank" },
+      ExpressionAttributeValues: {
+        ":rankPoints": winnerRankUpdate.newRp,
+        ":rank": winnerRankUpdate.newRank,
+        ":peakRank": winnerRankUpdate.peakRank,
+        ":winStreak": winnerRankUpdate.nextWinStreak,
+        ":zero": 0,
+        ":one": 1,
+      },
+    })),
+    docClient.send(new UpdateCommand({
+      TableName: "User",
+      Key: { userId: loserId },
+      UpdateExpression: [
+        "SET rankPoints = :rankPoints",
+        "#rank = :rank",
+        "peakRank = :peakRank",
+        "winStreak = :winStreak",
+        "rankedLosses = if_not_exists(rankedLosses, :zero) + :one",
+        "rankedMatches = if_not_exists(rankedMatches, :zero) + :one",
+      ].join(", "),
+      ExpressionAttributeNames: { "#rank": "rank" },
+      ExpressionAttributeValues: {
+        ":rankPoints": loserRankUpdate.newRp,
+        ":rank": loserRankUpdate.newRank,
+        ":peakRank": loserRankUpdate.peakRank,
+        ":winStreak": loserRankUpdate.nextWinStreak,
+        ":zero": 0,
+        ":one": 1,
+      },
+    })),
+  ]);
+
+  return {
+    mode: "ranked",
+    winner: winnerRankUpdate,
+    loser: loserRankUpdate,
+  };
 };
 
 exports.handler = async (event) => {
-    try {
-        const body = typeof event.body === "string" ? JSON.parse(event.body) : event;
+  if (event.requestContext?.http?.method === "OPTIONS") {
+    return { statusCode: 204, headers: corsHeaders, body: "" };
+  }
 
-        // BƯỚC MỚI: Quy đổi toàn bộ ID ảo sang ID gốc
-        const realPlayer1Id = await getRealUserId(body.player1Email, body.player1Id);
-        const realPlayer2Id = await getRealUserId(body.player2Email, body.player2Id);
-        const realWinnerId = await getRealUserId(body.winnerEmail, body.winnerId);
+  try {
+    const body = typeof event.body === "string" ? JSON.parse(event.body) : event;
+    const mode = String(body.mode || "casual").toLowerCase();
+    const realPlayer1Id = await getRealUserId(body.player1Email, body.player1Id);
+    const realPlayer2Id = await getRealUserId(body.player2Email, body.player2Id);
+    const realWinnerId = await getRealUserId(body.winnerEmail, body.winnerId);
+    const loserId = realWinnerId === realPlayer1Id ? realPlayer2Id : realPlayer1Id;
+    const winnerStats = body.winnerStats || {};
+    const loserStats = body.loserStats || {};
 
-        // 1. Lưu Match History (Sử dụng ID gốc)
-        await docClient.send(new PutCommand({
-            TableName: "MatchHistory",
-            Item: {
-                matchId: body.matchId,
-                roomCode: body.roomCode,
-                player1Id: realPlayer1Id,
-                player2Id: realPlayer2Id,
-                winnerId: realWinnerId,
-                endedAt: body.endedAt
-            }
-        }));
+    await docClient.send(new PutCommand({
+      TableName: "MatchHistory",
+      Item: {
+        matchId: body.matchId,
+        roomCode: body.roomCode,
+        mode,
+        player1Id: realPlayer1Id,
+        player2Id: realPlayer2Id,
+        winnerId: realWinnerId,
+        loserId,
+        startedAt: body.startedAt,
+        endedAt: body.endedAt,
+        totalTurns: body.totalTurns || 0,
+        winnerStats,
+        loserStats,
+        createdAt: body.createdAt || new Date().toISOString(),
+      },
+    }));
 
-        // 2. Xác định người thua (Dựa trên ID gốc)
-        const loserId = realWinnerId === realPlayer1Id ? realPlayer2Id : realPlayer1Id;
+    const ranked = mode === "ranked"
+      ? await updateRankedStats({
+        winnerId: realWinnerId,
+        loserId,
+        winnerStats,
+        loserStats,
+      })
+      : null;
 
-        // 3. Update người thắng
-        await docClient.send(new UpdateCommand({
-            TableName: "User",
-            Key: { userId: realWinnerId },
-            UpdateExpression: "SET wins = if_not_exists(wins, :zero) + :one, totalGames = if_not_exists(totalGames, :zero) + :one",
-            ExpressionAttributeValues: { ":zero": 0, ":one": 1 }
-        }));
+    await updateCasualStats({ winnerId: realWinnerId, loserId });
 
-        // 4. Update người thua
-        await docClient.send(new UpdateCommand({
-            TableName: "User",
-            Key: { userId: loserId },
-            UpdateExpression: "SET losses = if_not_exists(losses, :zero) + :one, totalGames = if_not_exists(totalGames, :zero) + :one",
-            ExpressionAttributeValues: { ":zero": 0, ":one": 1 }
-        }));
-
-        return {
-            statusCode: 200,
-            headers: { "Access-Control-Allow-Origin": "*" },
-            body: JSON.stringify({ message: "Match saved and stats updated to REAL ID" })
-        };
-    } catch (err) {
-        console.error(err);
-        return {
-            statusCode: 500,
-            headers: { "Access-Control-Allow-Origin": "*" },
-            body: JSON.stringify({ error: err.message })
-        };
-    }
+    return {
+      statusCode: 200,
+      headers: corsHeaders,
+      body: JSON.stringify({
+        message: "Match saved and stats updated.",
+        ranked,
+      }),
+    };
+  } catch (error) {
+    console.error("saveMatchHistory failed", error);
+    return {
+      statusCode: 500,
+      headers: corsHeaders,
+      body: JSON.stringify({ error: error.message }),
+    };
+  }
 };
