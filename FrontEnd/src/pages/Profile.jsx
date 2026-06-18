@@ -1,14 +1,14 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import AvatarUpload from "../components/AvatarUpload";
 import CommandHeader from "../components/CommandHeader";
+import RankUpAnimation from "../components/RankUpAnimation";
 import { useAuth } from "../contexts/AuthContext";
 import { useLanguage } from "../contexts/LanguageContext";
+import { RANKS, getNextRank, getRankMeta } from "../game/rankConfig";
+import { getMatchHistory, getUserProfile, updateUsername } from "../services/userService";
 import "./HomeHeader.css";
 import "./Profile.css";
-import { updateUsername, getUserProfile } from "../services/userService";
-import AvatarUpload from "../components/AvatarUpload";
-import RankUpAnimation from "../components/RankUpAnimation";
-import { RANKS, getNextRank, getRankMeta } from "../game/rankConfig";
 
 const COMMANDER_AVATAR =
   "https://lh3.googleusercontent.com/aida-public/AB6AXuBaat_LefR8zmWVQ9CHx0bp9dTekwkF9c9AQAo9FxlAx2bSsRi_lWU3tRBK1vdpC50zM3NdKJAB5hHd5ZusN0HuCxBcpe1IbzSlreCalSVomkgeQwYwz9iKrXYvj55d42PgtFMDfCUosVO6NBFPXtM_vVCTYDxnC7xz1DxkbcIvRSfpehGpD-kbu7XuQbuktassmbGVExYQy0GTNC_jJHX3hmbFNDIdyfqO5-uwHYbgPtFdacF4kVhq0AnscPv4dWSz-e_6DYUDMSxe";
@@ -30,6 +30,8 @@ function Profile() {
   const [rankLadderOpen, setRankLadderOpen] = useState(false);
   const [rankAnimation, setRankAnimation] = useState(null);
   const [selectedRankId, setSelectedRankId] = useState("unranked");
+  const [matchHistory, setMatchHistory] = useState([]);
+  const [loadingHistory, setLoadingHistory] = useState(true);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -43,6 +45,9 @@ function Profile() {
             losses: userProfile.losses || 0,
           });
         }
+        const history = await getMatchHistory(userEmail);
+        setMatchHistory(history);
+        setLoadingHistory(false);
       }
     };
     if (currentUser) {
@@ -496,6 +501,122 @@ function Profile() {
                   {t("profile.resetPassword")}
                 </Link>
               </aside>
+            </section>
+
+            <section className="profile-history-section" style={{
+              marginTop: '32px',
+              padding: '32px',
+              background: 'var(--surface)',
+              borderRadius: '8px',
+              border: '1px solid var(--border)'
+            }}>
+              <div className="profile-section-heading" style={{ marginBottom: '24px' }}>
+                <span className="material-symbols-outlined">history</span>
+                <div>
+                  <h2>{t("profile.matchHistory")}</h2>
+                  <p>{t("profile.matchHistoryBody")}</p>
+                </div>
+              </div>
+              
+              {loadingHistory ? (
+                <div style={{ textAlign: 'center', padding: '20px', color: 'var(--text-muted)' }}>Loading...</div>
+              ) : matchHistory.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '40px', background: 'rgba(0,0,0,0.2)', borderRadius: '8px', color: 'var(--text-muted)' }}>
+                  No match history found.
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  {matchHistory.map((match) => {
+                    const isWin = match.winnerId === match.userId;
+                    const dateObj = new Date(match.endedAt);
+                    const formattedDate = !isNaN(dateObj.getTime()) ? dateObj.toLocaleString() : match.endedAt;
+                    
+                    return (
+                      <div key={match.matchId} style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        background: isWin ? 'rgba(76, 175, 80, 0.05)' : 'rgba(244, 67, 54, 0.05)',
+                        border: `1px solid ${isWin ? 'rgba(76, 175, 80, 0.3)' : 'rgba(244, 67, 54, 0.3)'}`,
+                        borderRadius: '8px',
+                        overflow: 'hidden'
+                      }}>
+                        {/* Title Bar */}
+                        <div style={{
+                          padding: '8px 16px',
+                          background: isWin ? 'rgba(76, 175, 80, 0.1)' : 'rgba(244, 67, 54, 0.1)',
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          borderBottom: `1px solid ${isWin ? 'rgba(76, 175, 80, 0.2)' : 'rgba(244, 67, 54, 0.2)'}`
+                        }}>
+                          <strong style={{
+                            color: isWin ? '#4caf50' : '#f44336',
+                            fontSize: '14px',
+                            letterSpacing: '1px',
+                            textTransform: 'uppercase'
+                          }}>
+                            {isWin ? t("profile.win") : t("profile.loss")}
+                          </strong>
+                          <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                            {t("profile.room")}: {match.roomCode || "***"} &bull; {formattedDate}
+                          </span>
+                        </div>
+                        
+                        {/* Players Info */}
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '16px'
+                        }}>
+                          {/* Player 1 */}
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1 }}>
+                            <img 
+                              src={match.player1Avatar || COMMANDER_AVATAR} 
+                              alt="Player 1" 
+                              style={{ width: '40px', height: '40px', borderRadius: '4px', border: '1px solid var(--border)', objectFit: 'cover' }}
+                              onError={(e) => { e.currentTarget.src = COMMANDER_AVATAR; }}
+                            />
+                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                              <span style={{ fontWeight: 'bold', fontSize: '15px', color: 'var(--text-main)' }}>
+                                {match.player1Name || "Unknown"}
+                                {match.leaverId === match.player1Id && <span style={{ color: '#f44336', fontSize: '11px', marginLeft: '6px', fontStyle: 'italic', display: 'inline-block' }}>{t("profile.surrendered")}</span>}
+                              </span>
+                              <span style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                                {match.player1Shots || 0} {t("profile.shots")} &bull; {match.player1Misses || 0} {t("profile.misses")} ({match.player1Shots > 0 ? Math.round(((match.player1Misses || 0) / match.player1Shots) * 100) : 0}%)
+                              </span>
+                            </div>
+                          </div>
+                          
+                          {/* VS */}
+                          <div style={{ padding: '0 16px', color: 'var(--text-muted)', fontWeight: 'bold', fontStyle: 'italic', fontSize: '14px' }}>
+                            VS
+                          </div>
+                          
+                          {/* Player 2 */}
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, justifyContent: 'flex-end', textAlign: 'right' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                              <span style={{ fontWeight: 'bold', fontSize: '15px', color: 'var(--text-main)' }}>
+                                {match.leaverId === match.player2Id && <span style={{ color: '#f44336', fontSize: '11px', marginRight: '6px', fontStyle: 'italic', display: 'inline-block' }}>{t("profile.surrendered")}</span>}
+                                {match.player2Name || "Unknown"}
+                              </span>
+                              <span style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                                {match.player2Shots || 0} {t("profile.shots")} &bull; {match.player2Misses || 0} {t("profile.misses")} ({match.player2Shots > 0 ? Math.round(((match.player2Misses || 0) / match.player2Shots) * 100) : 0}%)
+                              </span>
+                            </div>
+                            <img 
+                              src={match.player2Avatar || COMMANDER_AVATAR} 
+                              alt="Player 2" 
+                              style={{ width: '40px', height: '40px', borderRadius: '4px', border: '1px solid var(--border)', objectFit: 'cover' }}
+                              onError={(e) => { e.currentTarget.src = COMMANDER_AVATAR; }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </section>
           </>
         )}

@@ -1033,7 +1033,7 @@ function Game() {
         localStorage.setItem(key, JSON.stringify(savedStats));
     }, [stats]);
 
-    const savePvpMatchHistory = useCallback(async (isPlayerVictory) => {
+    const savePvpMatchHistory = useCallback(async (isPlayerVictory, reason = null) => {
         if (!isPvpMode || !pvpRoomRef.current || !isPlayerVictory) return;
         
         const currentRoom = pvpRoomRef.current;
@@ -1043,26 +1043,41 @@ function Game() {
         const player2 = currentRoom.players[1];
         
         const currentPlayer = getCurrentRoomPlayer(currentRoom);
+        const opponent = getOpponentPlayer(currentRoom);
         const winnerId = getRoomPlayerKey(currentPlayer);
 
-        console.log("PLAYER1", player1);
-        console.log("PLAYER2", player2);
-        console.log("CURRENT", currentPlayer);
+        // Calculate shots and misses
+        const myShots = enemyBoardStateRef.current.flat().filter(c => c.isHit).length;
+        const myMisses = enemyBoardStateRef.current.flat().filter(c => c.isHit && !c.hasShip).length;
+        const opShots = playerBoardStateRef.current.flat().filter(c => c.isHit).length;
+        const opMisses = playerBoardStateRef.current.flat().filter(c => c.isHit && !c.hasShip).length;
 
-        console.log("P1 KEY", getRoomPlayerKey(player1));
-console.log("P2 KEY", getRoomPlayerKey(player2));
+        const isPlayer1 = getRoomPlayerKey(player1) === winnerId;
+        const player1Shots = isPlayer1 ? myShots : opShots;
+        const player1Misses = isPlayer1 ? myMisses : opMisses;
+        const player2Shots = isPlayer1 ? opShots : myShots;
+        const player2Misses = isPlayer1 ? opMisses : myMisses;
+
+        const leaverId = reason === "opponent_left" ? (opponent ? opponent.baseUserId : null) : null;
+        const leaverEmail = reason === "opponent_left" ? (opponent ? opponent.email : null) : null;
 
         const payload = {
             matchId: crypto.randomUUID(),
             roomCode: roomCode,
             player1Id: player1.baseUserId,
-            player1Email: player1.email, // THÊM DÒNG NÀY
+            player1Email: player1.email,
             player1Name: player1.displayName || "Unknown",
             player2Id: player2.baseUserId,
-            player2Email: player2.email, // THÊM DÒNG NÀY
+            player2Email: player2.email,
             player2Name: player2.displayName || "Unknown",
             winnerId: currentPlayer.baseUserId,
-            winnerEmail: currentPlayer.email, // THÊM DÒNG NÀY
+            winnerEmail: currentPlayer.email,
+            player1Shots,
+            player1Misses,
+            player2Shots,
+            player2Misses,
+            leaverId,
+            leaverEmail,
             startedAt: matchStartedAtRef.current || new Date().toISOString(),
             endedAt: new Date().toISOString(),
             totalTurns: stats.turns || 0,
@@ -1165,6 +1180,7 @@ console.log("P2 KEY", getRoomPlayerKey(player2));
         addLog(copy.opponentLeftLog, "victory");
         saveMatchStats(true);
         savePvpRankedMatchHistory(true);
+        savePvpMatchHistory(true, "opponent_left");
         window.setTimeout(() => setShowModal(true), 450);
     }, [addLog, copy.opponentLeftLog, releaseShotLock, saveMatchStats, savePvpRankedMatchHistory]);
 

@@ -8,6 +8,7 @@ const {
 const {
   buildRankUpdate,
   calculateRankDelta,
+  getRankForRp,
 } = require("../../services/rankService");
 
 const client = new DynamoDBClient({});
@@ -78,8 +79,8 @@ const updateRankedStats = async ({
     getUser(winnerId),
     getUser(loserId),
   ]);
-  const winnerRank = winnerUser.rank || "bronze";
-  const loserRank = loserUser.rank || "bronze";
+  const winnerRank = winnerUser.rank || getRankForRp(winnerUser.rankPoints).id;
+  const loserRank = loserUser.rank || getRankForRp(loserUser.rankPoints).id;
   const winnerDelta = calculateRankDelta({
     isWinner: true,
     playerStats: winnerStats,
@@ -155,6 +156,34 @@ const updateRankedStats = async ({
   };
 };
 
+const getRealUserIdAndName = async (email, fallbackId, fallbackName) => {
+  if (!email) return { userId: fallbackId, username: fallbackName };
+  try {
+    const resEmail = await docClient.send(new GetCommand({
+      TableName: "EmailIndex",
+      Key: { email: email }
+    }));
+    if (!resEmail.Item) return { userId: fallbackId, username: fallbackName };
+
+    const resUser = await docClient.send(new GetCommand({
+      TableName: "User",
+      Key: { userId: resEmail.Item.userId }
+    }));
+    if (!resUser.Item) return { userId: resEmail.Item.userId, username: fallbackName };
+
+    return { userId: resUser.Item.userId, username: resUser.Item.username || fallbackName };
+  } catch (e) {
+    console.error("Lỗi khi tìm ID gốc:", e);
+    return { userId: fallbackId, username: fallbackName };
+  }
+};
+
+const getAvatarUrl = (userId) => {
+  const bucket = process.env.AVATAR_BUCKET_NAME;
+  if (!bucket || userId.startsWith("guest_")) return null;
+  return `https://${bucket}.s3.amazonaws.com/avatars/${userId}.jpg`;
+};
+
 exports.handler = async (event) => {
   if (event.requestContext?.http?.method === "OPTIONS") {
     return { statusCode: 204, headers: corsHeaders, body: "" };
@@ -163,57 +192,104 @@ exports.handler = async (event) => {
   try {
     const body = typeof event.body === "string" ? JSON.parse(event.body) : event;
     const mode = String(body.mode || "casual").toLowerCase();
-    const realPlayer1Id = await getRealUserId(body.player1Email, body.player1Id);
-    const realPlayer2Id = await getRealUserId(body.player2Email, body.player2Id);
-    const realWinnerId = await getRealUserId(body.winnerEmail, body.winnerId);
-    const loserId = realWinnerId === realPlayer1Id ? realPlayer2Id : realPlayer1Id;
-    const winnerStats = body.winnerStats || {};
-    const loserStats = body.loserStats || {};
 
+    // BƯỚC MỚI: Quy đổi toàn bộ ID ảo sang ID gốc và lấy Name
+    const p1 = await getRealUserIdAndName(body.player1Email, body.player1Id, body.player1Name || "Guest");
+    const p2 = await getRealUserIdAndName(body.player2Email, body.player2Id, body.player2Name || "Guest");
+    const realWinnerId = await getRealUserIdAndName(body.winnerEmail, body.winnerId, "Guest").then(res => res.userId);
+
+    p1.avatarUrl = getAvatarUrl(p1.userId);
+    p2.avatarUrl = getAvatarUrl(p2.userId);
+
+    const endedAt = body.endedAt || new Date().toISOString();
+    const leaverId = body.leaverEmail ? (await getRealUserIdAndName(body.leaverEmail, body.leaverId, "")).userId : (body.leaverId || null);
+
+    // 1. Lưu Match History (Dual-write)
+    const baseMatchData = {
+      matchId: body.matchId,
+      roomCode: body.roomCode,
+      mode,
+      player1Id: p1.userId,
+      player1Name: p1.username,
+      player1Avatar: p1.avatarUrl,
+      player2Id: p2.userId,
+      player2Name: p2.username,
+      player2Avatar: p2.avatarUrl,
+      winnerId: realWinnerId,
+      endedAt: endedAt,
+      player1Shots: typeof body.player1Shots === 'number' ? body.player1Shots : 0,
+      player1Misses: typeof body.player1Misses === 'number' ? body.player1Misses : 0,
+      player2Shots: typeof body.player2Shots === 'number' ? body.player2Shots : 0,
+      player2Misses: typeof body.player2Misses === 'number' ? body.player2Misses : 0,
+      leaverId: leaverId
+    };
+
+    // Write for Player 1
     await docClient.send(new PutCommand({
-      TableName: "MatchHistory",
+      TableName: process.env.MATCH_HISTORY_TABLE || "MatchHistoryV2",
       Item: {
-        matchId: body.matchId,
-        roomCode: body.roomCode,
-        mode,
-        player1Id: realPlayer1Id,
-        player2Id: realPlayer2Id,
-        winnerId: realWinnerId,
-        loserId,
-        startedAt: body.startedAt,
-        endedAt: body.endedAt,
-        totalTurns: body.totalTurns || 0,
-        winnerStats,
-        loserStats,
-        createdAt: body.createdAt || new Date().toISOString(),
-      },
+        ...baseMatchData,
+        userId: p1.userId
+      }
     }));
 
+    // Write for Player 2
+    if (p1.userId !== p2.userId) { 
+      await docClient.send(new PutCommand({
+        TableName: process.env.MATCH_HISTORY_TABLE || "MatchHistoryV2",
+        Item: {
+          ...baseMatchData,
+          userId: p2.userId
+        }
+      }));
+    }
+
+    // 2. Xác định người thua (Dựa trên ID gốc)
+    const loserId = realWinnerId === p1.userId ? p2.userId : p1.userId;
+
+    // 3. Xử lý cập nhật Rank (Nếu là đấu hạng)
     const ranked = mode === "ranked"
       ? await updateRankedStats({
-        winnerId: realWinnerId,
-        loserId,
-        winnerStats,
-        loserStats,
-      })
+          winnerId: realWinnerId,
+          loserId,
+          winnerStats: body.winnerStats || {},
+          loserStats: body.loserStats || {},
+        })
       : null;
 
-    await updateCasualStats({ winnerId: realWinnerId, loserId });
+    // 4. Update thông số casual (bỏ qua nếu là guest)
+    if (!realWinnerId.startsWith("guest_")) {
+      await docClient.send(new UpdateCommand({
+        TableName: "User",
+        Key: { userId: realWinnerId },
+        UpdateExpression: "SET wins = if_not_exists(wins, :zero) + :one, totalGames = if_not_exists(totalGames, :zero) + :one",
+        ExpressionAttributeValues: { ":zero": 0, ":one": 1 }
+      }));
+    }
+
+    if (!loserId.startsWith("guest_")) {
+      await docClient.send(new UpdateCommand({
+        TableName: "User",
+        Key: { userId: loserId },
+        UpdateExpression: "SET losses = if_not_exists(losses, :zero) + :one, totalGames = if_not_exists(totalGames, :zero) + :one",
+        ExpressionAttributeValues: { ":zero": 0, ":one": 1 }
+      }));
+    }
 
     return {
       statusCode: 200,
       headers: corsHeaders,
-      body: JSON.stringify({
-        message: "Match saved and stats updated.",
-        ranked,
-      }),
+      body: JSON.stringify({ 
+        message: "Match saved with dual-write and stats updated",
+        ranked
+      })
     };
-  } catch (error) {
-    console.error("saveMatchHistory failed", error);
+  } catch (err) {
+    console.error("saveMatchHistory failed", err);
     return {
       statusCode: 500,
       headers: corsHeaders,
-      body: JSON.stringify({ error: error.message }),
+      body: JSON.stringify({ error: err.message })
     };
   }
 };
