@@ -565,36 +565,84 @@ exports.handler = async (event) => {
       const connections = await listConnectionsByRoom(roomCode);
       const nextTurnUserId = isVictory ? null : (isHit ? cleanUserId : cleanOpponentId);
 
-      const eventPayload = isVictory ? {
-        type: "GAME_OVER",
-        winnerId: cleanUserId,
-        rankedResult
-      } : {
-        type: "PVP_SHOT_RESULT",
-        shotId,
-        shooterUserId: cleanUserId,
-        targetUserId: cleanOpponentId,
-        row,
-        col,
-        shotResult,
-        sunkCells,
-        isVictory,
-        nextTurnUserId
-      };
+      if (isVictory) {
+        // Broadcast the final shot result first so that clients can show the hit/sink animation
+        const finalShotPayload = {
+          type: "PVP_SHOT_RESULT",
+          shotId,
+          shooterUserId: cleanUserId,
+          targetUserId: cleanOpponentId,
+          row,
+          col,
+          shotResult,
+          sunkCells,
+          isVictory: true,
+          nextTurnUserId: null
+        };
+        await Promise.all(
+          connections.map((connection) =>
+            postToConnection({
+              client,
+              connectionId: connection.connectionId,
+              payload: {
+                type: "ROOM_EVENT",
+                roomCode,
+                payload: finalShotPayload,
+              },
+            }),
+          ),
+        );
 
-      await Promise.all(
-        connections.map((connection) =>
-          postToConnection({
-            client,
-            connectionId: connection.connectionId,
-            payload: {
-              type: "ROOM_EVENT",
-              roomCode,
-              payload: eventPayload,
-            },
-          }),
-        ),
-      );
+        // Wait 1.5 seconds for the animations to play before ending the match
+        await new Promise(resolve => setTimeout(resolve, 1500));
+
+        // Broadcast GAME_OVER to trigger victory/defeat modals
+        const gameOverPayload = {
+          type: "GAME_OVER",
+          winnerId: cleanUserId,
+          rankedResult
+        };
+        await Promise.all(
+          connections.map((connection) =>
+            postToConnection({
+              client,
+              connectionId: connection.connectionId,
+              payload: {
+                type: "ROOM_EVENT",
+                roomCode,
+                payload: gameOverPayload,
+              },
+            }),
+          ),
+        );
+      } else {
+        // Normal shot, not yet victory
+        const eventPayload = {
+          type: "PVP_SHOT_RESULT",
+          shotId,
+          shooterUserId: cleanUserId,
+          targetUserId: cleanOpponentId,
+          row,
+          col,
+          shotResult,
+          sunkCells,
+          isVictory: false,
+          nextTurnUserId
+        };
+        await Promise.all(
+          connections.map((connection) =>
+            postToConnection({
+              client,
+              connectionId: connection.connectionId,
+              payload: {
+                type: "ROOM_EVENT",
+                roomCode,
+                payload: eventPayload,
+              },
+            }),
+          ),
+        );
+      }
 
       return { statusCode: 200, body: "Shot processed." };
     }
