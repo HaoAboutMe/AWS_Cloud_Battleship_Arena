@@ -251,11 +251,19 @@ Resources:
           ROOMS_TABLE: !Ref RoomsTable
           CONNECTIONS_TABLE: !Ref ConnectionsTable
           CORS_ORIGIN: !Ref CorsOrigin
+          MATCH_HISTORY_TABLE: !Ref MatchHistoryTable
+          AVATAR_BUCKET_NAME: !Ref AvatarBucket
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref ConnectionsTable
-        - DynamoDBReadPolicy:
+        - DynamoDBCrudPolicy:
             TableName: !Ref RoomsTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref MatchHistoryTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UserTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref EmailIndexTable
         - Statement:
             Effect: Allow
             Action:
@@ -484,30 +492,6 @@ Resources:
             Path: /users/check-username
             Method: GET
 
-  SaveMatchHistoryFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      FunctionName: SaveMatchHistory
-      CodeUri: .
-      Handler: src/handlers/users/saveMatchHistory.handler
-      Environment:
-        Variables:
-          AVATAR_BUCKET_NAME: !Ref AvatarBucket
-          MATCH_HISTORY_TABLE: !Ref MatchHistoryTable
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref MatchHistoryTable
-        - DynamoDBCrudPolicy:
-            TableName: !Ref UserTable
-        - DynamoDBReadPolicy:
-            TableName: !Ref EmailIndexTable
-      Events:
-        SaveMatch:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref BattleshipHttpApi
-            Path: /matches/save
-            Method: POST
 
   GetMatchHistoryFunction:
     Type: AWS::Serverless::Function

@@ -546,21 +546,41 @@ function Profile() {
                           padding: '8px 16px',
                           background: isWin ? 'rgba(76, 175, 80, 0.1)' : 'rgba(244, 67, 54, 0.1)',
                           display: 'flex',
-                          justifyContent: 'space-between',
                           alignItems: 'center',
                           borderBottom: `1px solid ${isWin ? 'rgba(76, 175, 80, 0.2)' : 'rgba(244, 67, 54, 0.2)'}`
                         }}>
-                          <strong style={{
-                            color: isWin ? '#4caf50' : '#f44336',
-                            fontSize: '14px',
-                            letterSpacing: '1px',
-                            textTransform: 'uppercase'
-                          }}>
-                            {isWin ? t("profile.win") : t("profile.loss")}
-                          </strong>
-                          <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                            {t("profile.room")}: {match.roomCode || "***"} &bull; {formattedDate}
-                          </span>
+                          <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-start' }}>
+                            <strong style={{
+                              color: isWin ? '#4caf50' : '#f44336',
+                              fontSize: '14px',
+                              letterSpacing: '1px',
+                              textTransform: 'uppercase'
+                            }}>
+                              {isWin ? t("profile.win") : t("profile.loss")}
+                            </strong>
+                          </div>
+                          
+                          <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
+                            {match.mode && (
+                              <span style={{ 
+                                fontSize: '10px', 
+                                padding: '2px 8px', 
+                                background: match.mode === 'rank' || match.mode === 'ranked' ? 'rgba(255, 193, 7, 0.15)' : 'rgba(255,255,255,0.1)', 
+                                color: match.mode === 'rank' || match.mode === 'ranked' ? '#ffc107' : 'var(--text-muted)',
+                                borderRadius: '4px',
+                                letterSpacing: '1px',
+                                fontWeight: 'bold'
+                              }}>
+                                {match.mode === 'rank' || match.mode === 'ranked' ? t("profile.rankedMode") : t("profile.normalMode")}
+                              </span>
+                            )}
+                          </div>
+
+                          <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end', textAlign: 'right' }}>
+                            <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                              {t("profile.room")}: {match.roomCode || "***"} &bull; {formattedDate}
+                            </span>
+                          </div>
                         </div>
                         
                         {/* Players Info */}
@@ -573,8 +593,8 @@ function Profile() {
                           {/* Player 1 */}
                           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1 }}>
                             <img 
-                              src={match.player1Avatar || COMMANDER_AVATAR} 
-                              alt="Player 1" 
+                              src={match.player1Avatar ? `${match.player1Avatar}?t=${Date.now()}` : COMMANDER_AVATAR} 
+  alt="Player 1"
                               style={{ width: '40px', height: '40px', borderRadius: '4px', border: '1px solid var(--border)', objectFit: 'cover' }}
                               onError={(e) => { e.currentTarget.src = COMMANDER_AVATAR; }}
                             />
@@ -606,8 +626,8 @@ function Profile() {
                               </span>
                             </div>
                             <img 
-                              src={match.player2Avatar || COMMANDER_AVATAR} 
-                              alt="Player 2" 
+                              src={match.player2Avatar ? `${match.player2Avatar}?t=${Date.now()}` : COMMANDER_AVATAR} 
+                              alt="Player 2"
                               style={{ width: '40px', height: '40px', borderRadius: '4px', border: '1px solid var(--border)', objectFit: 'cover' }}
                               onError={(e) => { e.currentTarget.src = COMMANDER_AVATAR; }}
                             />

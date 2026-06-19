@@ -51,6 +51,7 @@ const isSamePlayer = (candidate, player) => {
   if (
     candidate.baseUserId &&
     player.baseUserId &&
+    candidate.baseUserId !== "guest" &&
     candidate.baseUserId === player.baseUserId
   )
     return true;
@@ -319,6 +320,13 @@ const markPlayerReady = async ({ roomCode, player, board }) => {
     updatedAt: nowIso(),
     startedAt: allFleetReady ? room.startedAt || nowIso() : room.startedAt,
     ttl: buildTtl(),
+    ...(allFleetReady ? {
+      hits1: [],
+      misses1: [],
+      hits2: [],
+      misses2: [],
+      currentTurnUserId: players[0].userId,
+    } : {}),
   };
 
   return putRoom(nextRoom);
