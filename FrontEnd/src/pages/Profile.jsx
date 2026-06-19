@@ -570,7 +570,7 @@ function Profile() {
                                 letterSpacing: '1px',
                                 fontWeight: 'bold'
                               }}>
-                                {match.mode === 'rank' || match.mode === 'ranked' ? 'RANKED' : 'NORMAL'}
+                                {match.mode === 'rank' || match.mode === 'ranked' ? t("profile.rankedMode") : t("profile.normalMode")}
                               </span>
                             )}
                           </div>
