@@ -112,7 +112,10 @@ function CommandHeader({
           {!authLoading && !currentUser ? (
             <div className="command-guest-actions">
               <Link to="/login" className="command-signin">{t("common.signIn")}</Link>
-              <Link to="/register" className="command-enlist">{t("common.enlist")}</Link>
+              <Link to="/register" className="command-enlist">
+                <span className="command-enlist-desktop">{t("common.enlist")}</span>
+                <span className="command-enlist-mobile">{t("common.getStarted")}</span>
+              </Link>
             </div>
           ) : currentUser ? (
             <>

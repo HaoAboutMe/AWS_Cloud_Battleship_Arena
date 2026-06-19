@@ -203,6 +203,10 @@
   color: #002431;
 }
 
+.command-enlist-mobile {
+  display: none;
+}
+
 .command-account {
   position: relative;
   min-width: 0;
@@ -679,6 +683,14 @@
   .command-enlist {
     height: 34px;
     padding: 0 11px;
+  }
+
+  .command-enlist-desktop {
+    display: none;
+  }
+
+  .command-enlist-mobile {
+    display: inline;
   }
 
 
