@@ -1077,16 +1077,82 @@
   
   .profile-match-players {
     flex-direction: column;
-    gap: 16px;
+    gap: 14px;
     align-items: stretch;
   }
   
-  .profile-match-stats-row {
-    flex-wrap: wrap;
+  /* Make Player 2 layout identical to Player 1 on mobile */
+  .profile-match-player.is-p2 {
+    justify-content: flex-start !important;
+    text-align: left !important;
+  }
+
+  .profile-match-player.is-p2 .profile-match-player-info {
+    order: 2;
+  }
+
+  .profile-match-player.is-p2 .profile-match-player-avatar {
+    order: 1;
+  }
+
+  /* Force Player 2's flex name container to follow left-to-right order */
+  .profile-match-player.is-p2 .profile-match-player-name {
     justify-content: flex-start !important;
   }
+
+  .profile-match-player.is-p2 .profile-name-text {
+    order: 1;
+  }
+
+  .profile-match-player.is-p2 .profile-you-badge {
+    order: 2;
+    margin-left: 6px !important;
+    margin-right: 0 !important;
+  }
+
+  .profile-match-player.is-p2 .profile-surrender-text {
+    order: 3;
+    margin-left: 6px !important;
+    margin-right: 0 !important;
+  }
+
+  .profile-match-stats-row {
+    flex-wrap: nowrap !important;
+    justify-content: flex-start !important;
+    gap: 4px !important;
+  }
+
+  .profile-match-stat-pill {
+    padding: 2px 6px !important;
+    font-size: 10px !important;
+    white-space: nowrap !important;
+    flex-shrink: 0;
+  }
   
+  /* Align statistics pills to the left for Player 2 on mobile */
   .profile-match-stats-row.is-right {
-    justify-content: flex-end !important;
+    justify-content: flex-start !important;
+    flex-direction: row !important;
+  }
+
+  /* Order Player 2 pills on mobile: Shots -> Misses -> Accuracy */
+  .profile-match-player.is-p2 .profile-match-stat-pill.shots {
+    order: 1;
+  }
+
+  .profile-match-player.is-p2 .profile-match-stat-pill.misses {
+    order: 2;
+  }
+
+  .profile-match-player.is-p2 .profile-match-stat-pill.accuracy {
+    order: 3;
+  }
+
+  /* Style VS separator on mobile */
+  .profile-match-vs {
+    padding: 2px 0 !important;
+    font-size: 12px !important;
+    letter-spacing: 1px;
+    opacity: 0.5;
   }
 }

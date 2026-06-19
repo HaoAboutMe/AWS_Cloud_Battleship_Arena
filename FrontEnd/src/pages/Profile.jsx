@@ -615,22 +615,23 @@ function Profile() {
                           {/* Players Info */}
                           <div className="profile-match-players">
                             {/* Player 1 */}
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1 }}>
+                            <div className="profile-match-player is-p1" style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1 }}>
                               <img 
                                 src={match.player1Avatar ? `${match.player1Avatar}?t=${Date.now()}` : COMMANDER_AVATAR} 
                                 alt="Player 1"
+                                className="profile-match-player-avatar"
                                 style={{ width: '40px', height: '40px', borderRadius: '4px', border: '1px solid var(--border)', objectFit: 'cover' }}
                                 onError={(e) => { e.currentTarget.src = COMMANDER_AVATAR; }}
                               />
-                              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                <span style={{ fontWeight: 'bold', fontSize: '15px', color: 'var(--text-main)' }}>
-                                  {match.player1Name || "Unknown"}
+                              <div className="profile-match-player-info" style={{ display: 'flex', flexDirection: 'column' }}>
+                                <span className="profile-match-player-name" style={{ display: 'inline-flex', alignItems: 'center', fontWeight: 'bold', fontSize: '15px', color: 'var(--text-main)' }}>
+                                  <span className="profile-name-text">{match.player1Name || "Unknown"}</span>
                                   {isP1You && (
                                     <span className="profile-you-badge is-right">
                                       {t("profile.you")}
                                     </span>
                                   )}
-                                  {match.leaverId === match.player1Id && <span style={{ color: '#f44336', fontSize: '11px', marginLeft: '6px', fontStyle: 'italic', display: 'inline-block' }}>{t("profile.surrendered")}</span>}
+                                  {match.leaverId === match.player1Id && <span className="profile-surrender-text" style={{ color: '#f44336', fontSize: '11px', marginLeft: '6px', fontStyle: 'italic', display: 'inline-block' }}>{t("profile.surrendered")}</span>}
                                 </span>
                                 <div className="profile-match-stats-row">
                                   <span className="profile-match-stat-pill shots">
@@ -650,21 +651,21 @@ function Profile() {
                             </div>
                             
                             {/* VS */}
-                            <div style={{ padding: '0 16px', color: 'var(--text-muted)', fontWeight: 'bold', fontStyle: 'italic', fontSize: '14px', textAlign: 'center' }}>
+                            <div className="profile-match-vs" style={{ padding: '0 16px', color: 'var(--text-muted)', fontWeight: 'bold', fontStyle: 'italic', fontSize: '14px', textAlign: 'center' }}>
                               VS
                             </div>
                             
                             {/* Player 2 */}
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, justifyContent: 'flex-end', textAlign: 'right' }}>
-                              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                <span style={{ fontWeight: 'bold', fontSize: '15px', color: 'var(--text-main)' }}>
-                                  {match.leaverId === match.player2Id && <span style={{ color: '#f44336', fontSize: '11px', marginRight: '6px', fontStyle: 'italic', display: 'inline-block' }}>{t("profile.surrendered")}</span>}
+                            <div className="profile-match-player is-p2" style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, justifyContent: 'flex-end', textAlign: 'right' }}>
+                              <div className="profile-match-player-info" style={{ display: 'flex', flexDirection: 'column' }}>
+                                <span className="profile-match-player-name" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'flex-end', fontWeight: 'bold', fontSize: '15px', color: 'var(--text-main)' }}>
+                                  {match.leaverId === match.player2Id && <span className="profile-surrender-text" style={{ color: '#f44336', fontSize: '11px', marginRight: '6px', fontStyle: 'italic', display: 'inline-block' }}>{t("profile.surrendered")}</span>}
                                   {isP2You && (
                                     <span className="profile-you-badge is-left">
                                       {t("profile.you")}
                                     </span>
                                   )}
-                                  {match.player2Name || "Unknown"}
+                                  <span className="profile-name-text">{match.player2Name || "Unknown"}</span>
                                 </span>
                                 <div className="profile-match-stats-row is-right">
                                   <span className="profile-match-stat-pill accuracy">
@@ -684,6 +685,7 @@ function Profile() {
                               <img 
                                 src={match.player2Avatar ? `${match.player2Avatar}?t=${Date.now()}` : COMMANDER_AVATAR} 
                                 alt="Player 2"
+                                className="profile-match-player-avatar"
                                 style={{ width: '40px', height: '40px', borderRadius: '4px', border: '1px solid var(--border)', objectFit: 'cover' }}
                                 onError={(e) => { e.currentTarget.src = COMMANDER_AVATAR; }}
                               />
