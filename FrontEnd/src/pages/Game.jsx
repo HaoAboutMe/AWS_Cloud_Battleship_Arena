@@ -12,7 +12,6 @@ import BattleEffectsLayer from "../game/BattleEffectsLayer";
 import { canPlaceShip, checkVictory, createBoard, fireAt, getShipBounds, getShipOffsets, markWaterAroundSunkShip, placeShip, placeShipsRandomly, SHIP_DEFS } from "../game/GameLogic";
 import { getBotMove, resetBotAI } from "../game/botAI";
 import { createRoomSocket, getRoom, getRoomPlayerId, leaveRoom, markPlayerReady, resetRoomForRematch, sendSocketMessage } from "../services/matchService";
-import { saveMatchHistory } from "../services/userService";
 import "./GameEffects.css";
 
 const BOARD_SIZE = 10;
@@ -248,7 +247,6 @@ function Game() {
     const activePvpShotIdRef = useRef("");
     const pvpShotTimeoutRef = useRef(null);
     const matchStartedAtRef = useRef(null);
-    const applyIncomingPvpShotRequestRef = useRef(null);
     const applyPvpShotResultRef = useRef(null);
     const handleOpponentLeftRef = useRef(null);
     // Ref theo dõi gameState để dùng trong async callbacks (tránh stale closure)
@@ -465,7 +463,10 @@ function Game() {
 
     const cloneBoard = (board) => board.map(row => row.map(cell => ({ ...cell })));
 
-    const getRoomPlayerKey = (player) => player?.userId || player?.baseUserId || player?.email || "";
+    const getRoomPlayerKey = (player) => {
+        const rawKey = player?.userId || player?.baseUserId || player?.email || "";
+        return rawKey.split(':')[0];
+    };
 
     const isSameRoomPlayer = (left, right) => {
         if (!left || !right) return false;
@@ -519,13 +520,8 @@ function Game() {
 
         pvpExitSentRef.current = true;
         sendSocketMessage(pvpSocketRef.current, {
-            action: "BROADCAST_ROOM",
+            action: "QUIT",
             roomCode,
-            payload: {
-                type: "PVP_PLAYER_LEFT",
-                playerId: currentPlayerId,
-                reason: "intentional_exit",
-            },
         });
     }, [isPvpMode, roomCode]);
 
@@ -1064,149 +1060,6 @@ function Game() {
         localStorage.setItem(key, JSON.stringify(savedStats));
     }, [stats]);
 
-    const savePvpMatchHistory = useCallback(async (isPlayerVictory, reason = null) => {
-        if (!isPvpMode || !pvpRoomRef.current || !isPlayerVictory) return;
-        
-        const currentRoom = pvpRoomRef.current;
-        if (!currentRoom.players || currentRoom.players.length < 2) return;
-
-        const player1 = currentRoom.players[0];
-        const player2 = currentRoom.players[1];
-        
-        const currentPlayer = getCurrentRoomPlayer(currentRoom);
-        const opponent = getOpponentPlayer(currentRoom);
-        const winnerId = getRoomPlayerKey(currentPlayer);
-
-        // Calculate shots and misses
-        const myShots = enemyBoardStateRef.current.flat().filter(c => c.isHit).length;
-        const myMisses = enemyBoardStateRef.current.flat().filter(c => c.isHit && !c.hasShip).length;
-        const opShots = playerBoardStateRef.current.flat().filter(c => c.isHit).length;
-        const opMisses = playerBoardStateRef.current.flat().filter(c => c.isHit && !c.hasShip).length;
-
-        const isPlayer1 = getRoomPlayerKey(player1) === winnerId;
-        const player1Shots = isPlayer1 ? myShots : opShots;
-        const player1Misses = isPlayer1 ? myMisses : opMisses;
-        const player2Shots = isPlayer1 ? opShots : myShots;
-        const player2Misses = isPlayer1 ? opMisses : myMisses;
-
-        const leaverId = reason === "opponent_left" ? (opponent ? opponent.baseUserId : null) : null;
-        const leaverEmail = reason === "opponent_left" ? (opponent ? opponent.email : null) : null;
-
-        const payload = {
-            matchId: crypto.randomUUID(),
-            roomCode: roomCode,
-            player1Id: player1.baseUserId,
-            player1Email: player1.email,
-            player1Name: player1.displayName || "Unknown",
-            player2Id: player2.baseUserId,
-            player2Email: player2.email,
-            player2Name: player2.displayName || "Unknown",
-            winnerId: currentPlayer.baseUserId,
-            winnerEmail: currentPlayer.email,
-            player1Shots,
-            player1Misses,
-            player2Shots,
-            player2Misses,
-            leaverId,
-            leaverEmail,
-            startedAt: matchStartedAtRef.current || new Date().toISOString(),
-            endedAt: new Date().toISOString(),
-            totalTurns: stats.turns || 0,
-            createdAt: new Date().toISOString()
-        };
-
-        try {
-            await fetch(`${import.meta.env.VITE_API_BASE_URL}/matches/save`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            console.log("Match history saved successfully.");
-        } catch (error) {
-            console.error("Failed to save match history", error);
-        }
-    }, [isPvpMode, roomCode, stats.turns]);
-
-    const savePvpRankedMatchHistory = useCallback(async (isPlayerVictory) => {
-        if (!isPvpMode || !pvpRoomRef.current || !isPlayerVictory) return;
-
-        const currentRoom = pvpRoomRef.current;
-        if (!currentRoom.players || currentRoom.players.length < 2) return;
-
-        const player1 = currentRoom.players[0];
-        const player2 = currentRoom.players[1];
-        const currentPlayer = getCurrentRoomPlayer(currentRoom);
-        const loserPlayer = isSameRoomPlayer(player1, currentPlayer) ? player2 : player1;
-        const isRankedMatch = currentRoom.matchmakingMode === "ranked";
-        const latestStats = statsRef.current || stats;
-        
-        // Calculate shots and misses
-        const myShots = enemyBoardStateRef.current.flat().filter(c => c.isHit).length;
-        const myMisses = enemyBoardStateRef.current.flat().filter(c => c.isHit && !c.hasShip).length;
-        const opShots = playerBoardStateRef.current.flat().filter(c => c.isHit).length;
-        const opMisses = playerBoardStateRef.current.flat().filter(c => c.isHit && !c.hasShip).length;
-
-        const isPlayer1 = getRoomPlayerKey(player1) === currentPlayer.baseUserId;
-        const player1Shots = isPlayer1 ? myShots : opShots;
-        const player1Misses = isPlayer1 ? myMisses : opMisses;
-        const player2Shots = isPlayer1 ? opShots : myShots;
-        const player2Misses = isPlayer1 ? opMisses : myMisses;
-
-        const winnerStats = {
-            turns: latestStats.turns || 0,
-            shots: myShots,
-            hits: myShots - myMisses,
-            misses: myMisses,
-            shipsDestroyed: latestStats.shipsDestroyed || 0,
-        };
-        const loserStats = {
-            turns: latestStats.turns || 0,
-            shots: opShots,
-            hits: opShots - opMisses,
-            misses: opMisses,
-            shipsDestroyed: 0,
-        };
-
-        const payload = {
-            matchId: crypto.randomUUID(),
-            roomCode,
-            mode: isRankedMatch ? "ranked" : "casual",
-            player1Id: player1.baseUserId,
-            player1Email: player1.email,
-            player1Name: player1.displayName || "Unknown",
-            player2Id: player2.baseUserId,
-            player2Email: player2.email,
-            player2Name: player2.displayName || "Unknown",
-            winnerId: currentPlayer.baseUserId,
-            winnerEmail: currentPlayer.email,
-            loserId: loserPlayer.baseUserId,
-            loserEmail: loserPlayer.email,
-            player1Shots,
-            player1Misses,
-            player2Shots,
-            player2Misses,
-            winnerStats,
-            loserStats,
-            startedAt: matchStartedAtRef.current || new Date().toISOString(),
-            endedAt: new Date().toISOString(),
-            totalTurns: latestStats.turns || 0,
-            createdAt: new Date().toISOString(),
-        };
-
-        try {
-            const result = await saveMatchHistory(payload);
-            if (result?.ranked?.winner) {
-                setRankedResult(result.ranked.winner);
-                await checkAuth?.();
-                if (result.ranked.winner.promoted) {
-                    setShowRankUpAnimation(true);
-                }
-            }
-        } catch (error) {
-            console.error("Failed to save match history", error);
-        }
-    }, [checkAuth, isPvpMode, roomCode, stats]);
-
     const endGame = useCallback((isPlayerVictory) => {
         setGameOverReason("");
         gameStateRef.current = "GAME_OVER";
@@ -1215,9 +1068,8 @@ function Game() {
         releaseShotLock();
         addLog(isPlayerVictory ? "VICTORY! Enemy fleet destroyed!" : "DEFEAT! Your fleet was destroyed.", isPlayerVictory ? "victory" : "defeat");
         saveMatchStats(isPlayerVictory);
-        if (isPlayerVictory) savePvpRankedMatchHistory(true);
         setTimeout(() => setShowModal(true), 1500);
-    }, [addLog, releaseShotLock, saveMatchStats, savePvpRankedMatchHistory]);
+    }, [addLog, releaseShotLock, saveMatchStats]);
 
     const handleOpponentLeft = useCallback(() => {
         if (gameStateRef.current === "GAME_OVER") return;
@@ -1228,10 +1080,8 @@ function Game() {
         releaseShotLock();
         addLog(copy.opponentLeftLog, "victory");
         saveMatchStats(true);
-        savePvpRankedMatchHistory(true);
-        savePvpMatchHistory(true, "opponent_left");
         window.setTimeout(() => setShowModal(true), 450);
-    }, [addLog, copy.opponentLeftLog, releaseShotLock, saveMatchStats, savePvpRankedMatchHistory]);
+    }, [addLog, copy.opponentLeftLog, releaseShotLock, saveMatchStats]);
 
     useEffect(() => {
         handleOpponentLeftRef.current = handleOpponentLeft;
@@ -1372,11 +1222,9 @@ function Game() {
     const applyPvpShotResult = (payload) => {
         const currentPlayer = getCurrentRoomPlayer();
         const currentPlayerId = getRoomPlayerKey(currentPlayer);
+        const isShooter = payload.shooterUserId === currentPlayerId;
 
-        if (
-            payload.shooterUserId !== currentPlayerId
-            && payload.shotId !== activePvpShotIdRef.current
-        ) return;
+        if (isShooter && payload.shotId !== activePvpShotIdRef.current) return;
 
         const row = payload.row;
         const col = payload.col;
@@ -1385,123 +1233,112 @@ function Game() {
         const rowNum = row + 1;
         const cellName = `${colLetter}${rowNum}`;
 
-        setEnemyBoard(prevBoard => {
-            const nextBoard = cloneBoard(prevBoard);
-            const cell = nextBoard[row]?.[col];
-            if (!cell) return prevBoard;
+        if (isShooter) {
+            setEnemyBoard(prevBoard => {
+                const nextBoard = cloneBoard(prevBoard);
+                const cell = nextBoard[row]?.[col];
+                if (!cell) return prevBoard;
 
-            cell.isHit = true;
-            cell.autoMarked = false;
+                cell.isHit = true;
+                cell.autoMarked = false;
+
+                if (shotResult.result === "HIT") {
+                    cell.hasShip = true;
+                    cell.shipId = shotResult.shipId || `enemy-hit-${payload.shotId}`;
+                    cell.shipTypeId = shotResult.shipTypeId || null;
+                    cell.shipLength = shotResult.shipLength || null;
+
+                    if (shotResult.isSunk && Array.isArray(payload.sunkCells)) {
+                        revealSunkShipOnBoard(nextBoard, shotResult, payload.sunkCells);
+                    }
+                }
+
+                return nextBoard;
+            });
 
             if (shotResult.result === "HIT") {
-                cell.hasShip = true;
-                cell.shipId = shotResult.shipId || `enemy-hit-${payload.shotId}`;
-                cell.shipTypeId = shotResult.shipTypeId || null;
-                cell.shipLength = shotResult.shipLength || null;
+                setStats(prev => {
+                    const next = {
+                        ...prev,
+                        hits: prev.hits + 1,
+                        shipsDestroyed: shotResult.isSunk ? prev.shipsDestroyed + 1 : prev.shipsDestroyed,
+                    };
+                    statsRef.current = next;
+                    return next;
+                });
 
-                if (shotResult.isSunk && Array.isArray(payload.sunkCells)) {
-                    revealSunkShipOnBoard(nextBoard, shotResult, payload.sunkCells);
+                if (shotResult.isSunk) {
+                    setEnemyShipsSunk(prev => prev.includes(shotResult.shipTypeId) ? prev : [...prev, shotResult.shipTypeId]);
+                    setEnemySunkShipIds(prev => prev.includes(shotResult.shipId) ? prev : [...prev, shotResult.shipId]);
+                    window.requestAnimationFrame(() => {
+                        enemyEffectsRef.current?.playHit(row, col);
+                        triggerSunkEffect("enemy", shotResult.shipTypeId, shotResult.shipId, payload.sunkCells || []);
+                    });
+                    addLog(`You destroyed an enemy ship (size ${shotResult.shipLength}) at ${cellName}!`, "destroy");
+                } else {
+                    window.requestAnimationFrame(() => {
+                        enemyEffectsRef.current?.playHit(row, col);
+                    });
+                    addLog(`Direct hit at ${cellName}!`, "player_hit");
                 }
-            }
-
-            return nextBoard;
-        });
-
-        if (shotResult.result === "HIT") {
-            setStats(prev => {
-                const next = {
-                    ...prev,
-                    hits: prev.hits + 1,
-                    shipsDestroyed: shotResult.isSunk ? prev.shipsDestroyed + 1 : prev.shipsDestroyed,
-                };
-                statsRef.current = next;
-                return next;
-            });
-
-            if (shotResult.isSunk) {
-                setEnemyShipsSunk(prev => prev.includes(shotResult.shipTypeId) ? prev : [...prev, shotResult.shipTypeId]);
-                setEnemySunkShipIds(prev => prev.includes(shotResult.shipId) ? prev : [...prev, shotResult.shipId]);
-                window.requestAnimationFrame(() => {
-                    enemyEffectsRef.current?.playHit(row, col);
-                    triggerSunkEffect("enemy", shotResult.shipTypeId, shotResult.shipId, payload.sunkCells || []);
-                });
-                addLog(`You destroyed an enemy ship (size ${shotResult.shipLength}) at ${cellName}!`, "destroy");
             } else {
-                window.requestAnimationFrame(() => {
-                    enemyEffectsRef.current?.playHit(row, col);
+                setStats(prev => {
+                    const next = { ...prev, misses: prev.misses + 1 };
+                    statsRef.current = next;
+                    return next;
                 });
-                addLog(`Direct hit at ${cellName}!`, "player_hit");
-            }
-
-            if (payload.isVictory) {
-                endGame(true);
+                window.requestAnimationFrame(() => {
+                    enemyEffectsRef.current?.playMiss(row, col);
+                });
+                addLog(`Missed at ${cellName}.`, "player_miss");
             }
         } else {
-            setStats(prev => {
-                const next = { ...prev, misses: prev.misses + 1 };
-                statsRef.current = next;
-                return next;
+            // Target player: opponent shot us
+            setPlayerBoard(prevBoard => {
+                const nextBoard = cloneBoard(prevBoard);
+                const cell = nextBoard[row]?.[col];
+                if (!cell) return prevBoard;
+
+                cell.isHit = true;
+                cell.autoMarked = false;
+
+                if (shotResult.result === "HIT") {
+                    if (shotResult.isSunk && shotResult.shipId) {
+                        markWaterAroundSunkShip(nextBoard, shotResult.shipId, true);
+                    }
+                }
+
+                return nextBoard;
             });
-            window.requestAnimationFrame(() => {
-                enemyEffectsRef.current?.playMiss(row, col);
-            });
-            addLog(`Missed at ${cellName}.`, "player_miss");
+
+            if (shotResult.result === "HIT") {
+                if (shotResult.isSunk) {
+                    setPlayerShipsSunk(prev => prev.includes(shotResult.shipId) ? prev : [...prev, shotResult.shipId]);
+                    window.requestAnimationFrame(() => {
+                        playerEffectsRef.current?.playHit(row, col);
+                        triggerSunkEffect("player", shotResult.shipTypeId, shotResult.shipId, payload.sunkCells || []);
+                    });
+                    addLog(`Enemy DESTROYED your ship (size ${shotResult.shipLength}) at ${cellName}!`, "defeat");
+                } else {
+                    window.requestAnimationFrame(() => {
+                        playerEffectsRef.current?.playHit(row, col);
+                    });
+                    addLog(`Enemy hit your ship at ${cellName}!`, "enemy_hit");
+                }
+            } else {
+                window.requestAnimationFrame(() => {
+                    playerEffectsRef.current?.playMiss(row, col);
+                });
+                addLog(`Enemy missed at ${cellName}.`, "enemy_miss");
+            }
         }
 
         setPvpTurnUserId(payload.nextTurnUserId);
-        releaseShotLock(payload.shotId);
-    };
-
-    const applyIncomingPvpShotRequest = (payload) => {
-        const currentPlayer = getCurrentRoomPlayer();
-        const currentPlayerId = getRoomPlayerKey(currentPlayer);
-
-        if (payload.shooterUserId === currentPlayerId) return;
-        if (payload.targetUserId && payload.targetUserId !== currentPlayerId) return;
-        if (pvpProcessedShotIdsRef.current.has(payload.shotId)) return;
-        pvpProcessedShotIdsRef.current.add(payload.shotId);
-
-        const { board, shotResult, ignored, sunkCells, isVictory } = resolvePvpShotOnBoard({
-            board: playerBoardStateRef.current,
-            row: payload.row,
-            col: payload.col,
-            boardSide: "player",
-            isOutgoing: false,
-        });
-
-        if (ignored || !shotResult) {
+        if (isShooter) {
+            releaseShotLock(payload.shotId);
+        } else {
             releaseShotLock();
-            return;
         }
-
-        if (!ignored) {
-            setPlayerBoard(board);
-            if (isVictory) {
-                endGame(false);
-            }
-        }
-
-        const nextTurnUserId = shotResult.result === "HIT" ? payload.shooterUserId : currentPlayerId;
-        setPvpTurnUserId(nextTurnUserId);
-        setGameState('PLAYER_TURN');
-        releaseShotLock();
-
-        sendSocketMessage(pvpSocketRef.current, {
-            action: "BROADCAST_ROOM",
-            roomCode,
-            payload: {
-                type: "PVP_SHOT_RESULT",
-                shotId: payload.shotId,
-                shooterUserId: payload.shooterUserId,
-                targetUserId: currentPlayerId,
-                row: payload.row,
-                col: payload.col,
-                shotResult,
-                sunkCells,
-                isVictory,
-                nextTurnUserId,
-            },
-        });
     };
 
     const firePvpShot = (row, col) => {
@@ -1539,16 +1376,11 @@ function Game() {
         const shotId = crypto.randomUUID();
         activePvpShotIdRef.current = shotId;
         const sent = sendSocketMessage(pvpSocketRef.current, {
-            action: "BROADCAST_ROOM",
+            action: "SHOOT",
             roomCode,
-            payload: {
-                type: "PVP_SHOT_REQUEST",
-                shotId,
-                shooterUserId: currentPlayerId,
-                targetUserId: opponentPlayerId,
-                row,
-                col,
-            },
+            shotId,
+            row,
+            col,
         });
 
         if (!sent) {
@@ -1574,7 +1406,6 @@ function Game() {
         }, 12000);
     };
 
-    applyIncomingPvpShotRequestRef.current = applyIncomingPvpShotRequest;
     applyPvpShotResultRef.current = applyPvpShotResult;
 
     useEffect(() => {
@@ -1595,7 +1426,7 @@ function Game() {
                     });
                     addLog("Room channel connected.", "info");
                 },
-                onMessage: (message) => {
+                onMessage: async (message) => {
                     if (message.type === "ROOM_SUBSCRIBED") {
                         setPvpSocketReady(true);
                         return;
@@ -1603,11 +1434,24 @@ function Game() {
 
                     if (message.type !== "ROOM_EVENT") return;
                     const payload = message.payload || {};
-                    if (payload.type === "PVP_SHOT_REQUEST") {
-                        applyIncomingPvpShotRequestRef.current?.(payload);
-                    }
                     if (payload.type === "PVP_SHOT_RESULT") {
                         applyPvpShotResultRef.current?.(payload);
+                    }
+                    if (payload.type === "GAME_OVER") {
+                        const currentPlayerId = getRoomPlayerKey(getCurrentRoomPlayer());
+                        const isVictory = payload.winnerId === currentPlayerId;
+                        if (payload.rankedResult) {
+                            const result = payload.rankedResult;
+                            const currentResult = isVictory ? result.winner : result.loser;
+                            if (currentResult) {
+                                setRankedResult(currentResult);
+                                await checkAuth?.();
+                                if (currentResult.promoted) {
+                                    setShowRankUpAnimation(true);
+                                }
+                            }
+                        }
+                        endGame(isVictory);
                     }
                     if (payload.type === "PVP_PLAYER_LEFT") {
                         const currentPlayerId = getRoomPlayerKey(getCurrentRoomPlayer());
@@ -1619,7 +1463,6 @@ function Game() {
                             handleOpponentLeftRef.current?.();
                         }
                     }
-                    // Xử lý các event type khác trong tương lai tại đây
                 },
                 onClose: () => {
                     setPvpSocketReady(false);
@@ -1661,7 +1504,7 @@ function Game() {
 
         // Xác định người đi trước (players[0] là host)
         const starterPlayer = pvpRoom.players?.[0];
-        setPvpTurnUserId(current => current || getRoomPlayerKey(starterPlayer));
+        setPvpTurnUserId(pvpRoom.currentTurnUserId || getRoomPlayerKey(starterPlayer));
     }, [addLog, isPvpMode, pvpRoom, roomPlayer]);
 
     const handleEnemyCellClick = (r, c) => {
@@ -2085,22 +1928,24 @@ function Game() {
         if (isPvpMode) {
             try {
                 setPvpReadyLoading(true);
+                const board = {
+                    placedAt: new Date().toISOString(),
+                    ships: playerBoard
+                        .flat()
+                        .filter(cell => cell.shipRoot)
+                        .map(cell => ({
+                            shipId: cell.shipId,
+                            shipTypeId: cell.shipTypeId,
+                            row: cell.shipOriginRow !== null && cell.shipOriginRow !== undefined ? cell.shipOriginRow : cell.row,
+                            col: cell.shipOriginCol !== null && cell.shipOriginCol !== undefined ? cell.shipOriginCol : cell.col,
+                            rotation: cell.shipRotation,
+                        })),
+                };
+                console.log("Payload sent to server:", board.ships);
                 const nextRoom = await markPlayerReady({
                     roomCode,
                     player: roomPlayer,
-                    board: {
-                        placedAt: new Date().toISOString(),
-                        ships: playerBoard
-                            .flat()
-                            .filter(cell => cell.shipRoot)
-                            .map(cell => ({
-                                shipId: cell.shipId,
-                                shipTypeId: cell.shipTypeId,
-                                row: cell.row,
-                                col: cell.col,
-                                rotation: cell.shipRotation,
-                            })),
-                    },
+                    board,
                 });
                 setPvpRoom(nextRoom);
                 setPvpFleetSubmitted(true);

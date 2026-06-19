@@ -39,7 +39,10 @@ const updateConnectionRoom = async ({ connectionId, roomCode }) => {
       Key: {
         connectionId,
       },
-      UpdateExpression: "SET roomCode = :roomCode, ttl = :ttl",
+      UpdateExpression: "SET roomCode = :roomCode, #ttl = :ttl",
+      ExpressionAttributeNames: {
+        "#ttl": "ttl",
+      },
       ExpressionAttributeValues: {
         ":roomCode": roomCode,
         ":ttl": buildTtl(),

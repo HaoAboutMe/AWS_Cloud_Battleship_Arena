@@ -158,8 +158,7 @@ export const leaveRoom = async ({ roomCode, player }) => {
 
 export const getRoomPlayerId = (baseUserId = "guest", roomCode = "global") => {
   const safeBaseUserId = String(baseUserId || "guest");
-  const safeRoomCode = String(roomCode || "global").trim().toUpperCase();
-  const storageKey = `battleshipRoomPlayerId:${safeBaseUserId}:${safeRoomCode}`;
+  const storageKey = `battleshipRoomPlayerId:${safeBaseUserId}`;
   const existingId = sessionStorage.getItem(storageKey);
 
   if (existingId) {
