@@ -33,6 +33,11 @@ exports.handler = async (event) => {
         const userId = resEmail.Item.userId;
 
         // 2. Query lịch sử đấu
+        let limit = parseInt(event.queryStringParameters?.limit, 10);
+        if (isNaN(limit) || limit <= 0) {
+            limit = 10;
+        }
+
         const resHistory = await docClient.send(new QueryCommand({
             TableName: process.env.MATCH_HISTORY_TABLE || "MatchHistoryV2",
             KeyConditionExpression: "userId = :uid",
@@ -40,7 +45,7 @@ exports.handler = async (event) => {
                 ":uid": userId
             },
             ScanIndexForward: false, // Sắp xếp giảm dần theo endedAt (mới nhất lên trên)
-            Limit: 20 // Lấy 20 trận gần nhất
+            Limit: limit // Lấy tối đa limit trận gần nhất
         }));
 
         const matches = resHistory.Items || [];

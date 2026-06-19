@@ -525,8 +525,7 @@
   }
 
   .profile-deploy-button {
-    grid-column: 1 / -1;
-    justify-content: center;
+    display: none;
   }
 
   .profile-content {
@@ -565,5 +564,595 @@
 @media (prefers-reduced-motion: reduce) {
   .profile-loading i {
     animation: none;
+  }
+}
+
+.profile-you-badge {
+  font-size: 10px;
+  font-weight: bold;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(255, 193, 7, 0.15);
+  color: #ffc107;
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.profile-you-badge.is-left {
+  margin-right: 8px;
+}
+
+.profile-you-badge.is-right {
+  margin-left: 8px;
+}
+
+.profile-match-room-badge {
+  font-size: 11px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: rgba(117, 223, 255, 0.06);
+  color: #75dfff;
+  border: 1px solid rgba(117, 223, 255, 0.16);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.light-mode-active .profile-match-room-badge {
+  background: rgba(0, 119, 182, 0.06);
+  color: #0077a9;
+  border-color: rgba(0, 119, 182, 0.16);
+}
+
+.profile-match-time {
+  font-size: 11px;
+  color: rgba(212, 228, 250, 0.72);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 500;
+}
+
+.light-mode-active .profile-match-time {
+  color: rgba(23, 50, 71, 0.8);
+}
+
+.profile-match-time .material-symbols-outlined {
+  font-size: 14px;
+  color: rgba(117, 223, 255, 0.6);
+}
+
+.light-mode-active .profile-match-time .material-symbols-outlined {
+  color: rgba(0, 119, 182, 0.6);
+}
+
+.profile-match-stats-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.profile-match-stats-row.is-right {
+  justify-content: flex-end;
+}
+
+.profile-match-stat-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text-muted);
+}
+
+.profile-match-stat-pill .val {
+  color: var(--text-main);
+  font-weight: bold;
+}
+
+.profile-match-stat-pill.shots {
+  background: rgba(117, 223, 255, 0.06);
+  border-color: rgba(117, 223, 255, 0.12);
+  color: rgba(117, 223, 255, 0.85);
+}
+
+.profile-match-stat-pill.shots .val {
+  color: #75dfff;
+}
+
+.profile-match-stat-pill.misses {
+  background: rgba(244, 67, 54, 0.06);
+  border-color: rgba(244, 67, 54, 0.12);
+  color: rgba(244, 67, 54, 0.85);
+}
+
+.profile-match-stat-pill.misses .val {
+  color: #ff6b6b;
+}
+
+.profile-match-stat-pill.accuracy {
+  background: rgba(255, 193, 7, 0.06);
+  border-color: rgba(255, 193, 7, 0.12);
+  color: rgba(255, 193, 7, 0.85);
+}
+
+.profile-match-stat-pill.accuracy .val {
+  color: #ffca28;
+}
+
+/* Light mode overrides */
+.light-mode-active .profile-match-stat-pill.shots {
+  background: rgba(0, 119, 182, 0.06);
+  border-color: rgba(0, 119, 182, 0.12);
+  color: #0077a9;
+}
+.light-mode-active .profile-match-stat-pill.shots .val {
+  color: #005f87;
+}
+
+.light-mode-active .profile-match-stat-pill.misses {
+  background: rgba(211, 47, 47, 0.06);
+  border-color: rgba(211, 47, 47, 0.12);
+  color: #c62828;
+}
+.light-mode-active .profile-match-stat-pill.misses .val {
+  color: #b71c1c;
+}
+
+.light-mode-active .profile-match-stat-pill.accuracy {
+  background: rgba(245, 158, 11, 0.06);
+  border-color: rgba(245, 158, 11, 0.12);
+  color: #d97706;
+}
+.light-mode-active .profile-match-stat-pill.accuracy .val {
+  color: #b45309;
+}
+
+/* Profile Tab System Styles */
+.profile-tabs-nav {
+  display: flex;
+  gap: 12px;
+  border-bottom: 1px solid rgba(117, 223, 255, 0.14);
+  margin: 24px 0 32px 0;
+  padding-bottom: 1px;
+}
+
+.light-mode-active .profile-tabs-nav {
+  border-bottom-color: rgba(25, 78, 104, 0.18);
+}
+
+.profile-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-muted);
+  padding: 12px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.profile-tab-btn .material-symbols-outlined {
+  font-size: 18px;
+  color: rgba(117, 223, 255, 0.6);
+  transition: color 0.2s ease;
+}
+
+.profile-tab-text-short {
+  display: none;
+}
+
+.light-mode-active .profile-tab-btn .material-symbols-outlined {
+  color: rgba(0, 119, 182, 0.6);
+}
+
+.profile-tab-btn:hover {
+  color: var(--text-main);
+}
+
+.profile-tab-btn.active {
+  color: #75dfff;
+  border-bottom-color: #75dfff;
+}
+
+.profile-tab-btn.active .material-symbols-outlined {
+  color: #75dfff;
+}
+
+.light-mode-active .profile-tab-btn.active {
+  color: #0077a9;
+  border-bottom-color: #0077a9;
+}
+
+.light-mode-active .profile-tab-btn.active .material-symbols-outlined {
+  color: #0077a9;
+}
+
+/* Username/Tag Riot ID Section classes */
+.profile-riot-id-section {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 32px;
+  padding: 32px;
+  background: var(--surface);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+.profile-riot-id-col-left {
+  flex: 1 1 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.profile-riot-id-col-right {
+  flex: 2 1 400px;
+  display: flex;
+  flex-direction: column;
+}
+
+.profile-riot-id-form {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.profile-riot-id-inputs-row {
+  display: flex;
+  gap: 16px;
+  flex-wrap: nowrap;
+  margin-bottom: 12px;
+}
+
+.profile-riot-id-input-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.profile-riot-id-input-group.tag-group {
+  width: 140px;
+  flex: none;
+}
+
+.profile-riot-id-label {
+  font-size: 11px;
+  font-weight: bold;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+}
+
+.profile-riot-id-input {
+  padding: 12px 16px;
+  border-radius: 6px;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  background: rgba(0, 0, 0, 0.2);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+  color: var(--text-main);
+  font-size: 16px;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+
+.profile-riot-id-input:focus {
+  border-color: rgba(117, 223, 255, 0.5);
+}
+
+.profile-riot-id-tag-container {
+  display: flex;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+  border-radius: 6px;
+  transition: border-color 0.2s;
+}
+
+.profile-riot-id-tag-container:focus-within {
+  border-color: rgba(117, 223, 255, 0.5);
+}
+
+.profile-riot-id-tag-prefix {
+  padding-left: 16px;
+  color: var(--text-muted);
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.profile-riot-id-tag-input {
+  width: 100%;
+  padding: 12px 16px 12px 8px;
+  border: none;
+  background: transparent;
+  color: var(--text-main);
+  font-size: 16px;
+  outline: none;
+  box-sizing: border-box;
+  box-shadow: none;
+}
+
+.profile-riot-id-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-grow: 1;
+}
+
+.profile-riot-id-submit-btn {
+  padding: 12px 24px;
+  background: #d32f2f;
+  color: white;
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: 13px;
+  letter-spacing: 1px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  align-self: flex-end;
+  margin-top: auto;
+}
+
+.profile-riot-id-submit-btn:disabled {
+  background: var(--surface-sunken);
+  color: #666;
+  cursor: not-allowed;
+}
+
+/* Light mode overrides for Riot ID form */
+.light-mode-active .profile-riot-id-section {
+  border-color: rgba(25, 78, 104, 0.16);
+  background: rgba(246, 251, 253, 0.9);
+  box-shadow: 0 12px 30px rgba(23, 58, 78, 0.08);
+}
+
+.light-mode-active .profile-riot-id-input,
+.light-mode-active .profile-riot-id-tag-container {
+  border-color: rgba(25, 78, 104, 0.18);
+  background: rgba(245, 251, 253, 0.72);
+  color: #173247;
+}
+
+.light-mode-active .profile-riot-id-tag-input {
+  color: #173247;
+}
+
+/* Profile Match Card styles */
+.profile-match-card {
+  display: flex;
+  flex-direction: column;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 16px;
+  background: rgba(244, 67, 54, 0.05);
+  border: 1px solid rgba(244, 67, 54, 0.3);
+}
+
+.profile-match-card.is-win {
+  background: rgba(76, 175, 80, 0.05);
+  border-color: rgba(76, 175, 80, 0.3);
+}
+
+.light-mode-active .profile-match-card {
+  background: rgba(244, 67, 54, 0.03);
+  border-color: rgba(244, 67, 54, 0.15);
+}
+
+.light-mode-active .profile-match-card.is-win {
+  background: rgba(76, 175, 80, 0.03);
+  border-color: rgba(76, 175, 80, 0.15);
+}
+
+.profile-match-header {
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  background: rgba(244, 67, 54, 0.1);
+  border-bottom: 1px solid rgba(244, 67, 54, 0.2);
+}
+
+.profile-match-card.is-win .profile-match-header {
+  background: rgba(76, 175, 80, 0.1);
+  border-bottom-color: rgba(76, 175, 80, 0.2);
+}
+
+.light-mode-active .profile-match-header {
+  background: rgba(244, 67, 54, 0.06);
+  border-bottom-color: rgba(244, 67, 54, 0.1);
+}
+
+.light-mode-active .profile-match-card.is-win .profile-match-header {
+  background: rgba(76, 175, 80, 0.06);
+  border-bottom-color: rgba(76, 175, 80, 0.1);
+}
+
+.profile-match-players {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+}
+
+.profile-history-section {
+  margin-top: 32px;
+  padding: 32px;
+  background: var(--surface);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+.light-mode-active .profile-history-section {
+  border-color: rgba(25, 78, 104, 0.16);
+  background: rgba(246, 251, 253, 0.9);
+  box-shadow: 0 12px 30px rgba(23, 58, 78, 0.08);
+}
+
+/* Mobile responsive styles */
+@media (max-width: 620px) {
+  .profile-tabs-nav {
+    gap: 4px;
+    justify-content: space-between;
+    margin: 16px 0 24px 0;
+  }
+  
+  .profile-tab-btn {
+    padding: 10px 8px;
+    font-size: 11px;
+    gap: 4px;
+    flex: 1;
+    justify-content: center;
+  }
+  
+  .profile-tab-btn .material-symbols-outlined {
+    font-size: 16px;
+  }
+
+  .profile-tab-text-full {
+    display: none;
+  }
+
+  .profile-tab-text-short {
+    display: inline;
+  }
+
+  .profile-riot-id-section {
+    padding: 20px;
+    gap: 20px;
+  }
+  
+  .profile-riot-id-inputs-row {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  
+  .profile-riot-id-input-group.tag-group {
+    width: 100%;
+  }
+  
+  .profile-riot-id-footer {
+    flex-direction: column;
+    gap: 16px;
+    align-items: stretch;
+  }
+  
+  .profile-riot-id-submit-btn {
+    align-self: stretch;
+  }
+
+  .profile-history-section {
+    padding: 16px;
+    margin-top: 16px;
+  }
+
+  .profile-match-header {
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px;
+    align-items: stretch;
+    text-align: center;
+  }
+  
+  .profile-match-header > div {
+    justify-content: center !important;
+  }
+  
+  .profile-match-players {
+    flex-direction: column;
+    gap: 14px;
+    align-items: stretch;
+  }
+  
+  /* Make Player 2 layout identical to Player 1 on mobile */
+  .profile-match-player.is-p2 {
+    justify-content: flex-start !important;
+    text-align: left !important;
+  }
+
+  .profile-match-player.is-p2 .profile-match-player-info {
+    order: 2;
+  }
+
+  .profile-match-player.is-p2 .profile-match-player-avatar {
+    order: 1;
+  }
+
+  /* Force Player 2's flex name container to follow left-to-right order */
+  .profile-match-player.is-p2 .profile-match-player-name {
+    justify-content: flex-start !important;
+  }
+
+  .profile-match-player.is-p2 .profile-name-text {
+    order: 1;
+  }
+
+  .profile-match-player.is-p2 .profile-you-badge {
+    order: 2;
+    margin-left: 6px !important;
+    margin-right: 0 !important;
+  }
+
+  .profile-match-player.is-p2 .profile-surrender-text {
+    order: 3;
+    margin-left: 6px !important;
+    margin-right: 0 !important;
+  }
+
+  .profile-match-stats-row {
+    flex-wrap: nowrap !important;
+    justify-content: flex-start !important;
+    gap: 4px !important;
+  }
+
+  .profile-match-stat-pill {
+    padding: 2px 6px !important;
+    font-size: 10px !important;
+    white-space: nowrap !important;
+    flex-shrink: 0;
+  }
+  
+  /* Align statistics pills to the left for Player 2 on mobile */
+  .profile-match-stats-row.is-right {
+    justify-content: flex-start !important;
+    flex-direction: row !important;
+  }
+
+  /* Order Player 2 pills on mobile: Shots -> Misses -> Accuracy */
+  .profile-match-player.is-p2 .profile-match-stat-pill.shots {
+    order: 1;
+  }
+
+  .profile-match-player.is-p2 .profile-match-stat-pill.misses {
+    order: 2;
+  }
+
+  .profile-match-player.is-p2 .profile-match-stat-pill.accuracy {
+    order: 3;
+  }
+
+  /* Style VS separator on mobile */
+  .profile-match-vs {
+    padding: 2px 0 !important;
+    font-size: 12px !important;
+    letter-spacing: 1px;
+    opacity: 0.5;
   }
 }

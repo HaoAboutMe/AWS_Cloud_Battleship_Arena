@@ -71,10 +71,10 @@ export const getUserProfile = async (email) => {
   }
 };
 
-export const getMatchHistory = async (email) => {
+export const getMatchHistory = async (email, limit = 10) => {
   try {
     const response = await fetch(
-      `${import.meta.env.VITE_API_BASE_URL}/matches?email=${encodeURIComponent(email)}`,
+      `${import.meta.env.VITE_API_BASE_URL}/matches?email=${encodeURIComponent(email)}&limit=${limit}`,
       {
         method: "GET",
         headers: {
