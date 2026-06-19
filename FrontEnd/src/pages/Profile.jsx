@@ -592,8 +592,8 @@ function Profile() {
                           {/* Player 1 */}
                           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1 }}>
                             <img 
-                              src={match.player1Avatar || COMMANDER_AVATAR} 
-                              alt="Player 1" 
+                              src={match.player1Avatar ? `${match.player1Avatar}?t=${Date.now()}` : COMMANDER_AVATAR} 
+  alt="Player 1"
                               style={{ width: '40px', height: '40px', borderRadius: '4px', border: '1px solid var(--border)', objectFit: 'cover' }}
                               onError={(e) => { e.currentTarget.src = COMMANDER_AVATAR; }}
                             />
@@ -625,8 +625,8 @@ function Profile() {
                               </span>
                             </div>
                             <img 
-                              src={match.player2Avatar || COMMANDER_AVATAR} 
-                              alt="Player 2" 
+                              src={match.player2Avatar ? `${match.player2Avatar}?t=${Date.now()}` : COMMANDER_AVATAR} 
+                              alt="Player 2"
                               style={{ width: '40px', height: '40px', borderRadius: '4px', border: '1px solid var(--border)', objectFit: 'cover' }}
                               onError={(e) => { e.currentTarget.src = COMMANDER_AVATAR; }}
                             />
