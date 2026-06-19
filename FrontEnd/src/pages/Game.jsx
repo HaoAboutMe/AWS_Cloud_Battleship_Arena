@@ -4,6 +4,7 @@ import ship1 from "../assets/ships/image/ship-1.png";
 import ship2 from "../assets/ships/image/ship-2.png";
 import ship3 from "../assets/ships/image/ship-3.png";
 import ship4 from "../assets/ships/image/ship-4.png";
+import GameResultModal from "../components/GameResultModal";
 import RankUpAnimation from "../components/RankUpAnimation";
 import { useAuth } from "../contexts/AuthContext";
 import { useLanguage } from "../contexts/LanguageContext";
@@ -34,7 +35,7 @@ const GRID_SIZE_PX = BOARD_SIZE * CELL_SIZE + (BOARD_SIZE - 1) * CELL_GAP;
 const GAME_COPY = {
     en: {
         ready: "Ready",
-        syncing: "Syncing",
+        syncing: "Waiting",
         waitingPlayer: "Waiting player",
         exitTitle: "Leave battle?",
         exitBody: "Your current PvP match will be forfeited. The other commander will be declared the winner.",
@@ -42,6 +43,11 @@ const GAME_COPY = {
         leave: "Leave match",
         opponentLeftTitle: "Victory",
         opponentLeftBody: "Opponent left the battle. Sector secured by default.",
+        victoryTitle: "Victory",
+        defeatTitle: "Defeat",
+        difficultyLabel: "Difficulty",
+        pvpVictorySubtitle: "Enemy command channel neutralized.",
+        pvpDefeatSubtitle: "Your fleet has been shattered in PvP combat.",
         playAgain: "Play again",
         returnHome: "Return home",
         opponentLeftLog: "Opponent left the battle. Victory secured.",
@@ -50,7 +56,7 @@ const GAME_COPY = {
     },
     vi: {
         ready: "Sẵn sàng",
-        syncing: "Đồng bộ",
+        syncing: "Đang chờ",
         waitingPlayer: "Chờ người chơi",
         exitTitle: "Thoát trận?",
         exitBody: "Trận PvP hiện tại sẽ bị hủy. Đối thủ sẽ được tính thắng vì bạn rời trận.",
@@ -58,6 +64,11 @@ const GAME_COPY = {
         leave: "Thoát trận",
         opponentLeftTitle: "Chiến thắng",
         opponentLeftBody: "Đối thủ đã rời trận. Khu vực đã được bảo toàn.",
+        victoryTitle: "Chiến thắng",
+        defeatTitle: "Thất bại",
+        difficultyLabel: "Độ khó",
+        pvpVictorySubtitle: "Kênh chỉ huy đối phương đã bị vô hiệu hóa.",
+        pvpDefeatSubtitle: "Hạm đội của bạn đã vỡ trận trong chiến đấu PvP.",
         playAgain: "Chơi lại",
         returnHome: "Về trang chủ",
         opponentLeftLog: "Đối thủ đã rời trận. Bạn giành chiến thắng.",
@@ -153,7 +164,7 @@ const useIsMobile = () => {
 function Game() {
     const location = useLocation();
     const navigate = useNavigate();
-    const { user, attributes } = useAuth();
+    const { user, attributes, checkAuth } = useAuth();
     const { language } = useLanguage();
     const copy = GAME_COPY[language] || GAME_COPY.en;
     const isMobile = useIsMobile();
@@ -518,6 +529,28 @@ function Game() {
         });
     }, [isPvpMode, roomCode]);
 
+    const leavePvpRoomCleanly = useCallback(async ({ keepalive = false } = {}) => {
+        if (!isPvpMode || !roomCode) return;
+
+        const currentPlayer = getCurrentRoomPlayer();
+        if (!getRoomPlayerKey(currentPlayer)) return;
+
+        if (keepalive) {
+            const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
+            if (!apiBaseUrl) return;
+
+            fetch(`${apiBaseUrl}/rooms/${encodeURIComponent(roomCode)}/leave`, {
+                method: "POST",
+                headers: { "content-type": "application/json" },
+                body: JSON.stringify({ player: currentPlayer }),
+                keepalive: true,
+            }).catch(() => {});
+            return;
+        }
+
+        await leaveRoom({ roomCode, player: currentPlayer });
+    }, [isPvpMode, roomCode]);
+
     const requestGameExit = useCallback((target = "/") => {
         if (!shouldConfirmPvpExit()) {
             navigate(target);
@@ -528,11 +561,16 @@ function Game() {
         setExitPromptOpen(true);
     }, [navigate, shouldConfirmPvpExit]);
 
-    const confirmGameExit = useCallback(() => {
+    const confirmGameExit = useCallback(async () => {
         notifyPvpExit();
+        try {
+            await leavePvpRoomCleanly();
+        } catch (leaveError) {
+            addLog(leaveError.message || "Unable to leave room cleanly.", "warning");
+        }
         setExitPromptOpen(false);
         navigate(pendingExitTarget || "/");
-    }, [navigate, notifyPvpExit, pendingExitTarget]);
+    }, [addLog, leavePvpRoomCleanly, navigate, notifyPvpExit, pendingExitTarget]);
 
     const handlePlayAgain = useCallback(async () => {
         setRankedResult(null);
@@ -545,6 +583,11 @@ function Game() {
 
         try {
             setRematchLoading(true);
+            if (gameOverReason === "opponent_left") {
+                await leavePvpRoomCleanly();
+                navigate("/lobby");
+                return;
+            }
             await resetRoomForRematch({ roomCode, player: roomPlayer });
             navigate(`/lobby?roomCode=${roomCode}`);
         } catch (rematchError) {
@@ -552,7 +595,7 @@ function Game() {
         } finally {
             setRematchLoading(false);
         }
-    }, [addLog, isPvpMode, navigate, roomCode, roomPlayer]);
+    }, [addLog, gameOverReason, isPvpMode, leavePvpRoomCleanly, navigate, roomCode, roomPlayer]);
 
     const handleReturnHome = useCallback(async () => {
         if (!isPvpMode || !roomCode || gameStateRef.current !== "GAME_OVER") {
@@ -562,13 +605,13 @@ function Game() {
 
         try {
             setReturnHomeLoading(true);
-            await leaveRoom({ roomCode, player: roomPlayer });
+            await leavePvpRoomCleanly();
         } catch (leaveError) {
             addLog(leaveError.message || "Unable to leave room cleanly.", "warning");
         } finally {
             navigate("/");
         }
-    }, [addLog, isPvpMode, navigate, roomCode, roomPlayer]);
+    }, [addLog, isPvpMode, leavePvpRoomCleanly, navigate, roomCode]);
 
     useEffect(() => {
         if (!isPvpMode) return undefined;
@@ -582,6 +625,7 @@ function Game() {
         const handlePageHide = () => {
             if (shouldConfirmPvpExit()) {
                 notifyPvpExit();
+                leavePvpRoomCleanly({ keepalive: true });
             }
         };
 
@@ -592,20 +636,7 @@ function Game() {
             window.removeEventListener("beforeunload", handleBeforeUnload);
             window.removeEventListener("pagehide", handlePageHide);
         };
-    }, [isPvpMode, notifyPvpExit, shouldConfirmPvpExit]);
-
-    const buildBoardFromFleetPayload = (fleetPayload) => {
-        const nextBoard = createBoard();
-        const ships = fleetPayload?.ships || [];
-
-        ships.forEach((ship) => {
-            const shipDef = shipsToPlace.find((candidate) => candidate.id === ship.shipTypeId);
-            if (!shipDef) return;
-            placeShip(nextBoard, ship.row, ship.col, shipDef, ship.rotation);
-        });
-
-        return nextBoard;
-    };
+    }, [isPvpMode, leavePvpRoomCleanly, notifyPvpExit, shouldConfirmPvpExit]);
 
     const revealSunkShipOnBoard = (board, shotResult, sunkCells = []) => {
         const shipCells = sunkCells
@@ -1166,6 +1197,7 @@ function Game() {
             const result = await saveMatchHistory(payload);
             if (result?.ranked?.winner) {
                 setRankedResult(result.ranked.winner);
+                await checkAuth?.();
                 if (result.ranked.winner.promoted) {
                     setShowRankUpAnimation(true);
                 }
@@ -1173,7 +1205,7 @@ function Game() {
         } catch (error) {
             console.error("Failed to save match history", error);
         }
-    }, [isPvpMode, roomCode, stats]);
+    }, [checkAuth, isPvpMode, roomCode, stats]);
 
     const endGame = useCallback((isPlayerVictory) => {
         setGameOverReason("");
@@ -1625,19 +1657,6 @@ function Game() {
             setEnemyBoard(createBoard());
             matchStartedAtRef.current = new Date().toISOString();
             addLog("Enemy waters synced. Shot results will be verified by opponent fleet.", "info");
-        }
-
-        if (false) {
-            if (opponentPlayer?.board?.ships?.length) {
-                // Board đối thủ đã có → dựng lên local board để tính HIT/MISS client-side
-                pvpEnemyBoardLoadedRef.current = true;
-                const builtBoard = buildBoardFromFleetPayload(opponentPlayer.board);
-                setEnemyBoard(builtBoard);
-                addLog("Enemy fleet deployed. Battle positions locked.", "info");
-            } else if (opponentPlayer && !opponentPlayer.fleetReady) {
-                // Đối thủ đã join nhưng chưa submit fleet — chờ tiếp
-                addLog("Waiting for opponent to deploy their fleet...", "info");
-            }
         }
 
         // Xác định người đi trước (players[0] là host)
@@ -3006,84 +3025,20 @@ function Game() {
                 </div>
             )}
 
-            {/* Victory/Defeat Modal */}
-            {showModal && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-fade-in">
-                    <div className="glass-card max-w-md w-full p-8 rounded-2xl border border-white/10 shadow-2xl flex flex-col items-center text-center">
-                        <div className="mb-6">
-                            {winner === 'PLAYER' ? (
-                                <span className="material-symbols-outlined text-[80px] text-green-400 drop-shadow-[0_0_20px_rgba(74,222,128,0.5)]">emoji_events</span>
-                            ) : (
-                                <span className="material-symbols-outlined text-[80px] text-error drop-shadow-[0_0_20px_rgba(255,0,0,0.5)]">skull</span>
-                            )}
-                        </div>
-                        
-                        <h2 className={`font-display-lg text-4xl mb-2 ${winner === 'PLAYER' ? 'text-green-400 glow-text' : 'text-error glow-text-error'}`}>
-                            {winner === 'PLAYER' ? (gameOverReason === "opponent_left" ? copy.opponentLeftTitle : 'VICTORY') : 'DEFEAT'}
-                        </h2>
-                        <p className="text-on-surface-variant text-sm mb-6 uppercase tracking-widest font-bold">
-                            {gameOverReason === "opponent_left" ? copy.opponentLeftBody : `Difficulty: ${difficulty}`}
-                        </p>
-                        
-                        <div className="w-full bg-surface-container/50 rounded-lg p-4 mb-6 grid grid-cols-2 gap-4 text-left">
-                            <div>
-                                <p className="text-[10px] uppercase text-on-surface-variant font-bold">Total Turns</p>
-                                <p className="text-lg font-black">{stats.turns}</p>
-                            </div>
-                            <div>
-                                <p className="text-[10px] uppercase text-on-surface-variant font-bold">Total Shots</p>
-                                <p className="text-lg font-black">{stats.shots}</p>
-                            </div>
-                            <div>
-                                <p className="text-[10px] uppercase text-on-surface-variant font-bold">Hits / Misses</p>
-                                <p className="text-lg font-black text-secondary">{stats.hits} <span className="text-on-surface-variant text-sm font-normal">/ {stats.misses}</span></p>
-                            </div>
-                            <div>
-                                <p className="text-[10px] uppercase text-on-surface-variant font-bold">Accuracy</p>
-                                <p className="text-lg font-black text-secondary">{stats.shots > 0 ? Math.round((stats.hits / stats.shots) * 100) : 0}%</p>
-                            </div>
-                        </div>
-
-                        {rankedResult && (
-                            <div className="w-full rounded-lg border border-secondary/30 bg-secondary/10 p-4 mb-6 text-left">
-                                <div className="flex items-center justify-between gap-3">
-                                    <p className="text-[10px] uppercase tracking-widest text-secondary font-black">
-                                        Ranked Result
-                                    </p>
-                                    <p className="text-2xl font-black text-secondary">
-                                        {rankedResult.delta > 0 ? "+" : ""}{rankedResult.delta} RP
-                                    </p>
-                                </div>
-                                <p className="mt-2 text-sm text-on-surface font-bold uppercase tracking-widest">
-                                    {rankedResult.oldRank} {'->'} {rankedResult.newRank}
-                                </p>
-                                <p className="text-xs text-on-surface-variant">
-                                    {rankedResult.oldRp} RP {'->'} {rankedResult.newRp} RP
-                                </p>
-                            </div>
-                        )}
-
-                        <div className="flex gap-4 w-full">
-                            <button 
-                                onClick={handlePlayAgain}
-                                disabled={rematchLoading}
-                                className="flex-1 bg-secondary text-on-secondary-fixed font-bold py-3 rounded-full hover:bg-secondary-container transition-all active:scale-95"
-                            >
-                                {rematchLoading ? copy.syncing : copy.playAgain}
-                            </button>
-                            <button
-                                type="button"
-                                onClick={handleReturnHome}
-                                disabled={returnHomeLoading}
-                                className="flex-1 bg-surface-container border border-white/10 text-on-surface font-bold py-3 rounded-full hover:bg-white/5 transition-all active:scale-95 block"
-                            >
-                                {returnHomeLoading ? copy.syncing : copy.returnHome}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
+            <GameResultModal
+                showModal={showModal}
+                winner={winner}
+                gameOverReason={gameOverReason}
+                copy={copy}
+                difficulty={difficulty}
+                isPvpMode={isPvpMode}
+                stats={stats}
+                rankedResult={rankedResult}
+                handlePlayAgain={handlePlayAgain}
+                rematchLoading={rematchLoading}
+                handleReturnHome={handleReturnHome}
+                returnHomeLoading={returnHomeLoading}
+            />
             {showRankUpAnimation && rankedResult?.promoted && (
                 <RankUpAnimation
                     oldRank={rankedResult.oldRank}
