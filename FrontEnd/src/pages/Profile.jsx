@@ -545,21 +545,41 @@ function Profile() {
                           padding: '8px 16px',
                           background: isWin ? 'rgba(76, 175, 80, 0.1)' : 'rgba(244, 67, 54, 0.1)',
                           display: 'flex',
-                          justifyContent: 'space-between',
                           alignItems: 'center',
                           borderBottom: `1px solid ${isWin ? 'rgba(76, 175, 80, 0.2)' : 'rgba(244, 67, 54, 0.2)'}`
                         }}>
-                          <strong style={{
-                            color: isWin ? '#4caf50' : '#f44336',
-                            fontSize: '14px',
-                            letterSpacing: '1px',
-                            textTransform: 'uppercase'
-                          }}>
-                            {isWin ? t("profile.win") : t("profile.loss")}
-                          </strong>
-                          <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                            {t("profile.room")}: {match.roomCode || "***"} &bull; {formattedDate}
-                          </span>
+                          <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-start' }}>
+                            <strong style={{
+                              color: isWin ? '#4caf50' : '#f44336',
+                              fontSize: '14px',
+                              letterSpacing: '1px',
+                              textTransform: 'uppercase'
+                            }}>
+                              {isWin ? t("profile.win") : t("profile.loss")}
+                            </strong>
+                          </div>
+                          
+                          <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
+                            {match.mode && (
+                              <span style={{ 
+                                fontSize: '10px', 
+                                padding: '2px 8px', 
+                                background: match.mode === 'rank' || match.mode === 'ranked' ? 'rgba(255, 193, 7, 0.15)' : 'rgba(255,255,255,0.1)', 
+                                color: match.mode === 'rank' || match.mode === 'ranked' ? '#ffc107' : 'var(--text-muted)',
+                                borderRadius: '4px',
+                                letterSpacing: '1px',
+                                fontWeight: 'bold'
+                              }}>
+                                {match.mode === 'rank' || match.mode === 'ranked' ? 'RANKED' : 'NORMAL'}
+                              </span>
+                            )}
+                          </div>
+
+                          <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end', textAlign: 'right' }}>
+                            <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                              {t("profile.room")}: {match.roomCode || "***"} &bull; {formattedDate}
+                            </span>
+                          </div>
                         </div>
                         
                         {/* Players Info */}
