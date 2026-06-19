@@ -1,3 +1,4 @@
+import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useAuth } from "../contexts/AuthContext";
@@ -34,6 +35,21 @@ function CommandHeader({
   const rankedMatches = Number(attributes.rankedMatches || 0);
   const hasRank = rankedMatches > 0 && rankPoints >= RANKS[0].minRp;
   const rankMeta = getRankMeta(hasRank ? attributes.rank || "bronze" : "bronze");
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   const handleNavigation = (event, targetPath) => {
     if (!onNavigateRequest) return;
 
@@ -42,7 +58,7 @@ function CommandHeader({
   };
 
   return (
-    <header className="command-header">
+    <header className={`command-header ${currentUser ? "user-logged-in" : ""}`}>
       <div className="command-header-inner">
         <Link
           to="/"
@@ -104,8 +120,13 @@ function CommandHeader({
                 <span className="material-symbols-outlined">notifications</span>
                 <span className="command-alert-dot" />
               </button>
-              <div className="command-account">
-                <button type="button" className="command-account-trigger" aria-label={t("common.openAccount")}>
+              <div className={`command-account ${menuOpen ? "is-open" : ""}`} ref={menuRef}>
+                <button
+                  type="button"
+                  className="command-account-trigger"
+                  aria-label={t("common.openAccount")}
+                  onClick={() => setMenuOpen(!menuOpen)}
+                >
                   <img
                     className="command-avatar"
                     src={avatarUrl}
@@ -117,7 +138,7 @@ function CommandHeader({
                   />
                   <span className="command-account-copy">
                     <strong title={identity}>{identity}</strong>
-                    <small>
+                    <small className="command-account-rank">
                       {hasRank ? (
                         <img src={rankMeta.badge} alt="" className="command-rank-badge" />
                       ) : (
@@ -133,15 +154,38 @@ function CommandHeader({
                     <span className="command-menu-label">{t("common.accountControls")}</span>
                     <Link
                       to="/profile"
-                      onClick={(event) => handleNavigation(event, "/profile")}
+                      onClick={(event) => {
+                        setMenuOpen(false);
+                        handleNavigation(event, "/profile");
+                      }}
                     >
                       <span className="material-symbols-outlined">person</span>
                       {t("common.viewProfile")}
                     </Link>
-                    <button type="button" onClick={onLogout}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMenuOpen(false);
+                        onLogout();
+                      }}
+                    >
                       <span className="material-symbols-outlined">logout</span>
                       {t("common.signOut")}
                     </button>
+                    
+                    <div className="command-mobile-menu-actions">
+                      <LanguageToggle compact={true} />
+                      <button
+                        type="button"
+                        onClick={onToggleTheme}
+                        className="command-icon-button"
+                        aria-label={isLightMode ? t("common.useDark") : t("common.useLight")}
+                      >
+                        <span className="material-symbols-outlined">
+                          {isLightMode ? "dark_mode" : "light_mode"}
+                        </span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>

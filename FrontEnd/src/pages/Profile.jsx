@@ -33,6 +33,7 @@ function Profile() {
   const [selectedRankId, setSelectedRankId] = useState("unranked");
   const [matchHistory, setMatchHistory] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(true);
+  const [activeTab, setActiveTab] = useState("overview");
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -46,15 +47,33 @@ function Profile() {
             losses: userProfile.losses || 0,
           });
         }
-        const history = await getMatchHistory(userEmail);
-        setMatchHistory(history);
-        setLoadingHistory(false);
       }
     };
     if (currentUser) {
       fetchStats();
     }
   }, [attributes.email, currentUser]);
+
+  useEffect(() => {
+    const fetchHistory = async () => {
+      const userEmail = attributes.email || currentUser?.signInDetails?.loginId;
+      if (userEmail) {
+        setLoadingHistory(true);
+        try {
+          const history = await getMatchHistory(userEmail);
+          setMatchHistory(history || []);
+        } catch (e) {
+          console.error("Failed to fetch match history:", e);
+        } finally {
+          setLoadingHistory(false);
+        }
+      }
+    };
+
+    if (currentUser && activeTab === "history") {
+      fetchHistory();
+    }
+  }, [activeTab, attributes.email, currentUser]);
 
   // States for Username Edit
   const [newUsername, setNewUsername] = useState("");
@@ -334,354 +353,349 @@ function Profile() {
               </Link>
             </section>
 
-            <section className="profile-riot-id-section" style={{
-              display: 'flex',
-              flexDirection: 'row',
-              flexWrap: 'wrap',
-              gap: '32px',
-              padding: '32px',
-              background: 'var(--surface)',
-              borderRadius: '8px',
-              border: '1px solid var(--border)'
-            }}>
-              {/* Cột Trái */}
-              <div style={{ flex: '1 1 300px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <div>
-                  <h2 style={{ fontSize: '24px', fontWeight: 'bold', margin: '0 0 8px 0', letterSpacing: '0.5px' }}>{t("profile.battleshipIdTitle")}</h2>
-                  <p style={{ color: 'var(--text-muted)', fontSize: '14px', margin: 0, lineHeight: '1.5' }}>
-                    {t("profile.battleshipIdBody")}
-                  </p>
+            {/* Tab Navigation */}
+            <div className="profile-tabs-nav">
+              <button 
+                type="button" 
+                className={`profile-tab-btn ${activeTab === 'overview' ? 'active' : ''}`}
+                onClick={() => setActiveTab('overview')}
+              >
+                <span className="material-symbols-outlined">monitoring</span>
+                <span className="profile-tab-text-full">{t("profile.serviceRecord")}</span>
+                <span className="profile-tab-text-short">{t("profile.serviceRecordShort")}</span>
+              </button>
+              <button 
+                type="button" 
+                className={`profile-tab-btn ${activeTab === 'id' ? 'active' : ''}`}
+                onClick={() => setActiveTab('id')}
+              >
+                <span className="material-symbols-outlined">shield</span>
+                <span className="profile-tab-text-full">{t("profile.battleshipIdTitle")}</span>
+                <span className="profile-tab-text-short">{t("profile.battleshipIdTitleShort")}</span>
+              </button>
+              <button 
+                type="button" 
+                className={`profile-tab-btn ${activeTab === 'history' ? 'active' : ''}`}
+                onClick={() => setActiveTab('history')}
+              >
+                <span className="material-symbols-outlined">history</span>
+                <span className="profile-tab-text-full">{t("profile.matchHistory")}</span>
+                <span className="profile-tab-text-short">{t("profile.matchHistoryShort")}</span>
+              </button>
+            </div>
+
+            {/* Tab Contents */}
+            {activeTab === 'overview' && (
+              <section className="profile-content">
+                <div className="profile-record">
+                  <div className="profile-section-heading">
+                    <span className="material-symbols-outlined">monitoring</span>
+                    <div>
+                      <h2>{t("profile.serviceRecord")}</h2>
+                      <p>{t("profile.serviceBody")}</p>
+                    </div>
+                  </div>
+                  <div className="profile-stat-grid">
+                    <article>
+                      <span>{t("profile.totalBattles")}</span>
+                      <strong>{stats.totalGames}</strong>
+                    </article>
+                    <article>
+                      <span>{t("profile.victories")}</span>
+                      <strong>{stats.wins}</strong>
+                    </article>
+                    <article>
+                      <span>{t("home.defeats")}</span>
+                      <strong>{stats.losses}</strong>
+                    </article>
+                    <article>
+                      <span>{t("profile.winRate")}</span>
+                      <strong>{winRate}%</strong>
+                    </article>
+                  </div>
                 </div>
-                {cooldownMessage && (
-                  <div style={{
-                    display: 'flex', gap: '12px', background: 'rgba(255, 77, 77, 0.05)', border: '1px solid rgba(255, 77, 77, 0.3)', padding: '16px', borderRadius: '4px', color: '#ff4d4d', alignItems: 'flex-start'
-                  }}>
-                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>error</span>
-                    <p style={{ fontSize: '12px', lineHeight: '1.5', margin: 0, fontWeight: '600', letterSpacing: '0.5px' }}>
-                      {t("profile.cooldownMessage", { date: formattedNextChangeDate })}
+
+                <aside className="profile-security">
+                  <div className="profile-section-heading">
+                    <span className="material-symbols-outlined">verified_user</span>
+                    <div>
+                      <h2>{t("profile.identity")}</h2>
+                      <p>{t("profile.identityBody")}</p>
+                    </div>
+                  </div>
+                  <dl>
+                    <div>
+                      <dt>Email</dt>
+                      <dd title={email}>{email}</dd>
+                    </div>
+                    <div>
+                      <dt>{t("profile.verification")}</dt>
+                      <dd className="is-online">{t("profile.verified")}</dd>
+                    </div>
+                    <div>
+                      <dt>{t("profile.rank")}</dt>
+                      <dd>
+                        {rankLabel}
+                        {hasRank && nextRank ? ` - ${t("profile.rpToRank", { points: rpToNextRank, rank: getRankDisplayName(nextRank) })}` : ""}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>{t("profile.accountId")}</dt>
+                      <dd title={currentUser.userId}>{currentUser.userId}</dd>
+                    </div>
+                  </dl>
+                  <Link to="/forgot-password" className="profile-security-link">
+                    <span className="material-symbols-outlined">key</span>
+                    {t("profile.resetPassword")}
+                  </Link>
+                </aside>
+              </section>
+            )}
+
+            {activeTab === 'id' && (
+              <section className="profile-riot-id-section">
+                {/* Cột Trái */}
+                <div className="profile-riot-id-col-left">
+                  <div>
+                    <h2 style={{ fontSize: '24px', fontWeight: 'bold', margin: '0 0 8px 0', letterSpacing: '0.5px' }}>{t("profile.battleshipIdTitle")}</h2>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '14px', margin: 0, lineHeight: '1.5' }}>
+                      {t("profile.battleshipIdBody")}
                     </p>
                   </div>
-                )}
-              </div>
-
-              {/* Cột Phải */}
-              <div style={{ flex: '2 1 400px', display: 'flex', flexDirection: 'column' }}>
-                <form onSubmit={handleUpdateUsername} style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-                  <div style={{ display: 'flex', gap: '16px', flexWrap: 'nowrap', marginBottom: '12px' }}>
-                    <div style={{ flex: '1', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                      <label style={{ fontSize: '11px', fontWeight: 'bold', letterSpacing: '1px', color: 'var(--text-muted)' }}>{t("profile.commanderName")}</label>
-                      <input
-                        type="text"
-                        value={newUsername}
-                        onChange={(e) => {
-                          setNewUsername(e.target.value);
-                          setUpdateError("");
-                          setUpdateSuccess("");
-                        }}
-                        disabled={!!cooldownMessage}
-                        style={{ padding: '12px 16px', borderRadius: '6px', border: '2px solid rgba(255, 255, 255, 0.15)', background: 'rgba(0, 0, 0, 0.2)', boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.2)', color: 'var(--text-main)', fontSize: '16px', outline: 'none', opacity: cooldownMessage ? 0.5 : 1, cursor: cooldownMessage ? 'not-allowed' : 'text', width: '100%', boxSizing: 'border-box', transition: 'border-color 0.2s' }}
-                      />
+                  {cooldownMessage && (
+                    <div style={{
+                      display: 'flex', gap: '12px', background: 'rgba(255, 77, 77, 0.05)', border: '1px solid rgba(255, 77, 77, 0.3)', padding: '16px', borderRadius: '4px', color: '#ff4d4d', alignItems: 'flex-start'
+                    }}>
+                      <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>error</span>
+                      <p style={{ fontSize: '12px', lineHeight: '1.5', margin: 0, fontWeight: '600', letterSpacing: '0.5px' }}>
+                        {t("profile.cooldownMessage", { date: formattedNextChangeDate })}
+                      </p>
                     </div>
-                    <div style={{ width: '140px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                      <label style={{ fontSize: '11px', fontWeight: 'bold', letterSpacing: '1px', color: 'var(--text-muted)' }}>{t("profile.tagline")}</label>
-                      <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(0, 0, 0, 0.2)', border: '2px solid rgba(255, 255, 255, 0.15)', boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.2)', borderRadius: '6px', opacity: cooldownMessage ? 0.5 : 1, transition: 'border-color 0.2s' }}>
-                        <span style={{ paddingLeft: '16px', color: 'var(--text-muted)', fontWeight: 'bold', fontSize: '16px' }}>#</span>
+                  )}
+                </div>
+
+                {/* Cột Phải */}
+                <div className="profile-riot-id-col-right">
+                  <form onSubmit={handleUpdateUsername} className="profile-riot-id-form">
+                    <div className="profile-riot-id-inputs-row">
+                      <div className="profile-riot-id-input-group">
+                        <label className="profile-riot-id-label">{t("profile.commanderName")}</label>
                         <input
                           type="text"
-                          value={newTag}
+                          value={newUsername}
                           onChange={(e) => {
-                            const value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-                            setNewTag(value);
+                            setNewUsername(e.target.value);
                             setUpdateError("");
                             setUpdateSuccess("");
                           }}
-                          maxLength={5}
                           disabled={!!cooldownMessage}
-                          style={{ width: '100%', padding: '12px 16px 12px 8px', border: 'none', background: 'transparent', color: 'var(--text-main)', fontSize: '16px', outline: 'none', cursor: cooldownMessage ? 'not-allowed' : 'text', boxSizing: 'border-box', boxShadow: 'none' }}
+                          className="profile-riot-id-input"
+                          style={{
+                            opacity: cooldownMessage ? 0.5 : 1,
+                            cursor: cooldownMessage ? 'not-allowed' : 'text'
+                          }}
                         />
                       </div>
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexGrow: 1 }}>
-                    <div style={{ fontSize: '13px', color: isChecking ? '#888' : isTaken ? '#ff4d4d' : (newUsername.length < 3 || newTag.length === 0) ? '#ff4d4d' : '#4caf50' }}>
-                      {newUsername.length > 0 && newUsername !== (attributes.preferred_username?.split("#")[0] || "") && (
-                        isChecking ? t("profile.checking") : newUsername.length < 3 ? t("profile.nameTooShort") : newTag.length === 0 ? t("profile.tagEmpty") : isTaken ? t("profile.nameTaken") : t("profile.nameValid")
-                      )}
-                      {updateError && <div style={{ color: '#ff4d4d', marginTop: '4px' }}>{updateError}</div>}
-                      {updateSuccess && <div style={{ color: '#4caf50', marginTop: '4px' }}>{updateSuccess}</div>}
-                    </div>
-
-                    <button 
-                      type="submit" 
-                      disabled={isTaken || isChecking || newUsername.length < 3 || newTag.length === 0 || !!cooldownMessage || (attributes.preferred_username === fullUsername)}
-                      style={{
-                        padding: '12px 24px', 
-                        background: (isTaken || isChecking || newUsername.length < 3 || newTag.length === 0 || !!cooldownMessage || (attributes.preferred_username === fullUsername)) ? 'var(--surface-sunken)' : '#d32f2f', 
-                        color: (isTaken || isChecking || newUsername.length < 3 || newTag.length === 0 || !!cooldownMessage || (attributes.preferred_username === fullUsername)) ? '#666' : 'white', 
-                        borderRadius: '4px', 
-                        fontWeight: 'bold', 
-                        fontSize: '13px',
-                        letterSpacing: '1px',
-                        border: 'none',
-                        cursor: (isTaken || isChecking || newUsername.length < 3 || newTag.length === 0 || !!cooldownMessage || (attributes.preferred_username === fullUsername)) ? 'not-allowed' : 'pointer',
-                        transition: 'all 0.2s ease',
-                        alignSelf: 'flex-end',
-                        marginTop: 'auto'
-                      }}
-                    >
-                      {t("profile.saveChanges")}
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </section>
-
-            <section className="profile-content">
-              <div className="profile-record">
-                <div className="profile-section-heading">
-                  <span className="material-symbols-outlined">monitoring</span>
-                  <div>
-                    <h2>{t("profile.serviceRecord")}</h2>
-                    <p>{t("profile.serviceBody")}</p>
-                  </div>
-                </div>
-                <div className="profile-stat-grid">
-                  <article>
-                    <span>{t("profile.totalBattles")}</span>
-                    <strong>{stats.totalGames}</strong>
-                  </article>
-                  <article>
-                    <span>{t("profile.victories")}</span>
-                    <strong>{stats.wins}</strong>
-                  </article>
-                  <article>
-                    <span>{t("home.defeats")}</span>
-                    <strong>{stats.losses}</strong>
-                  </article>
-                  <article>
-                    <span>{t("profile.winRate")}</span>
-                    <strong>{winRate}%</strong>
-                  </article>
-                </div>
-              </div>
-
-              <aside className="profile-security">
-                <div className="profile-section-heading">
-                  <span className="material-symbols-outlined">
-                    verified_user
-                  </span>
-                  <div>
-                    <h2>{t("profile.identity")}</h2>
-                    <p>{t("profile.identityBody")}</p>
-                  </div>
-                </div>
-                <dl>
-                  <div>
-                    <dt>Email</dt>
-                    <dd title={email}>{email}</dd>
-                  </div>
-                  <div>
-                    <dt>{t("profile.verification")}</dt>
-                    <dd className="is-online">{t("profile.verified")}</dd>
-                  </div>
-                  <div>
-                    <dt>{t("profile.rank")}</dt>
-                    <dd>
-                      {rankLabel}
-                      {hasRank && nextRank ? ` - ${t("profile.rpToRank", { points: rpToNextRank, rank: getRankDisplayName(nextRank) })}` : ""}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>{t("profile.accountId")}</dt>
-                    <dd title={currentUser.userId}>{currentUser.userId}</dd>
-                  </div>
-                </dl>
-                <Link to="/forgot-password" className="profile-security-link">
-                  <span className="material-symbols-outlined">key</span>
-                  {t("profile.resetPassword")}
-                </Link>
-              </aside>
-            </section>
-
-            <section className="profile-history-section" style={{
-              marginTop: '32px',
-              padding: '32px',
-              background: 'var(--surface)',
-              borderRadius: '8px',
-              border: '1px solid var(--border)'
-            }}>
-              <div className="profile-section-heading" style={{ marginBottom: '24px' }}>
-                <span className="material-symbols-outlined">history</span>
-                <div>
-                  <h2>{t("profile.matchHistory")}</h2>
-                  <p>{t("profile.matchHistoryBody")}</p>
-                </div>
-              </div>
-              
-              {loadingHistory ? (
-                <div style={{ textAlign: 'center', padding: '20px', color: 'var(--text-muted)' }}>Loading...</div>
-              ) : matchHistory.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '40px', background: 'rgba(0,0,0,0.2)', borderRadius: '8px', color: 'var(--text-muted)' }}>
-                  No match history found.
-                </div>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  {matchHistory.map((match) => {
-                    const isWin = match.winnerId === match.userId;
-                    const dateObj = new Date(match.endedAt);
-                    const formattedDate = !isNaN(dateObj.getTime()) ? dateObj.toLocaleString() : match.endedAt;
-                    
-                    const isP1You = match.player1Id === match.userId || (currentUser?.userId && match.player1Id === currentUser.userId);
-                    const isP2You = match.player2Id === match.userId || (currentUser?.userId && match.player2Id === currentUser.userId);
-
-                    const p1Acc = match.player1Shots > 0 ? Math.round(((match.player1Shots - (match.player1Misses || 0)) / match.player1Shots) * 100) : 0;
-                    const p2Acc = match.player2Shots > 0 ? Math.round(((match.player2Shots - (match.player2Misses || 0)) / match.player2Shots) * 100) : 0;
-
-                    return (
-                      <div key={match.matchId} style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        background: isWin ? 'rgba(76, 175, 80, 0.05)' : 'rgba(244, 67, 54, 0.05)',
-                        border: `1px solid ${isWin ? 'rgba(76, 175, 80, 0.3)' : 'rgba(244, 67, 54, 0.3)'}`,
-                        borderRadius: '8px',
-                        overflow: 'hidden'
-                      }}>
-                        {/* Title Bar */}
-                        <div style={{
-                          padding: '8px 16px',
-                          background: isWin ? 'rgba(76, 175, 80, 0.1)' : 'rgba(244, 67, 54, 0.1)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          borderBottom: `1px solid ${isWin ? 'rgba(76, 175, 80, 0.2)' : 'rgba(244, 67, 54, 0.2)'}`
-                        }}>
-                          <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-start' }}>
-                            <strong style={{
-                              color: isWin ? '#4caf50' : '#f44336',
-                              fontSize: '14px',
-                              letterSpacing: '1px',
-                              textTransform: 'uppercase'
-                            }}>
-                              {isWin ? t("profile.win") : t("profile.loss")}
-                            </strong>
-                          </div>
-                          
-                          <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
-                            {match.mode && (
-                              <span style={{ 
-                                fontSize: '10px', 
-                                padding: '2px 8px', 
-                                background: match.mode === 'rank' || match.mode === 'ranked' ? 'rgba(255, 193, 7, 0.15)' : 'rgba(255,255,255,0.1)', 
-                                color: match.mode === 'rank' || match.mode === 'ranked' ? '#ffc107' : 'var(--text-muted)',
-                                borderRadius: '4px',
-                                letterSpacing: '1px',
-                                fontWeight: 'bold'
-                              }}>
-                                {match.mode === 'rank' || match.mode === 'ranked' ? t("profile.rankedMode") : t("profile.normalMode")}
-                              </span>
-                            )}
-                          </div>
-
-                          <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '10px' }}>
-                            <span className="profile-match-room-badge">
-                              <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>vpn_key</span>
-                              {t("profile.room")}: {match.roomCode || "***"}
-                            </span>
-                            <span className="profile-match-time">
-                              <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>schedule</span>
-                              {formattedDate}
-                            </span>
-                          </div>
-                        </div>
-                        
-                        {/* Players Info */}
-                        <div style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          padding: '16px'
-                        }}>
-                          {/* Player 1 */}
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1 }}>
-                            <img 
-                              src={match.player1Avatar ? `${match.player1Avatar}?t=${Date.now()}` : COMMANDER_AVATAR} 
-                              alt="Player 1"
-                              style={{ width: '40px', height: '40px', borderRadius: '4px', border: '1px solid var(--border)', objectFit: 'cover' }}
-                              onError={(e) => { e.currentTarget.src = COMMANDER_AVATAR; }}
-                            />
-                            <div style={{ display: 'flex', flexDirection: 'column' }}>
-                              <span style={{ fontWeight: 'bold', fontSize: '15px', color: 'var(--text-main)' }}>
-                                {match.player1Name || "Unknown"}
-                                {isP1You && (
-                                  <span className="profile-you-badge is-right">
-                                    {t("profile.you")}
-                                  </span>
-                                )}
-                                {match.leaverId === match.player1Id && <span style={{ color: '#f44336', fontSize: '11px', marginLeft: '6px', fontStyle: 'italic', display: 'inline-block' }}>{t("profile.surrendered")}</span>}
-                              </span>
-                              <div className="profile-match-stats-row">
-                                <span className="profile-match-stat-pill shots">
-                                  <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>gps_fixed</span>
-                                  <span>{t("profile.shots")}: <strong className="val">{match.player1Shots || 0}</strong></span>
-                                </span>
-                                <span className="profile-match-stat-pill misses">
-                                  <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>close</span>
-                                  <span>{t("profile.misses")}: <strong className="val">{match.player1Misses || 0}</strong></span>
-                                </span>
-                                <span className="profile-match-stat-pill accuracy">
-                                  <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>percent</span>
-                                  <span>{t("profile.accuracy")}: <strong className="val">{p1Acc}%</strong></span>
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                          
-                          {/* VS */}
-                          <div style={{ padding: '0 16px', color: 'var(--text-muted)', fontWeight: 'bold', fontStyle: 'italic', fontSize: '14px' }}>
-                            VS
-                          </div>
-                          
-                          {/* Player 2 */}
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, justifyContent: 'flex-end', textAlign: 'right' }}>
-                            <div style={{ display: 'flex', flexDirection: 'column' }}>
-                              <span style={{ fontWeight: 'bold', fontSize: '15px', color: 'var(--text-main)' }}>
-                                {match.leaverId === match.player2Id && <span style={{ color: '#f44336', fontSize: '11px', marginRight: '6px', fontStyle: 'italic', display: 'inline-block' }}>{t("profile.surrendered")}</span>}
-                                {isP2You && (
-                                  <span className="profile-you-badge is-left">
-                                    {t("profile.you")}
-                                  </span>
-                                )}
-                                {match.player2Name || "Unknown"}
-                              </span>
-                              <div className="profile-match-stats-row is-right">
-                                <span className="profile-match-stat-pill accuracy">
-                                  <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>percent</span>
-                                  <span>{t("profile.accuracy")}: <strong className="val">{p2Acc}%</strong></span>
-                                </span>
-                                <span className="profile-match-stat-pill misses">
-                                  <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>close</span>
-                                  <span>{t("profile.misses")}: <strong className="val">{match.player2Misses || 0}</strong></span>
-                                </span>
-                                <span className="profile-match-stat-pill shots">
-                                  <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>gps_fixed</span>
-                                  <span>{t("profile.shots")}: <strong className="val">{match.player2Shots || 0}</strong></span>
-                                </span>
-                              </div>
-                            </div>
-                            <img 
-                              src={match.player2Avatar ? `${match.player2Avatar}?t=${Date.now()}` : COMMANDER_AVATAR} 
-                              alt="Player 2"
-                              style={{ width: '40px', height: '40px', borderRadius: '4px', border: '1px solid var(--border)', objectFit: 'cover' }}
-                              onError={(e) => { e.currentTarget.src = COMMANDER_AVATAR; }}
-                            />
-                          </div>
+                      <div className="profile-riot-id-input-group tag-group">
+                        <label className="profile-riot-id-label">{t("profile.tagline")}</label>
+                        <div className="profile-riot-id-tag-container" style={{ opacity: cooldownMessage ? 0.5 : 1 }}>
+                          <span className="profile-riot-id-tag-prefix">#</span>
+                          <input
+                            type="text"
+                            value={newTag}
+                            onChange={(e) => {
+                              const value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+                              setNewTag(value);
+                              setUpdateError("");
+                              setUpdateSuccess("");
+                            }}
+                            maxLength={5}
+                            disabled={!!cooldownMessage}
+                            className="profile-riot-id-tag-input"
+                            style={{ cursor: cooldownMessage ? 'not-allowed' : 'text' }}
+                          />
                         </div>
                       </div>
-                    );
-                  })}
+                    </div>
+
+                    <div className="profile-riot-id-footer">
+                      <div style={{ fontSize: '13px', color: isChecking ? '#888' : isTaken ? '#ff4d4d' : (newUsername.length < 3 || newTag.length === 0) ? '#ff4d4d' : '#4caf50' }}>
+                        {newUsername.length > 0 && newUsername !== (attributes.preferred_username?.split("#")[0] || "") && (
+                          isChecking ? t("profile.checking") : newUsername.length < 3 ? t("profile.nameTooShort") : newTag.length === 0 ? t("profile.tagEmpty") : isTaken ? t("profile.nameTaken") : t("profile.nameValid")
+                        )}
+                        {updateError && <div style={{ color: '#ff4d4d', marginTop: '4px' }}>{updateError}</div>}
+                        {updateSuccess && <div style={{ color: '#4caf50', marginTop: '4px' }}>{updateSuccess}</div>}
+                      </div>
+
+                      <button 
+                        type="submit" 
+                        disabled={isTaken || isChecking || newUsername.length < 3 || newTag.length === 0 || !!cooldownMessage || (attributes.preferred_username === fullUsername)}
+                        className="profile-riot-id-submit-btn"
+                      >
+                        {t("profile.saveChanges")}
+                      </button>
+                    </div>
+                  </form>
                 </div>
-              )}
-            </section>
+              </section>
+            )}
+
+            {activeTab === 'history' && (
+              <section className="profile-history-section">
+                <div className="profile-section-heading" style={{ marginBottom: '24px' }}>
+                  <span className="material-symbols-outlined">history</span>
+                  <div>
+                    <h2>{t("profile.matchHistory")}</h2>
+                    <p>{t("profile.matchHistoryBody")}</p>
+                  </div>
+                </div>
+                
+                {loadingHistory ? (
+                  <div style={{ textAlign: 'center', padding: '20px', color: 'var(--text-muted)' }}>Loading...</div>
+                ) : matchHistory.length === 0 ? (
+                  <div style={{ textAlign: 'center', padding: '40px', background: 'rgba(0,0,0,0.2)', borderRadius: '8px', color: 'var(--text-muted)' }}>
+                    No match history found.
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    {matchHistory.map((match) => {
+                      const isWin = match.winnerId === match.userId;
+                      const dateObj = new Date(match.endedAt);
+                      const formattedDate = !isNaN(dateObj.getTime()) ? dateObj.toLocaleString() : match.endedAt;
+                      
+                      const isP1You = match.player1Id === match.userId || (currentUser?.userId && match.player1Id === currentUser.userId);
+                      const isP2You = match.player2Id === match.userId || (currentUser?.userId && match.player2Id === currentUser.userId);
+
+                      const p1Acc = match.player1Shots > 0 ? Math.round(((match.player1Shots - (match.player1Misses || 0)) / match.player1Shots) * 100) : 0;
+                      const p2Acc = match.player2Shots > 0 ? Math.round(((match.player2Shots - (match.player2Misses || 0)) / match.player2Shots) * 100) : 0;
+
+                      return (
+                        <div key={match.matchId} className={`profile-match-card ${isWin ? 'is-win' : 'is-loss'}`}>
+                          {/* Title Bar */}
+                          <div className="profile-match-header">
+                            <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-start' }}>
+                              <strong style={{
+                                color: isWin ? '#4caf50' : '#f44336',
+                                fontSize: '14px',
+                                letterSpacing: '1px',
+                                textTransform: 'uppercase'
+                              }}>
+                                {isWin ? t("profile.win") : t("profile.loss")}
+                              </strong>
+                            </div>
+                            
+                            <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
+                              {match.mode && (
+                                <span style={{ 
+                                  fontSize: '10px', 
+                                  padding: '2px 8px', 
+                                  background: match.mode === 'rank' || match.mode === 'ranked' ? 'rgba(255, 193, 7, 0.15)' : 'rgba(255,255,255,0.1)', 
+                                  color: match.mode === 'rank' || match.mode === 'ranked' ? '#ffc107' : 'var(--text-muted)',
+                                  borderRadius: '4px',
+                                  letterSpacing: '1px',
+                                  fontWeight: 'bold'
+                                }}>
+                                  {match.mode === 'rank' || match.mode === 'ranked' ? t("profile.rankedMode") : t("profile.normalMode")}
+                                </span>
+                              )}
+                            </div>
+
+                            <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '10px' }}>
+                              <span className="profile-match-room-badge">
+                                <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>vpn_key</span>
+                                {t("profile.room")}: {match.roomCode || "***"}
+                              </span>
+                              <span className="profile-match-time">
+                                <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>schedule</span>
+                                {formattedDate}
+                              </span>
+                            </div>
+                          </div>
+                          
+                          {/* Players Info */}
+                          <div className="profile-match-players">
+                            {/* Player 1 */}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1 }}>
+                              <img 
+                                src={match.player1Avatar ? `${match.player1Avatar}?t=${Date.now()}` : COMMANDER_AVATAR} 
+                                alt="Player 1"
+                                style={{ width: '40px', height: '40px', borderRadius: '4px', border: '1px solid var(--border)', objectFit: 'cover' }}
+                                onError={(e) => { e.currentTarget.src = COMMANDER_AVATAR; }}
+                              />
+                              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                <span style={{ fontWeight: 'bold', fontSize: '15px', color: 'var(--text-main)' }}>
+                                  {match.player1Name || "Unknown"}
+                                  {isP1You && (
+                                    <span className="profile-you-badge is-right">
+                                      {t("profile.you")}
+                                    </span>
+                                  )}
+                                  {match.leaverId === match.player1Id && <span style={{ color: '#f44336', fontSize: '11px', marginLeft: '6px', fontStyle: 'italic', display: 'inline-block' }}>{t("profile.surrendered")}</span>}
+                                </span>
+                                <div className="profile-match-stats-row">
+                                  <span className="profile-match-stat-pill shots">
+                                    <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>gps_fixed</span>
+                                    <span>{t("profile.shots")}: <strong className="val">{match.player1Shots || 0}</strong></span>
+                                  </span>
+                                  <span className="profile-match-stat-pill misses">
+                                    <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>close</span>
+                                    <span>{t("profile.misses")}: <strong className="val">{match.player1Misses || 0}</strong></span>
+                                  </span>
+                                  <span className="profile-match-stat-pill accuracy">
+                                    <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>percent</span>
+                                    <span>{t("profile.accuracy")}: <strong className="val">{p1Acc}%</strong></span>
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            {/* VS */}
+                            <div style={{ padding: '0 16px', color: 'var(--text-muted)', fontWeight: 'bold', fontStyle: 'italic', fontSize: '14px', textAlign: 'center' }}>
+                              VS
+                            </div>
+                            
+                            {/* Player 2 */}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, justifyContent: 'flex-end', textAlign: 'right' }}>
+                              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                <span style={{ fontWeight: 'bold', fontSize: '15px', color: 'var(--text-main)' }}>
+                                  {match.leaverId === match.player2Id && <span style={{ color: '#f44336', fontSize: '11px', marginRight: '6px', fontStyle: 'italic', display: 'inline-block' }}>{t("profile.surrendered")}</span>}
+                                  {isP2You && (
+                                    <span className="profile-you-badge is-left">
+                                      {t("profile.you")}
+                                    </span>
+                                  )}
+                                  {match.player2Name || "Unknown"}
+                                </span>
+                                <div className="profile-match-stats-row is-right">
+                                  <span className="profile-match-stat-pill accuracy">
+                                    <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>percent</span>
+                                    <span>{t("profile.accuracy")}: <strong className="val">{p2Acc}%</strong></span>
+                                  </span>
+                                  <span className="profile-match-stat-pill misses">
+                                    <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>close</span>
+                                    <span>{t("profile.misses")}: <strong className="val">{match.player2Misses || 0}</strong></span>
+                                  </span>
+                                  <span className="profile-match-stat-pill shots">
+                                    <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>gps_fixed</span>
+                                    <span>{t("profile.shots")}: <strong className="val">{match.player2Shots || 0}</strong></span>
+                                  </span>
+                                </div>
+                              </div>
+                              <img 
+                                src={match.player2Avatar ? `${match.player2Avatar}?t=${Date.now()}` : COMMANDER_AVATAR} 
+                                alt="Player 2"
+                                style={{ width: '40px', height: '40px', borderRadius: '4px', border: '1px solid var(--border)', objectFit: 'cover' }}
+                                onError={(e) => { e.currentTarget.src = COMMANDER_AVATAR; }}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </section>
+            )}
           </>
         )}
       </main>
