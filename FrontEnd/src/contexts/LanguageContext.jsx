@@ -261,9 +261,11 @@ const translations = {
       room: "Room",
       shots: "Shots",
       misses: "Misses",
+      accuracy: "Accuracy",
       surrendered: "(AFK)",
       rankedMode: "RANKED",
       normalMode: "NORMAL",
+      you: "(You)",
     },
   },
   vi: {
@@ -526,9 +528,11 @@ const translations = {
       room: "Phòng",
       shots: "Đã bắn",
       misses: "Trượt",
+      accuracy: "Chính xác",
       surrendered: "(AFK)",
       rankedMode: "ĐẤU XẾP HẠNG",
       normalMode: "ĐẤU THƯỜNG",
+      you: "(Bạn)",
     },
   },
 };

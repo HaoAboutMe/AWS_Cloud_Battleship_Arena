@@ -567,3 +567,151 @@
     animation: none;
   }
 }
+
+.profile-you-badge {
+  font-size: 10px;
+  font-weight: bold;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(255, 193, 7, 0.15);
+  color: #ffc107;
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.profile-you-badge.is-left {
+  margin-right: 8px;
+}
+
+.profile-you-badge.is-right {
+  margin-left: 8px;
+}
+
+.profile-match-room-badge {
+  font-size: 11px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: rgba(117, 223, 255, 0.06);
+  color: #75dfff;
+  border: 1px solid rgba(117, 223, 255, 0.16);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.light-mode-active .profile-match-room-badge {
+  background: rgba(0, 119, 182, 0.06);
+  color: #0077a9;
+  border-color: rgba(0, 119, 182, 0.16);
+}
+
+.profile-match-time {
+  font-size: 11px;
+  color: rgba(212, 228, 250, 0.72);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 500;
+}
+
+.light-mode-active .profile-match-time {
+  color: rgba(23, 50, 71, 0.8);
+}
+
+.profile-match-time .material-symbols-outlined {
+  font-size: 14px;
+  color: rgba(117, 223, 255, 0.6);
+}
+
+.light-mode-active .profile-match-time .material-symbols-outlined {
+  color: rgba(0, 119, 182, 0.6);
+}
+
+.profile-match-stats-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.profile-match-stats-row.is-right {
+  justify-content: flex-end;
+}
+
+.profile-match-stat-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text-muted);
+}
+
+.profile-match-stat-pill .val {
+  color: var(--text-main);
+  font-weight: bold;
+}
+
+.profile-match-stat-pill.shots {
+  background: rgba(117, 223, 255, 0.06);
+  border-color: rgba(117, 223, 255, 0.12);
+  color: rgba(117, 223, 255, 0.85);
+}
+
+.profile-match-stat-pill.shots .val {
+  color: #75dfff;
+}
+
+.profile-match-stat-pill.misses {
+  background: rgba(244, 67, 54, 0.06);
+  border-color: rgba(244, 67, 54, 0.12);
+  color: rgba(244, 67, 54, 0.85);
+}
+
+.profile-match-stat-pill.misses .val {
+  color: #ff6b6b;
+}
+
+.profile-match-stat-pill.accuracy {
+  background: rgba(255, 193, 7, 0.06);
+  border-color: rgba(255, 193, 7, 0.12);
+  color: rgba(255, 193, 7, 0.85);
+}
+
+.profile-match-stat-pill.accuracy .val {
+  color: #ffca28;
+}
+
+/* Light mode overrides */
+.light-mode-active .profile-match-stat-pill.shots {
+  background: rgba(0, 119, 182, 0.06);
+  border-color: rgba(0, 119, 182, 0.12);
+  color: #0077a9;
+}
+.light-mode-active .profile-match-stat-pill.shots .val {
+  color: #005f87;
+}
+
+.light-mode-active .profile-match-stat-pill.misses {
+  background: rgba(211, 47, 47, 0.06);
+  border-color: rgba(211, 47, 47, 0.12);
+  color: #c62828;
+}
+.light-mode-active .profile-match-stat-pill.misses .val {
+  color: #b71c1c;
+}
+
+.light-mode-active .profile-match-stat-pill.accuracy {
+  background: rgba(245, 158, 11, 0.06);
+  border-color: rgba(245, 158, 11, 0.12);
+  color: #d97706;
+}
+.light-mode-active .profile-match-stat-pill.accuracy .val {
+  color: #b45309;
+}

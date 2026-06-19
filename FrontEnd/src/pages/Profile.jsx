@@ -532,6 +532,12 @@ function Profile() {
                     const dateObj = new Date(match.endedAt);
                     const formattedDate = !isNaN(dateObj.getTime()) ? dateObj.toLocaleString() : match.endedAt;
                     
+                    const isP1You = match.player1Id === match.userId || (currentUser?.userId && match.player1Id === currentUser.userId);
+                    const isP2You = match.player2Id === match.userId || (currentUser?.userId && match.player2Id === currentUser.userId);
+
+                    const p1Acc = match.player1Shots > 0 ? Math.round(((match.player1Shots - (match.player1Misses || 0)) / match.player1Shots) * 100) : 0;
+                    const p2Acc = match.player2Shots > 0 ? Math.round(((match.player2Shots - (match.player2Misses || 0)) / match.player2Shots) * 100) : 0;
+
                     return (
                       <div key={match.matchId} style={{
                         display: 'flex',
@@ -576,9 +582,14 @@ function Profile() {
                             )}
                           </div>
 
-                          <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end', textAlign: 'right' }}>
-                            <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                              {t("profile.room")}: {match.roomCode || "***"} &bull; {formattedDate}
+                          <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '10px' }}>
+                            <span className="profile-match-room-badge">
+                              <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>vpn_key</span>
+                              {t("profile.room")}: {match.roomCode || "***"}
+                            </span>
+                            <span className="profile-match-time">
+                              <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>schedule</span>
+                              {formattedDate}
                             </span>
                           </div>
                         </div>
@@ -594,18 +605,34 @@ function Profile() {
                           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1 }}>
                             <img 
                               src={match.player1Avatar ? `${match.player1Avatar}?t=${Date.now()}` : COMMANDER_AVATAR} 
-  alt="Player 1"
+                              alt="Player 1"
                               style={{ width: '40px', height: '40px', borderRadius: '4px', border: '1px solid var(--border)', objectFit: 'cover' }}
                               onError={(e) => { e.currentTarget.src = COMMANDER_AVATAR; }}
                             />
                             <div style={{ display: 'flex', flexDirection: 'column' }}>
                               <span style={{ fontWeight: 'bold', fontSize: '15px', color: 'var(--text-main)' }}>
                                 {match.player1Name || "Unknown"}
+                                {isP1You && (
+                                  <span className="profile-you-badge is-right">
+                                    {t("profile.you")}
+                                  </span>
+                                )}
                                 {match.leaverId === match.player1Id && <span style={{ color: '#f44336', fontSize: '11px', marginLeft: '6px', fontStyle: 'italic', display: 'inline-block' }}>{t("profile.surrendered")}</span>}
                               </span>
-                              <span style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '2px' }}>
-                                {match.player1Shots || 0} {t("profile.shots")} &bull; {match.player1Misses || 0} {t("profile.misses")} ({match.player1Shots > 0 ? Math.round(((match.player1Misses || 0) / match.player1Shots) * 100) : 0}%)
-                              </span>
+                              <div className="profile-match-stats-row">
+                                <span className="profile-match-stat-pill shots">
+                                  <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>gps_fixed</span>
+                                  <span>{t("profile.shots")}: <strong className="val">{match.player1Shots || 0}</strong></span>
+                                </span>
+                                <span className="profile-match-stat-pill misses">
+                                  <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>close</span>
+                                  <span>{t("profile.misses")}: <strong className="val">{match.player1Misses || 0}</strong></span>
+                                </span>
+                                <span className="profile-match-stat-pill accuracy">
+                                  <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>percent</span>
+                                  <span>{t("profile.accuracy")}: <strong className="val">{p1Acc}%</strong></span>
+                                </span>
+                              </div>
                             </div>
                           </div>
                           
@@ -619,11 +646,27 @@ function Profile() {
                             <div style={{ display: 'flex', flexDirection: 'column' }}>
                               <span style={{ fontWeight: 'bold', fontSize: '15px', color: 'var(--text-main)' }}>
                                 {match.leaverId === match.player2Id && <span style={{ color: '#f44336', fontSize: '11px', marginRight: '6px', fontStyle: 'italic', display: 'inline-block' }}>{t("profile.surrendered")}</span>}
+                                {isP2You && (
+                                  <span className="profile-you-badge is-left">
+                                    {t("profile.you")}
+                                  </span>
+                                )}
                                 {match.player2Name || "Unknown"}
                               </span>
-                              <span style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '2px' }}>
-                                {match.player2Shots || 0} {t("profile.shots")} &bull; {match.player2Misses || 0} {t("profile.misses")} ({match.player2Shots > 0 ? Math.round(((match.player2Misses || 0) / match.player2Shots) * 100) : 0}%)
-                              </span>
+                              <div className="profile-match-stats-row is-right">
+                                <span className="profile-match-stat-pill accuracy">
+                                  <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>percent</span>
+                                  <span>{t("profile.accuracy")}: <strong className="val">{p2Acc}%</strong></span>
+                                </span>
+                                <span className="profile-match-stat-pill misses">
+                                  <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>close</span>
+                                  <span>{t("profile.misses")}: <strong className="val">{match.player2Misses || 0}</strong></span>
+                                </span>
+                                <span className="profile-match-stat-pill shots">
+                                  <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>gps_fixed</span>
+                                  <span>{t("profile.shots")}: <strong className="val">{match.player2Shots || 0}</strong></span>
+                                </span>
+                              </div>
                             </div>
                             <img 
                               src={match.player2Avatar ? `${match.player2Avatar}?t=${Date.now()}` : COMMANDER_AVATAR} 
