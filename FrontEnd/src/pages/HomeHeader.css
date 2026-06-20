@@ -717,3 +717,121 @@
     transform: translateY(0);
   }
 }
+
+/* Mobile responsive settings dropdown */
+.command-desktop-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.command-mobile-settings {
+  display: none;
+  position: relative;
+}
+
+@media (max-width: 640px) {
+  .command-desktop-actions {
+    display: none !important;
+  }
+  
+  .command-mobile-settings {
+    display: block;
+  }
+}
+
+.command-mobile-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: -4px;
+  width: 220px;
+  margin-top: 8px;
+  padding: 12px;
+  border: 1px solid rgba(117, 223, 255, 0.2);
+  border-radius: 8px;
+  background: rgba(4, 20, 33, 0.98);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(12px);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  animation: command-dropdown-enter 0.2s ease-out both;
+}
+
+@keyframes command-dropdown-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.command-mobile-dropdown-header {
+  font-size: 11px;
+  font-weight: 800;
+  color: rgba(140, 218, 239, 0.5);
+  text-transform: uppercase;
+  border-bottom: 1px solid rgba(117, 223, 255, 0.1);
+  padding-bottom: 6px;
+}
+
+.command-mobile-dropdown-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.command-dropdown-item-label {
+  font-size: 9px;
+  font-weight: 700;
+  color: #8cdaef;
+  text-transform: uppercase;
+}
+
+.command-dropdown-theme-btn,
+.command-dropdown-sound-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  height: 38px;
+  padding: 0 12px;
+  border: 1px solid rgba(117, 223, 255, 0.15);
+  border-radius: 6px;
+  background: rgba(0, 10, 19, 0.4);
+  color: #bceeff;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+}
+
+.command-dropdown-theme-btn:hover,
+.command-dropdown-sound-btn:hover {
+  background: rgba(117, 223, 255, 0.1);
+  border-color: rgba(117, 223, 255, 0.3);
+  color: #fff;
+}
+
+.command-dropdown-theme-btn .material-symbols-outlined,
+.command-dropdown-sound-btn .material-symbols-outlined {
+  font-size: 18px;
+}
+
+.light-mode-active .command-mobile-dropdown-menu {
+  background: rgba(5, 28, 43, 0.99);
+  border-color: rgba(165, 231, 255, 0.25);
+}
+
+.light-mode-active .command-dropdown-theme-btn,
+.light-mode-active .command-dropdown-sound-btn {
+  background: rgba(0, 12, 22, 0.46);
+  color: rgba(218, 235, 246, 0.72);
+  border-color: rgba(165, 231, 255, 0.2);
+}
+

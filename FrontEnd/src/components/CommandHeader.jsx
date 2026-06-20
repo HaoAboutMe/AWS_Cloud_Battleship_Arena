@@ -115,17 +115,19 @@ function CommandHeader({
         </nav>
 
         <div className="command-actions">
-          <LanguageToggle />
-          <button
-            type="button"
-            onClick={handleThemeToggle}
-            className="command-icon-button"
-            aria-label={resolvedLightMode ? t("common.useDark") : t("common.useLight")}
-          >
-            <span className="material-symbols-outlined">
-              {resolvedLightMode ? "dark_mode" : "light_mode"}
-            </span>
-          </button>
+          <div className="command-desktop-actions">
+            <LanguageToggle />
+            <button
+              type="button"
+              onClick={handleThemeToggle}
+              className="command-icon-button"
+              aria-label={resolvedLightMode ? t("common.useDark") : t("common.useLight")}
+            >
+              <span className="material-symbols-outlined">
+                {resolvedLightMode ? "dark_mode" : "light_mode"}
+              </span>
+            </button>
+          </div>
 
           {!authLoading && !currentUser ? (
             <div className="command-guest-actions">
@@ -203,19 +205,7 @@ function CommandHeader({
                       {t("common.signOut")}
                     </button>
                     
-                    <div className="command-mobile-menu-actions">
-                      <LanguageToggle compact={true} />
-                      <button
-                        type="button"
-                        onClick={onToggleTheme}
-                        className="command-icon-button"
-                        aria-label={isLightMode ? t("common.useDark") : t("common.useLight")}
-                      >
-                        <span className="material-symbols-outlined">
-                          {isLightMode ? "dark_mode" : "light_mode"}
-                        </span>
-                      </button>
-                    </div>
+
                   </div>
                 </div>
               </div>

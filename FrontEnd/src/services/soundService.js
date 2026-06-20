@@ -14,6 +14,7 @@ const DEFAULT_SOUND_SETTINGS = Object.freeze({
   masterVolume: 1,
   musicVolume: 1,
   effectsVolume: 1,
+  clickVolume: 1,
 });
 const sounds = new Map();
 const musicPlaybackIds = new Map();
@@ -58,6 +59,7 @@ const getStoredSoundSettings = () => {
       masterVolume: clampVolume(stored.masterVolume ?? 1),
       musicVolume: clampVolume(stored.musicVolume ?? 1),
       effectsVolume: clampVolume(stored.effectsVolume ?? 1),
+      clickVolume: clampVolume(stored.clickVolume ?? 1),
     };
   } catch {
     return { ...DEFAULT_SOUND_SETTINGS };
@@ -230,6 +232,8 @@ const ensureSounds = () => {
   sounds.forEach((sound, name) => {
     const volume = name.endsWith("Music")
       ? getMusicTargetVolume()
+      : name === "click"
+      ? (soundBaseVolumes.get(name) ?? 0.6) * soundSettings.effectsVolume * soundSettings.clickVolume
       : (soundBaseVolumes.get(name) ?? 0.6) * soundSettings.effectsVolume;
     sound.volume(volume);
   });
@@ -281,6 +285,10 @@ export const playSound = (name, options = {}) => {
   ensureSounds();
   if (muted) return;
 
+  if (name === "click" && (soundSettings.clickVolume === 0 || soundSettings.effectsVolume === 0)) {
+    return;
+  }
+
   const now = Date.now();
   const minGap = options.minGap ?? 45;
   const last = lastPlayedAt.get(name) || 0;
@@ -289,6 +297,16 @@ export const playSound = (name, options = {}) => {
 
   const sound = sounds.get(name);
   if (!sound) return;
+
+  const volume = name.endsWith("Music")
+    ? getMusicTargetVolume()
+    : name === "click"
+    ? (soundBaseVolumes.get(name) ?? 0.6) * soundSettings.effectsVolume * soundSettings.clickVolume
+    : (soundBaseVolumes.get(name) ?? 0.6) * soundSettings.effectsVolume;
+
+  if (volume <= 0) return;
+
+  sound.volume(volume);
   sound.play();
 };
 
@@ -362,12 +380,15 @@ export const setSoundSettings = (nextSettings = {}) => {
     masterVolume: clampVolume(nextSettings.masterVolume ?? soundSettings.masterVolume),
     musicVolume: clampVolume(nextSettings.musicVolume ?? soundSettings.musicVolume),
     effectsVolume: clampVolume(nextSettings.effectsVolume ?? soundSettings.effectsVolume),
+    clickVolume: clampVolume(nextSettings.clickVolume ?? soundSettings.clickVolume),
   };
 
   Howler.volume(soundSettings.masterVolume);
   sounds.forEach((sound, name) => {
     const volume = name.endsWith("Music")
       ? getMusicTargetVolume()
+      : name === "click"
+      ? (soundBaseVolumes.get(name) ?? 0.6) * soundSettings.effectsVolume * soundSettings.clickVolume
       : (soundBaseVolumes.get(name) ?? 0.6) * soundSettings.effectsVolume;
     sound.volume(volume);
   });
