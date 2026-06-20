@@ -1,6 +1,11 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
+import { useEffect } from "react";
 import { AuthProvider } from "./contexts/AuthContext";
 import { LanguageProvider } from "./contexts/LanguageContext";
+import {
+  installUIClickSounds,
+  syncBackgroundMusic,
+} from "./services/soundService";
 
 import Home from "./pages/Home";
 import Lobby from "./pages/Lobby";
@@ -11,6 +16,16 @@ import ForgotPassword from "./pages/ForgotPassword";
 import Profile from "./pages/Profile";
 
 function App() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    installUIClickSounds();
+  }, []);
+
+  useEffect(() => {
+    syncBackgroundMusic(pathname);
+  }, [pathname]);
+
   return (
     <LanguageProvider>
       <AuthProvider>

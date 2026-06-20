@@ -12,6 +12,7 @@ import BattleEffectsLayer from "../game/BattleEffectsLayer";
 import { canPlaceShip, checkVictory, createBoard, fireAt, getShipBounds, getShipOffsets, markWaterAroundSunkShip, placeShip, placeShipsRandomly, SHIP_DEFS } from "../game/GameLogic";
 import { getBotMove, resetBotAI } from "../game/botAI";
 import { createRoomSocket, getRoom, getRoomPlayerId, leaveRoom, markPlayerReady, resetRoomForRematch, sendSocketMessage } from "../services/matchService";
+import { playSound } from "../services/soundService";
 import "./GameEffects.css";
 
 const BOARD_SIZE = 10;
@@ -453,6 +454,7 @@ function Game() {
             token,
         });
         const effects = boardSide === "enemy" ? enemyEffectsRef.current : playerEffectsRef.current;
+        playSound("sunk", { minGap: 650 });
         effects?.playSunk(cells, shipId);
         window.requestAnimationFrame(() => effects?.animateBanner());
 
@@ -1066,6 +1068,7 @@ function Game() {
         setGameState('GAME_OVER');
         setWinner(isPlayerVictory ? 'PLAYER' : 'BOT');
         releaseShotLock();
+        playSound(isPlayerVictory ? "victory" : "defeat", { minGap: 1000 });
         addLog(isPlayerVictory ? "VICTORY! Enemy fleet destroyed!" : "DEFEAT! Your fleet was destroyed.", isPlayerVictory ? "victory" : "defeat");
         saveMatchStats(isPlayerVictory);
         setTimeout(() => setShowModal(true), 1500);
@@ -1078,6 +1081,7 @@ function Game() {
         setGameState("GAME_OVER");
         setWinner("PLAYER");
         releaseShotLock();
+        playSound("victory", { minGap: 1000 });
         addLog(copy.opponentLeftLog, "victory");
         saveMatchStats(true);
         window.setTimeout(() => setShowModal(true), 450);
@@ -1133,6 +1137,7 @@ function Game() {
                         ? prev
                         : [...prev, botShot.result.shipId]);
                     window.requestAnimationFrame(() => {
+                        playSound("hit", { minGap: 90 });
                         playerEffectsRef.current?.playHit(botShot.row, botShot.col);
                         triggerSunkEffect(
                             "player",
@@ -1144,6 +1149,7 @@ function Game() {
                     addLog(`Enemy DESTROYED your ship (size ${botShot.result.shipLength}) at ${cellName}!`, "defeat");
                 } else {
                     window.requestAnimationFrame(() => {
+                        playSound("hit", { minGap: 90 });
                         playerEffectsRef.current?.playHit(botShot.row, botShot.col);
                     });
                     addLog(`Enemy hit your ship at ${cellName}!`, "enemy_hit");
@@ -1158,6 +1164,7 @@ function Game() {
                 }
             } else {
                 window.requestAnimationFrame(() => {
+                    playSound("miss", { minGap: 90 });
                     playerEffectsRef.current?.playMiss(botShot.row, botShot.col);
                 });
                 addLog(`Enemy missed at ${cellName}.`, "enemy_miss");
@@ -1192,20 +1199,23 @@ function Game() {
                     addLog(`You destroyed an enemy ship (size ${shotResult.shipLength}) at ${cellName}!`, "destroy");
                 } else {
                     setPlayerShipsSunk(prev => prev.includes(shotResult.shipId) ? prev : [...prev, shotResult.shipId]);
-                    addLog(`Enemy DESTROYED your ship (size ${shotResult.shipLength}) at ${cellName}!`, "defeat");
+                addLog(`Enemy DESTROYED your ship (size ${shotResult.shipLength}) at ${cellName}!`, "defeat");
                 }
                 window.requestAnimationFrame(() => {
+                    playSound("hit", { minGap: 90 });
                     effectsRef.current?.playHit(row, col);
                     triggerSunkEffect(boardSide, shotResult.shipTypeId, shotResult.shipId, sunkCells);
                 });
             } else {
                 window.requestAnimationFrame(() => {
+                    playSound("hit", { minGap: 90 });
                     effectsRef.current?.playHit(row, col);
                 });
                 addLog(isOutgoing ? `Direct hit at ${cellName}!` : `Enemy hit your ship at ${cellName}!`, isOutgoing ? "player_hit" : "enemy_hit");
             }
         } else if (shotResult.result === "MISS") {
             window.requestAnimationFrame(() => {
+                playSound("miss", { minGap: 90 });
                 effectsRef.current?.playMiss(row, col);
             });
             addLog(isOutgoing ? `Missed at ${cellName}.` : `Enemy missed at ${cellName}.`, isOutgoing ? "player_miss" : "enemy_miss");
@@ -1271,12 +1281,14 @@ function Game() {
                     setEnemyShipsSunk(prev => prev.includes(shotResult.shipTypeId) ? prev : [...prev, shotResult.shipTypeId]);
                     setEnemySunkShipIds(prev => prev.includes(shotResult.shipId) ? prev : [...prev, shotResult.shipId]);
                     window.requestAnimationFrame(() => {
+                        playSound("hit", { minGap: 90 });
                         enemyEffectsRef.current?.playHit(row, col);
                         triggerSunkEffect("enemy", shotResult.shipTypeId, shotResult.shipId, payload.sunkCells || []);
                     });
                     addLog(`You destroyed an enemy ship (size ${shotResult.shipLength}) at ${cellName}!`, "destroy");
                 } else {
                     window.requestAnimationFrame(() => {
+                        playSound("hit", { minGap: 90 });
                         enemyEffectsRef.current?.playHit(row, col);
                     });
                     addLog(`Direct hit at ${cellName}!`, "player_hit");
@@ -1288,6 +1300,7 @@ function Game() {
                     return next;
                 });
                 window.requestAnimationFrame(() => {
+                    playSound("miss", { minGap: 90 });
                     enemyEffectsRef.current?.playMiss(row, col);
                 });
                 addLog(`Missed at ${cellName}.`, "player_miss");
@@ -1315,18 +1328,21 @@ function Game() {
                 if (shotResult.isSunk) {
                     setPlayerShipsSunk(prev => prev.includes(shotResult.shipId) ? prev : [...prev, shotResult.shipId]);
                     window.requestAnimationFrame(() => {
+                        playSound("hit", { minGap: 90 });
                         playerEffectsRef.current?.playHit(row, col);
                         triggerSunkEffect("player", shotResult.shipTypeId, shotResult.shipId, payload.sunkCells || []);
                     });
                     addLog(`Enemy DESTROYED your ship (size ${shotResult.shipLength}) at ${cellName}!`, "defeat");
                 } else {
                     window.requestAnimationFrame(() => {
+                        playSound("hit", { minGap: 90 });
                         playerEffectsRef.current?.playHit(row, col);
                     });
                     addLog(`Enemy hit your ship at ${cellName}!`, "enemy_hit");
                 }
             } else {
                 window.requestAnimationFrame(() => {
+                    playSound("miss", { minGap: 90 });
                     playerEffectsRef.current?.playMiss(row, col);
                 });
                 addLog(`Enemy missed at ${cellName}.`, "enemy_miss");
@@ -1549,6 +1565,7 @@ function Game() {
                         ? prev
                         : [...prev, shotResult.shipId]);
                     window.requestAnimationFrame(() => {
+                        playSound("hit", { minGap: 90 });
                         enemyEffectsRef.current?.playHit(r, c);
                         triggerSunkEffect(
                             "enemy",
@@ -1560,6 +1577,7 @@ function Game() {
                     addLog(`You destroyed an enemy ship (size ${shotResult.shipLength}) at ${cellName}!`, "destroy");
                 } else {
                     window.requestAnimationFrame(() => {
+                        playSound("hit", { minGap: 90 });
                         enemyEffectsRef.current?.playHit(r, c);
                     });
                     addLog(`Direct hit at ${cellName}!`, "player_hit");
@@ -1573,6 +1591,7 @@ function Game() {
                 }
             } else {
                 window.requestAnimationFrame(() => {
+                    playSound("miss", { minGap: 90 });
                     enemyEffectsRef.current?.playMiss(r, c);
                 });
                 setStats(prev => ({ ...prev, misses: prev.misses + 1 }));
@@ -1924,6 +1943,7 @@ function Game() {
     const beginBattle = async () => {
         if (invalidRotationPreview || unplacedShipIds.length > 0 || draggedShip) return;
         if (isWaitingForOpponentFleet) return;
+        playSound("click", { minGap: 250 });
 
         if (isPvpMode) {
             try {

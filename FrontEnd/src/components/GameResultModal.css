@@ -1078,9 +1078,9 @@
 /* Generated naval poster artwork */
 .result-modal__header {
   position: absolute;
-  top: 28px;
   left: 28px;
   right: 28px;
+  bottom: 95px;
   z-index: 5;
   display: flex;
   justify-content: center;
@@ -1089,11 +1089,20 @@
 }
 
 .result-modal__title {
+  max-width: min(920px, 92%);
+  padding: 8px 32px 12px;
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, rgba(9, 22, 34, 0.14), rgba(9, 22, 34, 0.66)),
+    radial-gradient(circle at 50% 0%, var(--result-accent-soft), transparent 72%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 16px 34px rgba(0, 0, 0, 0.35);
   color: var(--result-accent);
-  font-size: clamp(58px, 8vw, 98px);
+  font-size: clamp(38px, 5.8vw, 76px);
   font-weight: 1000;
   letter-spacing: 0.08em;
-  line-height: 0.88;
+  line-height: 1;
   text-align: center;
   text-transform: uppercase;
   text-shadow:
@@ -1151,13 +1160,14 @@
 
 @media (max-width: 760px) {
   .result-modal__header {
-    top: 24px;
+    bottom: 14px;
     left: 16px;
     right: 16px;
   }
 
   .result-modal__title {
-    font-size: clamp(42px, 13vw, 64px);
+    padding: 7px 18px 10px;
+    font-size: clamp(30px, 10vw, 48px);
   }
 
   .result-battle-scene--art {

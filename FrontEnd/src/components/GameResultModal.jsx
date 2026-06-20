@@ -41,17 +41,16 @@ function GameResultModal({
                     <span />
                 </div>
 
-                <div className="result-modal__header">
-                    <h2 className="result-modal__title">
-                        {posterTitle}
-                    </h2>
-                </div>
-
                 <div
                     className={`result-battle-scene result-battle-scene--art ${isVictory ? "result-battle-scene--victory" : "result-battle-scene--defeat"}`}
                     aria-label={resultTitle}
                 >
                     <img className="result-scene-art" src={resultArt} alt="" />
+                    <div className="result-modal__header">
+                        <h2 className="result-modal__title">
+                            {posterTitle}
+                        </h2>
+                    </div>
                 </div>
 
                 <p className="result-modal__subtitle">
