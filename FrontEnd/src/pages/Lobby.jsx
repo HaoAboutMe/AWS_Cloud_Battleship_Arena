@@ -122,6 +122,12 @@ function Lobby() {
   const [readyLoading, setReadyLoading] = useState(false);
   const [hasPlayedMatchFoundSound, setHasPlayedMatchFoundSound] = useState(false);
 
+  const handleLogout = async () => {
+    await logout();
+    localStorage.removeItem("battleshipSession");
+    navigate("/", { replace: true, state: { authEvent: "signed-out" } });
+  };
+
   const player = useMemo(() => {
     const identity =
       attributes?.preferred_username ||
@@ -340,7 +346,7 @@ function Lobby() {
         currentUser={user}
         attributes={attributes}
         authLoading={authLoading}
-        onLogout={logout}
+        onLogout={handleLogout}
         onNavigateRequest={handleHeaderNavigate}
       />
 

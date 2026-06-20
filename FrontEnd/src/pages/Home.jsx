@@ -26,7 +26,11 @@ function Home() {
         messageKey: "home.signedInBody",
       };
     }
-    if (location.state?.authEvent === "signed-out") {
+    if (
+      location.state?.authEvent === "signed-out" ||
+      localStorage.getItem("justSignedOut") === "true"
+    ) {
+      localStorage.removeItem("justSignedOut");
       return {
         titleKey: "home.signedOutTitle",
         messageKey: "home.signedOutBody",
