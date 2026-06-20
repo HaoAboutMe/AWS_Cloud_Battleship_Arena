@@ -330,7 +330,7 @@ function Game() {
   const [pendingExitTarget, setPendingExitTarget] = useState("/");
   const [gameOverReason, setGameOverReason] = useState("");
   const [rematchLoading, setRematchLoading] = useState(false);
-  const [returnHomeLoading, setReturnHomeLoading] = useState(false);
+  const [returnHomeLoading] = useState(false);
   const [rankedResult, setRankedResult] = useState(null);
   const [showRankUpAnimation, setShowRankUpAnimation] = useState(false);
 
@@ -717,22 +717,29 @@ function Game() {
   const handlePlayAgain = useCallback(async () => {
     setRankedResult(null);
     setShowRankUpAnimation(false);
+    setShowModal(false);
 
     if (!isPvpMode || !roomCode) {
-      window.location.reload();
+      const nextSearch = new URLSearchParams();
+      nextSearch.set("difficulty", difficulty);
+      nextSearch.set("restart", String(Date.now()));
+      window.location.assign(`/game?${nextSearch.toString()}`);
       return;
     }
 
     try {
       setRematchLoading(true);
       if (gameOverReason === "opponent_left") {
-        await leavePvpRoomCleanly();
+        void leavePvpRoomCleanly().catch((leaveError) => {
+          console.warn(leaveError.message || "Unable to leave room cleanly.");
+        });
         navigate("/lobby");
         return;
       }
       await resetRoomForRematch({ roomCode, player: roomPlayer });
       navigate(`/lobby?roomCode=${roomCode}`);
     } catch (rematchError) {
+      setShowModal(true);
       addLog(
         rematchError.message || "Unable to reset room for rematch.",
         "warning",
@@ -742,6 +749,7 @@ function Game() {
     }
   }, [
     addLog,
+    difficulty,
     gameOverReason,
     isPvpMode,
     leavePvpRoomCleanly,
@@ -751,20 +759,16 @@ function Game() {
   ]);
 
   const handleReturnHome = useCallback(async () => {
-    if (!isPvpMode || !roomCode || gameStateRef.current !== "GAME_OVER") {
-      navigate("/");
-      return;
+    setShowModal(false);
+
+    if (isPvpMode && roomCode && gameStateRef.current === "GAME_OVER") {
+      void leavePvpRoomCleanly().catch((leaveError) => {
+        console.warn(leaveError.message || "Unable to leave room cleanly.");
+      });
     }
 
-    try {
-      setReturnHomeLoading(true);
-      await leavePvpRoomCleanly();
-    } catch (leaveError) {
-      addLog(leaveError.message || "Unable to leave room cleanly.", "warning");
-    } finally {
-      navigate("/");
-    }
-  }, [addLog, isPvpMode, leavePvpRoomCleanly, navigate, roomCode]);
+    navigate("/");
+  }, [isPvpMode, leavePvpRoomCleanly, navigate, roomCode]);
 
   useEffect(() => {
     if (!isPvpMode) return undefined;

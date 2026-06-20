@@ -515,7 +515,8 @@ exports.handler = async (event) => {
       const finalMisses = !isHit ? [...currentMisses, { row, col }] : currentMisses;
       const isVictory = finalHits.length === occupiedCells.length;
 
-      // 5. Update room state (or save/cleanup if victory)
+      // 5. Update room state. A completed room remains available for rematches
+      // until every player explicitly leaves it.
       let rankedResult = null;
       if (isVictory) {
         const updatedRoom = {
@@ -524,14 +525,17 @@ exports.handler = async (event) => {
           misses1: isPlayer1 ? finalMisses : room.misses1,
           hits2: !isPlayer1 ? finalHits : room.hits2,
           misses2: !isPlayer1 ? finalMisses : room.misses2,
+          status: "FINISHED",
+          winnerUserId: cleanUserId,
+          endedAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
         };
         const saveRes = await saveMatch({ room: updatedRoom, winnerId: cleanUserId });
         rankedResult = saveRes.ranked;
 
-        // Delete Room
-        await documentClient.send(new DeleteCommand({
+        await documentClient.send(new PutCommand({
           TableName: process.env.ROOMS_TABLE,
-          Key: { roomCode }
+          Item: updatedRoom,
         }));
       } else {
         // Update room with new shot and next turn
@@ -686,11 +690,35 @@ exports.handler = async (event) => {
         rankedResult = saveRes.ranked;
       }
 
-      // Delete Room
-      await documentClient.send(new DeleteCommand({
-        TableName: process.env.ROOMS_TABLE,
-        Key: { roomCode }
-      }));
+      const cleanLeaverId = leaverId ? String(leaverId).split(':')[0] : "";
+      const remainingPlayers = (room.players || []).filter((candidate) => {
+        const candidateId = candidate?.userId
+          ? String(candidate.userId).split(':')[0]
+          : "";
+        return candidateId !== cleanLeaverId;
+      });
+
+      if (remainingPlayers.length === 0) {
+        await documentClient.send(new DeleteCommand({
+          TableName: process.env.ROOMS_TABLE,
+          Key: { roomCode }
+        }));
+      } else {
+        await documentClient.send(new PutCommand({
+          TableName: process.env.ROOMS_TABLE,
+          Item: {
+            ...room,
+            players: remainingPlayers,
+            hostUserId: remainingPlayers[0].userId,
+            status: room.status === "IN_PROGRESS" ? "FINISHED" : "WAITING",
+            winnerUserId: opponent?.userId,
+            endedAt: room.status === "IN_PROGRESS"
+              ? new Date().toISOString()
+              : room.endedAt,
+            updatedAt: new Date().toISOString(),
+          }
+        }));
+      }
 
       // Broadcast event to other players
       const connections = await listConnectionsByRoom(roomCode);

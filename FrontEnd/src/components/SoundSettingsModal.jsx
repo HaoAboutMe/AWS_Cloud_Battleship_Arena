@@ -12,6 +12,7 @@ import "./SoundSettingsModal.css";
 const VOLUME_CONTROLS = [
   { key: "masterVolume", label: "settings.masterVolume", icon: "tune" },
   { key: "musicVolume", label: "settings.musicVolume", icon: "music_note" },
+  { key: "battleMusicVolume", label: "settings.battleMusicVolume", icon: "swords" },
   { key: "effectsVolume", label: "settings.effectsVolume", icon: "graphic_eq" },
   { key: "clickVolume", label: "settings.clickVolume", icon: "touch_app" },
 ];
@@ -22,6 +23,7 @@ function SoundSettingsModal({ open, onClose }) {
   const [settings, setSettings] = useState({
     masterVolume: 1,
     musicVolume: 1,
+    battleMusicVolume: 1,
     effectsVolume: 1,
     clickVolume: 1,
     muted: false,

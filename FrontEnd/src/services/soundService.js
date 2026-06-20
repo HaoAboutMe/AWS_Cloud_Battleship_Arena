@@ -4,6 +4,7 @@ import menuTheme from "../assets/sounds/music/menu-theme.mp3";
 import digitalClickSound from "../assets/sounds/sfx/digital-click.mp3";
 import explosionSound from "../assets/sounds/sfx/explosion-with-debris.mp3";
 import defeatSound from "../assets/sounds/sfx/game-over-sound.mp3";
+import sunkSound from "../assets/sounds/sfx/sunk-sound-2.mp3";
 import victorySound from "../assets/sounds/sfx/victory-sound.mp3";
 import waterSplashSound from "../assets/sounds/sfx/water-splash.mp3";
 
@@ -13,6 +14,7 @@ const MUSIC_VOLUME = 0.35;
 const DEFAULT_SOUND_SETTINGS = Object.freeze({
   masterVolume: 1,
   musicVolume: 1,
+  battleMusicVolume: 1,
   effectsVolume: 1,
   clickVolume: 1,
 });
@@ -29,7 +31,7 @@ const soundBaseVolumes = new Map([
   ["explosion", 0.72],
   ["sunk", 0.82],
   ["victory", 0.74],
-  ["defeat", 0.66],
+  ["defeat", 1],
   ["rankUp", 0.75],
 ]);
 
@@ -61,6 +63,7 @@ const getStoredSoundSettings = () => {
     return {
       masterVolume: clampVolume(stored.masterVolume ?? 1),
       musicVolume: clampVolume(stored.musicVolume ?? 1),
+      battleMusicVolume: clampVolume(stored.battleMusicVolume ?? 1),
       effectsVolume: clampVolume(stored.effectsVolume ?? 1),
       clickVolume: clampVolume(stored.clickVolume ?? 1),
     };
@@ -69,7 +72,17 @@ const getStoredSoundSettings = () => {
   }
 };
 
-const getMusicTargetVolume = () => MUSIC_VOLUME * soundSettings.musicVolume;
+const getMusicTargetVolume = (name) =>
+  MUSIC_VOLUME *
+  (name === "battleMusic"
+    ? soundSettings.battleMusicVolume
+    : soundSettings.musicVolume);
+
+const applySoundVolume = (sound, name, volume) => {
+  sound.volume(volume);
+  const playbackId = musicPlaybackIds.get(name);
+  if (playbackId != null) sound.volume(volume, playbackId);
+};
 
 const notify = () => {
   listeners.forEach((listener) => listener(muted));
@@ -251,10 +264,10 @@ const ensureSounds = () => {
   );
   sounds.set(
     "sunk",
-    createSound(sinkingExplosion(), { volume: 0.82, pool: 4 }),
+    createSound(sunkSound, { volume: 0.2, pool: 4 }),
   );
   sounds.set("victory", createSound(victorySound, { volume: 0.74 }));
-  sounds.set("defeat", createSound(defeatSound, { volume: 0.66 }));
+  sounds.set("defeat", createSound(defeatSound, { volume: 1 }));
   sounds.set(
     "rankUp",
     createSound(
@@ -289,13 +302,13 @@ const ensureSounds = () => {
 
   sounds.forEach((sound, name) => {
     const volume = name.endsWith("Music")
-      ? getMusicTargetVolume()
+      ? getMusicTargetVolume(name)
       : name === "click"
         ? (soundBaseVolumes.get(name) ?? 0.6) *
           soundSettings.effectsVolume *
           soundSettings.clickVolume
         : (soundBaseVolumes.get(name) ?? 0.6) * soundSettings.effectsVolume;
-    sound.volume(volume);
+    applySoundVolume(sound, name, volume);
   });
 };
 
@@ -324,7 +337,7 @@ const startRequestedMusic = () => {
   nextMusic.volume(0);
   const nextId = nextMusic.play();
   musicPlaybackIds.set(requestedMusic, nextId);
-  nextMusic.fade(0, getMusicTargetVolume(), 700, nextId);
+  nextMusic.fade(0, getMusicTargetVolume(requestedMusic), 700, nextId);
 
   if (previousMusic && previousId != null) {
     previousMusic.fade(previousMusic.volume(), 0, 500, previousId);
@@ -362,7 +375,7 @@ export const playSound = (name, options = {}) => {
   if (!sound) return;
 
   const volume = name.endsWith("Music")
-    ? getMusicTargetVolume()
+    ? getMusicTargetVolume(name)
     : name === "click"
       ? (soundBaseVolumes.get(name) ?? 0.6) *
         soundSettings.effectsVolume *
@@ -372,7 +385,24 @@ export const playSound = (name, options = {}) => {
   if (volume <= 0) return;
 
   sound.volume(volume);
-  sound.play();
+  const playbackId = sound.play();
+
+  if ((name === "victory" || name === "defeat") && activeMusic) {
+    const musicName = activeMusic;
+    const music = sounds.get(musicName);
+    const musicId = musicPlaybackIds.get(musicName);
+    if (music && musicId != null) {
+      const targetVolume = getMusicTargetVolume(musicName);
+      music.fade(music.volume(musicId), targetVolume * 0.18, 220, musicId);
+      sound.once("end", () => {
+        if (activeMusic === musicName && requestedMusic === musicName && !muted) {
+          music.fade(music.volume(musicId), targetVolume, 650, musicId);
+        }
+      }, playbackId);
+    }
+  }
+
+  return playbackId;
 };
 
 export const installUIClickSounds = () => {
@@ -457,6 +487,9 @@ export const setSoundSettings = (nextSettings = {}) => {
     musicVolume: clampVolume(
       nextSettings.musicVolume ?? soundSettings.musicVolume,
     ),
+    battleMusicVolume: clampVolume(
+      nextSettings.battleMusicVolume ?? soundSettings.battleMusicVolume,
+    ),
     effectsVolume: clampVolume(
       nextSettings.effectsVolume ?? soundSettings.effectsVolume,
     ),
@@ -468,13 +501,13 @@ export const setSoundSettings = (nextSettings = {}) => {
   Howler.volume(soundSettings.masterVolume);
   sounds.forEach((sound, name) => {
     const volume = name.endsWith("Music")
-      ? getMusicTargetVolume()
+      ? getMusicTargetVolume(name)
       : name === "click"
         ? (soundBaseVolumes.get(name) ?? 0.6) *
           soundSettings.effectsVolume *
           soundSettings.clickVolume
         : (soundBaseVolumes.get(name) ?? 0.6) * soundSettings.effectsVolume;
-    sound.volume(volume);
+    applySoundVolume(sound, name, volume);
   });
 
   try {
