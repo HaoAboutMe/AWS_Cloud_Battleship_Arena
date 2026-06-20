@@ -9,9 +9,28 @@ import RankUpAnimation from "../components/RankUpAnimation";
 import { useAuth } from "../contexts/AuthContext";
 import { useLanguage } from "../contexts/LanguageContext";
 import BattleEffectsLayer from "../game/BattleEffectsLayer";
-import { canPlaceShip, checkVictory, createBoard, fireAt, getShipBounds, getShipOffsets, markWaterAroundSunkShip, placeShip, placeShipsRandomly, SHIP_DEFS } from "../game/GameLogic";
+import {
+  canPlaceShip,
+  checkVictory,
+  createBoard,
+  fireAt,
+  getShipBounds,
+  getShipOffsets,
+  markWaterAroundSunkShip,
+  placeShip,
+  placeShipsRandomly,
+  SHIP_DEFS,
+} from "../game/GameLogic";
 import { getBotMove, resetBotAI } from "../game/botAI";
-import { createRoomSocket, getRoom, getRoomPlayerId, leaveRoom, markPlayerReady, resetRoomForRematch, sendSocketMessage } from "../services/matchService";
+import {
+  createRoomSocket,
+  getRoom,
+  getRoomPlayerId,
+  leaveRoom,
+  markPlayerReady,
+  resetRoomForRematch,
+  sendSocketMessage,
+} from "../services/matchService";
 import { playSound } from "../services/soundService";
 import "./GameEffects.css";
 
@@ -33,2887 +52,3553 @@ const PATROL_VERTICAL_IMAGE_OFFSET_Y = 8;
 const GRID_SIZE_PX = BOARD_SIZE * CELL_SIZE + (BOARD_SIZE - 1) * CELL_GAP;
 
 const GAME_COPY = {
-    en: {
-        ready: "Ready",
-        syncing: "Waiting",
-        waitingPlayer: "Waiting player",
-        exitTitle: "Leave battle?",
-        exitBody: "Your current PvP match will be forfeited. The other commander will be declared the winner.",
-        stay: "Stay",
-        leave: "Leave match",
-        opponentLeftTitle: "Victory",
-        opponentLeftBody: "Opponent left the battle. Sector secured by default.",
-        victoryTitle: "Victory",
-        defeatTitle: "Defeat",
-        difficultyLabel: "Difficulty",
-        pvpVictorySubtitle: "Enemy command channel neutralized.",
-        pvpDefeatSubtitle: "Your fleet has been shattered in PvP combat.",
-        playAgain: "Play again",
-        returnHome: "Return home",
-        opponentLeftLog: "Opponent left the battle. Victory secured.",
-        waitingFleetLog: "Fleet deployed. Waiting for the opponent fleet.",
-        bothReadyLog: "Both commanders are ready. Battle channel is active.",
-    },
-    vi: {
-        ready: "Sẵn sàng",
-        syncing: "Đang chờ",
-        waitingPlayer: "Chờ người chơi",
-        exitTitle: "Thoát trận?",
-        exitBody: "Trận PvP hiện tại sẽ bị hủy. Đối thủ sẽ được tính thắng vì bạn rời trận.",
-        stay: "Ở lại",
-        leave: "Thoát trận",
-        opponentLeftTitle: "Chiến thắng",
-        opponentLeftBody: "Đối thủ đã rời trận. Khu vực đã được bảo toàn.",
-        victoryTitle: "Chiến thắng",
-        defeatTitle: "Thất bại",
-        difficultyLabel: "Độ khó",
-        pvpVictorySubtitle: "Kênh chỉ huy đối phương đã bị vô hiệu hóa.",
-        pvpDefeatSubtitle: "Hạm đội của bạn đã vỡ trận trong chiến đấu PvP.",
-        playAgain: "Chơi lại",
-        returnHome: "Về trang chủ",
-        opponentLeftLog: "Đối thủ đã rời trận. Bạn giành chiến thắng.",
-        waitingFleetLog: "Đã triển khai hạm đội. Đang chờ đối thủ xếp tàu.",
-        bothReadyLog: "Cả hai chỉ huy đã sẵn sàng. Kênh chiến đấu đã hoạt động.",
-    },
+  en: {
+    ready: "Ready",
+    syncing: "Waiting",
+    waitingPlayer: "Waiting player",
+    exitTitle: "Leave battle?",
+    exitBody:
+      "Your current PvP match will be forfeited. The other commander will be declared the winner.",
+    stay: "Stay",
+    leave: "Leave match",
+    opponentLeftTitle: "Victory",
+    opponentLeftBody: "Opponent left the battle. Sector secured by default.",
+    victoryTitle: "Victory",
+    defeatTitle: "Defeat",
+    difficultyLabel: "Difficulty",
+    pvpVictorySubtitle: "Enemy command channel neutralized.",
+    pvpDefeatSubtitle: "Your fleet has been shattered in PvP combat.",
+    playAgain: "Play again",
+    returnHome: "Return home",
+    opponentLeftLog: "Opponent left the battle. Victory secured.",
+    waitingFleetLog: "Fleet deployed. Waiting for the opponent fleet.",
+    bothReadyLog: "Both commanders are ready. Battle channel is active.",
+    totalTurns: "Total Turns",
+    totalShots: "Total Shots",
+    hitsMisses: "Hits / Misses",
+    accuracy: "Accuracy",
+    rankedResult: "Ranked Result",
+    victoryLog: "VICTORY! Enemy fleet destroyed!",
+    defeatLog: "DEFEAT! Your fleet was destroyed.",
+    sectorSecured: "Sector Secured!",
+    fleetAnnihilated: "Fleet Annihilated!",
+    dragShipsInstructions:
+      "Drag ships from staging onto your map. Right-click to rotate.",
+    formationCompleteInstructions:
+      "Formation complete. Adjust ships, auto-arrange again, or press Ready.",
+    moveSelectedShipInstructions:
+      "Move the selected ship or right-click to rotate it, then press Ready.",
+    selectShipInstructions:
+      "Select any ship to move or rotate it, then press Ready.",
+    yourTurn: "Your turn! Target enemy waters.",
+    enemyFiring: "Enemy is firing! Brace for impact!",
+    connectingRoom: "Room {roomCode}: connecting room channel...",
+    waitingOpponentFleet:
+      "Room {roomCode}: fleet deployed. Waiting for opponent fleet.",
+    channelConnected: "Room {roomCode}: battle channel connected.",
+    yourTurnPvp: "Room {roomCode}: your turn.",
+    opponentTurnPvp: "Room {roomCode}: opponent turn.",
+    deployFleet: "Deploy Your Fleet",
+    sectorCommand: "Sector Command",
+    timeLabel: "Time",
+    enemyWatersScan: "Enemy Waters (Scanning...)",
+    enemyWaters: "Enemy Waters",
+    yourFleet: "Your Fleet",
+    fleetStaging: "Fleet Staging",
+    shipsRemaining: "{count} ships remaining",
+    autoArrange: "AUTO ARRANGE",
+    deployed: "Deployed",
+    cellsLabel: "cells",
+  },
+  vi: {
+    ready: "Sẵn sàng",
+    syncing: "Đang chờ",
+    waitingPlayer: "Chờ người chơi",
+    exitTitle: "Thoát trận?",
+    exitBody:
+      "Trận PvP hiện tại sẽ bị hủy. Đối thủ sẽ được tính thắng vì bạn rời trận.",
+    stay: "Ở lại",
+    leave: "Thoát trận",
+    opponentLeftTitle: "Chiến thắng",
+    opponentLeftBody: "Đối thủ đã rời trận. Khu vực đã được bảo toàn.",
+    victoryTitle: "Chiến thắng",
+    defeatTitle: "Thất bại",
+    difficultyLabel: "Độ khó",
+    pvpVictorySubtitle: "Kênh chỉ huy đối phương đã bị vô hiệu hóa.",
+    pvpDefeatSubtitle: "Hạm đội của bạn đã vỡ trận trong chiến đấu PvP.",
+    playAgain: "Chơi lại",
+    returnHome: "Về trang chủ",
+    opponentLeftLog: "Đối thủ đã rời trận. Bạn giành chiến thắng.",
+    waitingFleetLog: "Đã triển khai hạm đội. Đang chờ đối thủ xếp tàu.",
+    bothReadyLog: "Cả hai chỉ huy đã sẵn sàng. Kênh chiến đấu đã hoạt động.",
+    totalTurns: "Tổng lượt",
+    totalShots: "Tổng phát bắn",
+    hitsMisses: "Trúng / Trượt",
+    accuracy: "Độ chính xác",
+    rankedResult: "Kết quả xếp hạng",
+    victoryLog: "CHIẾN THẮNG! Hạm đội đối phương đã bị tiêu diệt!",
+    defeatLog: "THẤT BẠI! Hạm đội của bạn đã bị tiêu diệt.",
+    sectorSecured: "Khu vực đã được bảo toàn!",
+    fleetAnnihilated: "Hạm đội bị tiêu diệt!",
+    dragShipsInstructions:
+      "Kéo tàu từ bến tàu lên bản đồ của bạn. Click chuột phải để xoay.",
+    formationCompleteInstructions:
+      "Đội hình hoàn tất. Điều chỉnh tàu, tự động sắp xếp lại hoặc nhấn Sẵn sàng.",
+    moveSelectedShipInstructions:
+      "Di chuyển tàu đã chọn hoặc click chuột phải để xoay, sau đó nhấn Sẵn sàng.",
+    selectShipInstructions:
+      "Chọn bất kỳ tàu nào để di chuyển hoặc xoay, sau đó nhấn Sẵn sàng.",
+    yourTurn: "Lượt của bạn! Nhắm bắn vào vùng biển đối phương.",
+    enemyFiring: "Kẻ địch đang bắn! Chuẩn bị tinh thần!",
+    connectingRoom: "Phòng {roomCode}: Đang kết nối kênh phòng...",
+    waitingOpponentFleet:
+      "Phòng {roomCode}: Đã dàn trận. Đang chờ đối thủ dàn trận.",
+    channelConnected: "Phòng {roomCode}: Đã kết nối kênh chiến đấu.",
+    yourTurnPvp: "Phòng {roomCode}: Lượt của bạn.",
+    opponentTurnPvp: "Phòng {roomCode}: Lượt của đối thủ.",
+    deployFleet: "Dàn trận hạm đội",
+    sectorCommand: "Bộ chỉ huy khu vực",
+    timeLabel: "Thời gian",
+    enemyWatersScan: "Vùng biển địch (Đang quét...)",
+    enemyWaters: "Vùng biển địch",
+    yourFleet: "Hạm đội của bạn",
+    fleetStaging: "Bến tàu hạm đội",
+    shipsRemaining: "Còn lại {count} tàu",
+    autoArrange: "TỰ SẮP XẾP",
+    deployed: "Đã triển khai",
+    cellsLabel: "ô",
+  },
 };
 
 const SHIP_SPRITES = {
-    carrier: { 0: ship1, 90: ship1, 180: ship1, 270: ship1 },
-    patrol: { 0: ship2, 90: ship2, 180: ship2, 270: ship2 },
-    zship: { 0: ship4, 90: ship4, 180: ship4, 270: ship4 },
-    destroyer: { 0: ship3, 90: ship3, 180: ship3, 270: ship3 },
+  carrier: { 0: ship1, 90: ship1, 180: ship1, 270: ship1 },
+  patrol: { 0: ship2, 90: ship2, 180: ship2, 270: ship2 },
+  zship: { 0: ship4, 90: ship4, 180: ship4, 270: ship4 },
+  destroyer: { 0: ship3, 90: ship3, 180: ship3, 270: ship3 },
 };
 
 const resolveSpriteUrl = (sprite) => {
-    if (!sprite) return "";
-    if (typeof sprite === "string") return sprite;
-    if (typeof sprite === "object") return sprite.default || sprite.src || "";
-    return "";
+  if (!sprite) return "";
+  if (typeof sprite === "string") return sprite;
+  if (typeof sprite === "object") return sprite.default || sprite.src || "";
+  return "";
 };
 
 const rotateOffset = (x, y, rotation) => {
-    const normalizedRotation = ((rotation % 360) + 360) % 360;
+  const normalizedRotation = ((rotation % 360) + 360) % 360;
 
-    if (normalizedRotation === 90) return { x: y, y: -x };
-    if (normalizedRotation === 180) return { x: -x, y: -y };
-    if (normalizedRotation === 270) return { x: -y, y: x };
+  if (normalizedRotation === 90) return { x: y, y: -x };
+  if (normalizedRotation === 180) return { x: -x, y: -y };
+  if (normalizedRotation === 270) return { x: -y, y: x };
 
-    return { x, y };
+  return { x, y };
 };
 
 const getAngledShipOffset = (shipTypeId, rotation) => {
-    const normalizedRotation = ((rotation % 360) + 360) % 360;
+  const normalizedRotation = ((rotation % 360) + 360) % 360;
 
-    if (shipTypeId === "destroyer" && normalizedRotation === 90) {
-        return { x: -8, y: -20 };
-    }
+  if (shipTypeId === "destroyer" && normalizedRotation === 90) {
+    return { x: -8, y: -20 };
+  }
 
-    if (shipTypeId === "destroyer" && normalizedRotation === 270) {
-        return { x: 10, y: 20 };
-    }
+  if (shipTypeId === "destroyer" && normalizedRotation === 270) {
+    return { x: 10, y: 20 };
+  }
 
-    if (shipTypeId === "zship" && normalizedRotation === 90) {
-        return { x: 8, y: 6 };
-    }
+  if (shipTypeId === "zship" && normalizedRotation === 90) {
+    return { x: 8, y: 6 };
+  }
 
-    if (shipTypeId === "zship" && normalizedRotation === 270) {
-        return { x: -8, y: -4 };
-    }
+  if (shipTypeId === "zship" && normalizedRotation === 270) {
+    return { x: -8, y: -4 };
+  }
 
-    const baseOffsetX = shipTypeId === "destroyer" ? L_SHIP_IMAGE_OFFSET_X : SHIP_IMAGE_OFFSET_X;
-    const baseOffsetY = shipTypeId === "destroyer" ? L_SHIP_IMAGE_OFFSET_Y : SHIP_IMAGE_OFFSET_Y;
+  const baseOffsetX =
+    shipTypeId === "destroyer" ? L_SHIP_IMAGE_OFFSET_X : SHIP_IMAGE_OFFSET_X;
+  const baseOffsetY =
+    shipTypeId === "destroyer" ? L_SHIP_IMAGE_OFFSET_Y : SHIP_IMAGE_OFFSET_Y;
 
-    return rotateOffset(baseOffsetX, baseOffsetY, normalizedRotation);
+  return rotateOffset(baseOffsetX, baseOffsetY, normalizedRotation);
 };
 
-const getDefaultTrayRotation = (shipDef) => (
-    shipDef.rotations.reduce((bestRotation, candidateRotation) => {
-        const bestBounds = getShipBounds(getShipOffsets(shipDef, bestRotation));
-        const candidateBounds = getShipBounds(getShipOffsets(shipDef, candidateRotation));
-        if (candidateBounds.cols > bestBounds.cols) return candidateRotation;
-        if (candidateBounds.cols === bestBounds.cols && candidateBounds.rows < bestBounds.rows) {
-            return candidateRotation;
-        }
-        return bestRotation;
-    }, shipDef.rotations[0])
-);
+const getDefaultTrayRotation = (shipDef) =>
+  shipDef.rotations.reduce((bestRotation, candidateRotation) => {
+    const bestBounds = getShipBounds(getShipOffsets(shipDef, bestRotation));
+    const candidateBounds = getShipBounds(
+      getShipOffsets(shipDef, candidateRotation),
+    );
+    if (candidateBounds.cols > bestBounds.cols) return candidateRotation;
+    if (
+      candidateBounds.cols === bestBounds.cols &&
+      candidateBounds.rows < bestBounds.rows
+    ) {
+      return candidateRotation;
+    }
+    return bestRotation;
+  }, shipDef.rotations[0]);
 
 const getCenterOffset = (shipDef, rotation) => {
-    const offsets = getShipOffsets(shipDef, rotation);
-    const bounds = getShipBounds(offsets);
-    const centerRow = (bounds.rows - 1) / 2;
-    const centerCol = (bounds.cols - 1) / 2;
-    const [grabRow, grabCol] = offsets.reduce((closest, offset) => {
-        const closestDistance = Math.abs(closest[0] - centerRow) + Math.abs(closest[1] - centerCol);
-        const offsetDistance = Math.abs(offset[0] - centerRow) + Math.abs(offset[1] - centerCol);
-        return offsetDistance < closestDistance ? offset : closest;
-    }, offsets[0]);
-    return { row: grabRow, col: grabCol };
+  const offsets = getShipOffsets(shipDef, rotation);
+  const bounds = getShipBounds(offsets);
+  const centerRow = (bounds.rows - 1) / 2;
+  const centerCol = (bounds.cols - 1) / 2;
+  const [grabRow, grabCol] = offsets.reduce((closest, offset) => {
+    const closestDistance =
+      Math.abs(closest[0] - centerRow) + Math.abs(closest[1] - centerCol);
+    const offsetDistance =
+      Math.abs(offset[0] - centerRow) + Math.abs(offset[1] - centerCol);
+    return offsetDistance < closestDistance ? offset : closest;
+  }, offsets[0]);
+  return { row: grabRow, col: grabCol };
 };
 
 const useIsMobile = () => {
-    const [isMobile, setIsMobile] = useState(window.innerWidth <= 767);
-    useEffect(() => {
-        const handleResize = () => setIsMobile(window.innerWidth <= 767);
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-    }, []);
-    return isMobile;
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 767);
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 767);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+  return isMobile;
 };
 
 function Game() {
-    const location = useLocation();
-    const navigate = useNavigate();
-    const { user, attributes, checkAuth } = useAuth();
-    const { language } = useLanguage();
-    const copy = GAME_COPY[language] || GAME_COPY.en;
-    const isMobile = useIsMobile();
-    const searchParams = new URLSearchParams(location.search);
-    const isPvpMode = searchParams.get("mode") === "pvp";
-    const roomCode = searchParams.get("roomCode") || "";
-    const [difficulty, setDifficulty] = useState("easy");
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { user, attributes, checkAuth } = useAuth();
+  const { language } = useLanguage();
+  const copy = GAME_COPY[language] || GAME_COPY.en;
+  const isMobile = useIsMobile();
+  const searchParams = new URLSearchParams(location.search);
+  const isPvpMode = searchParams.get("mode") === "pvp";
+  const roomCode = searchParams.get("roomCode") || "";
+  const [difficulty, setDifficulty] = useState("easy");
 
-    const [gameState, setGameState] = useState('PLACEMENT'); // PLACEMENT, READY, PLAYER_TURN, BOT_TURN, GAME_OVER
-    const [playerBoard, setPlayerBoard] = useState(createBoard());
-    const [enemyBoard, setEnemyBoard] = useState(createBoard());
-    
-    // Placement State
-    const shipsToPlace = SHIP_DEFS;
-    const [currentShipIndex, setCurrentShipIndex] = useState(0);
-    const [rotation, setRotation] = useState(0);
-    const [hoverCell, setHoverCell] = useState(null);
-    const [selectedShip, setSelectedShip] = useState(null);
-    const [draggedShip, setDraggedShip] = useState(null);
-    const [dragPointer, setDragPointer] = useState(null);
-    const [originalPlacement, setOriginalPlacement] = useState(null);
-    const [invalidRotationPreview, setInvalidRotationPreview] = useState(null);
-    const [unplacedShipIds, setUnplacedShipIds] = useState(() => SHIP_DEFS.map(ship => ship.id));
-    const [trayRotations, setTrayRotations] = useState(() => (
-        Object.fromEntries(SHIP_DEFS.map(ship => [ship.id, getDefaultTrayRotation(ship)]))
-    ));
-    
-    // Game State
-    const [turnTimer, setTurnTimer] = useState(30);
-    const [logs, setLogs] = useState([]);
-    const [winner, setWinner] = useState(null); // 'PLAYER' | 'BOT'
-    const [isShotResolving, setIsShotResolving] = useState(false);
-    const shotLockRef = useRef(false);
+  const [gameState, setGameState] = useState("PLACEMENT"); // PLACEMENT, READY, PLAYER_TURN, BOT_TURN, GAME_OVER
+  const [playerBoard, setPlayerBoard] = useState(createBoard());
+  const [enemyBoard, setEnemyBoard] = useState(createBoard());
 
-    // Statistics
-    const [stats, setStats] = useState({
-        turns: 0,
-        shots: 0,
-        hits: 0,
-        misses: 0,
-        shipsDestroyed: 0,
+  // Placement State
+  const shipsToPlace = SHIP_DEFS;
+  const [currentShipIndex, setCurrentShipIndex] = useState(0);
+  const [rotation, setRotation] = useState(0);
+  const [hoverCell, setHoverCell] = useState(null);
+  const [selectedShip, setSelectedShip] = useState(null);
+  const [draggedShip, setDraggedShip] = useState(null);
+  const [dragPointer, setDragPointer] = useState(null);
+  const [originalPlacement, setOriginalPlacement] = useState(null);
+  const [invalidRotationPreview, setInvalidRotationPreview] = useState(null);
+  const [unplacedShipIds, setUnplacedShipIds] = useState(() =>
+    SHIP_DEFS.map((ship) => ship.id),
+  );
+  const [trayRotations, setTrayRotations] = useState(() =>
+    Object.fromEntries(
+      SHIP_DEFS.map((ship) => [ship.id, getDefaultTrayRotation(ship)]),
+    ),
+  );
+
+  // Game State
+  const [turnTimer, setTurnTimer] = useState(30);
+  const [logs, setLogs] = useState([]);
+  const [winner, setWinner] = useState(null); // 'PLAYER' | 'BOT'
+  const [isShotResolving, setIsShotResolving] = useState(false);
+  const shotLockRef = useRef(false);
+
+  // Statistics
+  const [stats, setStats] = useState({
+    turns: 0,
+    shots: 0,
+    hits: 0,
+    misses: 0,
+    shipsDestroyed: 0,
+  });
+  const statsRef = useRef(stats);
+  const [enemyShipsSunk, setEnemyShipsSunk] = useState([]);
+  const [enemySunkShipIds, setEnemySunkShipIds] = useState([]);
+  const [playerShipsSunk, setPlayerShipsSunk] = useState([]);
+  const [sunkEffect, setSunkEffect] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [touchData, setTouchData] = useState(null);
+  const [showMobileLog, setShowMobileLog] = useState(false);
+  const [activeBattleTab, setActiveBattleTab] = useState("enemy");
+  const [pvpRoom, setPvpRoom] = useState(null);
+  const [pvpReadyLoading, setPvpReadyLoading] = useState(false);
+  const [pvpSocketReady, setPvpSocketReady] = useState(false);
+  const [pvpTurnUserId, setPvpTurnUserId] = useState("");
+  const [pvpFleetSubmitted, setPvpFleetSubmitted] = useState(false);
+  const [exitPromptOpen, setExitPromptOpen] = useState(false);
+  const [pendingExitTarget, setPendingExitTarget] = useState("/");
+  const [gameOverReason, setGameOverReason] = useState("");
+  const [rematchLoading, setRematchLoading] = useState(false);
+  const [returnHomeLoading, setReturnHomeLoading] = useState(false);
+  const [rankedResult, setRankedResult] = useState(null);
+  const [showRankUpAnimation, setShowRankUpAnimation] = useState(false);
+
+  const logContainerRef = useRef(null);
+  const timerRef = useRef(null);
+  const dragSkipClickRef = useRef(false);
+  const playerEffectsRef = useRef(null);
+  const enemyEffectsRef = useRef(null);
+  const playerBoardRef = useRef(null);
+  const pvpSocketRef = useRef(null);
+  const pvpInProgressLoggedRef = useRef(false);
+  const pvpEnemyBoardLoadedRef = useRef(false);
+  const pvpProcessedShotIdsRef = useRef(new Set());
+  const playerBoardStateRef = useRef(playerBoard);
+  const enemyBoardStateRef = useRef(enemyBoard);
+  const pvpRoomRef = useRef(pvpRoom);
+  const roomPlayerRef = useRef(null);
+  const pvpExitSentRef = useRef(false);
+  const pvpFleetSubmittedRef = useRef(false);
+  const activePvpShotIdRef = useRef("");
+  const pvpShotTimeoutRef = useRef(null);
+  const matchStartedAtRef = useRef(null);
+  const applyPvpShotResultRef = useRef(null);
+  const handleOpponentLeftRef = useRef(null);
+  // Ref theo dõi gameState để dùng trong async callbacks (tránh stale closure)
+  const gameStateRef = useRef("PLACEMENT");
+  const currentShip = shipsToPlace[currentShipIndex];
+  const isWaitingForOpponentFleet =
+    isPvpMode && pvpFleetSubmitted && pvpRoom?.status !== "IN_PROGRESS";
+  const isPlacementLocked = isWaitingForOpponentFleet;
+  const addLog = useCallback((msg, type = "info") => {
+    setLogs((prev) => [...prev, { id: Date.now() + Math.random(), msg, type }]);
+  }, []);
+  const playerSunkShipTypeIds = playerBoard
+    .flat()
+    .filter((cell) => cell.shipRoot && playerShipsSunk.includes(cell.shipId))
+    .map((cell) => cell.shipTypeId);
+  const roomPlayer = useMemo(() => {
+    const displayName =
+      attributes?.preferred_username ||
+      attributes?.name ||
+      attributes?.given_name ||
+      attributes?.nickname ||
+      attributes?.email ||
+      user?.signInDetails?.loginId ||
+      "Commander";
+
+    console.log("USER", user);
+    console.log("ATTRIBUTES", attributes);
+    const baseUserId =
+      user?.userId || attributes?.sub || attributes?.email || "guest";
+
+    return {
+      userId: getRoomPlayerId(baseUserId, roomCode || "global"),
+      baseUserId,
+      displayName,
+      email: attributes?.email,
+    };
+  }, [
+    attributes?.email,
+    attributes?.given_name,
+    attributes?.name,
+    attributes?.nickname,
+    attributes?.preferred_username,
+    attributes?.sub,
+    roomCode,
+    user?.signInDetails?.loginId,
+    user?.userId,
+  ]);
+
+  useEffect(() => {
+    playerBoardStateRef.current = playerBoard;
+  }, [playerBoard]);
+
+  useEffect(() => {
+    enemyBoardStateRef.current = enemyBoard;
+  }, [enemyBoard]);
+
+  useEffect(() => {
+    pvpRoomRef.current = pvpRoom;
+  }, [pvpRoom]);
+
+  useEffect(() => {
+    statsRef.current = stats;
+  }, [stats]);
+
+  useEffect(() => {
+    pvpFleetSubmittedRef.current = pvpFleetSubmitted;
+  }, [pvpFleetSubmitted]);
+
+  useEffect(() => {
+    roomPlayerRef.current = roomPlayer;
+  }, [roomPlayer]);
+
+  useEffect(() => {
+    gameStateRef.current = gameState;
+  }, [gameState]);
+
+  useEffect(
+    () => () => {
+      if (pvpShotTimeoutRef.current) {
+        window.clearTimeout(pvpShotTimeoutRef.current);
+        pvpShotTimeoutRef.current = null;
+      }
+    },
+    [],
+  );
+
+  useEffect(() => {
+    pvpEnemyBoardLoadedRef.current = false;
+  }, [roomCode]);
+
+  const renderFleetStatus = (sunkShipTypeIds, isScanning = false) => (
+    <div className="fleet-image-panel">
+      <div className="fleet-image-list">
+        {!isScanning &&
+          shipsToPlace.map((ship) => {
+            const isSunk = sunkShipTypeIds.includes(ship.id);
+            const offsets = getShipOffsets(ship, ship.rotations[0]);
+            const rowCount = Math.max(...offsets.map(([row]) => row)) + 1;
+            const colCount = Math.max(...offsets.map(([, col]) => col)) + 1;
+
+            return (
+              <div
+                key={ship.id}
+                className={`fleet-shape-item ${isSunk ? "is-sunk" : ""}`}
+                title={ship.label}
+              >
+                <span
+                  className="fleet-shape-grid"
+                  style={{
+                    gridTemplateColumns: `repeat(${colCount}, 6px)`,
+                    gridTemplateRows: `repeat(${rowCount}, 6px)`,
+                  }}
+                >
+                  {offsets.map(([row, col]) => (
+                    <span
+                      key={`${row}-${col}`}
+                      className="fleet-shape-cell"
+                      style={{
+                        gridRow: row + 1,
+                        gridColumn: col + 1,
+                      }}
+                    />
+                  ))}
+                </span>
+              </div>
+            );
+          })}
+        {isScanning && (
+          <span className="enemy-fleet-scanning">Scanning...</span>
+        )}
+      </div>
+    </div>
+  );
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const diff = params.get("difficulty") || "easy";
+    setDifficulty(diff);
+    resetBotAI();
+  }, [location]);
+
+  useEffect(() => {
+    if (isMobile && gameState === "PLACEMENT" && unplacedShipIds.length > 0) {
+      autoArrangeFleet();
+    }
+  }, [isMobile, gameState, unplacedShipIds.length]);
+
+  useEffect(() => {
+    if (gameState === "PLAYER_TURN") {
+      setActiveBattleTab("enemy");
+    } else if (gameState === "BOT_TURN" || gameState === "GAME_OVER") {
+      setActiveBattleTab("fleet");
+    }
+  }, [gameState]);
+
+  useEffect(() => {
+    if (logContainerRef.current) {
+      logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight;
+    }
+  }, [logs]);
+
+  useEffect(() => {
+    // Poll ngay khi vào PvP mode (không phụ thuộc gameState)
+    // để load enemy board kịp thời khi room chuyển sang IN_PROGRESS
+    if (!isPvpMode || !roomCode) return undefined;
+
+    let cancelled = false;
+    const pollRoom = async () => {
+      // Dừng poll khi game đã kết thúc
+      if (gameStateRef.current === "GAME_OVER") return;
+
+      try {
+        const nextRoom = await getRoom(roomCode);
+        if (cancelled) return;
+
+        setPvpRoom(nextRoom);
+        if (
+          nextRoom.status === "IN_PROGRESS" &&
+          !pvpInProgressLoggedRef.current
+        ) {
+          pvpInProgressLoggedRef.current = true;
+          setPvpFleetSubmitted(true);
+          setGameState("PLAYER_TURN");
+          setTurnTimer(30);
+          addLog(copy.bothReadyLog, "info");
+        }
+      } catch {
+        if (!cancelled) {
+          addLog("Unable to refresh room readiness.", "warning");
+        }
+      }
+    };
+
+    pollRoom();
+    const timer = window.setInterval(pollRoom, 3000);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
+  }, [addLog, copy.bothReadyLog, isPvpMode, roomCode]);
+
+  const triggerSunkEffect = (boardSide, shipTypeId, shipId, cells) => {
+    const shipDef = shipsToPlace.find((ship) => ship.id === shipTypeId);
+    const token = Date.now() + Math.random();
+
+    setSunkEffect({
+      boardSide,
+      shipTypeId,
+      shipId,
+      shipLabel: shipDef?.label || "Ship",
+      cells,
+      token,
     });
-    const statsRef = useRef(stats);
-    const [enemyShipsSunk, setEnemyShipsSunk] = useState([]);
-    const [enemySunkShipIds, setEnemySunkShipIds] = useState([]);
-    const [playerShipsSunk, setPlayerShipsSunk] = useState([]);
-    const [sunkEffect, setSunkEffect] = useState(null);
-    const [showModal, setShowModal] = useState(false);
-    const [touchData, setTouchData] = useState(null);
-    const [showMobileLog, setShowMobileLog] = useState(false);
-    const [activeBattleTab, setActiveBattleTab] = useState("enemy");
-    const [pvpRoom, setPvpRoom] = useState(null);
-    const [pvpReadyLoading, setPvpReadyLoading] = useState(false);
-    const [pvpSocketReady, setPvpSocketReady] = useState(false);
-    const [pvpTurnUserId, setPvpTurnUserId] = useState("");
-    const [pvpFleetSubmitted, setPvpFleetSubmitted] = useState(false);
-    const [exitPromptOpen, setExitPromptOpen] = useState(false);
-    const [pendingExitTarget, setPendingExitTarget] = useState("/");
-    const [gameOverReason, setGameOverReason] = useState("");
-    const [rematchLoading, setRematchLoading] = useState(false);
-    const [returnHomeLoading, setReturnHomeLoading] = useState(false);
-    const [rankedResult, setRankedResult] = useState(null);
-    const [showRankUpAnimation, setShowRankUpAnimation] = useState(false);
+    const effects =
+      boardSide === "enemy"
+        ? enemyEffectsRef.current
+        : playerEffectsRef.current;
+    playSound("sunk", { minGap: 650 });
+    effects?.playSunk(cells, shipId);
+    window.requestAnimationFrame(() => effects?.animateBanner());
 
-    const logContainerRef = useRef(null);
-    const timerRef = useRef(null);
-    const dragSkipClickRef = useRef(false);
-    const playerEffectsRef = useRef(null);
-    const enemyEffectsRef = useRef(null);
-    const playerBoardRef = useRef(null);
-    const pvpSocketRef = useRef(null);
-    const pvpInProgressLoggedRef = useRef(false);
-    const pvpEnemyBoardLoadedRef = useRef(false);
-    const pvpProcessedShotIdsRef = useRef(new Set());
-    const playerBoardStateRef = useRef(playerBoard);
-    const enemyBoardStateRef = useRef(enemyBoard);
-    const pvpRoomRef = useRef(pvpRoom);
-    const roomPlayerRef = useRef(null);
-    const pvpExitSentRef = useRef(false);
-    const pvpFleetSubmittedRef = useRef(false);
-    const activePvpShotIdRef = useRef("");
-    const pvpShotTimeoutRef = useRef(null);
-    const matchStartedAtRef = useRef(null);
-    const applyPvpShotResultRef = useRef(null);
-    const handleOpponentLeftRef = useRef(null);
-    // Ref theo dõi gameState để dùng trong async callbacks (tránh stale closure)
-    const gameStateRef = useRef('PLACEMENT');
-    const currentShip = shipsToPlace[currentShipIndex];
-    const isWaitingForOpponentFleet = isPvpMode && pvpFleetSubmitted && pvpRoom?.status !== "IN_PROGRESS";
-    const isPlacementLocked = isWaitingForOpponentFleet;
-    const addLog = useCallback((msg, type = "info") => {
-        setLogs(prev => [...prev, { id: Date.now() + Math.random(), msg, type }]);
-    }, []);
-    const playerSunkShipTypeIds = playerBoard
-        .flat()
-        .filter(cell => cell.shipRoot && playerShipsSunk.includes(cell.shipId))
-        .map(cell => cell.shipTypeId);
-    const roomPlayer = useMemo(() => {
-        const displayName =
-            attributes?.preferred_username ||
-            attributes?.name ||
-            attributes?.given_name ||
-            attributes?.nickname ||
-            attributes?.email ||
-            user?.signInDetails?.loginId ||
-            "Commander";
+    window.setTimeout(() => {
+      setSunkEffect((current) => (current?.token === token ? null : current));
+    }, 2400);
+  };
 
-        console.log("USER", user);
-        console.log("ATTRIBUTES", attributes);
-        const baseUserId = user?.userId || attributes?.sub || attributes?.email || "guest";
+  const cloneBoard = (board) =>
+    board.map((row) => row.map((cell) => ({ ...cell })));
 
-        return {
-            userId: getRoomPlayerId(baseUserId, roomCode || "global"),
-            baseUserId,
-            displayName,
-            email: attributes?.email,
-        };
-    }, [
-        attributes?.email,
-        attributes?.given_name,
-        attributes?.name,
-        attributes?.nickname,
-        attributes?.preferred_username,
-        attributes?.sub,
-        roomCode,
-        user?.signInDetails?.loginId,
-        user?.userId,
-    ]);
+  const getRoomPlayerKey = (player) => {
+    const rawKey = player?.userId || player?.baseUserId || player?.email || "";
+    return rawKey.split(":")[0];
+  };
 
-    useEffect(() => {
-        playerBoardStateRef.current = playerBoard;
-    }, [playerBoard]);
+  const isSameRoomPlayer = (left, right) => {
+    if (!left || !right) return false;
+    if (left.userId && right.userId && left.userId === right.userId)
+      return true;
+    if (
+      left.baseUserId &&
+      right.baseUserId &&
+      left.baseUserId !== "guest" &&
+      left.baseUserId === right.baseUserId
+    )
+      return true;
+    if (left.email && right.email && left.email === right.email) return true;
+    return false;
+  };
 
-    useEffect(() => {
-        enemyBoardStateRef.current = enemyBoard;
-    }, [enemyBoard]);
+  const getOpponentPlayer = (
+    room = pvpRoomRef.current,
+    player = roomPlayerRef.current,
+  ) =>
+    (room?.players || []).find(
+      (candidate) => !isSameRoomPlayer(candidate, player),
+    ) || null;
 
-    useEffect(() => {
-        pvpRoomRef.current = pvpRoom;
-    }, [pvpRoom]);
+  const getCurrentRoomPlayer = (
+    room = pvpRoomRef.current,
+    player = roomPlayerRef.current,
+  ) =>
+    (room?.players || []).find((candidate) =>
+      isSameRoomPlayer(candidate, player),
+    ) || player;
 
-    useEffect(() => {
-        statsRef.current = stats;
-    }, [stats]);
+  const releaseShotLock = useCallback((shotId = "") => {
+    if (
+      shotId &&
+      activePvpShotIdRef.current &&
+      activePvpShotIdRef.current !== shotId
+    )
+      return;
 
-    useEffect(() => {
-        pvpFleetSubmittedRef.current = pvpFleetSubmitted;
-    }, [pvpFleetSubmitted]);
+    if (pvpShotTimeoutRef.current) {
+      window.clearTimeout(pvpShotTimeoutRef.current);
+      pvpShotTimeoutRef.current = null;
+    }
 
-    useEffect(() => {
-        roomPlayerRef.current = roomPlayer;
-    }, [roomPlayer]);
+    activePvpShotIdRef.current = "";
+    shotLockRef.current = false;
+    setIsShotResolving(false);
+  }, []);
 
-    useEffect(() => {
-        gameStateRef.current = gameState;
-    }, [gameState]);
+  const shouldConfirmPvpExit = useCallback(
+    () =>
+      isPvpMode &&
+      Boolean(roomCode) &&
+      gameStateRef.current !== "GAME_OVER" &&
+      (pvpRoomRef.current?.status === "IN_PROGRESS" ||
+        pvpFleetSubmittedRef.current ||
+        gameStateRef.current === "PLACEMENT" ||
+        gameStateRef.current === "READY" ||
+        gameStateRef.current === "PLAYER_TURN" ||
+        gameStateRef.current === "BOT_TURN"),
+    [isPvpMode, roomCode],
+  );
 
-    useEffect(() => () => {
-        if (pvpShotTimeoutRef.current) {
-            window.clearTimeout(pvpShotTimeoutRef.current);
-            pvpShotTimeoutRef.current = null;
-        }
-    }, []);
+  const notifyPvpExit = useCallback(() => {
+    if (!isPvpMode || !roomCode || pvpExitSentRef.current) return;
 
-    useEffect(() => {
-        pvpEnemyBoardLoadedRef.current = false;
-    }, [roomCode]);
+    const currentPlayer = getCurrentRoomPlayer();
+    const currentPlayerId = getRoomPlayerKey(currentPlayer);
+    if (!currentPlayerId) return;
 
-    const renderFleetStatus = (sunkShipTypeIds, isScanning = false) => (
-        <div className="fleet-image-panel">
-            <div className="fleet-image-list">
-                {!isScanning && shipsToPlace.map((ship) => {
-                    const isSunk = sunkShipTypeIds.includes(ship.id);
-                    const offsets = getShipOffsets(ship, ship.rotations[0]);
-                    const rowCount = Math.max(...offsets.map(([row]) => row)) + 1;
-                    const colCount = Math.max(...offsets.map(([, col]) => col)) + 1;
+    pvpExitSentRef.current = true;
+    sendSocketMessage(pvpSocketRef.current, {
+      action: "QUIT",
+      roomCode,
+    });
+  }, [isPvpMode, roomCode]);
 
-                    return (
-                        <div
-                            key={ship.id}
-                            className={`fleet-shape-item ${isSunk ? "is-sunk" : ""}`}
-                            title={ship.label}
-                        >
-                            <span
-                                className="fleet-shape-grid"
-                                style={{
-                                    gridTemplateColumns: `repeat(${colCount}, 6px)`,
-                                    gridTemplateRows: `repeat(${rowCount}, 6px)`,
-                                }}
-                            >
-                                {offsets.map(([row, col]) => (
-                                    <span
-                                        key={`${row}-${col}`}
-                                        className="fleet-shape-cell"
-                                        style={{
-                                            gridRow: row + 1,
-                                            gridColumn: col + 1,
-                                        }}
-                                    />
-                                ))}
-                            </span>
-                        </div>
-                    );
-                })}
-                {isScanning && (
-                    <span className="enemy-fleet-scanning">Scanning...</span>
-                )}
-            </div>
-        </div>
-    );
+  const leavePvpRoomCleanly = useCallback(
+    async ({ keepalive = false } = {}) => {
+      if (!isPvpMode || !roomCode) return;
 
-    useEffect(() => {
-        const params = new URLSearchParams(location.search);
-        const diff = params.get("difficulty") || "easy";
-        setDifficulty(diff);
-        resetBotAI();
-    }, [location]);
+      const currentPlayer = getCurrentRoomPlayer();
+      if (!getRoomPlayerKey(currentPlayer)) return;
 
-    useEffect(() => {
-        if (isMobile && gameState === 'PLACEMENT' && unplacedShipIds.length > 0) {
-            autoArrangeFleet();
-        }
-    }, [isMobile, gameState, unplacedShipIds.length]);
+      if (keepalive) {
+        const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
+        if (!apiBaseUrl) return;
 
-    useEffect(() => {
-        if (gameState === 'PLAYER_TURN') {
-            setActiveBattleTab("enemy");
-        } else if (gameState === 'BOT_TURN' || gameState === 'GAME_OVER') {
-            setActiveBattleTab("fleet");
-        }
-    }, [gameState]);
+        fetch(`${apiBaseUrl}/rooms/${encodeURIComponent(roomCode)}/leave`, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ player: currentPlayer }),
+          keepalive: true,
+        }).catch(() => {});
+        return;
+      }
 
-    useEffect(() => {
-        if (logContainerRef.current) {
-            logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight;
-        }
-    }, [logs]);
+      await leaveRoom({ roomCode, player: currentPlayer });
+    },
+    [isPvpMode, roomCode],
+  );
 
-    useEffect(() => {
-        // Poll ngay khi vào PvP mode (không phụ thuộc gameState)
-        // để load enemy board kịp thời khi room chuyển sang IN_PROGRESS
-        if (!isPvpMode || !roomCode) return undefined;
+  const requestGameExit = useCallback(
+    (target = "/") => {
+      if (!shouldConfirmPvpExit()) {
+        navigate(target);
+        return;
+      }
 
-        let cancelled = false;
-        const pollRoom = async () => {
-            // Dừng poll khi game đã kết thúc
-            if (gameStateRef.current === 'GAME_OVER') return;
+      setPendingExitTarget(target);
+      setExitPromptOpen(true);
+    },
+    [navigate, shouldConfirmPvpExit],
+  );
 
-            try {
-                const nextRoom = await getRoom(roomCode);
-                if (cancelled) return;
+  const confirmGameExit = useCallback(async () => {
+    notifyPvpExit();
+    try {
+      await leavePvpRoomCleanly();
+    } catch (leaveError) {
+      addLog(leaveError.message || "Unable to leave room cleanly.", "warning");
+    }
+    setExitPromptOpen(false);
+    navigate(pendingExitTarget || "/");
+  }, [addLog, leavePvpRoomCleanly, navigate, notifyPvpExit, pendingExitTarget]);
 
-                setPvpRoom(nextRoom);
-                if (nextRoom.status === "IN_PROGRESS" && !pvpInProgressLoggedRef.current) {
-                    pvpInProgressLoggedRef.current = true;
-                    setPvpFleetSubmitted(true);
-                    setGameState("PLAYER_TURN");
-                    setTurnTimer(30);
-                    addLog(copy.bothReadyLog, "info");
-                }
-            } catch {
-                if (!cancelled) {
-                    addLog("Unable to refresh room readiness.", "warning");
-                }
-            }
-        };
+  const handlePlayAgain = useCallback(async () => {
+    setRankedResult(null);
+    setShowRankUpAnimation(false);
 
-        pollRoom();
-        const timer = window.setInterval(pollRoom, 3000);
+    if (!isPvpMode || !roomCode) {
+      window.location.reload();
+      return;
+    }
 
-        return () => {
-            cancelled = true;
-            window.clearInterval(timer);
-        };
-    }, [addLog, copy.bothReadyLog, isPvpMode, roomCode]);
+    try {
+      setRematchLoading(true);
+      if (gameOverReason === "opponent_left") {
+        await leavePvpRoomCleanly();
+        navigate("/lobby");
+        return;
+      }
+      await resetRoomForRematch({ roomCode, player: roomPlayer });
+      navigate(`/lobby?roomCode=${roomCode}`);
+    } catch (rematchError) {
+      addLog(
+        rematchError.message || "Unable to reset room for rematch.",
+        "warning",
+      );
+    } finally {
+      setRematchLoading(false);
+    }
+  }, [
+    addLog,
+    gameOverReason,
+    isPvpMode,
+    leavePvpRoomCleanly,
+    navigate,
+    roomCode,
+    roomPlayer,
+  ]);
 
-    const triggerSunkEffect = (boardSide, shipTypeId, shipId, cells) => {
-        const shipDef = shipsToPlace.find(ship => ship.id === shipTypeId);
-        const token = Date.now() + Math.random();
+  const handleReturnHome = useCallback(async () => {
+    if (!isPvpMode || !roomCode || gameStateRef.current !== "GAME_OVER") {
+      navigate("/");
+      return;
+    }
 
-        setSunkEffect({
-            boardSide,
-            shipTypeId,
-            shipId,
-            shipLabel: shipDef?.label || "Ship",
-            cells,
-            token,
-        });
-        const effects = boardSide === "enemy" ? enemyEffectsRef.current : playerEffectsRef.current;
-        playSound("sunk", { minGap: 650 });
-        effects?.playSunk(cells, shipId);
-        window.requestAnimationFrame(() => effects?.animateBanner());
+    try {
+      setReturnHomeLoading(true);
+      await leavePvpRoomCleanly();
+    } catch (leaveError) {
+      addLog(leaveError.message || "Unable to leave room cleanly.", "warning");
+    } finally {
+      navigate("/");
+    }
+  }, [addLog, isPvpMode, leavePvpRoomCleanly, navigate, roomCode]);
 
-        window.setTimeout(() => {
-            setSunkEffect(current => current?.token === token ? null : current);
-        }, 2400);
+  useEffect(() => {
+    if (!isPvpMode) return undefined;
+
+    const handleBeforeUnload = (event) => {
+      if (!shouldConfirmPvpExit()) return;
+      event.preventDefault();
+      event.returnValue = "";
     };
 
-    const cloneBoard = (board) => board.map(row => row.map(cell => ({ ...cell })));
-
-    const getRoomPlayerKey = (player) => {
-        const rawKey = player?.userId || player?.baseUserId || player?.email || "";
-        return rawKey.split(':')[0];
-    };
-
-    const isSameRoomPlayer = (left, right) => {
-        if (!left || !right) return false;
-        if (left.userId && right.userId && left.userId === right.userId) return true;
-        if (left.baseUserId && right.baseUserId && left.baseUserId !== "guest" && left.baseUserId === right.baseUserId) return true;
-        if (left.email && right.email && left.email === right.email) return true;
-        return false;
-    };
-
-    const getOpponentPlayer = (room = pvpRoomRef.current, player = roomPlayerRef.current) => (
-        (room?.players || []).find((candidate) => !isSameRoomPlayer(candidate, player)) || null
-    );
-
-    const getCurrentRoomPlayer = (room = pvpRoomRef.current, player = roomPlayerRef.current) => (
-        (room?.players || []).find((candidate) => isSameRoomPlayer(candidate, player)) || player
-    );
-
-    const releaseShotLock = useCallback((shotId = "") => {
-        if (shotId && activePvpShotIdRef.current && activePvpShotIdRef.current !== shotId) return;
-
-        if (pvpShotTimeoutRef.current) {
-            window.clearTimeout(pvpShotTimeoutRef.current);
-            pvpShotTimeoutRef.current = null;
-        }
-
-        activePvpShotIdRef.current = "";
-        shotLockRef.current = false;
-        setIsShotResolving(false);
-    }, []);
-
-    const shouldConfirmPvpExit = useCallback(() => (
-        isPvpMode
-        && Boolean(roomCode)
-        && gameStateRef.current !== "GAME_OVER"
-        && (
-            pvpRoomRef.current?.status === "IN_PROGRESS"
-            || pvpFleetSubmittedRef.current
-            || gameStateRef.current === "PLACEMENT"
-            || gameStateRef.current === "READY"
-            || gameStateRef.current === "PLAYER_TURN"
-            || gameStateRef.current === "BOT_TURN"
-        )
-    ), [isPvpMode, roomCode]);
-
-    const notifyPvpExit = useCallback(() => {
-        if (!isPvpMode || !roomCode || pvpExitSentRef.current) return;
-
-        const currentPlayer = getCurrentRoomPlayer();
-        const currentPlayerId = getRoomPlayerKey(currentPlayer);
-        if (!currentPlayerId) return;
-
-        pvpExitSentRef.current = true;
-        sendSocketMessage(pvpSocketRef.current, {
-            action: "QUIT",
-            roomCode,
-        });
-    }, [isPvpMode, roomCode]);
-
-    const leavePvpRoomCleanly = useCallback(async ({ keepalive = false } = {}) => {
-        if (!isPvpMode || !roomCode) return;
-
-        const currentPlayer = getCurrentRoomPlayer();
-        if (!getRoomPlayerKey(currentPlayer)) return;
-
-        if (keepalive) {
-            const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
-            if (!apiBaseUrl) return;
-
-            fetch(`${apiBaseUrl}/rooms/${encodeURIComponent(roomCode)}/leave`, {
-                method: "POST",
-                headers: { "content-type": "application/json" },
-                body: JSON.stringify({ player: currentPlayer }),
-                keepalive: true,
-            }).catch(() => {});
-            return;
-        }
-
-        await leaveRoom({ roomCode, player: currentPlayer });
-    }, [isPvpMode, roomCode]);
-
-    const requestGameExit = useCallback((target = "/") => {
-        if (!shouldConfirmPvpExit()) {
-            navigate(target);
-            return;
-        }
-
-        setPendingExitTarget(target);
-        setExitPromptOpen(true);
-    }, [navigate, shouldConfirmPvpExit]);
-
-    const confirmGameExit = useCallback(async () => {
+    const handlePageHide = () => {
+      if (shouldConfirmPvpExit()) {
         notifyPvpExit();
-        try {
-            await leavePvpRoomCleanly();
-        } catch (leaveError) {
-            addLog(leaveError.message || "Unable to leave room cleanly.", "warning");
-        }
-        setExitPromptOpen(false);
-        navigate(pendingExitTarget || "/");
-    }, [addLog, leavePvpRoomCleanly, navigate, notifyPvpExit, pendingExitTarget]);
-
-    const handlePlayAgain = useCallback(async () => {
-        setRankedResult(null);
-        setShowRankUpAnimation(false);
-
-        if (!isPvpMode || !roomCode) {
-            window.location.reload();
-            return;
-        }
-
-        try {
-            setRematchLoading(true);
-            if (gameOverReason === "opponent_left") {
-                await leavePvpRoomCleanly();
-                navigate("/lobby");
-                return;
-            }
-            await resetRoomForRematch({ roomCode, player: roomPlayer });
-            navigate(`/lobby?roomCode=${roomCode}`);
-        } catch (rematchError) {
-            addLog(rematchError.message || "Unable to reset room for rematch.", "warning");
-        } finally {
-            setRematchLoading(false);
-        }
-    }, [addLog, gameOverReason, isPvpMode, leavePvpRoomCleanly, navigate, roomCode, roomPlayer]);
-
-    const handleReturnHome = useCallback(async () => {
-        if (!isPvpMode || !roomCode || gameStateRef.current !== "GAME_OVER") {
-            navigate("/");
-            return;
-        }
-
-        try {
-            setReturnHomeLoading(true);
-            await leavePvpRoomCleanly();
-        } catch (leaveError) {
-            addLog(leaveError.message || "Unable to leave room cleanly.", "warning");
-        } finally {
-            navigate("/");
-        }
-    }, [addLog, isPvpMode, leavePvpRoomCleanly, navigate, roomCode]);
-
-    useEffect(() => {
-        if (!isPvpMode) return undefined;
-
-        const handleBeforeUnload = (event) => {
-            if (!shouldConfirmPvpExit()) return;
-            event.preventDefault();
-            event.returnValue = "";
-        };
-
-        const handlePageHide = () => {
-            if (shouldConfirmPvpExit()) {
-                notifyPvpExit();
-                leavePvpRoomCleanly({ keepalive: true });
-            }
-        };
-
-        window.addEventListener("beforeunload", handleBeforeUnload);
-        window.addEventListener("pagehide", handlePageHide);
-
-        return () => {
-            window.removeEventListener("beforeunload", handleBeforeUnload);
-            window.removeEventListener("pagehide", handlePageHide);
-        };
-    }, [isPvpMode, leavePvpRoomCleanly, notifyPvpExit, shouldConfirmPvpExit]);
-
-    const revealSunkShipOnBoard = (board, shotResult, sunkCells = []) => {
-        const shipCells = sunkCells
-            .filter((cell) => Number.isInteger(cell?.row) && Number.isInteger(cell?.col))
-            .sort((left, right) => (left.row - right.row) || (left.col - right.col));
-
-        if (!shipCells.length) return;
-
-        const shipDef = shipsToPlace.find((candidate) => candidate.id === shotResult.shipTypeId);
-        const shipId = shotResult.shipId || `enemy-sunk-${shipCells[0].row}-${shipCells[0].col}`;
-        const fallbackRotation = shipDef?.rotations?.[0] ?? 0;
-        const minRow = Math.min(...shipCells.map((cell) => cell.row));
-        const minCol = Math.min(...shipCells.map((cell) => cell.col));
-        const cellKey = (cell) => `${cell.row - minRow}:${cell.col - minCol}`;
-        const normalizedCellSet = new Set(shipCells.map(cellKey));
-
-        const matchedRotation = shipDef?.rotations.find((candidateRotation) => {
-            const offsets = getShipOffsets(shipDef, candidateRotation);
-            if (offsets.length !== shipCells.length) return false;
-            return offsets.every(([rowOffset, colOffset]) => (
-                normalizedCellSet.has(`${rowOffset}:${colOffset}`)
-            ));
-        }) ?? fallbackRotation;
-
-        const offsets = shipDef
-            ? getShipOffsets(shipDef, matchedRotation)
-            : shipCells.map((cell) => [cell.row - minRow, cell.col - minCol]);
-        const bounds = getShipBounds(offsets);
-        const rootOffset = offsets[0] || [0, 0];
-        const rootRow = minRow + rootOffset[0];
-        const rootCol = minCol + rootOffset[1];
-
-        board.forEach((row) => {
-            row.forEach((cell) => {
-                if (cell.shipId === shipId) {
-                    cell.shipRoot = false;
-                    cell.shipBounds = null;
-                }
-            });
-        });
-
-        shipCells.forEach(({ row, col }) => {
-            const cell = board[row]?.[col];
-            if (!cell) return;
-            cell.isHit = true;
-            cell.autoMarked = false;
-            cell.hasShip = true;
-            cell.shipId = shipId;
-            cell.shipTypeId = shotResult.shipTypeId || shipDef?.id || null;
-            cell.shipLength = shotResult.shipLength || shipDef?.size || shipCells.length;
-            cell.shipRotation = matchedRotation;
-            cell.shipOriginRow = minRow;
-            cell.shipOriginCol = minCol;
-            cell.shipRoot = row === rootRow && col === rootCol;
-            cell.shipBounds = cell.shipRoot ? bounds : null;
-        });
+        leavePvpRoomCleanly({ keepalive: true });
+      }
     };
 
-    const getPvpStatusText = () => {
-        if (!pvpSocketReady) return `Room ${roomCode}: connecting room channel...`;
-        if (pvpRoom?.status !== "IN_PROGRESS") return `Room ${roomCode}: fleet deployed. Waiting for opponent fleet.`;
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    window.addEventListener("pagehide", handlePageHide);
 
-        const currentPlayerId = getRoomPlayerKey(getCurrentRoomPlayer(pvpRoom, roomPlayer));
-        if (!pvpTurnUserId) return `Room ${roomCode}: battle channel connected.`;
-        return pvpTurnUserId === currentPlayerId
-            ? `Room ${roomCode}: your turn.`
-            : `Room ${roomCode}: opponent turn.`;
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      window.removeEventListener("pagehide", handlePageHide);
     };
+  }, [isPvpMode, leavePvpRoomCleanly, notifyPvpExit, shouldConfirmPvpExit]);
 
-    const clearShipFromBoard = (board, shipId) => {
-        board.forEach((row) => {
-            row.forEach((cell) => {
-                if (cell.shipId !== shipId) return;
+  const revealSunkShipOnBoard = (board, shotResult, sunkCells = []) => {
+    const shipCells = sunkCells
+      .filter(
+        (cell) => Number.isInteger(cell?.row) && Number.isInteger(cell?.col),
+      )
+      .sort((left, right) => left.row - right.row || left.col - right.col);
 
-                cell.hasShip = false;
-                cell.shipId = null;
-                cell.shipTypeId = null;
-                cell.shipRotation = null;
-                cell.shipLength = null;
-                cell.shipRoot = false;
-                cell.shipBounds = null;
-                cell.shipOriginRow = null;
-                cell.shipOriginCol = null;
-            });
-        });
-    };
+    if (!shipCells.length) return;
 
-    const removeShipById = (board, shipId) => {
-        clearShipFromBoard(board, shipId);
-    };
+    const shipDef = shipsToPlace.find(
+      (candidate) => candidate.id === shotResult.shipTypeId,
+    );
+    const shipId =
+      shotResult.shipId || `enemy-sunk-${shipCells[0].row}-${shipCells[0].col}`;
+    const fallbackRotation = shipDef?.rotations?.[0] ?? 0;
+    const minRow = Math.min(...shipCells.map((cell) => cell.row));
+    const minCol = Math.min(...shipCells.map((cell) => cell.col));
+    const cellKey = (cell) => `${cell.row - minRow}:${cell.col - minCol}`;
+    const normalizedCellSet = new Set(shipCells.map(cellKey));
 
-    const getRootCellForShip = (board, shipId) => {
-        for (const row of board) {
-            for (const cell of row) {
-                if (cell.shipId === shipId && cell.shipRoot) return cell;
-            }
+    const matchedRotation =
+      shipDef?.rotations.find((candidateRotation) => {
+        const offsets = getShipOffsets(shipDef, candidateRotation);
+        if (offsets.length !== shipCells.length) return false;
+        return offsets.every(([rowOffset, colOffset]) =>
+          normalizedCellSet.has(`${rowOffset}:${colOffset}`),
+        );
+      }) ?? fallbackRotation;
+
+    const offsets = shipDef
+      ? getShipOffsets(shipDef, matchedRotation)
+      : shipCells.map((cell) => [cell.row - minRow, cell.col - minCol]);
+    const bounds = getShipBounds(offsets);
+    const rootOffset = offsets[0] || [0, 0];
+    const rootRow = minRow + rootOffset[0];
+    const rootCol = minCol + rootOffset[1];
+
+    board.forEach((row) => {
+      row.forEach((cell) => {
+        if (cell.shipId === shipId) {
+          cell.shipRoot = false;
+          cell.shipBounds = null;
         }
-        return null;
-    };
+      });
+    });
 
-    const getRootCellAtOrigin = (board, row, col) => {
-        for (const boardRow of board) {
-            for (const cell of boardRow) {
-                if (cell.shipRoot && cell.shipOriginRow === row && cell.shipOriginCol === col) {
-                    return cell;
-                }
-            }
+    shipCells.forEach(({ row, col }) => {
+      const cell = board[row]?.[col];
+      if (!cell) return;
+      cell.isHit = true;
+      cell.autoMarked = false;
+      cell.hasShip = true;
+      cell.shipId = shipId;
+      cell.shipTypeId = shotResult.shipTypeId || shipDef?.id || null;
+      cell.shipLength =
+        shotResult.shipLength || shipDef?.size || shipCells.length;
+      cell.shipRotation = matchedRotation;
+      cell.shipOriginRow = minRow;
+      cell.shipOriginCol = minCol;
+      cell.shipRoot = row === rootRow && col === rootCol;
+      cell.shipBounds = cell.shipRoot ? bounds : null;
+    });
+  };
+
+  const getPvpStatusText = () => {
+    if (!pvpSocketReady)
+      return (
+        copy.connectingRoom || "Room {roomCode}: connecting room channel..."
+      ).replace("{roomCode}", roomCode);
+    if (pvpRoom?.status !== "IN_PROGRESS")
+      return (
+        copy.waitingOpponentFleet ||
+        "Room {roomCode}: fleet deployed. Waiting for opponent fleet."
+      ).replace("{roomCode}", roomCode);
+
+    const currentPlayerId = getRoomPlayerKey(
+      getCurrentRoomPlayer(pvpRoom, roomPlayer),
+    );
+    if (!pvpTurnUserId)
+      return (
+        copy.channelConnected || "Room {roomCode}: battle channel connected."
+      ).replace("{roomCode}", roomCode);
+    return pvpTurnUserId === currentPlayerId
+      ? (copy.yourTurnPvp || "Room {roomCode}: your turn.").replace(
+          "{roomCode}",
+          roomCode,
+        )
+      : (copy.opponentTurnPvp || "Room {roomCode}: opponent turn.").replace(
+          "{roomCode}",
+          roomCode,
+        );
+  };
+
+  const clearShipFromBoard = (board, shipId) => {
+    board.forEach((row) => {
+      row.forEach((cell) => {
+        if (cell.shipId !== shipId) return;
+
+        cell.hasShip = false;
+        cell.shipId = null;
+        cell.shipTypeId = null;
+        cell.shipRotation = null;
+        cell.shipLength = null;
+        cell.shipRoot = false;
+        cell.shipBounds = null;
+        cell.shipOriginRow = null;
+        cell.shipOriginCol = null;
+      });
+    });
+  };
+
+  const removeShipById = (board, shipId) => {
+    clearShipFromBoard(board, shipId);
+  };
+
+  const getRootCellForShip = (board, shipId) => {
+    for (const row of board) {
+      for (const cell of row) {
+        if (cell.shipId === shipId && cell.shipRoot) return cell;
+      }
+    }
+    return null;
+  };
+
+  const getRootCellAtOrigin = (board, row, col) => {
+    for (const boardRow of board) {
+      for (const cell of boardRow) {
+        if (
+          cell.shipRoot &&
+          cell.shipOriginRow === row &&
+          cell.shipOriginCol === col
+        ) {
+          return cell;
         }
-        return null;
+      }
+    }
+    return null;
+  };
+
+  const getShipDefById = (shipTypeId) =>
+    shipsToPlace.find((ship) => ship.id === shipTypeId);
+
+  const getPlacedShipSelection = (cell, board = playerBoard) => {
+    if (!cell.hasShip) return null;
+
+    const shipDef = getShipDefById(cell.shipTypeId);
+    const rootCell = getRootCellForShip(board, cell.shipId);
+    if (!shipDef || !rootCell) return null;
+
+    return {
+      shipId: cell.shipId,
+      shipDef,
+      rotation: cell.shipRotation,
+      row: rootCell.shipOriginRow ?? rootCell.row,
+      col: rootCell.shipOriginCol ?? rootCell.col,
     };
+  };
 
-    const getShipDefById = (shipTypeId) => shipsToPlace.find(ship => ship.id === shipTypeId);
+  const getPlacedShipSelectionAt = (row, col, board = playerBoard) => {
+    if (invalidRotationPreview) {
+      const isInsideInvalidShip = getShipOffsets(
+        invalidRotationPreview.shipDef,
+        invalidRotationPreview.rotation,
+      ).some(
+        ([dr, dc]) =>
+          invalidRotationPreview.row + dr === row &&
+          invalidRotationPreview.col + dc === col,
+      );
 
-    const getPlacedShipSelection = (cell, board = playerBoard) => {
-        if (!cell.hasShip) return null;
+      if (
+        isInsideInvalidShip ||
+        board[row][col].shipId === invalidRotationPreview.shipId
+      ) {
+        return invalidRotationPreview;
+      }
 
-        const shipDef = getShipDefById(cell.shipTypeId);
-        const rootCell = getRootCellForShip(board, cell.shipId);
-        if (!shipDef || !rootCell) return null;
+      return null;
+    }
 
-        return {
+    const directSelection = getPlacedShipSelection(board[row][col], board);
+    if (directSelection) return directSelection;
+
+    for (const boardRow of board) {
+      for (const cell of boardRow) {
+        if (!cell.shipRoot || !cell.shipBounds) continue;
+
+        const originRow = cell.shipOriginRow ?? cell.row;
+        const originCol = cell.shipOriginCol ?? cell.col;
+        const insideBounds =
+          row >= originRow &&
+          row < originRow + cell.shipBounds.rows &&
+          col >= originCol &&
+          col < originCol + cell.shipBounds.cols;
+
+        if (insideBounds) {
+          const shipDef = getShipDefById(cell.shipTypeId);
+          if (!shipDef) return null;
+
+          return {
             shipId: cell.shipId,
             shipDef,
             rotation: cell.shipRotation,
-            row: rootCell.shipOriginRow ?? rootCell.row,
-            col: rootCell.shipOriginCol ?? rootCell.col,
+            row: originRow,
+            col: originCol,
+          };
+        }
+      }
+    }
+
+    return null;
+  };
+
+  const selectPlacedShip = (cell, board = playerBoard) => {
+    const placedShip = getPlacedShipSelection(cell, board);
+    if (!placedShip) return;
+
+    setSelectedShip(placedShip);
+    setRotation(placedShip.rotation);
+  };
+
+  const movePlacedShipTo = (
+    targetRow,
+    targetCol,
+    shipToMove = selectedShip,
+    skipUIUpdate = false,
+  ) => {
+    if (!shipToMove) return false;
+
+    const newBoard = cloneBoard(playerBoard);
+    clearShipFromBoard(newBoard, shipToMove.shipId);
+
+    if (
+      !canPlaceShip(
+        newBoard,
+        targetRow,
+        targetCol,
+        shipToMove.shipDef,
+        shipToMove.rotation,
+      )
+    ) {
+      if (!skipUIUpdate) {
+        const invalidPlacement = {
+          ...shipToMove,
+          row: targetRow,
+          col: targetCol,
         };
-    };
-
-    const getPlacedShipSelectionAt = (row, col, board = playerBoard) => {
-        if (invalidRotationPreview) {
-            const isInsideInvalidShip = getShipOffsets(
-                invalidRotationPreview.shipDef,
-                invalidRotationPreview.rotation
-            ).some(([dr, dc]) => (
-                invalidRotationPreview.row + dr === row
-                && invalidRotationPreview.col + dc === col
-            ));
-
-            if (isInsideInvalidShip || board[row][col].shipId === invalidRotationPreview.shipId) {
-                return invalidRotationPreview;
-            }
-
-            return null;
-        }
-
-        const directSelection = getPlacedShipSelection(board[row][col], board);
-        if (directSelection) return directSelection;
-
-        for (const boardRow of board) {
-            for (const cell of boardRow) {
-                if (!cell.shipRoot || !cell.shipBounds) continue;
-
-                const originRow = cell.shipOriginRow ?? cell.row;
-                const originCol = cell.shipOriginCol ?? cell.col;
-                const insideBounds = row >= originRow
-                    && row < originRow + cell.shipBounds.rows
-                    && col >= originCol
-                    && col < originCol + cell.shipBounds.cols;
-
-                if (insideBounds) {
-                    const shipDef = getShipDefById(cell.shipTypeId);
-                    if (!shipDef) return null;
-
-                    return {
-                        shipId: cell.shipId,
-                        shipDef,
-                        rotation: cell.shipRotation,
-                        row: originRow,
-                        col: originCol,
-                    };
-                }
-            }
-        }
-
-        return null;
-    };
-
-    const selectPlacedShip = (cell, board = playerBoard) => {
-        const placedShip = getPlacedShipSelection(cell, board);
-        if (!placedShip) return;
-
-        setSelectedShip(placedShip);
-        setRotation(placedShip.rotation);
-    };
-
-    const movePlacedShipTo = (targetRow, targetCol, shipToMove = selectedShip, skipUIUpdate = false) => {
-        if (!shipToMove) return false;
-
-        const newBoard = cloneBoard(playerBoard);
-        clearShipFromBoard(newBoard, shipToMove.shipId);
-
-        if (!canPlaceShip(newBoard, targetRow, targetCol, shipToMove.shipDef, shipToMove.rotation)) {
-            if (!skipUIUpdate) {
-                const invalidPlacement = {
-                    ...shipToMove,
-                    row: targetRow,
-                    col: targetCol,
-                };
-                setInvalidRotationPreview(invalidPlacement);
-                setSelectedShip(invalidPlacement);
-                setHoverCell(null);
-            }
-            return false;
-        }
-
-        placeShip(newBoard, targetRow, targetCol, shipToMove.shipDef, shipToMove.rotation);
-        const newRootCell = getRootCellAtOrigin(newBoard, targetRow, targetCol);
-        if (!newRootCell) return false;
-        const newShipId = newRootCell.shipId;
-        const updatedShip = {
-            ...shipToMove,
-            shipId: newShipId,
-            row: targetRow,
-            col: targetCol,
-        };
-
-        setPlayerBoard(newBoard);
-        setSelectedShip(null);
+        setInvalidRotationPreview(invalidPlacement);
+        setSelectedShip(invalidPlacement);
         setHoverCell(null);
-        setInvalidRotationPreview(null);
-        setRotation(updatedShip.rotation);
-        return true;
+      }
+      return false;
+    }
+
+    placeShip(
+      newBoard,
+      targetRow,
+      targetCol,
+      shipToMove.shipDef,
+      shipToMove.rotation,
+    );
+    const newRootCell = getRootCellAtOrigin(newBoard, targetRow, targetCol);
+    if (!newRootCell) return false;
+    const newShipId = newRootCell.shipId;
+    const updatedShip = {
+      ...shipToMove,
+      shipId: newShipId,
+      row: targetRow,
+      col: targetCol,
     };
 
-    const rotatePlacedShipSafely = useCallback((shipToRotate) => {
-        if (!shipToRotate) return;
+    setPlayerBoard(newBoard);
+    setSelectedShip(null);
+    setHoverCell(null);
+    setInvalidRotationPreview(null);
+    setRotation(updatedShip.rotation);
+    return true;
+  };
 
-        setPlayerBoard(prevBoard => {
-            const boardWithoutShip = cloneBoard(prevBoard);
-            removeShipById(boardWithoutShip, shipToRotate.shipId);
+  const rotatePlacedShipSafely = useCallback(
+    (shipToRotate) => {
+      if (!shipToRotate) return;
 
-            const rotations = shipToRotate.shipDef.rotations;
-            const idx = rotations.indexOf(shipToRotate.rotation);
-            const nextRotation = rotations[(idx + 1) % rotations.length];
-            
-            const currentCenterOffset = getCenterOffset(shipToRotate.shipDef, shipToRotate.rotation);
-            const nextCenterOffset = getCenterOffset(shipToRotate.shipDef, nextRotation);
-            
-            const nextRow = shipToRotate.row + currentCenterOffset.row - nextCenterOffset.row;
-            const nextCol = shipToRotate.col + currentCenterOffset.col - nextCenterOffset.col;
-
-            const canRotate = canPlaceShip(
-                boardWithoutShip,
-                nextRow,
-                nextCol,
-                shipToRotate.shipDef,
-                nextRotation
-            );
-
-            if (!canRotate) {
-                addLog("Cannot rotate here. Area blocked.", "warning");
-                setDraggedShip(null);
-                setDragPointer(null);
-                setHoverCell(null);
-                setInvalidRotationPreview(null);
-                return prevBoard; // Return original board untouched
-            }
-
-            placeShip(
-                boardWithoutShip,
-                nextRow,
-                nextCol,
-                shipToRotate.shipDef,
-                nextRotation
-            );
-            
-            const newRootCell = getRootCellAtOrigin(boardWithoutShip, nextRow, nextCol);
-            
-            setInvalidRotationPreview(null);
-            if (newRootCell) {
-                setSelectedShip({
-                    ...shipToRotate,
-                    shipId: newRootCell.shipId,
-                    rotation: nextRotation,
-                    row: nextRow,
-                    col: nextCol,
-                });
-            }
-            setRotation(nextRotation);
-            return boardWithoutShip;
-        });
-    }, [addLog]);
-
-    const rotatePlacedShip = useCallback((shipToRotate) => {
-        if (!shipToRotate) return;
+      setPlayerBoard((prevBoard) => {
+        const boardWithoutShip = cloneBoard(prevBoard);
+        removeShipById(boardWithoutShip, shipToRotate.shipId);
 
         const rotations = shipToRotate.shipDef.rotations;
         const idx = rotations.indexOf(shipToRotate.rotation);
         const nextRotation = rotations[(idx + 1) % rotations.length];
-        
-        const currentCenterOffset = getCenterOffset(shipToRotate.shipDef, shipToRotate.rotation);
-        const nextCenterOffset = getCenterOffset(shipToRotate.shipDef, nextRotation);
-        
-        const nextRow = shipToRotate.row + currentCenterOffset.row - nextCenterOffset.row;
-        const nextCol = shipToRotate.col + currentCenterOffset.col - nextCenterOffset.col;
 
-        setPlayerBoard(prevBoard => {
-            const newBoard = cloneBoard(prevBoard);
-            clearShipFromBoard(newBoard, shipToRotate.shipId);
+        const currentCenterOffset = getCenterOffset(
+          shipToRotate.shipDef,
+          shipToRotate.rotation,
+        );
+        const nextCenterOffset = getCenterOffset(
+          shipToRotate.shipDef,
+          nextRotation,
+        );
 
-            if (!canPlaceShip(
-                newBoard,
-                nextRow,
-                nextCol,
-                shipToRotate.shipDef,
-                nextRotation
-            )) {
-                const invalidPlacement = {
-                    ...shipToRotate,
-                    rotation: nextRotation,
-                    row: nextRow,
-                    col: nextCol,
-                };
-                setInvalidRotationPreview(invalidPlacement);
-                setSelectedShip(invalidPlacement);
-                setRotation(nextRotation);
-                return prevBoard;
-            }
+        const nextRow =
+          shipToRotate.row + currentCenterOffset.row - nextCenterOffset.row;
+        const nextCol =
+          shipToRotate.col + currentCenterOffset.col - nextCenterOffset.col;
 
-            placeShip(
-                newBoard,
-                nextRow,
-                nextCol,
-                shipToRotate.shipDef,
-                nextRotation
-            );
-            const newRootCell = getRootCellAtOrigin(newBoard, nextRow, nextCol);
-            if (!newRootCell) return prevBoard;
+        const canRotate = canPlaceShip(
+          boardWithoutShip,
+          nextRow,
+          nextCol,
+          shipToRotate.shipDef,
+          nextRotation,
+        );
 
-            setInvalidRotationPreview(null);
-            setSelectedShip({
-                ...shipToRotate,
-                shipId: newRootCell.shipId,
-                rotation: nextRotation,
-                row: nextRow,
-                col: nextCol,
-            });
-            setRotation(nextRotation);
-            return newBoard;
-        });
-    }, []);
-
-    const rotateShip = useCallback(() => {
-        if (isPlacementLocked) return;
-        if (gameState !== 'PLACEMENT' && gameState !== 'READY') return;
-
-        setDraggedShip(prev => {
-            if (prev) {
-                const rotations = prev.shipDef.rotations;
-                const idx = rotations.indexOf(prev.rotation);
-                const nextRotation = rotations[(idx + 1) % rotations.length];
-                const newCenter = getCenterOffset(prev.shipDef, nextRotation);
-                return { 
-                    ...prev, 
-                    rotation: nextRotation,
-                    grabOffset: newCenter,
-                    pointerOffset: {
-                        x: (newCenter.col * (CELL_SIZE + CELL_GAP)) + (CELL_SIZE / 2),
-                        y: (newCenter.row * (CELL_SIZE + CELL_GAP)) + (CELL_SIZE / 2),
-                    }
-                };
-            }
-            return prev;
-        });
-    }, [gameState, isPlacementLocked]);
-
-    useEffect(() => {
-        const handleKeyDown = (e) => {
-            if (e.key === 'r' || e.key === 'R') {
-                e.preventDefault();
-                rotateShip();
-            }
-        };
-        window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [rotateShip]);
-
-    useEffect(() => {
-        if (currentShip) {
-            setRotation(currentShip.rotations[0]);
+        if (!canRotate) {
+          addLog("Cannot rotate here. Area blocked.", "warning");
+          setDraggedShip(null);
+          setDragPointer(null);
+          setHoverCell(null);
+          setInvalidRotationPreview(null);
+          return prevBoard; // Return original board untouched
         }
-    }, [currentShipIndex]);
 
-    // Timer Tick
-    useEffect(() => {
-        if (isPvpMode) return undefined;
+        placeShip(
+          boardWithoutShip,
+          nextRow,
+          nextCol,
+          shipToRotate.shipDef,
+          nextRotation,
+        );
 
-        if (gameState === 'PLAYER_TURN') {
-            timerRef.current = setInterval(() => {
-                setTurnTimer(prev => {
-                    if (prev <= 1) {
-                        clearInterval(timerRef.current);
-                        addLog("Time is up! Turn passes to enemy.", "warning");
-                        startBotTurn();
-                        return 0;
-                    }
-                    return prev - 1;
-                });
-            }, 1000);
-        } else {
+        const newRootCell = getRootCellAtOrigin(
+          boardWithoutShip,
+          nextRow,
+          nextCol,
+        );
+
+        setInvalidRotationPreview(null);
+        if (newRootCell) {
+          setSelectedShip({
+            ...shipToRotate,
+            shipId: newRootCell.shipId,
+            rotation: nextRotation,
+            row: nextRow,
+            col: nextCol,
+          });
+        }
+        setRotation(nextRotation);
+        return boardWithoutShip;
+      });
+    },
+    [addLog],
+  );
+
+  const rotatePlacedShip = useCallback((shipToRotate) => {
+    if (!shipToRotate) return;
+
+    const rotations = shipToRotate.shipDef.rotations;
+    const idx = rotations.indexOf(shipToRotate.rotation);
+    const nextRotation = rotations[(idx + 1) % rotations.length];
+
+    const currentCenterOffset = getCenterOffset(
+      shipToRotate.shipDef,
+      shipToRotate.rotation,
+    );
+    const nextCenterOffset = getCenterOffset(
+      shipToRotate.shipDef,
+      nextRotation,
+    );
+
+    const nextRow =
+      shipToRotate.row + currentCenterOffset.row - nextCenterOffset.row;
+    const nextCol =
+      shipToRotate.col + currentCenterOffset.col - nextCenterOffset.col;
+
+    setPlayerBoard((prevBoard) => {
+      const newBoard = cloneBoard(prevBoard);
+      clearShipFromBoard(newBoard, shipToRotate.shipId);
+
+      if (
+        !canPlaceShip(
+          newBoard,
+          nextRow,
+          nextCol,
+          shipToRotate.shipDef,
+          nextRotation,
+        )
+      ) {
+        const invalidPlacement = {
+          ...shipToRotate,
+          rotation: nextRotation,
+          row: nextRow,
+          col: nextCol,
+        };
+        setInvalidRotationPreview(invalidPlacement);
+        setSelectedShip(invalidPlacement);
+        setRotation(nextRotation);
+        return prevBoard;
+      }
+
+      placeShip(newBoard, nextRow, nextCol, shipToRotate.shipDef, nextRotation);
+      const newRootCell = getRootCellAtOrigin(newBoard, nextRow, nextCol);
+      if (!newRootCell) return prevBoard;
+
+      setInvalidRotationPreview(null);
+      setSelectedShip({
+        ...shipToRotate,
+        shipId: newRootCell.shipId,
+        rotation: nextRotation,
+        row: nextRow,
+        col: nextCol,
+      });
+      setRotation(nextRotation);
+      return newBoard;
+    });
+  }, []);
+
+  const rotateShip = useCallback(() => {
+    if (isPlacementLocked) return;
+    if (gameState !== "PLACEMENT" && gameState !== "READY") return;
+
+    setDraggedShip((prev) => {
+      if (prev) {
+        const rotations = prev.shipDef.rotations;
+        const idx = rotations.indexOf(prev.rotation);
+        const nextRotation = rotations[(idx + 1) % rotations.length];
+        const newCenter = getCenterOffset(prev.shipDef, nextRotation);
+        return {
+          ...prev,
+          rotation: nextRotation,
+          grabOffset: newCenter,
+          pointerOffset: {
+            x: newCenter.col * (CELL_SIZE + CELL_GAP) + CELL_SIZE / 2,
+            y: newCenter.row * (CELL_SIZE + CELL_GAP) + CELL_SIZE / 2,
+          },
+        };
+      }
+      return prev;
+    });
+  }, [gameState, isPlacementLocked]);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "r" || e.key === "R") {
+        e.preventDefault();
+        rotateShip();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [rotateShip]);
+
+  useEffect(() => {
+    if (currentShip) {
+      setRotation(currentShip.rotations[0]);
+    }
+  }, [currentShipIndex]);
+
+  // Timer Tick
+  useEffect(() => {
+    if (isPvpMode) return undefined;
+
+    if (gameState === "PLAYER_TURN") {
+      timerRef.current = setInterval(() => {
+        setTurnTimer((prev) => {
+          if (prev <= 1) {
             clearInterval(timerRef.current);
-        }
-        return () => clearInterval(timerRef.current);
-    }, [gameState, isPvpMode]);
-
-    const saveMatchStats = useCallback((isVictory) => {
-        const key = 'battleshipStats';
-        let savedStats = JSON.parse(localStorage.getItem(key)) || {
-            totalMatches: 0,
-            wins: 0,
-            losses: 0,
-            totalShots: 0,
-            totalHits: 0,
-        };
-        
-        savedStats.totalMatches += 1;
-        if (isVictory) savedStats.wins += 1;
-        else savedStats.losses += 1;
-        
-        const latestStats = statsRef.current || stats;
-        savedStats.totalShots += latestStats.shots;
-        savedStats.totalHits += latestStats.hits;
-        
-        localStorage.setItem(key, JSON.stringify(savedStats));
-    }, [stats]);
-
-    const endGame = useCallback((isPlayerVictory) => {
-        setGameOverReason("");
-        gameStateRef.current = "GAME_OVER";
-        setGameState('GAME_OVER');
-        setWinner(isPlayerVictory ? 'PLAYER' : 'BOT');
-        releaseShotLock();
-        playSound(isPlayerVictory ? "victory" : "defeat", { minGap: 1000 });
-        addLog(isPlayerVictory ? "VICTORY! Enemy fleet destroyed!" : "DEFEAT! Your fleet was destroyed.", isPlayerVictory ? "victory" : "defeat");
-        saveMatchStats(isPlayerVictory);
-        setTimeout(() => setShowModal(true), 1500);
-    }, [addLog, releaseShotLock, saveMatchStats]);
-
-    const handleOpponentLeft = useCallback(() => {
-        if (gameStateRef.current === "GAME_OVER") return;
-        gameStateRef.current = "GAME_OVER";
-        setGameOverReason("opponent_left");
-        setGameState("GAME_OVER");
-        setWinner("PLAYER");
-        releaseShotLock();
-        playSound("victory", { minGap: 1000 });
-        addLog(copy.opponentLeftLog, "victory");
-        saveMatchStats(true);
-        window.setTimeout(() => setShowModal(true), 450);
-    }, [addLog, copy.opponentLeftLog, releaseShotLock, saveMatchStats]);
-
-    useEffect(() => {
-        handleOpponentLeftRef.current = handleOpponentLeft;
-    }, [handleOpponentLeft]);
-
-    const startPlayerTurn = () => {
-        shotLockRef.current = false;
-        setIsShotResolving(false);
-        setGameState('PLAYER_TURN');
-        setTurnTimer(30);
-        addLog("Your turn started.", "info");
-        setStats(prev => ({ ...prev, turns: prev.turns + 1 }));
-    };
-
-    const startBotTurn = () => {
-        if (isPvpMode) {
-            setGameState('PLAYER_TURN');
-            addLog("Waiting for opponent move through the room channel.", "info");
-            return;
-        }
-
-        setGameState('BOT_TURN');
-        addLog("Enemy is thinking...", "info");
-        
-        // Random delay for bot thinking 700ms - 1200ms
-        const delay = Math.floor(Math.random() * 500) + 700;
-        setTimeout(() => {
-            performBotMove();
-        }, delay);
-    };
-
-    const performBotMove = () => {
-        if (isPvpMode) return;
-        if (gameState === 'GAME_OVER') return;
-        
-        setPlayerBoard(prevBoard => {
-            const newPlayerBoard = [...prevBoard.map(row => [...row.map(c => ({...c}))])];
-            const botShot = getBotMove(newPlayerBoard, difficulty);
-            const cell = newPlayerBoard[botShot.row][botShot.col];
-            
-            const colLetter = String.fromCharCode(65 + botShot.col);
-            const rowNum = botShot.row + 1;
-            const cellName = `${colLetter}${rowNum}`;
-
-            if (cell.hasShip) {
-                if (botShot.result && botShot.result.isSunk) {
-                    const sunkCells = markWaterAroundSunkShip(newPlayerBoard, botShot.result.shipId);
-                    setPlayerShipsSunk(prev => prev.includes(botShot.result.shipId)
-                        ? prev
-                        : [...prev, botShot.result.shipId]);
-                    window.requestAnimationFrame(() => {
-                        playSound("hit", { minGap: 90 });
-                        playerEffectsRef.current?.playHit(botShot.row, botShot.col);
-                        triggerSunkEffect(
-                            "player",
-                            botShot.result.shipTypeId,
-                            botShot.result.shipId,
-                            sunkCells
-                        );
-                    });
-                    addLog(`Enemy DESTROYED your ship (size ${botShot.result.shipLength}) at ${cellName}!`, "defeat");
-                } else {
-                    window.requestAnimationFrame(() => {
-                        playSound("hit", { minGap: 90 });
-                        playerEffectsRef.current?.playHit(botShot.row, botShot.col);
-                    });
-                    addLog(`Enemy hit your ship at ${cellName}!`, "enemy_hit");
-                }
-                
-                if (checkVictory(newPlayerBoard)) {
-                    endGame(false);
-                } else {
-                    // Bot gets another turn
-                    const delay = Math.floor(Math.random() * 500) + 700;
-                    setTimeout(() => performBotMove(), delay);
-                }
-            } else {
-                window.requestAnimationFrame(() => {
-                    playSound("miss", { minGap: 90 });
-                    playerEffectsRef.current?.playMiss(botShot.row, botShot.col);
-                });
-                addLog(`Enemy missed at ${cellName}.`, "enemy_miss");
-                setTimeout(() => startPlayerTurn(), 800);
-            }
-            
-            return newPlayerBoard;
+            addLog("Time is up! Turn passes to enemy.", "warning");
+            startBotTurn();
+            return 0;
+          }
+          return prev - 1;
         });
-    };
+      }, 1000);
+    } else {
+      clearInterval(timerRef.current);
+    }
+    return () => clearInterval(timerRef.current);
+  }, [gameState, isPvpMode]);
 
-    const resolvePvpShotOnBoard = ({ board, row, col, boardSide, isOutgoing }) => {
-        const nextBoard = cloneBoard(board);
-        let sunkCells = [];
+  const saveMatchStats = useCallback(
+    (isVictory) => {
+      const key = "battleshipStats";
+      let savedStats = JSON.parse(localStorage.getItem(key)) || {
+        totalMatches: 0,
+        wins: 0,
+        losses: 0,
+        totalShots: 0,
+        totalHits: 0,
+      };
 
-        if (nextBoard[row]?.[col]?.isHit && !nextBoard[row][col].autoMarked) {
-            return { board: nextBoard, ignored: true };
+      savedStats.totalMatches += 1;
+      if (isVictory) savedStats.wins += 1;
+      else savedStats.losses += 1;
+
+      const latestStats = statsRef.current || stats;
+      savedStats.totalShots += latestStats.shots;
+      savedStats.totalHits += latestStats.hits;
+
+      localStorage.setItem(key, JSON.stringify(savedStats));
+    },
+    [stats],
+  );
+
+  const endGame = useCallback(
+    (isPlayerVictory) => {
+      setGameOverReason("");
+      gameStateRef.current = "GAME_OVER";
+      setGameState("GAME_OVER");
+      setWinner(isPlayerVictory ? "PLAYER" : "BOT");
+      releaseShotLock();
+      playSound(isPlayerVictory ? "victory" : "defeat", { minGap: 1000 });
+      addLog(
+        isPlayerVictory
+          ? copy.victoryLog || "VICTORY! Enemy fleet destroyed!"
+          : copy.defeatLog || "DEFEAT! Your fleet was destroyed.",
+        isPlayerVictory ? "victory" : "defeat",
+      );
+      saveMatchStats(isPlayerVictory);
+      setTimeout(() => setShowModal(true), 1500);
+    },
+    [addLog, copy.victoryLog, copy.defeatLog, releaseShotLock, saveMatchStats],
+  );
+
+  const handleOpponentLeft = useCallback(() => {
+    if (gameStateRef.current === "GAME_OVER") return;
+    gameStateRef.current = "GAME_OVER";
+    setGameOverReason("opponent_left");
+    setGameState("GAME_OVER");
+    setWinner("PLAYER");
+    releaseShotLock();
+    playSound("victory", { minGap: 1000 });
+    addLog(copy.opponentLeftLog, "victory");
+    saveMatchStats(true);
+    window.setTimeout(() => setShowModal(true), 450);
+  }, [addLog, copy.opponentLeftLog, releaseShotLock, saveMatchStats]);
+
+  useEffect(() => {
+    handleOpponentLeftRef.current = handleOpponentLeft;
+  }, [handleOpponentLeft]);
+
+  const startPlayerTurn = () => {
+    shotLockRef.current = false;
+    setIsShotResolving(false);
+    setGameState("PLAYER_TURN");
+    setTurnTimer(30);
+    addLog("Your turn started.", "info");
+    setStats((prev) => ({ ...prev, turns: prev.turns + 1 }));
+  };
+
+  const startBotTurn = () => {
+    if (isPvpMode) {
+      setGameState("PLAYER_TURN");
+      addLog("Waiting for opponent move through the room channel.", "info");
+      return;
+    }
+
+    setGameState("BOT_TURN");
+    addLog("Enemy is thinking...", "info");
+
+    // Random delay for bot thinking 700ms - 1200ms
+    const delay = Math.floor(Math.random() * 500) + 700;
+    setTimeout(() => {
+      performBotMove();
+    }, delay);
+  };
+
+  const performBotMove = () => {
+    if (isPvpMode) return;
+    if (gameState === "GAME_OVER") return;
+
+    setPlayerBoard((prevBoard) => {
+      const newPlayerBoard = [
+        ...prevBoard.map((row) => [...row.map((c) => ({ ...c }))]),
+      ];
+      const botShot = getBotMove(newPlayerBoard, difficulty);
+      const cell = newPlayerBoard[botShot.row][botShot.col];
+
+      const colLetter = String.fromCharCode(65 + botShot.col);
+      const rowNum = botShot.row + 1;
+      const cellName = `${colLetter}${rowNum}`;
+
+      if (cell.hasShip) {
+        if (botShot.result && botShot.result.isSunk) {
+          const sunkCells = markWaterAroundSunkShip(
+            newPlayerBoard,
+            botShot.result.shipId,
+          );
+          setPlayerShipsSunk((prev) =>
+            prev.includes(botShot.result.shipId)
+              ? prev
+              : [...prev, botShot.result.shipId],
+          );
+          window.requestAnimationFrame(() => {
+            playSound("hit", { minGap: 90 });
+            playerEffectsRef.current?.playHit(botShot.row, botShot.col);
+            triggerSunkEffect(
+              "player",
+              botShot.result.shipTypeId,
+              botShot.result.shipId,
+              sunkCells,
+            );
+          });
+          addLog(
+            `Enemy DESTROYED your ship (size ${botShot.result.shipLength}) at ${cellName}!`,
+            "defeat",
+          );
+        } else {
+          window.requestAnimationFrame(() => {
+            playSound("hit", { minGap: 90 });
+            playerEffectsRef.current?.playHit(botShot.row, botShot.col);
+          });
+          addLog(`Enemy hit your ship at ${cellName}!`, "enemy_hit");
         }
 
-        const shotResult = fireAt(nextBoard, row, col);
-        const colLetter = String.fromCharCode(65 + col);
-        const rowNum = row + 1;
-        const cellName = `${colLetter}${rowNum}`;
-        const effectsRef = boardSide === "enemy" ? enemyEffectsRef : playerEffectsRef;
+        if (checkVictory(newPlayerBoard)) {
+          endGame(false);
+        } else {
+          // Bot gets another turn
+          const delay = Math.floor(Math.random() * 500) + 700;
+          setTimeout(() => performBotMove(), delay);
+        }
+      } else {
+        window.requestAnimationFrame(() => {
+          playSound("miss", { minGap: 90 });
+          playerEffectsRef.current?.playMiss(botShot.row, botShot.col);
+        });
+        addLog(`Enemy missed at ${cellName}.`, "enemy_miss");
+        setTimeout(() => startPlayerTurn(), 800);
+      }
+
+      return newPlayerBoard;
+    });
+  };
+
+  const resolvePvpShotOnBoard = ({
+    board,
+    row,
+    col,
+    boardSide,
+    isOutgoing,
+  }) => {
+    const nextBoard = cloneBoard(board);
+    let sunkCells = [];
+
+    if (nextBoard[row]?.[col]?.isHit && !nextBoard[row][col].autoMarked) {
+      return { board: nextBoard, ignored: true };
+    }
+
+    const shotResult = fireAt(nextBoard, row, col);
+    const colLetter = String.fromCharCode(65 + col);
+    const rowNum = row + 1;
+    const cellName = `${colLetter}${rowNum}`;
+    const effectsRef =
+      boardSide === "enemy" ? enemyEffectsRef : playerEffectsRef;
+
+    if (shotResult.result === "HIT") {
+      if (shotResult.isSunk) {
+        sunkCells = markWaterAroundSunkShip(
+          nextBoard,
+          shotResult.shipId,
+          false,
+        );
+        if (boardSide === "enemy") {
+          setStats((prev) => ({
+            ...prev,
+            shipsDestroyed: prev.shipsDestroyed + 1,
+          }));
+          setEnemyShipsSunk((prev) =>
+            prev.includes(shotResult.shipTypeId)
+              ? prev
+              : [...prev, shotResult.shipTypeId],
+          );
+          setEnemySunkShipIds((prev) =>
+            prev.includes(shotResult.shipId)
+              ? prev
+              : [...prev, shotResult.shipId],
+          );
+          addLog(
+            `You destroyed an enemy ship (size ${shotResult.shipLength}) at ${cellName}!`,
+            "destroy",
+          );
+        } else {
+          setPlayerShipsSunk((prev) =>
+            prev.includes(shotResult.shipId)
+              ? prev
+              : [...prev, shotResult.shipId],
+          );
+          addLog(
+            `Enemy DESTROYED your ship (size ${shotResult.shipLength}) at ${cellName}!`,
+            "defeat",
+          );
+        }
+        window.requestAnimationFrame(() => {
+          playSound("hit", { minGap: 90 });
+          effectsRef.current?.playHit(row, col);
+          triggerSunkEffect(
+            boardSide,
+            shotResult.shipTypeId,
+            shotResult.shipId,
+            sunkCells,
+          );
+        });
+      } else {
+        window.requestAnimationFrame(() => {
+          playSound("hit", { minGap: 90 });
+          effectsRef.current?.playHit(row, col);
+        });
+        addLog(
+          isOutgoing
+            ? `Direct hit at ${cellName}!`
+            : `Enemy hit your ship at ${cellName}!`,
+          isOutgoing ? "player_hit" : "enemy_hit",
+        );
+      }
+    } else if (shotResult.result === "MISS") {
+      window.requestAnimationFrame(() => {
+        playSound("miss", { minGap: 90 });
+        effectsRef.current?.playMiss(row, col);
+      });
+      addLog(
+        isOutgoing ? `Missed at ${cellName}.` : `Enemy missed at ${cellName}.`,
+        isOutgoing ? "player_miss" : "enemy_miss",
+      );
+    }
+
+    return {
+      board: nextBoard,
+      shotResult,
+      sunkCells,
+      isVictory: checkVictory(nextBoard),
+    };
+  };
+
+  const applyPvpShotResult = (payload) => {
+    const currentPlayer = getCurrentRoomPlayer();
+    const currentPlayerId = getRoomPlayerKey(currentPlayer);
+    const isShooter = payload.shooterUserId === currentPlayerId;
+
+    if (isShooter && payload.shotId !== activePvpShotIdRef.current) return;
+
+    const row = payload.row;
+    const col = payload.col;
+    const shotResult = payload.shotResult || { result: payload.result };
+    const colLetter = String.fromCharCode(65 + col);
+    const rowNum = row + 1;
+    const cellName = `${colLetter}${rowNum}`;
+
+    if (isShooter) {
+      setEnemyBoard((prevBoard) => {
+        const nextBoard = cloneBoard(prevBoard);
+        const cell = nextBoard[row]?.[col];
+        if (!cell) return prevBoard;
+
+        cell.isHit = true;
+        cell.autoMarked = false;
 
         if (shotResult.result === "HIT") {
-            if (shotResult.isSunk) {
-                sunkCells = markWaterAroundSunkShip(nextBoard, shotResult.shipId, false);
-                if (boardSide === "enemy") {
-                    setStats(prev => ({ ...prev, shipsDestroyed: prev.shipsDestroyed + 1 }));
-                    setEnemyShipsSunk(prev => prev.includes(shotResult.shipTypeId) ? prev : [...prev, shotResult.shipTypeId]);
-                    setEnemySunkShipIds(prev => prev.includes(shotResult.shipId) ? prev : [...prev, shotResult.shipId]);
-                    addLog(`You destroyed an enemy ship (size ${shotResult.shipLength}) at ${cellName}!`, "destroy");
-                } else {
-                    setPlayerShipsSunk(prev => prev.includes(shotResult.shipId) ? prev : [...prev, shotResult.shipId]);
-                addLog(`Enemy DESTROYED your ship (size ${shotResult.shipLength}) at ${cellName}!`, "defeat");
-                }
-                window.requestAnimationFrame(() => {
-                    playSound("hit", { minGap: 90 });
-                    effectsRef.current?.playHit(row, col);
-                    triggerSunkEffect(boardSide, shotResult.shipTypeId, shotResult.shipId, sunkCells);
-                });
-            } else {
-                window.requestAnimationFrame(() => {
-                    playSound("hit", { minGap: 90 });
-                    effectsRef.current?.playHit(row, col);
-                });
-                addLog(isOutgoing ? `Direct hit at ${cellName}!` : `Enemy hit your ship at ${cellName}!`, isOutgoing ? "player_hit" : "enemy_hit");
-            }
-        } else if (shotResult.result === "MISS") {
-            window.requestAnimationFrame(() => {
-                playSound("miss", { minGap: 90 });
-                effectsRef.current?.playMiss(row, col);
-            });
-            addLog(isOutgoing ? `Missed at ${cellName}.` : `Enemy missed at ${cellName}.`, isOutgoing ? "player_miss" : "enemy_miss");
+          cell.hasShip = true;
+          cell.shipId = shotResult.shipId || `enemy-hit-${payload.shotId}`;
+          cell.shipTypeId = shotResult.shipTypeId || null;
+          cell.shipLength = shotResult.shipLength || null;
+
+          if (shotResult.isSunk && Array.isArray(payload.sunkCells)) {
+            revealSunkShipOnBoard(nextBoard, shotResult, payload.sunkCells);
+          }
         }
 
-        return {
-            board: nextBoard,
-            shotResult,
-            sunkCells,
-            isVictory: checkVictory(nextBoard),
-        };
-    };
+        return nextBoard;
+      });
 
-    const applyPvpShotResult = (payload) => {
-        const currentPlayer = getCurrentRoomPlayer();
-        const currentPlayerId = getRoomPlayerKey(currentPlayer);
-        const isShooter = payload.shooterUserId === currentPlayerId;
-
-        if (isShooter && payload.shotId !== activePvpShotIdRef.current) return;
-
-        const row = payload.row;
-        const col = payload.col;
-        const shotResult = payload.shotResult || { result: payload.result };
-        const colLetter = String.fromCharCode(65 + col);
-        const rowNum = row + 1;
-        const cellName = `${colLetter}${rowNum}`;
-
-        if (isShooter) {
-            setEnemyBoard(prevBoard => {
-                const nextBoard = cloneBoard(prevBoard);
-                const cell = nextBoard[row]?.[col];
-                if (!cell) return prevBoard;
-
-                cell.isHit = true;
-                cell.autoMarked = false;
-
-                if (shotResult.result === "HIT") {
-                    cell.hasShip = true;
-                    cell.shipId = shotResult.shipId || `enemy-hit-${payload.shotId}`;
-                    cell.shipTypeId = shotResult.shipTypeId || null;
-                    cell.shipLength = shotResult.shipLength || null;
-
-                    if (shotResult.isSunk && Array.isArray(payload.sunkCells)) {
-                        revealSunkShipOnBoard(nextBoard, shotResult, payload.sunkCells);
-                    }
-                }
-
-                return nextBoard;
-            });
-
-            if (shotResult.result === "HIT") {
-                setStats(prev => {
-                    const next = {
-                        ...prev,
-                        hits: prev.hits + 1,
-                        shipsDestroyed: shotResult.isSunk ? prev.shipsDestroyed + 1 : prev.shipsDestroyed,
-                    };
-                    statsRef.current = next;
-                    return next;
-                });
-
-                if (shotResult.isSunk) {
-                    setEnemyShipsSunk(prev => prev.includes(shotResult.shipTypeId) ? prev : [...prev, shotResult.shipTypeId]);
-                    setEnemySunkShipIds(prev => prev.includes(shotResult.shipId) ? prev : [...prev, shotResult.shipId]);
-                    window.requestAnimationFrame(() => {
-                        playSound("hit", { minGap: 90 });
-                        enemyEffectsRef.current?.playHit(row, col);
-                        triggerSunkEffect("enemy", shotResult.shipTypeId, shotResult.shipId, payload.sunkCells || []);
-                    });
-                    addLog(`You destroyed an enemy ship (size ${shotResult.shipLength}) at ${cellName}!`, "destroy");
-                } else {
-                    window.requestAnimationFrame(() => {
-                        playSound("hit", { minGap: 90 });
-                        enemyEffectsRef.current?.playHit(row, col);
-                    });
-                    addLog(`Direct hit at ${cellName}!`, "player_hit");
-                }
-            } else {
-                setStats(prev => {
-                    const next = { ...prev, misses: prev.misses + 1 };
-                    statsRef.current = next;
-                    return next;
-                });
-                window.requestAnimationFrame(() => {
-                    playSound("miss", { minGap: 90 });
-                    enemyEffectsRef.current?.playMiss(row, col);
-                });
-                addLog(`Missed at ${cellName}.`, "player_miss");
-            }
-        } else {
-            // Target player: opponent shot us
-            setPlayerBoard(prevBoard => {
-                const nextBoard = cloneBoard(prevBoard);
-                const cell = nextBoard[row]?.[col];
-                if (!cell) return prevBoard;
-
-                cell.isHit = true;
-                cell.autoMarked = false;
-
-                if (shotResult.result === "HIT") {
-                    if (shotResult.isSunk && shotResult.shipId) {
-                        markWaterAroundSunkShip(nextBoard, shotResult.shipId, true);
-                    }
-                }
-
-                return nextBoard;
-            });
-
-            if (shotResult.result === "HIT") {
-                if (shotResult.isSunk) {
-                    setPlayerShipsSunk(prev => prev.includes(shotResult.shipId) ? prev : [...prev, shotResult.shipId]);
-                    window.requestAnimationFrame(() => {
-                        playSound("hit", { minGap: 90 });
-                        playerEffectsRef.current?.playHit(row, col);
-                        triggerSunkEffect("player", shotResult.shipTypeId, shotResult.shipId, payload.sunkCells || []);
-                    });
-                    addLog(`Enemy DESTROYED your ship (size ${shotResult.shipLength}) at ${cellName}!`, "defeat");
-                } else {
-                    window.requestAnimationFrame(() => {
-                        playSound("hit", { minGap: 90 });
-                        playerEffectsRef.current?.playHit(row, col);
-                    });
-                    addLog(`Enemy hit your ship at ${cellName}!`, "enemy_hit");
-                }
-            } else {
-                window.requestAnimationFrame(() => {
-                    playSound("miss", { minGap: 90 });
-                    playerEffectsRef.current?.playMiss(row, col);
-                });
-                addLog(`Enemy missed at ${cellName}.`, "enemy_miss");
-            }
-        }
-
-        setPvpTurnUserId(payload.nextTurnUserId);
-        if (isShooter) {
-            releaseShotLock(payload.shotId);
-        } else {
-            releaseShotLock();
-        }
-    };
-
-    const firePvpShot = (row, col) => {
-        const currentRoom = pvpRoomRef.current;
-        const currentPlayer = getCurrentRoomPlayer(currentRoom);
-        const opponentPlayer = getOpponentPlayer(currentRoom);
-        const currentPlayerId = getRoomPlayerKey(currentPlayer);
-        const opponentPlayerId = getRoomPlayerKey(opponentPlayer);
-
-        if (!pvpSocketReady || currentRoom?.status !== "IN_PROGRESS") {
-            addLog("Room channel is still connecting. Wait a moment.", "warning");
-            return;
-        }
-
-        if (!opponentPlayerId) {
-            addLog("Opponent is not available in this room.", "warning");
-            return;
-        }
-
-        if (pvpTurnUserId && pvpTurnUserId !== currentPlayerId) {
-            addLog("Waiting for opponent turn.", "warning");
-            return;
-        }
-
-        if (enemyBoardStateRef.current[row][col].isHit && !enemyBoardStateRef.current[row][col].autoMarked) return;
-
-        shotLockRef.current = true;
-        setIsShotResolving(true);
-        setStats(prev => {
-            const next = { ...prev, shots: prev.shots + 1 };
-            statsRef.current = next;
-            return next;
+      if (shotResult.result === "HIT") {
+        setStats((prev) => {
+          const next = {
+            ...prev,
+            hits: prev.hits + 1,
+            shipsDestroyed: shotResult.isSunk
+              ? prev.shipsDestroyed + 1
+              : prev.shipsDestroyed,
+          };
+          statsRef.current = next;
+          return next;
         });
 
-        const shotId = crypto.randomUUID();
-        activePvpShotIdRef.current = shotId;
-        const sent = sendSocketMessage(pvpSocketRef.current, {
-            action: "SHOOT",
+        if (shotResult.isSunk) {
+          setEnemyShipsSunk((prev) =>
+            prev.includes(shotResult.shipTypeId)
+              ? prev
+              : [...prev, shotResult.shipTypeId],
+          );
+          setEnemySunkShipIds((prev) =>
+            prev.includes(shotResult.shipId)
+              ? prev
+              : [...prev, shotResult.shipId],
+          );
+          window.requestAnimationFrame(() => {
+            playSound("hit", { minGap: 90 });
+            enemyEffectsRef.current?.playHit(row, col);
+            triggerSunkEffect(
+              "enemy",
+              shotResult.shipTypeId,
+              shotResult.shipId,
+              payload.sunkCells || [],
+            );
+          });
+          addLog(
+            `You destroyed an enemy ship (size ${shotResult.shipLength}) at ${cellName}!`,
+            "destroy",
+          );
+        } else {
+          window.requestAnimationFrame(() => {
+            playSound("hit", { minGap: 90 });
+            enemyEffectsRef.current?.playHit(row, col);
+          });
+          addLog(`Direct hit at ${cellName}!`, "player_hit");
+        }
+      } else {
+        setStats((prev) => {
+          const next = { ...prev, misses: prev.misses + 1 };
+          statsRef.current = next;
+          return next;
+        });
+        window.requestAnimationFrame(() => {
+          playSound("miss", { minGap: 90 });
+          enemyEffectsRef.current?.playMiss(row, col);
+        });
+        addLog(`Missed at ${cellName}.`, "player_miss");
+      }
+    } else {
+      // Target player: opponent shot us
+      setPlayerBoard((prevBoard) => {
+        const nextBoard = cloneBoard(prevBoard);
+        const cell = nextBoard[row]?.[col];
+        if (!cell) return prevBoard;
+
+        cell.isHit = true;
+        cell.autoMarked = false;
+
+        if (shotResult.result === "HIT") {
+          if (shotResult.isSunk && shotResult.shipId) {
+            markWaterAroundSunkShip(nextBoard, shotResult.shipId, true);
+          }
+        }
+
+        return nextBoard;
+      });
+
+      if (shotResult.result === "HIT") {
+        if (shotResult.isSunk) {
+          setPlayerShipsSunk((prev) =>
+            prev.includes(shotResult.shipId)
+              ? prev
+              : [...prev, shotResult.shipId],
+          );
+          window.requestAnimationFrame(() => {
+            playSound("hit", { minGap: 90 });
+            playerEffectsRef.current?.playHit(row, col);
+            triggerSunkEffect(
+              "player",
+              shotResult.shipTypeId,
+              shotResult.shipId,
+              payload.sunkCells || [],
+            );
+          });
+          addLog(
+            `Enemy DESTROYED your ship (size ${shotResult.shipLength}) at ${cellName}!`,
+            "defeat",
+          );
+        } else {
+          window.requestAnimationFrame(() => {
+            playSound("hit", { minGap: 90 });
+            playerEffectsRef.current?.playHit(row, col);
+          });
+          addLog(`Enemy hit your ship at ${cellName}!`, "enemy_hit");
+        }
+      } else {
+        window.requestAnimationFrame(() => {
+          playSound("miss", { minGap: 90 });
+          playerEffectsRef.current?.playMiss(row, col);
+        });
+        addLog(`Enemy missed at ${cellName}.`, "enemy_miss");
+      }
+    }
+
+    setPvpTurnUserId(payload.nextTurnUserId);
+    if (isShooter) {
+      releaseShotLock(payload.shotId);
+    } else {
+      releaseShotLock();
+    }
+  };
+
+  const firePvpShot = (row, col) => {
+    const currentRoom = pvpRoomRef.current;
+    const currentPlayer = getCurrentRoomPlayer(currentRoom);
+    const opponentPlayer = getOpponentPlayer(currentRoom);
+    const currentPlayerId = getRoomPlayerKey(currentPlayer);
+    const opponentPlayerId = getRoomPlayerKey(opponentPlayer);
+
+    if (!pvpSocketReady || currentRoom?.status !== "IN_PROGRESS") {
+      addLog("Room channel is still connecting. Wait a moment.", "warning");
+      return;
+    }
+
+    if (!opponentPlayerId) {
+      addLog("Opponent is not available in this room.", "warning");
+      return;
+    }
+
+    if (pvpTurnUserId && pvpTurnUserId !== currentPlayerId) {
+      addLog("Waiting for opponent turn.", "warning");
+      return;
+    }
+
+    if (
+      enemyBoardStateRef.current[row][col].isHit &&
+      !enemyBoardStateRef.current[row][col].autoMarked
+    )
+      return;
+
+    shotLockRef.current = true;
+    setIsShotResolving(true);
+    setStats((prev) => {
+      const next = { ...prev, shots: prev.shots + 1 };
+      statsRef.current = next;
+      return next;
+    });
+
+    const shotId = crypto.randomUUID();
+    activePvpShotIdRef.current = shotId;
+    const sent = sendSocketMessage(pvpSocketRef.current, {
+      action: "SHOOT",
+      roomCode,
+      shotId,
+      row,
+      col,
+    });
+
+    if (!sent) {
+      setStats((prev) => {
+        const next = { ...prev, shots: Math.max(0, prev.shots - 1) };
+        statsRef.current = next;
+        return next;
+      });
+      releaseShotLock(shotId);
+      addLog("Room channel is reconnecting. Try that shot again.", "warning");
+      return;
+    }
+
+    window.setTimeout(() => {
+      if (!shotLockRef.current || activePvpShotIdRef.current !== shotId) return;
+      addLog("Waiting for opponent shot result...", "info");
+    }, 800);
+
+    pvpShotTimeoutRef.current = window.setTimeout(() => {
+      if (!shotLockRef.current || activePvpShotIdRef.current !== shotId) return;
+      releaseShotLock(shotId);
+      addLog("Shot result timed out. Try firing again.", "warning");
+    }, 12000);
+  };
+
+  applyPvpShotResultRef.current = applyPvpShotResult;
+
+  useEffect(() => {
+    if (!isPvpMode || !roomCode) return undefined;
+
+    const socketUserId = getRoomPlayerKey(roomPlayerRef.current || roomPlayer);
+    let socket;
+    try {
+      socket = createRoomSocket({
+        roomCode,
+        userId: socketUserId,
+        onOpen: () => {
+          pvpSocketRef.current = socket;
+          setPvpSocketReady(true);
+          sendSocketMessage(socket, {
+            action: "SUBSCRIBE_ROOM",
             roomCode,
-            shotId,
-            row,
-            col,
+          });
+          addLog("Room channel connected.", "info");
+        },
+        onMessage: async (message) => {
+          if (message.type === "ROOM_SUBSCRIBED") {
+            setPvpSocketReady(true);
+            return;
+          }
+
+          if (message.type !== "ROOM_EVENT") return;
+          const payload = message.payload || {};
+          if (payload.type === "PVP_SHOT_RESULT") {
+            applyPvpShotResultRef.current?.(payload);
+          }
+          if (payload.type === "GAME_OVER") {
+            const currentPlayerId = getRoomPlayerKey(getCurrentRoomPlayer());
+            const isVictory = payload.winnerId === currentPlayerId;
+            if (payload.rankedResult) {
+              const result = payload.rankedResult;
+              const currentResult = isVictory ? result.winner : result.loser;
+              if (currentResult) {
+                setRankedResult(currentResult);
+                await checkAuth?.();
+                if (currentResult.promoted) {
+                  setShowRankUpAnimation(true);
+                }
+              }
+            }
+            endGame(isVictory);
+          }
+          if (payload.type === "PVP_PLAYER_LEFT") {
+            const currentPlayerId = getRoomPlayerKey(getCurrentRoomPlayer());
+            if (
+              payload.reason === "intentional_exit" &&
+              payload.playerId &&
+              payload.playerId !== currentPlayerId
+            ) {
+              handleOpponentLeftRef.current?.();
+            }
+          }
+        },
+        onClose: () => {
+          setPvpSocketReady(false);
+          if (pvpSocketRef.current === socket) {
+            pvpSocketRef.current = null;
+          }
+        },
+        onError: () => {
+          setPvpSocketReady(false);
+          addLog("Room channel connection failed.", "warning");
+        },
+      });
+      pvpSocketRef.current = socket;
+    } catch (socketError) {
+      setPvpSocketReady(false);
+      addLog(
+        socketError.message || "Room channel is not configured.",
+        "warning",
+      );
+    }
+
+    return () => {
+      setPvpSocketReady(false);
+      if (socket && socket.readyState <= WebSocket.OPEN) {
+        socket.close();
+      }
+      if (pvpSocketRef.current === socket) {
+        pvpSocketRef.current = null;
+      }
+    };
+  }, [addLog, isPvpMode, roomCode, roomPlayer.userId]);
+
+  useEffect(() => {
+    if (!isPvpMode || pvpRoom?.status !== "IN_PROGRESS") return;
+
+    if (!pvpEnemyBoardLoadedRef.current) {
+      pvpEnemyBoardLoadedRef.current = true;
+      setEnemyBoard(createBoard());
+      matchStartedAtRef.current = new Date().toISOString();
+      addLog(
+        "Enemy waters synced. Shot results will be verified by opponent fleet.",
+        "info",
+      );
+    }
+
+    // Xác định người đi trước (players[0] là host)
+    const starterPlayer = pvpRoom.players?.[0];
+    const initialTurnId = pvpRoom.currentTurnUserId
+      ? pvpRoom.currentTurnUserId.split(":")[0]
+      : getRoomPlayerKey(starterPlayer);
+    setPvpTurnUserId(initialTurnId);
+  }, [addLog, isPvpMode, pvpRoom, roomPlayer]);
+
+  const handleEnemyCellClick = (r, c) => {
+    if (gameState !== "PLAYER_TURN") return;
+    if (isPvpMode) {
+      firePvpShot(r, c);
+      return;
+    }
+    if (shotLockRef.current) return;
+
+    // We only check this to prevent obvious double clicks on already hit cells
+    if (enemyBoard[r][c].isHit && !enemyBoard[r][c].autoMarked) return;
+
+    shotLockRef.current = true;
+    setIsShotResolving(true);
+
+    clearInterval(timerRef.current);
+
+    setEnemyBoard((prevBoard) => {
+      if (prevBoard[r][c].isHit && !prevBoard[r][c].autoMarked)
+        return prevBoard;
+
+      const newEnemyBoard = [
+        ...prevBoard.map((row) => [...row.map((c) => ({ ...c }))]),
+      ];
+      if (newEnemyBoard[r][c].autoMarked) {
+        newEnemyBoard[r][c].isHit = false;
+        newEnemyBoard[r][c].autoMarked = false;
+      }
+      const shotResult = fireAt(newEnemyBoard, r, c);
+
+      const colLetter = String.fromCharCode(65 + c);
+      const rowNum = r + 1;
+      const cellName = `${colLetter}${rowNum}`;
+
+      setStats((prev) => ({ ...prev, shots: prev.shots + 1 }));
+
+      if (shotResult.result === "HIT") {
+        setStats((prev) => ({ ...prev, hits: prev.hits + 1 }));
+        if (shotResult.isSunk) {
+          const sunkCells = markWaterAroundSunkShip(
+            newEnemyBoard,
+            shotResult.shipId,
+            false,
+          );
+          setStats((prev) => ({
+            ...prev,
+            shipsDestroyed: prev.shipsDestroyed + 1,
+          }));
+          setEnemyShipsSunk((prev) => [...prev, shotResult.shipTypeId]);
+          setEnemySunkShipIds((prev) =>
+            prev.includes(shotResult.shipId)
+              ? prev
+              : [...prev, shotResult.shipId],
+          );
+          window.requestAnimationFrame(() => {
+            playSound("hit", { minGap: 90 });
+            enemyEffectsRef.current?.playHit(r, c);
+            triggerSunkEffect(
+              "enemy",
+              shotResult.shipTypeId,
+              shotResult.shipId,
+              sunkCells,
+            );
+          });
+          addLog(
+            `You destroyed an enemy ship (size ${shotResult.shipLength}) at ${cellName}!`,
+            "destroy",
+          );
+        } else {
+          window.requestAnimationFrame(() => {
+            playSound("hit", { minGap: 90 });
+            enemyEffectsRef.current?.playHit(r, c);
+          });
+          addLog(`Direct hit at ${cellName}!`, "player_hit");
+        }
+
+        if (checkVictory(newEnemyBoard)) {
+          endGame(true);
+        } else {
+          // Extra turn for player
+          setTimeout(() => startPlayerTurn(), 250);
+        }
+      } else {
+        window.requestAnimationFrame(() => {
+          playSound("miss", { minGap: 90 });
+          enemyEffectsRef.current?.playMiss(r, c);
         });
+        setStats((prev) => ({ ...prev, misses: prev.misses + 1 }));
+        addLog(`Missed at ${cellName}.`, "player_miss");
+        setTimeout(() => startBotTurn(), 800);
+      }
 
-        if (!sent) {
-            setStats(prev => {
-                const next = { ...prev, shots: Math.max(0, prev.shots - 1) };
-                statsRef.current = next;
-                return next;
-            });
-            releaseShotLock(shotId);
-            addLog("Room channel is reconnecting. Try that shot again.", "warning");
-            return;
-        }
+      return newEnemyBoard;
+    });
+  };
 
-        window.setTimeout(() => {
-            if (!shotLockRef.current || activePvpShotIdRef.current !== shotId) return;
-            addLog("Waiting for opponent shot result...", "info");
-        }, 800);
-
-        pvpShotTimeoutRef.current = window.setTimeout(() => {
-            if (!shotLockRef.current || activePvpShotIdRef.current !== shotId) return;
-            releaseShotLock(shotId);
-            addLog("Shot result timed out. Try firing again.", "warning");
-        }, 12000);
-    };
-
-    applyPvpShotResultRef.current = applyPvpShotResult;
-
-    useEffect(() => {
-        if (!isPvpMode || !roomCode) return undefined;
-
-        const socketUserId = getRoomPlayerKey(roomPlayerRef.current || roomPlayer);
-        let socket;
-        try {
-            socket = createRoomSocket({
-                roomCode,
-                userId: socketUserId,
-                onOpen: () => {
-                    pvpSocketRef.current = socket;
-                    setPvpSocketReady(true);
-                    sendSocketMessage(socket, {
-                        action: "SUBSCRIBE_ROOM",
-                        roomCode,
-                    });
-                    addLog("Room channel connected.", "info");
-                },
-                onMessage: async (message) => {
-                    if (message.type === "ROOM_SUBSCRIBED") {
-                        setPvpSocketReady(true);
-                        return;
-                    }
-
-                    if (message.type !== "ROOM_EVENT") return;
-                    const payload = message.payload || {};
-                    if (payload.type === "PVP_SHOT_RESULT") {
-                        applyPvpShotResultRef.current?.(payload);
-                    }
-                    if (payload.type === "GAME_OVER") {
-                        const currentPlayerId = getRoomPlayerKey(getCurrentRoomPlayer());
-                        const isVictory = payload.winnerId === currentPlayerId;
-                        if (payload.rankedResult) {
-                            const result = payload.rankedResult;
-                            const currentResult = isVictory ? result.winner : result.loser;
-                            if (currentResult) {
-                                setRankedResult(currentResult);
-                                await checkAuth?.();
-                                if (currentResult.promoted) {
-                                    setShowRankUpAnimation(true);
-                                }
-                            }
-                        }
-                        endGame(isVictory);
-                    }
-                    if (payload.type === "PVP_PLAYER_LEFT") {
-                        const currentPlayerId = getRoomPlayerKey(getCurrentRoomPlayer());
-                        if (
-                            payload.reason === "intentional_exit"
-                            && payload.playerId
-                            && payload.playerId !== currentPlayerId
-                        ) {
-                            handleOpponentLeftRef.current?.();
-                        }
-                    }
-                },
-                onClose: () => {
-                    setPvpSocketReady(false);
-                    if (pvpSocketRef.current === socket) {
-                        pvpSocketRef.current = null;
-                    }
-                },
-                onError: () => {
-                    setPvpSocketReady(false);
-                    addLog("Room channel connection failed.", "warning");
-                },
-            });
-            pvpSocketRef.current = socket;
-        } catch (socketError) {
-            setPvpSocketReady(false);
-            addLog(socketError.message || "Room channel is not configured.", "warning");
-        }
-
-        return () => {
-            setPvpSocketReady(false);
-            if (socket && socket.readyState <= WebSocket.OPEN) {
-                socket.close();
-            }
-            if (pvpSocketRef.current === socket) {
-                pvpSocketRef.current = null;
-            }
-        };
-    }, [addLog, isPvpMode, roomCode, roomPlayer.userId]);
-
-    useEffect(() => {
-        if (!isPvpMode || pvpRoom?.status !== "IN_PROGRESS") return;
-
-        if (!pvpEnemyBoardLoadedRef.current) {
-            pvpEnemyBoardLoadedRef.current = true;
-            setEnemyBoard(createBoard());
-            matchStartedAtRef.current = new Date().toISOString();
-            addLog("Enemy waters synced. Shot results will be verified by opponent fleet.", "info");
-        }
-
-        // Xác định người đi trước (players[0] là host)
-        const starterPlayer = pvpRoom.players?.[0];
-        const initialTurnId = pvpRoom.currentTurnUserId ? pvpRoom.currentTurnUserId.split(':')[0] : getRoomPlayerKey(starterPlayer);
-        setPvpTurnUserId(initialTurnId);
-    }, [addLog, isPvpMode, pvpRoom, roomPlayer]);
-
-    const handleEnemyCellClick = (r, c) => {
-        if (gameState !== 'PLAYER_TURN') return;
-        if (isPvpMode) {
-            firePvpShot(r, c);
-            return;
-        }
-        if (shotLockRef.current) return;
-        
-        // We only check this to prevent obvious double clicks on already hit cells
-        if (enemyBoard[r][c].isHit && !enemyBoard[r][c].autoMarked) return;
-
-        shotLockRef.current = true;
-        setIsShotResolving(true);
-
-        clearInterval(timerRef.current);
-        
-        setEnemyBoard(prevBoard => {
-            if (prevBoard[r][c].isHit && !prevBoard[r][c].autoMarked) return prevBoard;
-            
-            const newEnemyBoard = [...prevBoard.map(row => [...row.map(c => ({...c}))])];
-            if (newEnemyBoard[r][c].autoMarked) {
-                newEnemyBoard[r][c].isHit = false;
-                newEnemyBoard[r][c].autoMarked = false;
-            }
-            const shotResult = fireAt(newEnemyBoard, r, c);
-            
-            const colLetter = String.fromCharCode(65 + c);
-            const rowNum = r + 1;
-            const cellName = `${colLetter}${rowNum}`;
-
-            setStats(prev => ({ ...prev, shots: prev.shots + 1 }));
-
-            if (shotResult.result === "HIT") {
-                setStats(prev => ({ ...prev, hits: prev.hits + 1 }));
-                if (shotResult.isSunk) {
-                    const sunkCells = markWaterAroundSunkShip(newEnemyBoard, shotResult.shipId, false);
-                    setStats(prev => ({ ...prev, shipsDestroyed: prev.shipsDestroyed + 1 }));
-                    setEnemyShipsSunk(prev => [...prev, shotResult.shipTypeId]);
-                    setEnemySunkShipIds(prev => prev.includes(shotResult.shipId)
-                        ? prev
-                        : [...prev, shotResult.shipId]);
-                    window.requestAnimationFrame(() => {
-                        playSound("hit", { minGap: 90 });
-                        enemyEffectsRef.current?.playHit(r, c);
-                        triggerSunkEffect(
-                            "enemy",
-                            shotResult.shipTypeId,
-                            shotResult.shipId,
-                            sunkCells
-                        );
-                    });
-                    addLog(`You destroyed an enemy ship (size ${shotResult.shipLength}) at ${cellName}!`, "destroy");
-                } else {
-                    window.requestAnimationFrame(() => {
-                        playSound("hit", { minGap: 90 });
-                        enemyEffectsRef.current?.playHit(r, c);
-                    });
-                    addLog(`Direct hit at ${cellName}!`, "player_hit");
-                }
-                
-                if (checkVictory(newEnemyBoard)) {
-                    endGame(true);
-                } else {
-                    // Extra turn for player
-                    setTimeout(() => startPlayerTurn(), 250);
-                }
-            } else {
-                window.requestAnimationFrame(() => {
-                    playSound("miss", { minGap: 90 });
-                    enemyEffectsRef.current?.playMiss(r, c);
-                });
-                setStats(prev => ({ ...prev, misses: prev.misses + 1 }));
-                addLog(`Missed at ${cellName}.`, "player_miss");
-                setTimeout(() => startBotTurn(), 800);
-            }
-            
-            return newEnemyBoard;
-        });
-    };
-
-    const handlePlayerCellHover = (r, c) => {
-        if (isPlacementLocked) return;
-        if (gameState === 'PLACEMENT' || gameState === 'READY') {
-            setHoverCell({ r, c });
-            if (invalidRotationPreview) {
-                setInvalidRotationPreview(null);
-            }
-        }
-    };
-
-    useEffect(() => {
-        if (!draggedShip) return undefined;
-
-        const updateDragPointer = (event) => {
-            let clientX, clientY;
-            if (event.touches) {
-                // prevent scrolling while dragging
-                event.preventDefault();
-                clientX = event.touches[0].clientX;
-                clientY = event.touches[0].clientY;
-            } else {
-                clientX = event.clientX;
-                clientY = event.clientY;
-            }
-            setDragPointer({ x: clientX, y: clientY });
-
-            if (isMobile && playerBoardRef.current && draggedShip) {
-                const rect = playerBoardRef.current.getBoundingClientRect();
-                if (clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom) {
-                    const cellSize = rect.width / 10;
-                    const c = Math.floor((clientX - rect.left) / cellSize);
-                    const r = Math.floor((clientY - rect.top) / cellSize);
-                    if (r >= 0 && r < BOARD_SIZE && c >= 0 && c < BOARD_SIZE) {
-                        setHoverCell({ r, c });
-                    } else {
-                        setHoverCell(null);
-                    }
-                } else {
-                    setHoverCell(null);
-                }
-            }
-        };
-
-        const handleTouchDrop = (event) => {
-            if (!isMobile || !draggedShip || !originalPlacement) return;
-            document.body.style.overflow = "";
-            document.documentElement.style.overflow = "";
-            
-            const touch = event.changedTouches[0];
-            let dropHoverCell = null;
-            if (playerBoardRef.current) {
-                const rect = playerBoardRef.current.getBoundingClientRect();
-                const clientX = touch.clientX;
-                const clientY = touch.clientY;
-                if (clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom) {
-                    const cellSize = rect.width / 10;
-                    const c = Math.floor((clientX - rect.left) / cellSize);
-                    const r = Math.floor((clientY - rect.top) / cellSize);
-                    if (r >= 0 && r < BOARD_SIZE && c >= 0 && c < BOARD_SIZE) {
-                        dropHoverCell = { r, c };
-                    }
-                }
-            }
-
-            if (dropHoverCell) {
-                const targetRow = dropHoverCell.r - draggedShip.grabOffset.row;
-                const targetCol = dropHoverCell.c - draggedShip.grabOffset.col;
-                
-                setPlayerBoard(prevBoard => {
-                    const newBoard = cloneBoard(prevBoard);
-                    // clear any remaining original instances of this ship before place
-                    removeShipById(newBoard, originalPlacement.shipId);
-                    
-                    if (canPlaceShip(newBoard, targetRow, targetCol, draggedShip.shipDef, draggedShip.rotation)) {
-                        placeShip(newBoard, targetRow, targetCol, draggedShip.shipDef, draggedShip.rotation);
-                    } else {
-                        placeShip(newBoard, originalPlacement.row, originalPlacement.col, originalPlacement.shipDef, originalPlacement.rotation);
-                        addLog("Invalid placement. Ship returned to original position.", "warning");
-                    }
-                    return newBoard;
-                });
-            } else {
-                // Cancel drag
-                setPlayerBoard(prevBoard => {
-                    const newBoard = cloneBoard(prevBoard);
-                    removeShipById(newBoard, originalPlacement.shipId);
-                    placeShip(newBoard, originalPlacement.row, originalPlacement.col, originalPlacement.shipDef, originalPlacement.rotation);
-                    return newBoard;
-                });
-            }
-            
-            setDraggedShip(null);
-            setDragPointer(null);
-            setTouchData(null);
-            setOriginalPlacement(null);
-            setHoverCell(null);
-        };
-
-        document.addEventListener("mousemove", updateDragPointer);
-        document.addEventListener("touchmove", updateDragPointer, { passive: false });
-        document.addEventListener("touchend", handleTouchDrop);
-        
-        return () => {
-            document.removeEventListener("mousemove", updateDragPointer);
-            document.removeEventListener("touchmove", updateDragPointer);
-            document.removeEventListener("touchend", handleTouchDrop);
-            document.body.style.overflow = "";
-            document.documentElement.style.overflow = "";
-        };
-    }, [draggedShip, isMobile]);
-
-    const handlePlayerCellClick = (event, r, c) => {
-        if (isPlacementLocked) return;
-        if (gameState !== 'PLACEMENT' && gameState !== 'READY') return;
-
-        if (draggedShip) {
-            const targetRow = r - draggedShip.grabOffset.row;
-            const targetCol = c - draggedShip.grabOffset.col;
-            if (draggedShip.fromTray) {
-                const newBoard = cloneBoard(playerBoard);
-                if (canPlaceShip(newBoard, targetRow, targetCol, draggedShip.shipDef, draggedShip.rotation)) {
-                    placeShip(newBoard, targetRow, targetCol, draggedShip.shipDef, draggedShip.rotation);
-                    setPlayerBoard(newBoard);
-                    const isLastUnplacedShip = unplacedShipIds.length === 1 && unplacedShipIds.includes(draggedShip.shipDef.id);
-                    setUnplacedShipIds(current => current.filter(id => id !== draggedShip.shipDef.id));
-                    if (isLastUnplacedShip) {
-                        addLog("Fleet deployed. Review the formation or press Ready.", "info");
-                    }
-                    setDraggedShip(null);
-                    setDragPointer(null);
-                    setHoverCell(null);
-                } else {
-                    // Invalid placement, do nothing
-                    addLog("Invalid placement position.", "warning");
-                }
-            } else {
-                const success = movePlacedShipTo(targetRow, targetCol, draggedShip, true);
-                if (success) {
-                    setDraggedShip(null);
-                    setDragPointer(null);
-                } else {
-                    addLog("Invalid placement position.", "warning");
-                }
-            }
-            return;
-        }
-
-        const placedShip = getPlacedShipSelectionAt(r, c);
-        if (placedShip) {
-            const newCenter = getCenterOffset(placedShip.shipDef, placedShip.rotation);
-            const shipToDrag = {
-                ...placedShip,
-                grabOffset: newCenter,
-                pointerOffset: {
-                    x: (newCenter.col * (CELL_SIZE + CELL_GAP)) + (CELL_SIZE / 2),
-                    y: (newCenter.row * (CELL_SIZE + CELL_GAP)) + (CELL_SIZE / 2),
-                },
-            };
-
-            const newBoard = cloneBoard(playerBoard);
-            clearShipFromBoard(newBoard, placedShip.shipId);
-            setPlayerBoard(newBoard);
-
-            setSelectedShip(placedShip);
-            setRotation(placedShip.rotation);
-            setDraggedShip(shipToDrag);
-            setDragPointer({ x: event.clientX, y: event.clientY });
-        }
-    };
-
-    const handlePlayerCellContextMenu = (event, r, c) => {
-        event.preventDefault();
-        event.stopPropagation();
-
-        if (isPlacementLocked) return;
-        if (gameState !== 'PLACEMENT' && gameState !== 'READY') return;
-
-        if (draggedShip) {
-            rotateShip();
-            return;
-        }
-
-        const placedShip = getPlacedShipSelectionAt(r, c);
-        if (!placedShip) return;
-
-        rotatePlacedShip(placedShip);
-    };
-
-    const handleTouchStart = (e, r, c) => {
-        if (isPlacementLocked) return;
-        if (!isMobile || (gameState !== 'PLACEMENT' && gameState !== 'READY')) return;
-        const placedShip = getPlacedShipSelectionAt(r, c);
-        if (!placedShip) return;
-
-        setTouchData({
-            x: e.touches[0].clientX,
-            y: e.touches[0].clientY,
-            ship: placedShip,
-            startTime: Date.now(),
-            r, c,
-            moved: false,
-        });
-    };
-
-    const handleTouchMove = (e) => {
-        if (isPlacementLocked) return;
-        if (!isMobile || !touchData || draggedShip || (gameState !== 'PLACEMENT' && gameState !== 'READY')) return;
-        
-        const dx = e.touches[0].clientX - touchData.x;
-        const dy = e.touches[0].clientY - touchData.y;
-        const distance = Math.sqrt(dx*dx + dy*dy);
-        
-        if (distance >= 8 && !touchData.moved) {
-            setTouchData(prev => ({ ...prev, moved: true }));
-            
-            document.body.style.overflow = "hidden";
-            document.documentElement.style.overflow = "hidden";
-            
-            const placedShip = touchData.ship;
-            const grabRowOffset = touchData.r - placedShip.row;
-            const grabColOffset = touchData.c - placedShip.col;
-            
-            setOriginalPlacement({
-                shipId: placedShip.shipId,
-                shipDef: placedShip.shipDef,
-                row: placedShip.row,
-                col: placedShip.col,
-                rotation: placedShip.rotation,
-            });
-
-            let cellStep = CELL_SIZE + CELL_GAP;
-            if (playerBoardRef.current) {
-                const rect = playerBoardRef.current.getBoundingClientRect();
-                cellStep = rect.width / 10;
-            }
-
-            const shipToDrag = {
-                ...placedShip,
-                grabOffset: { row: grabRowOffset, col: grabColOffset },
-                pointerOffset: {
-                    x: grabColOffset * cellStep + cellStep / 2,
-                    y: grabRowOffset * cellStep + cellStep / 2,
-                },
-            };
-
-            const newBoard = cloneBoard(playerBoard);
-            clearShipFromBoard(newBoard, placedShip.shipId);
-            setPlayerBoard(newBoard);
-
-            setSelectedShip(placedShip);
-            setRotation(placedShip.rotation);
-            setDraggedShip(shipToDrag);
-            setDragPointer({ x: e.touches[0].clientX, y: e.touches[0].clientY });
-        }
-    };
-
-    const handleTouchEnd = (e, r, c) => {
-        if (isPlacementLocked) return;
-        if (!isMobile || !touchData) return;
-        
-        if (draggedShip) {
-            setTouchData(null);
-            return;
-        }
-        
-        const duration = Date.now() - touchData.startTime;
-        
-        if (!touchData.moved && duration < 200) {
-            rotatePlacedShipSafely(touchData.ship);
-        }
-        setTouchData(null);
-    };
-
-    const handleTrayShipClick = (event, shipDef) => {
-        if (isPlacementLocked) return;
-        if (gameState !== 'PLACEMENT') return;
-        event.preventDefault();
-        
-        if (draggedShip && draggedShip.shipId === `tray-${shipDef.id}`) {
-            return; // Already dragging this ship
-        }
-
-        // Restore previously picked ship back to the board if it was picked from the board
-        if (draggedShip && !draggedShip.fromTray) {
-            setPlayerBoard(prev => {
-                const newBoard = cloneBoard(prev);
-                placeShip(newBoard, draggedShip.row, draggedShip.col, draggedShip.shipDef, draggedShip.rotation);
-                return newBoard;
-            });
-        }
-        const rotation = trayRotations[shipDef.id] ?? shipDef.rotations[0];
-        const newCenter = getCenterOffset(shipDef, rotation);
-
-        setSelectedShip(null);
+  const handlePlayerCellHover = (r, c) => {
+    if (isPlacementLocked) return;
+    if (gameState === "PLACEMENT" || gameState === "READY") {
+      setHoverCell({ r, c });
+      if (invalidRotationPreview) {
         setInvalidRotationPreview(null);
-        setDraggedShip({
-            fromTray: true,
-            shipId: `tray-${shipDef.id}`,
-            shipDef,
-            rotation,
-            row: 0,
-            col: 0,
-            grabOffset: newCenter,
-            pointerOffset: {
-                x: (newCenter.col * (CELL_SIZE + CELL_GAP)) + (CELL_SIZE / 2),
-                y: (newCenter.row * (CELL_SIZE + CELL_GAP)) + (CELL_SIZE / 2),
-            },
-        });
-        setDragPointer({ x: event.clientX, y: event.clientY });
-    };
+      }
+    }
+  };
 
-    const handleTrayShipContextMenu = (event, shipDef) => {
+  useEffect(() => {
+    if (!draggedShip) return undefined;
+
+    const updateDragPointer = (event) => {
+      let clientX, clientY;
+      if (event.touches) {
+        // prevent scrolling while dragging
         event.preventDefault();
-        if (isPlacementLocked) return;
-        const rotations = shipDef.rotations;
-        const currentRotation = trayRotations[shipDef.id] ?? rotations[0];
-        const currentIndex = rotations.indexOf(currentRotation);
-        setTrayRotations(current => ({
-            ...current,
-            [shipDef.id]: rotations[(currentIndex + 1) % rotations.length],
-        }));
+        clientX = event.touches[0].clientX;
+        clientY = event.touches[0].clientY;
+      } else {
+        clientX = event.clientX;
+        clientY = event.clientY;
+      }
+      setDragPointer({ x: clientX, y: clientY });
+
+      if (isMobile && playerBoardRef.current && draggedShip) {
+        const rect = playerBoardRef.current.getBoundingClientRect();
+        if (
+          clientX >= rect.left &&
+          clientX <= rect.right &&
+          clientY >= rect.top &&
+          clientY <= rect.bottom
+        ) {
+          const cellSize = rect.width / 10;
+          const c = Math.floor((clientX - rect.left) / cellSize);
+          const r = Math.floor((clientY - rect.top) / cellSize);
+          if (r >= 0 && r < BOARD_SIZE && c >= 0 && c < BOARD_SIZE) {
+            setHoverCell({ r, c });
+          } else {
+            setHoverCell(null);
+          }
+        } else {
+          setHoverCell(null);
+        }
+      }
     };
 
-    const autoArrangeFleet = () => {
-        if (isPlacementLocked) return;
-        const arrangedBoard = createBoard();
-        placeShipsRandomly(arrangedBoard, shipsToPlace);
-        setPlayerBoard(arrangedBoard);
-        setUnplacedShipIds([]);
+    const handleTouchDrop = (event) => {
+      if (!isMobile || !draggedShip || !originalPlacement) return;
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+
+      const touch = event.changedTouches[0];
+      let dropHoverCell = null;
+      if (playerBoardRef.current) {
+        const rect = playerBoardRef.current.getBoundingClientRect();
+        const clientX = touch.clientX;
+        const clientY = touch.clientY;
+        if (
+          clientX >= rect.left &&
+          clientX <= rect.right &&
+          clientY >= rect.top &&
+          clientY <= rect.bottom
+        ) {
+          const cellSize = rect.width / 10;
+          const c = Math.floor((clientX - rect.left) / cellSize);
+          const r = Math.floor((clientY - rect.top) / cellSize);
+          if (r >= 0 && r < BOARD_SIZE && c >= 0 && c < BOARD_SIZE) {
+            dropHoverCell = { r, c };
+          }
+        }
+      }
+
+      if (dropHoverCell) {
+        const targetRow = dropHoverCell.r - draggedShip.grabOffset.row;
+        const targetCol = dropHoverCell.c - draggedShip.grabOffset.col;
+
+        setPlayerBoard((prevBoard) => {
+          const newBoard = cloneBoard(prevBoard);
+          // clear any remaining original instances of this ship before place
+          removeShipById(newBoard, originalPlacement.shipId);
+
+          if (
+            canPlaceShip(
+              newBoard,
+              targetRow,
+              targetCol,
+              draggedShip.shipDef,
+              draggedShip.rotation,
+            )
+          ) {
+            placeShip(
+              newBoard,
+              targetRow,
+              targetCol,
+              draggedShip.shipDef,
+              draggedShip.rotation,
+            );
+          } else {
+            placeShip(
+              newBoard,
+              originalPlacement.row,
+              originalPlacement.col,
+              originalPlacement.shipDef,
+              originalPlacement.rotation,
+            );
+            addLog(
+              "Invalid placement. Ship returned to original position.",
+              "warning",
+            );
+          }
+          return newBoard;
+        });
+      } else {
+        // Cancel drag
+        setPlayerBoard((prevBoard) => {
+          const newBoard = cloneBoard(prevBoard);
+          removeShipById(newBoard, originalPlacement.shipId);
+          placeShip(
+            newBoard,
+            originalPlacement.row,
+            originalPlacement.col,
+            originalPlacement.shipDef,
+            originalPlacement.rotation,
+          );
+          return newBoard;
+        });
+      }
+
+      setDraggedShip(null);
+      setDragPointer(null);
+      setTouchData(null);
+      setOriginalPlacement(null);
+      setHoverCell(null);
+    };
+
+    document.addEventListener("mousemove", updateDragPointer);
+    document.addEventListener("touchmove", updateDragPointer, {
+      passive: false,
+    });
+    document.addEventListener("touchend", handleTouchDrop);
+
+    return () => {
+      document.removeEventListener("mousemove", updateDragPointer);
+      document.removeEventListener("touchmove", updateDragPointer);
+      document.removeEventListener("touchend", handleTouchDrop);
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    };
+  }, [draggedShip, isMobile]);
+
+  const handlePlayerCellClick = (event, r, c) => {
+    if (isPlacementLocked) return;
+    if (gameState !== "PLACEMENT" && gameState !== "READY") return;
+
+    if (draggedShip) {
+      const targetRow = r - draggedShip.grabOffset.row;
+      const targetCol = c - draggedShip.grabOffset.col;
+      if (draggedShip.fromTray) {
+        const newBoard = cloneBoard(playerBoard);
+        if (
+          canPlaceShip(
+            newBoard,
+            targetRow,
+            targetCol,
+            draggedShip.shipDef,
+            draggedShip.rotation,
+          )
+        ) {
+          placeShip(
+            newBoard,
+            targetRow,
+            targetCol,
+            draggedShip.shipDef,
+            draggedShip.rotation,
+          );
+          setPlayerBoard(newBoard);
+          const isLastUnplacedShip =
+            unplacedShipIds.length === 1 &&
+            unplacedShipIds.includes(draggedShip.shipDef.id);
+          setUnplacedShipIds((current) =>
+            current.filter((id) => id !== draggedShip.shipDef.id),
+          );
+          if (isLastUnplacedShip) {
+            addLog(
+              "Fleet deployed. Review the formation or press Ready.",
+              "info",
+            );
+          }
+          setDraggedShip(null);
+          setDragPointer(null);
+          setHoverCell(null);
+        } else {
+          // Invalid placement, do nothing
+          addLog("Invalid placement position.", "warning");
+        }
+      } else {
+        const success = movePlacedShipTo(
+          targetRow,
+          targetCol,
+          draggedShip,
+          true,
+        );
+        if (success) {
+          setDraggedShip(null);
+          setDragPointer(null);
+        } else {
+          addLog("Invalid placement position.", "warning");
+        }
+      }
+      return;
+    }
+
+    const placedShip = getPlacedShipSelectionAt(r, c);
+    if (placedShip) {
+      const newCenter = getCenterOffset(
+        placedShip.shipDef,
+        placedShip.rotation,
+      );
+      const shipToDrag = {
+        ...placedShip,
+        grabOffset: newCenter,
+        pointerOffset: {
+          x: newCenter.col * (CELL_SIZE + CELL_GAP) + CELL_SIZE / 2,
+          y: newCenter.row * (CELL_SIZE + CELL_GAP) + CELL_SIZE / 2,
+        },
+      };
+
+      const newBoard = cloneBoard(playerBoard);
+      clearShipFromBoard(newBoard, placedShip.shipId);
+      setPlayerBoard(newBoard);
+
+      setSelectedShip(placedShip);
+      setRotation(placedShip.rotation);
+      setDraggedShip(shipToDrag);
+      setDragPointer({ x: event.clientX, y: event.clientY });
+    }
+  };
+
+  const handlePlayerCellContextMenu = (event, r, c) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (isPlacementLocked) return;
+    if (gameState !== "PLACEMENT" && gameState !== "READY") return;
+
+    if (draggedShip) {
+      rotateShip();
+      return;
+    }
+
+    const placedShip = getPlacedShipSelectionAt(r, c);
+    if (!placedShip) return;
+
+    rotatePlacedShip(placedShip);
+  };
+
+  const handleTouchStart = (e, r, c) => {
+    if (isPlacementLocked) return;
+    if (!isMobile || (gameState !== "PLACEMENT" && gameState !== "READY"))
+      return;
+    const placedShip = getPlacedShipSelectionAt(r, c);
+    if (!placedShip) return;
+
+    setTouchData({
+      x: e.touches[0].clientX,
+      y: e.touches[0].clientY,
+      ship: placedShip,
+      startTime: Date.now(),
+      r,
+      c,
+      moved: false,
+    });
+  };
+
+  const handleTouchMove = (e) => {
+    if (isPlacementLocked) return;
+    if (
+      !isMobile ||
+      !touchData ||
+      draggedShip ||
+      (gameState !== "PLACEMENT" && gameState !== "READY")
+    )
+      return;
+
+    const dx = e.touches[0].clientX - touchData.x;
+    const dy = e.touches[0].clientY - touchData.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+
+    if (distance >= 8 && !touchData.moved) {
+      setTouchData((prev) => ({ ...prev, moved: true }));
+
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+
+      const placedShip = touchData.ship;
+      const grabRowOffset = touchData.r - placedShip.row;
+      const grabColOffset = touchData.c - placedShip.col;
+
+      setOriginalPlacement({
+        shipId: placedShip.shipId,
+        shipDef: placedShip.shipDef,
+        row: placedShip.row,
+        col: placedShip.col,
+        rotation: placedShip.rotation,
+      });
+
+      let cellStep = CELL_SIZE + CELL_GAP;
+      if (playerBoardRef.current) {
+        const rect = playerBoardRef.current.getBoundingClientRect();
+        cellStep = rect.width / 10;
+      }
+
+      const shipToDrag = {
+        ...placedShip,
+        grabOffset: { row: grabRowOffset, col: grabColOffset },
+        pointerOffset: {
+          x: grabColOffset * cellStep + cellStep / 2,
+          y: grabRowOffset * cellStep + cellStep / 2,
+        },
+      };
+
+      const newBoard = cloneBoard(playerBoard);
+      clearShipFromBoard(newBoard, placedShip.shipId);
+      setPlayerBoard(newBoard);
+
+      setSelectedShip(placedShip);
+      setRotation(placedShip.rotation);
+      setDraggedShip(shipToDrag);
+      setDragPointer({ x: e.touches[0].clientX, y: e.touches[0].clientY });
+    }
+  };
+
+  const handleTouchEnd = (e, r, c) => {
+    if (isPlacementLocked) return;
+    if (!isMobile || !touchData) return;
+
+    if (draggedShip) {
+      setTouchData(null);
+      return;
+    }
+
+    const duration = Date.now() - touchData.startTime;
+
+    if (!touchData.moved && duration < 200) {
+      rotatePlacedShipSafely(touchData.ship);
+    }
+    setTouchData(null);
+  };
+
+  const handleTrayShipClick = (event, shipDef) => {
+    if (isPlacementLocked) return;
+    if (gameState !== "PLACEMENT") return;
+    event.preventDefault();
+
+    if (draggedShip && draggedShip.shipId === `tray-${shipDef.id}`) {
+      return; // Already dragging this ship
+    }
+
+    // Restore previously picked ship back to the board if it was picked from the board
+    if (draggedShip && !draggedShip.fromTray) {
+      setPlayerBoard((prev) => {
+        const newBoard = cloneBoard(prev);
+        placeShip(
+          newBoard,
+          draggedShip.row,
+          draggedShip.col,
+          draggedShip.shipDef,
+          draggedShip.rotation,
+        );
+        return newBoard;
+      });
+    }
+    const rotation = trayRotations[shipDef.id] ?? shipDef.rotations[0];
+    const newCenter = getCenterOffset(shipDef, rotation);
+
+    setSelectedShip(null);
+    setInvalidRotationPreview(null);
+    setDraggedShip({
+      fromTray: true,
+      shipId: `tray-${shipDef.id}`,
+      shipDef,
+      rotation,
+      row: 0,
+      col: 0,
+      grabOffset: newCenter,
+      pointerOffset: {
+        x: newCenter.col * (CELL_SIZE + CELL_GAP) + CELL_SIZE / 2,
+        y: newCenter.row * (CELL_SIZE + CELL_GAP) + CELL_SIZE / 2,
+      },
+    });
+    setDragPointer({ x: event.clientX, y: event.clientY });
+  };
+
+  const handleTrayShipContextMenu = (event, shipDef) => {
+    event.preventDefault();
+    if (isPlacementLocked) return;
+    const rotations = shipDef.rotations;
+    const currentRotation = trayRotations[shipDef.id] ?? rotations[0];
+    const currentIndex = rotations.indexOf(currentRotation);
+    setTrayRotations((current) => ({
+      ...current,
+      [shipDef.id]: rotations[(currentIndex + 1) % rotations.length],
+    }));
+  };
+
+  const autoArrangeFleet = () => {
+    if (isPlacementLocked) return;
+    const arrangedBoard = createBoard();
+    placeShipsRandomly(arrangedBoard, shipsToPlace);
+    setPlayerBoard(arrangedBoard);
+    setUnplacedShipIds([]);
+    setSelectedShip(null);
+    setDraggedShip(null);
+    setDragPointer(null);
+    setHoverCell(null);
+    setInvalidRotationPreview(null);
+    addLog(
+      "Fleet auto-arranged. Press again for another formation or press Ready.",
+      "info",
+    );
+  };
+
+  const beginBattle = async () => {
+    if (invalidRotationPreview || unplacedShipIds.length > 0 || draggedShip)
+      return;
+    if (isWaitingForOpponentFleet) return;
+    playSound("click", { minGap: 250 });
+
+    if (isPvpMode) {
+      try {
+        setPvpReadyLoading(true);
+        const board = {
+          placedAt: new Date().toISOString(),
+          ships: playerBoard
+            .flat()
+            .filter((cell) => cell.shipRoot)
+            .map((cell) => ({
+              shipId: cell.shipId,
+              shipTypeId: cell.shipTypeId,
+              row:
+                cell.shipOriginRow !== null && cell.shipOriginRow !== undefined
+                  ? cell.shipOriginRow
+                  : cell.row,
+              col:
+                cell.shipOriginCol !== null && cell.shipOriginCol !== undefined
+                  ? cell.shipOriginCol
+                  : cell.col,
+              rotation: cell.shipRotation,
+            })),
+        };
+        console.log("Payload sent to server:", board.ships);
+        const nextRoom = await markPlayerReady({
+          roomCode,
+          player: roomPlayer,
+          board,
+        });
+        setPvpRoom(nextRoom);
+        setPvpFleetSubmitted(true);
         setSelectedShip(null);
+        setHoverCell(null);
         setDraggedShip(null);
         setDragPointer(null);
-        setHoverCell(null);
         setInvalidRotationPreview(null);
-        addLog("Fleet auto-arranged. Press again for another formation or press Ready.", "info");
-    };
-
-    const beginBattle = async () => {
-        if (invalidRotationPreview || unplacedShipIds.length > 0 || draggedShip) return;
-        if (isWaitingForOpponentFleet) return;
-        playSound("click", { minGap: 250 });
-
-        if (isPvpMode) {
-            try {
-                setPvpReadyLoading(true);
-                const board = {
-                    placedAt: new Date().toISOString(),
-                    ships: playerBoard
-                        .flat()
-                        .filter(cell => cell.shipRoot)
-                        .map(cell => ({
-                            shipId: cell.shipId,
-                            shipTypeId: cell.shipTypeId,
-                            row: cell.shipOriginRow !== null && cell.shipOriginRow !== undefined ? cell.shipOriginRow : cell.row,
-                            col: cell.shipOriginCol !== null && cell.shipOriginCol !== undefined ? cell.shipOriginCol : cell.col,
-                            rotation: cell.shipRotation,
-                        })),
-                };
-                console.log("Payload sent to server:", board.ships);
-                const nextRoom = await markPlayerReady({
-                    roomCode,
-                    player: roomPlayer,
-                    board,
-                });
-                setPvpRoom(nextRoom);
-                setPvpFleetSubmitted(true);
-                setSelectedShip(null);
-                setHoverCell(null);
-                setDraggedShip(null);
-                setDragPointer(null);
-                setInvalidRotationPreview(null);
-                if (nextRoom.status === "IN_PROGRESS") {
-                    setGameState('PLAYER_TURN');
-                    setTurnTimer(30);
-                } else {
-                    setGameState('PLACEMENT');
-                }
-                addLog(
-                    nextRoom.status === "IN_PROGRESS"
-                        ? copy.bothReadyLog
-                        : copy.waitingFleetLog,
-                    "info"
-                );
-            } catch (readyError) {
-                addLog(readyError.message || "Unable to mark fleet ready.", "warning");
-            } finally {
-                setPvpReadyLoading(false);
-            }
-            return;
+        if (nextRoom.status === "IN_PROGRESS") {
+          setGameState("PLAYER_TURN");
+          setTurnTimer(30);
+        } else {
+          setGameState("PLACEMENT");
         }
-
-        const newEnemyBoard = [...enemyBoard.map(row => [...row.map(c => ({...c}))])];
-        placeShipsRandomly(newEnemyBoard, shipsToPlace);
-        setEnemyBoard(newEnemyBoard);
-        setSelectedShip(null);
-        setHoverCell(null);
-        setGameState('PLAYER_TURN');
-        setTurnTimer(30);
-        addLog("Battle initiated!", "info");
-        addLog("Your turn started.", "info");
-        setStats(prev => ({ ...prev, turns: 1 }));
-    };
-
-    const getShipSpriteUrl = (cell) => {
-        if (!cell.shipRoot) return "";
-        const sprite = SHIP_SPRITES[cell.shipTypeId]?.[cell.shipRotation];
-        return resolveSpriteUrl(sprite);
-    };
-
-    const getShipOverlayStyle = (cell) => {
-        if (!cell.shipBounds) return null;
-        const originCol = cell.shipOriginCol ?? cell.col;
-        const originRow = cell.shipOriginRow ?? cell.row;
-
-        return {
-            position: "absolute",
-            left: `calc(${originCol} * (var(--cell-size) + var(--cell-gap)) + ${SHIP_CELL_PADDING}px)`,
-            top: `calc(${originRow} * (var(--cell-size) + var(--cell-gap)) + ${SHIP_CELL_PADDING}px)`,
-            width: `calc(${cell.shipBounds.cols} * var(--cell-size) + ${cell.shipBounds.cols - 1} * var(--cell-gap) - ${SHIP_CELL_PADDING * 2}px)`,
-            height: `calc(${cell.shipBounds.rows} * var(--cell-size) + ${cell.shipBounds.rows - 1} * var(--cell-gap) - ${SHIP_CELL_PADDING * 2}px)`,
-            overflow: "hidden",
-            filter: "drop-shadow(0 0 6px rgba(0, 0, 0, 0.45))",
-        };
-    };
-
-    const getShipImageStyle = (cell) => {
-        if (!cell.shipBounds) return null;
-        const rotationDeg = cell.shipRotation || 0;
-        const quarterTurn = rotationDeg === 90 || rotationDeg === 270;
-        const isAngledShip = cell.shipTypeId === "destroyer" || cell.shipTypeId === "zship";
-        const isStraightShip = cell.shipTypeId === "carrier" || cell.shipTypeId === "patrol";
-        const usesVerticalSourceImage = cell.shipTypeId === "carrier" || cell.shipTypeId === "patrol";
-        const straightImageRotation = usesVerticalSourceImage ? rotationDeg + 90 : rotationDeg;
-        const isLShip = cell.shipTypeId === "destroyer";
-        const rotatedOffset = isAngledShip
-            ? getAngledShipOffset(cell.shipTypeId, rotationDeg)
-            : { x: 0, y: 0 };
-        const offsetX = rotatedOffset.x;
-        const offsetY = rotatedOffset.y;
-        const scale = isLShip ? L_SHIP_IMAGE_SCALE : (isAngledShip ? SHIP_IMAGE_SCALE : 1);
-
-        const wCalc = `calc(${cell.shipBounds.cols} * var(--cell-size) + ${cell.shipBounds.cols - 1} * var(--cell-gap))`;
-        const hCalc = `calc(${cell.shipBounds.rows} * var(--cell-size) + ${cell.shipBounds.rows - 1} * var(--cell-gap))`;
-
-        if (isStraightShip) {
-            const straightQuarterTurn = straightImageRotation === 90 || straightImageRotation === 270;
-            const straightScale = cell.shipTypeId === "patrol" ? 1.5 : 1;
-            const isVerticalPatrol = cell.shipTypeId === "patrol" && rotationDeg === 90;
-            const straightOffsetX = isVerticalPatrol
-                ? PATROL_VERTICAL_IMAGE_OFFSET_X
-                : (cell.shipTypeId === "patrol" ? PATROL_IMAGE_OFFSET_X : 0);
-            const straightOffsetY = isVerticalPatrol
-                ? PATROL_VERTICAL_IMAGE_OFFSET_Y
-                : (cell.shipTypeId === "patrol" ? PATROL_IMAGE_OFFSET_Y : 0);
-            return {
-                position: "absolute",
-                left: straightQuarterTurn ? `calc((${wCalc} - ${hCalc}) / 2)` : "0",
-                top: straightQuarterTurn ? `calc((${hCalc} - ${wCalc}) / 2)` : "0",
-                width: straightQuarterTurn ? hCalc : "100%",
-                height: straightQuarterTurn ? wCalc : "100%",
-                objectFit: "cover",
-                objectPosition: "center",
-                transform: `translate(${straightOffsetX}px, ${straightOffsetY}px) rotate(${straightImageRotation}deg) scale(${straightScale})`,
-                transformOrigin: "center",
-                imageRendering: "auto",
-                maxWidth: "none",
-            };
-        }
-
-        return {
-            position: "absolute",
-            left: quarterTurn ? `calc((${wCalc} - ${hCalc}) / 2)` : "0",
-            top: quarterTurn ? `calc((${hCalc} - ${wCalc}) / 2)` : "0",
-            width: quarterTurn ? hCalc : "100%",
-            height: quarterTurn ? wCalc : "100%",
-            objectFit: isAngledShip ? "cover" : "fill",
-            objectPosition: "center",
-            transform: `translate(${offsetX}px, ${offsetY}px) rotate(${rotationDeg}deg) scale(${scale})`,
-            transformOrigin: "center",
-            maxWidth: "none",
-        };
-    };
-
-    const getFallbackShipCells = (board, shipId) => {
-        const cells = [];
-        board.forEach((row) => {
-            row.forEach((cell) => {
-                if (cell.shipId === shipId) cells.push(cell);
-            });
-        });
-        return cells;
-    };
-
-    const renderBoard = (board, isEnemy, boardSide) => {
-        const letters = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"];
-        const previewShip = currentShip;
-        const previewRotation = rotation;
-        let placementOffsets = null;
-        let canPlace = false;
-
-        if (!isEnemy && hoverCell && (gameState === 'PLACEMENT' || gameState === 'READY')) {
-            const movingShip = draggedShip || selectedShip;
-
-            if (movingShip) {
-                const rootRow = draggedShip ? hoverCell.r - draggedShip.grabOffset.row : hoverCell.r;
-                const rootCol = draggedShip ? hoverCell.c - draggedShip.grabOffset.col : hoverCell.c;
-                const previewBoard = cloneBoard(board);
-
-                clearShipFromBoard(previewBoard, movingShip.shipId);
-                placementOffsets = getShipOffsets(movingShip.shipDef, movingShip.rotation)
-                    .map(([dr, dc]) => ({ r: rootRow + dr, c: rootCol + dc }));
-                canPlace = canPlaceShip(previewBoard, rootRow, rootCol, movingShip.shipDef, movingShip.rotation);
-            }
-        }
-
-        if (!isEnemy && (gameState === 'PLACEMENT' || gameState === 'READY') && invalidRotationPreview && !draggedShip) {
-            placementOffsets = getShipOffsets(
-                invalidRotationPreview.shipDef,
-                invalidRotationPreview.rotation
-            ).map(([dr, dc]) => ({
-                r: invalidRotationPreview.row + dr,
-                c: invalidRotationPreview.col + dc,
-            }));
-            canPlace = false;
-        }
-
-        const shipOverlays = [];
-        const hitOverlays = [];
-        const smokeCells = [];
-        let dragGhostOverlay = null;
-        const sunkShipIds = isEnemy ? enemySunkShipIds : playerShipsSunk;
-        const showAllShips = !isEnemy || gameState === 'GAME_OVER';
-        if (showAllShips || sunkShipIds.length > 0) {
-            board.forEach((row) => {
-                row.forEach((cell) => {
-                    if (!cell.shipRoot) return;
-                    const isShipSunk = sunkShipIds.includes(cell.shipId);
-                    if (!showAllShips && !isShipSunk) return;
-
-                    const spriteUrl = getShipSpriteUrl(cell);
-                    const overlayStyle = getShipOverlayStyle(cell);
-                    const imageStyle = getShipImageStyle(cell);
-                    if (!overlayStyle) return;
-                    shipOverlays.push(
-                        <div
-                            key={`ship-${cell.shipId}`}
-                            data-board-side={boardSide}
-                            data-ship-id={cell.shipId}
-                            className={`pointer-events-none ship-overlay ${
-                                isShipSunk ? "ship-sunk-silhouette" : ""
-                            } ${
-                                !isShipSunk ? "ship-afloat" : ""
-                            } ${
-                                draggedShip?.shipId === cell.shipId ? "ship-drag-source" : ""
-                            } ${
-                                invalidRotationPreview?.shipId === cell.shipId ? "ship-invalid-source" : ""
-                            }`}
-                            style={overlayStyle}
-                        >
-                            {spriteUrl ? (
-                                <img src={spriteUrl} alt="" style={imageStyle} />
-                            ) : (
-                                getFallbackShipCells(board, cell.shipId).map((shipCell) => (
-                                    <div
-                                        key={`${cell.shipId}-${shipCell.row}-${shipCell.col}`}
-                                        className="absolute bg-secondary/30 border border-secondary/40"
-                                        style={{
-                                            left: `calc(${(shipCell.col - (cell.shipOriginCol ?? cell.col))} * (var(--cell-size) + var(--cell-gap)))`,
-                                            top: `calc(${(shipCell.row - (cell.shipOriginRow ?? cell.row))} * (var(--cell-size) + var(--cell-gap)))`,
-                                            width: `var(--cell-size)`,
-                                            height: `var(--cell-size)`,
-                                        }}
-                                    />
-                                ))
-                            )}
-                        </div>
-                    );
-                });
-            });
-        }
-
-        if (!isEnemy && (gameState === 'PLACEMENT' || gameState === 'READY') && invalidRotationPreview && !draggedShip) {
-            const invalidOffsets = getShipOffsets(
-                invalidRotationPreview.shipDef,
-                invalidRotationPreview.rotation
-            );
-            const invalidBounds = getShipBounds(invalidOffsets);
-            const invalidCell = {
-                row: invalidRotationPreview.row,
-                col: invalidRotationPreview.col,
-                shipTypeId: invalidRotationPreview.shipDef.id,
-                shipRotation: invalidRotationPreview.rotation,
-                shipBounds: invalidBounds,
-                shipOriginRow: invalidRotationPreview.row,
-                shipOriginCol: invalidRotationPreview.col,
-            };
-            const invalidSpriteUrl = resolveSpriteUrl(
-                SHIP_SPRITES[invalidRotationPreview.shipDef.id]?.[invalidRotationPreview.rotation]
-            );
-
-            if (invalidSpriteUrl) {
-                shipOverlays.push(
-                    <div
-                        key={`invalid-ship-${invalidRotationPreview.shipId}`}
-                        className="pointer-events-none ship-overlay ship-invalid-placement"
-                        style={getShipOverlayStyle(invalidCell)}
-                    >
-                        <img src={invalidSpriteUrl} alt="" style={getShipImageStyle(invalidCell)} />
-                    </div>
-                );
-            }
-        }
-
-        if (!isEnemy && (gameState === 'PLACEMENT' || gameState === 'READY') && draggedShip && dragPointer) {
-            const offsets = getShipOffsets(draggedShip.shipDef, draggedShip.rotation);
-            const bounds = getShipBounds(offsets);
-            const ghostCell = {
-                row: 0,
-                col: 0,
-                shipTypeId: draggedShip.shipDef.id,
-                shipRotation: draggedShip.rotation,
-                shipBounds: bounds,
-            };
-            const ghostImageStyle = getShipImageStyle(ghostCell);
-            const ghostSpriteUrl = resolveSpriteUrl(
-                SHIP_SPRITES[draggedShip.shipDef.id]?.[draggedShip.rotation]
-            );
-            const ghostWidth = `calc(${bounds.cols} * var(--cell-size) + ${bounds.cols - 1} * var(--cell-gap))`;
-            const ghostHeight = `calc(${bounds.rows} * var(--cell-size) + ${bounds.rows - 1} * var(--cell-gap))`;
-
-            if (ghostSpriteUrl) {
-                dragGhostOverlay = (
-                    <div
-                        className={`ship-drag-ghost ${canPlace ? "is-valid" : "is-invalid"}`}
-                        style={{
-                            position: "fixed",
-                            left: `${dragPointer.x - draggedShip.pointerOffset.x}px`,
-                            top: `${dragPointer.y - draggedShip.pointerOffset.y}px`,
-                            width: ghostWidth,
-                            height: ghostHeight,
-                            overflow: "hidden",
-                        }}
-                    >
-                        <img src={ghostSpriteUrl} alt="" style={ghostImageStyle} />
-                    </div>
-                );
-            }
-        }
-
-        board.forEach((row) => {
-            row.forEach((cell) => {
-                if (!cell.isHit || !cell.hasShip) return;
-                smokeCells.push({ row: cell.row, col: cell.col });
-
-                hitOverlays.push(
-                    <div
-                        key={`hit-${cell.row}-${cell.col}`}
-                        className="shot-effect shot-hit"
-                        style={{
-                            left: `calc(${cell.col} * (var(--cell-size) + var(--cell-gap)))`,
-                            top: `calc(${cell.row} * (var(--cell-size) + var(--cell-gap)))`,
-                            right: "auto",
-                            bottom: "auto",
-                            width: `var(--cell-size)`,
-                            height: `var(--cell-size)`,
-                        }}
-                        aria-hidden="true"
-                    >
-                        <span className="hit-static-mark" />
-                    </div>
-                );
-            });
-        });
-
-        return (
-            <div 
-                className="select-none grid"
-                style={{
-                    gridTemplateColumns: `24px var(--label-gap, 6px) repeat(${BOARD_SIZE}, var(--cell-size))`,
-                    gridTemplateRows: `24px var(--label-gap, 6px) repeat(${BOARD_SIZE}, var(--cell-size))`,
-                    gap: `var(--cell-gap)`,
-                }}
-            >
-                {/* Column Headers (A-J) */}
-                {letters.map((l, colIndex) => (
-                    <div
-                        key={l}
-                        className="flex items-center justify-center text-secondary/70 font-bold text-xs"
-                        style={{
-                            gridRow: 1,
-                            gridColumn: colIndex + 3,
-                        }}
-                    >
-                        {l}
-                    </div>
-                ))}
-
-                {/* Row Headers (1-10) */}
-                {Array.from({ length: BOARD_SIZE }).map((_, rowIndex) => (
-                    <div
-                        key={rowIndex}
-                        className="flex items-center justify-center text-secondary/70 font-bold text-xs"
-                        style={{
-                            gridRow: rowIndex + 3,
-                            gridColumn: 1,
-                        }}
-                    >
-                        {rowIndex + 1}
-                    </div>
-                ))}
-
-                {/* Board Surface */}
-                <div
-                    ref={boardSide === "player" ? playerBoardRef : null}
-                    className={`ocean-board-surface relative ${isMobile && (gameState === 'PLACEMENT' || gameState === 'READY') ? 'touch-none' : ''} ${isEnemy && isShotResolving ? 'pointer-events-none' : ''}`}
-                    style={{ 
-                        gridColumn: `3 / ${BOARD_SIZE + 3}`,
-                        gridRow: `3 / ${BOARD_SIZE + 3}`,
-                        width: `var(--board-size)`, 
-                        height: `var(--board-size)` 
-                    }}
-                >
-                    <div className="absolute inset-0 z-20 pointer-events-none">{shipOverlays}</div>
-                    <div className="absolute inset-0 z-30 pointer-events-none">{dragGhostOverlay}</div>
-                        <div className="absolute inset-0 z-40 pointer-events-none">{hitOverlays}</div>
-                        <BattleEffectsLayer
-                            ref={boardSide === "enemy" ? enemyEffectsRef : playerEffectsRef}
-                            width={GRID_SIZE_PX}
-                            height={GRID_SIZE_PX}
-                            cellSize={CELL_SIZE}
-                            cellGap={CELL_GAP}
-                            boardSide={boardSide}
-                            smokeCells={smokeCells}
-                        />
-                        <div
-                            className="relative z-10 grid"
-                            style={{
-                                gridTemplateColumns: `repeat(${BOARD_SIZE}, var(--cell-size))`,
-                                gridAutoRows: `var(--cell-size)`,
-                                gap: `var(--cell-gap)`,
-                            }}
-                        >
-                            {board.flatMap((row, r) =>
-                                row.map((cell, c) => {
-                                    const isHovered = placementOffsets
-                                        ? placementOffsets.some((pos) => pos.r === r && pos.c === c)
-                                        : false;
-                                    const isCellHit = cell.isHit;
-                                    const isCellMiss = isCellHit && !cell.hasShip;
-                                    const isSunkShipCell = cell.hasShip && sunkShipIds.includes(cell.shipId);
-                                    const playerCellBg = cell.hasShip ? "bg-transparent" : "bg-surface-container/50";
-                                    const baseCellBg = isEnemy
-                                        ? (isSunkShipCell
-                                            ? "bg-transparent"
-                                            : "bg-surface-container hover:bg-white/10")
-                                        : playerCellBg;
-                                    const isDraggableShipCell = !isEnemy
-                                        && (gameState === 'PLACEMENT' || gameState === 'READY')
-                                        && cell.hasShip;
-                                    const cursorClass = draggedShip
-                                        ? "cursor-grabbing"
-                                        : (isDraggableShipCell ? "cursor-grab" : "cursor-pointer");
-
-                                    return (
-                                        <div
-                                            key={`${r}-${c}`}
-                                            data-row={r}
-                                            data-col={c}
-                                            onMouseEnter={() => !isEnemy && handlePlayerCellHover(r, c)}
-                                            onMouseLeave={() => !isEnemy && setHoverCell(null)}
-                                            onContextMenu={(event) => !isEnemy && handlePlayerCellContextMenu(event, r, c)}
-                                            onClick={(event) => isEnemy ? handleEnemyCellClick(r, c) : (!isMobile && handlePlayerCellClick(event, r, c))}
-                                            onTouchStart={(event) => !isEnemy && handleTouchStart(event, r, c)}
-                                            onTouchMove={(event) => !isEnemy && handleTouchMove(event)}
-                                            onTouchEnd={(event) => !isEnemy && handleTouchEnd(event, r, c)}
-                                            className={`ocean-cell relative ${cursorClass} overflow-visible transition-all duration-300 ${baseCellBg} ${
-                                                !isEnemy && cell.hasShip ? "player-ship-cell" : ""
-                                            } ${
-                                                isHovered && draggedShip
-                                                    ? (canPlace ? "drag-target-cell-valid" : "drag-target-cell-invalid")
-                                                    : ""
-                                            } ${
-                                                isHovered && invalidRotationPreview && !draggedShip
-                                                    ? "drag-target-cell-invalid"
-                                                    : ""
-                                            } ${
-                                                isHovered
-                                                    ? (canPlace ? "bg-secondary/50 shadow-[0_0_15px_#a5e7ff]" : "bg-error/50")
-                                                    : ""
-                                            }`}
-                                        >
-                                            {isCellMiss && !cell.autoMarked && (
-                                                <div className={`shot-effect shot-miss ${
-                                                    cell.autoMarked ? "shot-auto-marked" : ""
-                                                }`} aria-hidden="true">
-                                                    <span className="miss-dot" />
-                                                </div>
-                                            )}
-                                        </div>
-                                    );
-                                })
-                            )}
-                    </div>
-                </div>
-            </div>
+        addLog(
+          nextRoom.status === "IN_PROGRESS"
+            ? copy.bothReadyLog
+            : copy.waitingFleetLog,
+          "info",
         );
+      } catch (readyError) {
+        addLog(readyError.message || "Unable to mark fleet ready.", "warning");
+      } finally {
+        setPvpReadyLoading(false);
+      }
+      return;
+    }
+
+    const newEnemyBoard = [
+      ...enemyBoard.map((row) => [...row.map((c) => ({ ...c }))]),
+    ];
+    placeShipsRandomly(newEnemyBoard, shipsToPlace);
+    setEnemyBoard(newEnemyBoard);
+    setSelectedShip(null);
+    setHoverCell(null);
+    setGameState("PLAYER_TURN");
+    setTurnTimer(30);
+    addLog("Battle initiated!", "info");
+    addLog("Your turn started.", "info");
+    setStats((prev) => ({ ...prev, turns: 1 }));
+  };
+
+  const getShipSpriteUrl = (cell) => {
+    if (!cell.shipRoot) return "";
+    const sprite = SHIP_SPRITES[cell.shipTypeId]?.[cell.shipRotation];
+    return resolveSpriteUrl(sprite);
+  };
+
+  const getShipOverlayStyle = (cell) => {
+    if (!cell.shipBounds) return null;
+    const originCol = cell.shipOriginCol ?? cell.col;
+    const originRow = cell.shipOriginRow ?? cell.row;
+
+    return {
+      position: "absolute",
+      left: `calc(${originCol} * (var(--cell-size) + var(--cell-gap)) + ${SHIP_CELL_PADDING}px)`,
+      top: `calc(${originRow} * (var(--cell-size) + var(--cell-gap)) + ${SHIP_CELL_PADDING}px)`,
+      width: `calc(${cell.shipBounds.cols} * var(--cell-size) + ${cell.shipBounds.cols - 1} * var(--cell-gap) - ${SHIP_CELL_PADDING * 2}px)`,
+      height: `calc(${cell.shipBounds.rows} * var(--cell-size) + ${cell.shipBounds.rows - 1} * var(--cell-gap) - ${SHIP_CELL_PADDING * 2}px)`,
+      overflow: "hidden",
+      filter: "drop-shadow(0 0 6px rgba(0, 0, 0, 0.45))",
     };
+  };
+
+  const getShipImageStyle = (cell) => {
+    if (!cell.shipBounds) return null;
+    const rotationDeg = cell.shipRotation || 0;
+    const quarterTurn = rotationDeg === 90 || rotationDeg === 270;
+    const isAngledShip =
+      cell.shipTypeId === "destroyer" || cell.shipTypeId === "zship";
+    const isStraightShip =
+      cell.shipTypeId === "carrier" || cell.shipTypeId === "patrol";
+    const usesVerticalSourceImage =
+      cell.shipTypeId === "carrier" || cell.shipTypeId === "patrol";
+    const straightImageRotation = usesVerticalSourceImage
+      ? rotationDeg + 90
+      : rotationDeg;
+    const isLShip = cell.shipTypeId === "destroyer";
+    const rotatedOffset = isAngledShip
+      ? getAngledShipOffset(cell.shipTypeId, rotationDeg)
+      : { x: 0, y: 0 };
+    const offsetX = rotatedOffset.x;
+    const offsetY = rotatedOffset.y;
+    const scale = isLShip
+      ? L_SHIP_IMAGE_SCALE
+      : isAngledShip
+        ? SHIP_IMAGE_SCALE
+        : 1;
+
+    const wCalc = `calc(${cell.shipBounds.cols} * var(--cell-size) + ${cell.shipBounds.cols - 1} * var(--cell-gap))`;
+    const hCalc = `calc(${cell.shipBounds.rows} * var(--cell-size) + ${cell.shipBounds.rows - 1} * var(--cell-gap))`;
+
+    if (isStraightShip) {
+      const straightQuarterTurn =
+        straightImageRotation === 90 || straightImageRotation === 270;
+      const straightScale = cell.shipTypeId === "patrol" ? 1.5 : 1;
+      const isVerticalPatrol =
+        cell.shipTypeId === "patrol" && rotationDeg === 90;
+      const straightOffsetX = isVerticalPatrol
+        ? PATROL_VERTICAL_IMAGE_OFFSET_X
+        : cell.shipTypeId === "patrol"
+          ? PATROL_IMAGE_OFFSET_X
+          : 0;
+      const straightOffsetY = isVerticalPatrol
+        ? PATROL_VERTICAL_IMAGE_OFFSET_Y
+        : cell.shipTypeId === "patrol"
+          ? PATROL_IMAGE_OFFSET_Y
+          : 0;
+      return {
+        position: "absolute",
+        left: straightQuarterTurn ? `calc((${wCalc} - ${hCalc}) / 2)` : "0",
+        top: straightQuarterTurn ? `calc((${hCalc} - ${wCalc}) / 2)` : "0",
+        width: straightQuarterTurn ? hCalc : "100%",
+        height: straightQuarterTurn ? wCalc : "100%",
+        objectFit: "cover",
+        objectPosition: "center",
+        transform: `translate(${straightOffsetX}px, ${straightOffsetY}px) rotate(${straightImageRotation}deg) scale(${straightScale})`,
+        transformOrigin: "center",
+        imageRendering: "auto",
+        maxWidth: "none",
+      };
+    }
+
+    return {
+      position: "absolute",
+      left: quarterTurn ? `calc((${wCalc} - ${hCalc}) / 2)` : "0",
+      top: quarterTurn ? `calc((${hCalc} - ${wCalc}) / 2)` : "0",
+      width: quarterTurn ? hCalc : "100%",
+      height: quarterTurn ? wCalc : "100%",
+      objectFit: isAngledShip ? "cover" : "fill",
+      objectPosition: "center",
+      transform: `translate(${offsetX}px, ${offsetY}px) rotate(${rotationDeg}deg) scale(${scale})`,
+      transformOrigin: "center",
+      maxWidth: "none",
+    };
+  };
+
+  const getFallbackShipCells = (board, shipId) => {
+    const cells = [];
+    board.forEach((row) => {
+      row.forEach((cell) => {
+        if (cell.shipId === shipId) cells.push(cell);
+      });
+    });
+    return cells;
+  };
+
+  const renderBoard = (board, isEnemy, boardSide) => {
+    const letters = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"];
+    const previewShip = currentShip;
+    const previewRotation = rotation;
+    let placementOffsets = null;
+    let canPlace = false;
+
+    if (
+      !isEnemy &&
+      hoverCell &&
+      (gameState === "PLACEMENT" || gameState === "READY")
+    ) {
+      const movingShip = draggedShip || selectedShip;
+
+      if (movingShip) {
+        const rootRow = draggedShip
+          ? hoverCell.r - draggedShip.grabOffset.row
+          : hoverCell.r;
+        const rootCol = draggedShip
+          ? hoverCell.c - draggedShip.grabOffset.col
+          : hoverCell.c;
+        const previewBoard = cloneBoard(board);
+
+        clearShipFromBoard(previewBoard, movingShip.shipId);
+        placementOffsets = getShipOffsets(
+          movingShip.shipDef,
+          movingShip.rotation,
+        ).map(([dr, dc]) => ({ r: rootRow + dr, c: rootCol + dc }));
+        canPlace = canPlaceShip(
+          previewBoard,
+          rootRow,
+          rootCol,
+          movingShip.shipDef,
+          movingShip.rotation,
+        );
+      }
+    }
+
+    if (
+      !isEnemy &&
+      (gameState === "PLACEMENT" || gameState === "READY") &&
+      invalidRotationPreview &&
+      !draggedShip
+    ) {
+      placementOffsets = getShipOffsets(
+        invalidRotationPreview.shipDef,
+        invalidRotationPreview.rotation,
+      ).map(([dr, dc]) => ({
+        r: invalidRotationPreview.row + dr,
+        c: invalidRotationPreview.col + dc,
+      }));
+      canPlace = false;
+    }
+
+    const shipOverlays = [];
+    const hitOverlays = [];
+    const smokeCells = [];
+    let dragGhostOverlay = null;
+    const sunkShipIds = isEnemy ? enemySunkShipIds : playerShipsSunk;
+    const showAllShips = !isEnemy || gameState === "GAME_OVER";
+    if (showAllShips || sunkShipIds.length > 0) {
+      board.forEach((row) => {
+        row.forEach((cell) => {
+          if (!cell.shipRoot) return;
+          const isShipSunk = sunkShipIds.includes(cell.shipId);
+          if (!showAllShips && !isShipSunk) return;
+
+          const spriteUrl = getShipSpriteUrl(cell);
+          const overlayStyle = getShipOverlayStyle(cell);
+          const imageStyle = getShipImageStyle(cell);
+          if (!overlayStyle) return;
+          shipOverlays.push(
+            <div
+              key={`ship-${cell.shipId}`}
+              data-board-side={boardSide}
+              data-ship-id={cell.shipId}
+              className={`pointer-events-none ship-overlay ${
+                isShipSunk ? "ship-sunk-silhouette" : ""
+              } ${!isShipSunk ? "ship-afloat" : ""} ${
+                draggedShip?.shipId === cell.shipId ? "ship-drag-source" : ""
+              } ${
+                invalidRotationPreview?.shipId === cell.shipId
+                  ? "ship-invalid-source"
+                  : ""
+              }`}
+              style={overlayStyle}
+            >
+              {spriteUrl ? (
+                <img src={spriteUrl} alt="" style={imageStyle} />
+              ) : (
+                getFallbackShipCells(board, cell.shipId).map((shipCell) => (
+                  <div
+                    key={`${cell.shipId}-${shipCell.row}-${shipCell.col}`}
+                    className="absolute bg-secondary/30 border border-secondary/40"
+                    style={{
+                      left: `calc(${shipCell.col - (cell.shipOriginCol ?? cell.col)} * (var(--cell-size) + var(--cell-gap)))`,
+                      top: `calc(${shipCell.row - (cell.shipOriginRow ?? cell.row)} * (var(--cell-size) + var(--cell-gap)))`,
+                      width: `var(--cell-size)`,
+                      height: `var(--cell-size)`,
+                    }}
+                  />
+                ))
+              )}
+            </div>,
+          );
+        });
+      });
+    }
+
+    if (
+      !isEnemy &&
+      (gameState === "PLACEMENT" || gameState === "READY") &&
+      invalidRotationPreview &&
+      !draggedShip
+    ) {
+      const invalidOffsets = getShipOffsets(
+        invalidRotationPreview.shipDef,
+        invalidRotationPreview.rotation,
+      );
+      const invalidBounds = getShipBounds(invalidOffsets);
+      const invalidCell = {
+        row: invalidRotationPreview.row,
+        col: invalidRotationPreview.col,
+        shipTypeId: invalidRotationPreview.shipDef.id,
+        shipRotation: invalidRotationPreview.rotation,
+        shipBounds: invalidBounds,
+        shipOriginRow: invalidRotationPreview.row,
+        shipOriginCol: invalidRotationPreview.col,
+      };
+      const invalidSpriteUrl = resolveSpriteUrl(
+        SHIP_SPRITES[invalidRotationPreview.shipDef.id]?.[
+          invalidRotationPreview.rotation
+        ],
+      );
+
+      if (invalidSpriteUrl) {
+        shipOverlays.push(
+          <div
+            key={`invalid-ship-${invalidRotationPreview.shipId}`}
+            className="pointer-events-none ship-overlay ship-invalid-placement"
+            style={getShipOverlayStyle(invalidCell)}
+          >
+            <img
+              src={invalidSpriteUrl}
+              alt=""
+              style={getShipImageStyle(invalidCell)}
+            />
+          </div>,
+        );
+      }
+    }
+
+    if (
+      !isEnemy &&
+      (gameState === "PLACEMENT" || gameState === "READY") &&
+      draggedShip &&
+      dragPointer
+    ) {
+      const offsets = getShipOffsets(draggedShip.shipDef, draggedShip.rotation);
+      const bounds = getShipBounds(offsets);
+      const ghostCell = {
+        row: 0,
+        col: 0,
+        shipTypeId: draggedShip.shipDef.id,
+        shipRotation: draggedShip.rotation,
+        shipBounds: bounds,
+      };
+      const ghostImageStyle = getShipImageStyle(ghostCell);
+      const ghostSpriteUrl = resolveSpriteUrl(
+        SHIP_SPRITES[draggedShip.shipDef.id]?.[draggedShip.rotation],
+      );
+      const ghostWidth = `calc(${bounds.cols} * var(--cell-size) + ${bounds.cols - 1} * var(--cell-gap))`;
+      const ghostHeight = `calc(${bounds.rows} * var(--cell-size) + ${bounds.rows - 1} * var(--cell-gap))`;
+
+      if (ghostSpriteUrl) {
+        dragGhostOverlay = (
+          <div
+            className={`ship-drag-ghost ${canPlace ? "is-valid" : "is-invalid"}`}
+            style={{
+              position: "fixed",
+              left: `${dragPointer.x - draggedShip.pointerOffset.x}px`,
+              top: `${dragPointer.y - draggedShip.pointerOffset.y}px`,
+              width: ghostWidth,
+              height: ghostHeight,
+              overflow: "hidden",
+            }}
+          >
+            <img src={ghostSpriteUrl} alt="" style={ghostImageStyle} />
+          </div>
+        );
+      }
+    }
+
+    board.forEach((row) => {
+      row.forEach((cell) => {
+        if (!cell.isHit || !cell.hasShip) return;
+        smokeCells.push({ row: cell.row, col: cell.col });
+
+        hitOverlays.push(
+          <div
+            key={`hit-${cell.row}-${cell.col}`}
+            className="shot-effect shot-hit"
+            style={{
+              left: `calc(${cell.col} * (var(--cell-size) + var(--cell-gap)))`,
+              top: `calc(${cell.row} * (var(--cell-size) + var(--cell-gap)))`,
+              right: "auto",
+              bottom: "auto",
+              width: `var(--cell-size)`,
+              height: `var(--cell-size)`,
+            }}
+            aria-hidden="true"
+          >
+            <span className="hit-static-mark" />
+          </div>,
+        );
+      });
+    });
 
     return (
-        <div className="game-shell bg-background text-on-background font-body-md min-h-screen selection:bg-secondary/30 flex flex-col">
-            <header className="w-full top-0 sticky z-50 border-b border-white/5 bg-surface/40 backdrop-blur-xl shadow-[0_0_20px_rgba(0,210,255,0.1)]">
-                <div className="flex justify-between items-center w-full px-gutter max-w-[1440px] mx-auto h-12">
-                    <Link
-                        to="/"
-                        onClick={(event) => {
-                            if (!shouldConfirmPvpExit()) return;
-                            event.preventDefault();
-                            requestGameExit("/");
-                        }}
-                        className="font-display-lg text-[20px] font-black text-secondary tracking-tighter uppercase hover:text-white transition-colors truncate"
-                    >
-                        {isMobile ? "BATTLESHIP" : "Cloud Battleship Arena"}
-                    </Link>
-                    <div className="flex items-center gap-4">
-                        {isPvpMode ? (
-                            <button
-                                onClick={(event) => {
-                                    if (!shouldConfirmPvpExit()) {
-                                        navigate("/");
-                                        return;
-                                    }
-                                    event.preventDefault();
-                                    requestGameExit("/");
-                                }}
-                                className="text-[10px] uppercase font-bold text-error bg-error/10 px-3 py-1.5 rounded-sm border border-error/20 hover:bg-error/20 hover:text-red-400 transition-colors"
-                            >
-                                {copy.leave || "Leave Match"}
-                            </button>
-                        ) : (
-                            <span className="text-[10px] uppercase font-bold text-secondary bg-secondary/10 px-2 py-1 rounded-sm border border-secondary/20">
-                                Difficulty: {difficulty}
-                            </span>
-                        )}
-                        <Link
-                            to="/"
-                            onClick={(event) => {
-                                if (!shouldConfirmPvpExit()) return;
-                                event.preventDefault();
-                                requestGameExit("/");
-                            }}
-                            className="material-symbols-outlined text-on-surface-variant hover:text-secondary active:scale-95 transition-all p-2 rounded-full hover:bg-white/5"
-                        >
-                            home
-                        </Link>
-                    </div>
-                </div>
-            </header>
+      <div
+        className="select-none grid"
+        style={{
+          gridTemplateColumns: `24px var(--label-gap, 6px) repeat(${BOARD_SIZE}, var(--cell-size))`,
+          gridTemplateRows: `24px var(--label-gap, 6px) repeat(${BOARD_SIZE}, var(--cell-size))`,
+          gap: `var(--cell-gap)`,
+        }}
+      >
+        {/* Column Headers (A-J) */}
+        {letters.map((l, colIndex) => (
+          <div
+            key={l}
+            className="flex items-center justify-center text-secondary/70 font-bold text-xs"
+            style={{
+              gridRow: 1,
+              gridColumn: colIndex + 3,
+            }}
+          >
+            {l}
+          </div>
+        ))}
 
-            <main className="game-main flex-1 w-full max-w-[1440px] mx-auto px-gutter flex flex-col lg:flex-row">
-                
-                {/* Boards Section */}
-                <div className="game-board-column flex-1 flex flex-col">
-                    {/* Status Header */}
-                    <div className="game-status glass-card rounded-xl border border-white/10 flex justify-between items-center">
-                        <div>
-                            <h2 className="font-display-lg text-base md:text-xl uppercase tracking-widest text-on-surface">
-                                {gameState === 'PLACEMENT' || gameState === 'READY' ? "Deploy Your Fleet" : "Sector Command"}
-                            </h2>
-                            <p className="text-on-surface-variant text-xs md:text-sm mt-1 hidden md:block">
-                                {gameState === 'PLACEMENT' && (
-                                    isWaitingForOpponentFleet
-                                        ? copy.waitingFleetLog
-                                        : unplacedShipIds.length > 0
-                                        ? "Drag ships from staging onto your map. Right-click to rotate."
-                                        : "Formation complete. Adjust ships, auto-arrange again, or press Ready."
-                                )}
-                                {gameState === 'READY' && (selectedShip
-                                    ? "Move the selected ship or right-click to rotate it, then press Ready."
-                                    : "Select any ship to move or rotate it, then press Ready.")}
-                                {gameState === 'PLAYER_TURN' && (
-                                    isPvpMode
-                                        ? <span className="text-secondary glow-text">
-                                            {getPvpStatusText()}
-                                        </span>
-                                        : <span className="text-secondary glow-text">Your turn! Target enemy waters.</span>
-                                )}
-                                {gameState === 'BOT_TURN' && <span className="text-error">Enemy is firing! Brace for impact!</span>}
-                                {gameState === 'GAME_OVER' && (winner === 'PLAYER' ? <span className="text-green-400">Sector Secured!</span> : <span className="text-error">Fleet Annihilated!</span>)}
-                            </p>
-                        </div>
-                        {(gameState === 'PLACEMENT' || gameState === 'READY') && unplacedShipIds.length === 0 && (
-                            <button
-                                onClick={beginBattle}
-                                disabled={Boolean(invalidRotationPreview) || unplacedShipIds.length > 0 || Boolean(draggedShip) || pvpReadyLoading || isWaitingForOpponentFleet}
-                                className={`font-bold px-4 py-1.5 md:px-8 md:py-2 text-sm md:text-base rounded-sm transition-all tracking-widest ${
-                                    (invalidRotationPreview || draggedShip || pvpReadyLoading || isWaitingForOpponentFleet)
-                                        ? "bg-surface-container text-on-surface-variant/40 cursor-not-allowed opacity-50"
-                                        : "bg-secondary text-on-secondary-fixed hover:bg-secondary-container active:scale-95"
-                                }`}
-                            >
-                                {pvpReadyLoading ? copy.syncing : isWaitingForOpponentFleet ? copy.waitingPlayer : copy.ready}
-                            </button>
-                        )}
-                        {!isPvpMode && (gameState === 'PLAYER_TURN' || gameState === 'BOT_TURN') && (
-                            <div className="text-center">
-                                <span className="text-[10px] text-on-surface-variant uppercase font-bold tracking-widest">Time</span>
-                                <div className={`text-3xl font-black ${turnTimer <= 10 ? 'text-error animate-pulse' : 'text-secondary'}`}>
-                                    {turnTimer}s
-                                </div>
-                            </div>
-                        )}
-                    </div>
+        {/* Row Headers (1-10) */}
+        {Array.from({ length: BOARD_SIZE }).map((_, rowIndex) => (
+          <div
+            key={rowIndex}
+            className="flex items-center justify-center text-secondary/70 font-bold text-xs"
+            style={{
+              gridRow: rowIndex + 3,
+              gridColumn: 1,
+            }}
+          >
+            {rowIndex + 1}
+          </div>
+        ))}
 
-                    {/* Battle Tabs for Mobile */}
-                    {isMobile && gameState !== 'PLACEMENT' && gameState !== 'READY' && (
-                        <div className="flex w-full justify-center gap-2 mb-2 px-4">
-                            <button
-                                onClick={() => setActiveBattleTab("enemy")}
-                                className={`flex-1 py-2 px-4 rounded-lg font-bold tracking-widest text-sm transition-all border ${
-                                    activeBattleTab === "enemy" 
-                                        ? "bg-error/20 text-error border-error shadow-[0_0_15px_rgba(255,0,0,0.2)]" 
-                                        : "bg-surface-container border-white/10 text-on-surface-variant"
-                                }`}
-                            >
-                                ENEMY WATERS
-                            </button>
-                            <button
-                                onClick={() => setActiveBattleTab("fleet")}
-                                className={`flex-1 py-2 px-4 rounded-lg font-bold tracking-widest text-sm transition-all border ${
-                                    activeBattleTab === "fleet" 
-                                        ? "bg-secondary/20 text-secondary border-secondary shadow-[0_0_15px_rgba(0,210,255,0.2)]" 
-                                        : "bg-surface-container border-white/10 text-on-surface-variant"
-                                }`}
-                            >
-                                YOUR FLEET
-                            </button>
-                        </div>
+        {/* Board Surface */}
+        <div
+          ref={boardSide === "player" ? playerBoardRef : null}
+          className={`ocean-board-surface relative ${isMobile && (gameState === "PLACEMENT" || gameState === "READY") ? "touch-none" : ""} ${isEnemy && isShotResolving ? "pointer-events-none" : ""}`}
+          style={{
+            gridColumn: `3 / ${BOARD_SIZE + 3}`,
+            gridRow: `3 / ${BOARD_SIZE + 3}`,
+            width: `var(--board-size)`,
+            height: `var(--board-size)`,
+          }}
+        >
+          <div className="absolute inset-0 z-20 pointer-events-none">
+            {shipOverlays}
+          </div>
+          <div className="absolute inset-0 z-30 pointer-events-none">
+            {dragGhostOverlay}
+          </div>
+          <div className="absolute inset-0 z-40 pointer-events-none">
+            {hitOverlays}
+          </div>
+          <BattleEffectsLayer
+            ref={boardSide === "enemy" ? enemyEffectsRef : playerEffectsRef}
+            width={GRID_SIZE_PX}
+            height={GRID_SIZE_PX}
+            cellSize={CELL_SIZE}
+            cellGap={CELL_GAP}
+            boardSide={boardSide}
+            smokeCells={smokeCells}
+          />
+          <div
+            className="relative z-10 grid"
+            style={{
+              gridTemplateColumns: `repeat(${BOARD_SIZE}, var(--cell-size))`,
+              gridAutoRows: `var(--cell-size)`,
+              gap: `var(--cell-gap)`,
+            }}
+          >
+            {board.flatMap((row, r) =>
+              row.map((cell, c) => {
+                const isHovered = placementOffsets
+                  ? placementOffsets.some((pos) => pos.r === r && pos.c === c)
+                  : false;
+                const isCellHit = cell.isHit;
+                const isCellMiss = isCellHit && !cell.hasShip;
+                const isSunkShipCell =
+                  cell.hasShip && sunkShipIds.includes(cell.shipId);
+                const playerCellBg = cell.hasShip
+                  ? "bg-transparent"
+                  : "bg-surface-container/50";
+                const baseCellBg = isEnemy
+                  ? isSunkShipCell
+                    ? "bg-transparent"
+                    : "bg-surface-container hover:bg-white/10"
+                  : playerCellBg;
+                const isDraggableShipCell =
+                  !isEnemy &&
+                  (gameState === "PLACEMENT" || gameState === "READY") &&
+                  cell.hasShip;
+                const cursorClass = draggedShip
+                  ? "cursor-grabbing"
+                  : isDraggableShipCell
+                    ? "cursor-grab"
+                    : "cursor-pointer";
+
+                return (
+                  <div
+                    key={`${r}-${c}`}
+                    data-row={r}
+                    data-col={c}
+                    onMouseEnter={() => !isEnemy && handlePlayerCellHover(r, c)}
+                    onMouseLeave={() => !isEnemy && setHoverCell(null)}
+                    onContextMenu={(event) =>
+                      !isEnemy && handlePlayerCellContextMenu(event, r, c)
+                    }
+                    onClick={(event) =>
+                      isEnemy
+                        ? handleEnemyCellClick(r, c)
+                        : !isMobile && handlePlayerCellClick(event, r, c)
+                    }
+                    onTouchStart={(event) =>
+                      !isEnemy && handleTouchStart(event, r, c)
+                    }
+                    onTouchMove={(event) => !isEnemy && handleTouchMove(event)}
+                    onTouchEnd={(event) =>
+                      !isEnemy && handleTouchEnd(event, r, c)
+                    }
+                    className={`ocean-cell relative ${cursorClass} overflow-visible transition-all duration-300 ${baseCellBg} ${
+                      !isEnemy && cell.hasShip ? "player-ship-cell" : ""
+                    } ${
+                      isHovered && draggedShip
+                        ? canPlace
+                          ? "drag-target-cell-valid"
+                          : "drag-target-cell-invalid"
+                        : ""
+                    } ${
+                      isHovered && invalidRotationPreview && !draggedShip
+                        ? "drag-target-cell-invalid"
+                        : ""
+                    } ${
+                      isHovered
+                        ? canPlace
+                          ? "bg-secondary/50 shadow-[0_0_15px_#a5e7ff]"
+                          : "bg-error/50"
+                        : ""
+                    }`}
+                  >
+                    {isCellMiss && !cell.autoMarked && (
+                      <div
+                        className={`shot-effect shot-miss ${
+                          cell.autoMarked ? "shot-auto-marked" : ""
+                        }`}
+                        aria-hidden="true"
+                      >
+                        <span className="miss-dot" />
+                      </div>
                     )}
-
-                    <div className="game-boards flex flex-col lg:flex-row justify-center items-center lg:items-start w-full relative">
-                        {/* Player Board */}
-                        <div className={`battle-board-section flex flex-col items-center ${isMobile && gameState !== 'PLACEMENT' && gameState !== 'READY' && activeBattleTab !== 'fleet' ? 'hidden lg:flex' : ''}`}>
-                            <div className="board-heading">
-                                {(!isMobile || gameState === 'PLACEMENT' || gameState === 'READY') && (
-                                    <h3 className="font-bold text-secondary tracking-widest uppercase mb-1">Your Fleet</h3>
-                                )}
-                                {gameState !== 'PLACEMENT'
-                                    ? renderFleetStatus(playerSunkShipTypeIds)
-                                    : <div className="fleet-image-panel fleet-image-panel-placeholder" aria-hidden="true" />}
-                            </div>
-                            {isMobile && (gameState === 'PLACEMENT' || gameState === 'READY') && (
-                                <div className="mobile-fleet-footprints flex overflow-x-auto overflow-y-visible py-2 px-2 gap-[40px] w-full justify-center items-center min-h-[40px] mb-2">
-                                    {shipsToPlace.map((shipDef) => {
-                                        const activeShipTypeId = draggedShip?.shipDef?.id || selectedShip?.shipDef?.id;
-                                        const isActive = activeShipTypeId === shipDef.id;
-                                        const offsets = getShipOffsets(shipDef, shipDef.rotations[0]);
-                                        const bounds = getShipBounds(offsets);
-                                        const minRow = Math.min(...offsets.map(o => o[0]));
-                                        const minCol = Math.min(...offsets.map(o => o[1]));
-                                        return (
-                                            <div 
-                                                key={shipDef.id} 
-                                                className="grid flex-shrink-0 transition-all duration-300"
-                                                style={{ 
-                                                    gridTemplateColumns: `repeat(${bounds.cols}, 7px)`,
-                                                    gridTemplateRows: `repeat(${bounds.rows}, 7px)`,
-                                                    gap: '2px',
-                                                    opacity: isActive ? 1 : 0.65,
-                                                    transform: isActive ? 'scale(1.12)' : 'scale(1)',
-                                                    filter: isActive ? 'drop-shadow(0 0 8px rgba(142, 235, 255, 0.9))' : 'none',
-                                                }}
-                                            >
-                                                {offsets.map((pos, idx) => (
-                                                    <div 
-                                                        key={idx}
-                                                        style={{
-                                                            gridColumn: (pos[1] - minCol) + 1,
-                                                            gridRow: (pos[0] - minRow) + 1,
-                                                            width: '7px',
-                                                            height: '7px',
-                                                            background: '#8EEBFF',
-                                                            border: '1px solid rgba(142, 235, 255, 0.8)',
-                                                            boxShadow: '0 0 6px rgba(142, 235, 255, 0.75)',
-                                                            borderRadius: '1px',
-                                                        }}
-                                                    />
-                                                ))}
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            )}
-                            {renderBoard(playerBoard, false, "player")}
-                        </div>
-                        
-                        {/* Enemy Board */}
-                        <div className={`battle-board-section flex flex-col items-center ${isMobile && gameState !== 'PLACEMENT' && gameState !== 'READY' && activeBattleTab !== 'enemy' ? 'hidden lg:flex' : ''}`}>
-                            {gameState === 'PLACEMENT' ? (
-                                isMobile ? (
-                                    <div className="w-full mt-4 max-w-[430px]">
-                                        <button
-                                            type="button"
-                                            className="auto-arrange-button"
-                                            onClick={autoArrangeFleet}
-                                            disabled={isPlacementLocked}
-                                        >
-                                            <span className="material-symbols-outlined" aria-hidden="true">auto_fix_high</span>
-                                            AUTO ARRANGE
-                                        </button>
-                                    </div>
-                                ) : (
-                                    <div className="deployment-dock" style={{ '--cell-size': `${CELL_SIZE}px`, '--cell-gap': `${CELL_GAP}px` }}>
-                                        <div className="deployment-dock-heading">
-                                            <h3 className="font-bold text-error tracking-widest uppercase">Fleet Staging</h3>
-                                            <span>{unplacedShipIds.length} ships remaining</span>
-                                        </div>
-                                        <div className="deployment-ship-grid">
-                                            {shipsToPlace.map((shipDef) => {
-                                                const isPlaced = !unplacedShipIds.includes(shipDef.id);
-                                                const trayRotation = trayRotations[shipDef.id] ?? shipDef.rotations[0];
-                                                const trayOffsets = getShipOffsets(shipDef, trayRotation);
-                                                const trayBounds = getShipBounds(trayOffsets);
-                                                const trayCell = {
-                                                    row: 0,
-                                                    col: 0,
-                                                    shipTypeId: shipDef.id,
-                                                    shipRotation: trayRotation,
-                                                    shipBounds: trayBounds,
-                                                };
-                                                const trayWidth = (trayBounds.cols * CELL_SIZE)
-                                                    + ((trayBounds.cols - 1) * CELL_GAP);
-                                                const trayHeight = (trayBounds.rows * CELL_SIZE)
-                                                    + ((trayBounds.rows - 1) * CELL_GAP);
-                                                const spriteUrl = resolveSpriteUrl(
-                                                    SHIP_SPRITES[shipDef.id]?.[trayRotation]
-                                                );
-
-                                                return (
-                                                    <div
-                                                        key={shipDef.id}
-                                                        className={`deployment-ship-card deployment-${shipDef.id} ${
-                                                            isPlaced ? "is-placed" : ""
-                                                        } ${
-                                                            isPlacementLocked ? "is-locked" : ""
-                                                        }`}
-                                                        onClick={(event) => {
-                                                            if (!isPlaced) handleTrayShipClick(event, shipDef);
-                                                        }}
-                                                        onContextMenu={(event) => {
-                                                            if (!isPlaced) handleTrayShipContextMenu(event, shipDef);
-                                                            else event.preventDefault();
-                                                        }}
-                                                    >
-                                                        <div className="deployment-ship-meta">
-                                                            <span className="deployment-ship-label">{shipDef.label}</span>
-                                                            <span className="deployment-ship-size">{shipDef.size} cells</span>
-                                                            <span
-                                                                className="deployment-footprint"
-                                                                style={{
-                                                                    gridTemplateColumns: `repeat(${trayBounds.cols}, 7px)`,
-                                                                    gridTemplateRows: `repeat(${trayBounds.rows}, 7px)`,
-                                                                }}
-                                                                aria-label={`${shipDef.label} occupies ${shipDef.size} cells`}
-                                                            >
-                                                                {trayOffsets.map(([row, col]) => (
-                                                                    <span
-                                                                        key={`${row}-${col}`}
-                                                                        className="deployment-footprint-cell"
-                                                                        style={{
-                                                                            gridRow: row + 1,
-                                                                            gridColumn: col + 1,
-                                                                        }}
-                                                                    />
-                                                                ))}
-                                                            </span>
-                                                        </div>
-                                                        <div className="deployment-ship-stage">
-                                                            {!isPlaced && spriteUrl ? (
-                                                                <div
-                                                                    className="deployment-ship-preview"
-                                                                    style={{
-                                                                        width: `${trayWidth}px`,
-                                                                        height: `${trayHeight}px`,
-                                                                    }}
-                                                                >
-                                                                    <img
-                                                                        src={spriteUrl}
-                                                                        alt={shipDef.label}
-                                                                        style={getShipImageStyle(trayCell)}
-                                                                    />
-                                                                </div>
-                                                            ) : (
-                                                                <span className="deployment-placed-mark">Deployed</span>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                        <button
-                                            type="button"
-                                            className="auto-arrange-button"
-                                            onClick={autoArrangeFleet}
-                                            disabled={isPlacementLocked}
-                                        >
-                                            <span className="material-symbols-outlined" aria-hidden="true">auto_fix_high</span>
-                                            AUTO ARRANGE
-                                        </button>
-                                    </div>
-                                )
-                            ) : (
-                                <>
-                                    <div className="board-heading enemy-board-heading">
-                                        {(!isMobile || gameState === 'PLACEMENT' || gameState === 'READY') && (
-                                            <h3 className="font-bold text-error tracking-widest uppercase mb-1">
-                                                {gameState === 'READY' ? "Enemy Waters (Scanning...)" : "Enemy Waters"}
-                                            </h3>
-                                        )}
-
-                                        {renderFleetStatus(enemyShipsSunk, gameState === 'READY')}
-                                    </div>
-
-                                    <div className={`transition-opacity duration-700 ${gameState === 'READY' ? 'opacity-20 pointer-events-none' : 'opacity-100'}`}>
-                                        {renderBoard(enemyBoard, true, "enemy")}
-                                    </div>
-                                </>
-                            )}
-                        </div>
-
-                        {sunkEffect && (
-                            <div className={`sunk-announcement ${
-                                sunkEffect.boardSide === "enemy"
-                                    ? "sunk-announcement-victory"
-                                    : "sunk-announcement-danger"
-                            }`}>
-                                <span className="sunk-announcement-line" />
-                                <strong>
-                                    {sunkEffect.boardSide === "enemy" ? "ENEMY" : "YOUR"}{" "}
-                                    {sunkEffect.shipLabel.toUpperCase()} SUNK!
-                                </strong>
-                                <span className="sunk-announcement-line" />
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Mini Battle Log for Mobile */}
-                    {isMobile && gameState !== 'PLACEMENT' && gameState !== 'READY' && (
-                        <div className="mobile-mini-battle-log mx-4">
-                            <div className={`mini-turn-status text-center ${
-                                gameState === "PLAYER_TURN" ? "text-secondary shadow-secondary/50 drop-shadow-md" :
-                                gameState === "BOT_TURN" ? "text-error shadow-error/50 drop-shadow-md" : 
-                                "text-yellow-400"
-                            }`}>
-                                {gameState === "PLAYER_TURN" ? "YOUR TURN" : 
-                                 gameState === "BOT_TURN" ? "ENEMY TURN" : 
-                                 "GAME OVER"}
-                            </div>
-
-                            <div className="mini-log-list flex flex-col gap-1 items-center text-on-surface-variant mt-2">
-                                {logs.filter(log => ['player_hit', 'player_miss', 'enemy_hit', 'enemy_miss', 'destroy'].includes(log.type)).slice(-2).map((log) => (
-                                    <div key={log.id} className="mini-log-item truncate w-full text-center">
-                                        {log.msg}
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-                </div>
-
-                {/* Battle Log Section */}
-                {!isMobile && (
-                    <div className="game-log-column w-full lg:w-[350px] flex flex-col gap-4">
-                        <div className="glass-card flex-1 flex flex-col rounded-xl overflow-hidden border border-white/10 min-h-[300px] lg:max-h-[600px]">
-                            <div className="p-4 border-b border-white/5 bg-white/5">
-                                <h3 className="font-bold text-on-surface uppercase tracking-widest flex items-center gap-2">
-                                    <span className="material-symbols-outlined text-[18px]">receipt_long</span>
-                                    Battle Log
-                                </h3>
-                            </div>
-                            <div 
-                                ref={logContainerRef}
-                                className="flex-1 p-4 overflow-y-auto flex flex-col gap-2 font-mono text-xs"
-                            >
-                                {logs.map(log => (
-                                    <div key={log.id} className={`p-2 rounded-sm border-l-2 ${
-                                        log.type === 'player_hit' ? 'bg-secondary/20 border-secondary text-secondary font-bold' :
-                                        log.type === 'player_miss' ? 'bg-secondary/5 border-secondary/30 text-secondary/70' :
-                                        log.type === 'enemy_hit' ? 'bg-error/20 border-error text-error font-bold' :
-                                        log.type === 'enemy_miss' ? 'bg-error/5 border-error/30 text-error/70' :
-                                        log.type === 'destroy' ? 'bg-green-500/20 border-green-500 text-green-400 font-bold glow-text' :
-                                        log.type === 'defeat' ? 'bg-error/30 border-error text-error font-bold glow-text-error' :
-                                        log.type === 'victory' ? 'bg-yellow-500/20 border-yellow-500 text-yellow-400 font-bold glow-text' :
-                                        log.type === 'warning' ? 'bg-orange-500/10 border-orange-500 text-orange-400' :
-                                        'bg-surface-container border-white/10 text-on-surface'
-                                    } animate-fade-in`}>
-                                        {log.msg}
-                                    </div>
-                                ))}
-                                {logs.length === 0 && (
-                                    <div className="text-on-surface-variant italic text-center mt-4 opacity-50">Awaiting deployment...</div>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                )}
-            </main>
-
-            {isMobile && (
-                <>
-                    <button
-                        className="fixed bottom-4 right-4 z-50 w-14 h-14 bg-secondary text-on-secondary-fixed rounded-full shadow-lg flex items-center justify-center active:scale-95 transition-all hover:scale-105"
-                        onClick={() => setShowMobileLog(true)}
-                        aria-label="Open Battle Log"
-                    >
-                        <span className="material-symbols-outlined text-2xl">receipt_long</span>
-                    </button>
-                    {showMobileLog && (
-                        <div className="fixed inset-x-0 bottom-0 z-[100] bg-surface border-t border-white/10 rounded-t-2xl shadow-[0_-10px_40px_rgba(0,0,0,0.5)] flex flex-col max-h-[45vh] min-h-[40vh] transform transition-transform animate-slide-up">
-                            <div className="flex justify-between items-center p-4 border-b border-white/5 bg-surface-container">
-                                <h3 className="font-bold text-on-surface uppercase tracking-widest flex items-center gap-2">
-                                    <span className="material-symbols-outlined text-[18px]">receipt_long</span>
-                                    Battle Log
-                                </h3>
-                                <button onClick={() => setShowMobileLog(false)} className="text-on-surface-variant hover:text-on-surface transition-colors p-2 -mr-2">
-                                    <span className="material-symbols-outlined">close</span>
-                                </button>
-                            </div>
-                            <div 
-                                ref={logContainerRef}
-                                className="flex-1 p-4 overflow-y-auto flex flex-col gap-2 font-mono text-xs bg-background"
-                            >
-                                {logs.slice(-10).map(log => (
-                                    <div key={log.id} className={`p-2 rounded-sm border-l-2 ${
-                                        log.type === 'player_hit' ? 'bg-secondary/20 border-secondary text-secondary font-bold' :
-                                        log.type === 'player_miss' ? 'bg-secondary/5 border-secondary/30 text-secondary/70' :
-                                        log.type === 'enemy_hit' ? 'bg-error/20 border-error text-error font-bold' :
-                                        log.type === 'enemy_miss' ? 'bg-error/5 border-error/30 text-error/70' :
-                                        log.type === 'destroy' ? 'bg-green-500/20 border-green-500 text-green-400 font-bold glow-text' :
-                                        log.type === 'defeat' ? 'bg-error/30 border-error text-error font-bold glow-text-error' :
-                                        log.type === 'victory' ? 'bg-yellow-500/20 border-yellow-500 text-yellow-400 font-bold glow-text' :
-                                        log.type === 'warning' ? 'bg-orange-500/10 border-orange-500 text-orange-400' :
-                                        'bg-surface-container border-white/10 text-on-surface'
-                                    } animate-fade-in`}>
-                                        {log.msg}
-                                    </div>
-                                ))}
-                                {logs.length === 0 && (
-                                    <div className="text-on-surface-variant italic text-center mt-4 opacity-50">Awaiting deployment...</div>
-                                )}
-                            </div>
-                        </div>
-                    )}
-                </>
+                  </div>
+                );
+              }),
             )}
-
-            {exitPromptOpen && (
-                <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-fade-in">
-                    <div className="game-exit-dialog glass-card max-w-md w-full p-7 rounded-2xl border border-white/10 shadow-2xl text-center">
-                        <span className="material-symbols-outlined text-[56px] text-error drop-shadow-[0_0_18px_rgba(255,87,87,0.45)]">
-                            warning
-                        </span>
-                        <h2 className="font-display-lg text-3xl mt-3 mb-3 uppercase tracking-widest text-on-surface">
-                            {copy.exitTitle}
-                        </h2>
-                        <p className="text-on-surface-variant text-sm leading-6 mb-6">
-                            {copy.exitBody}
-                        </p>
-                        <div className="flex gap-3">
-                            <button
-                                type="button"
-                                onClick={() => setExitPromptOpen(false)}
-                                className="flex-1 bg-surface-container border border-white/10 text-on-surface font-bold py-3 rounded-full hover:bg-white/5 transition-all active:scale-95"
-                            >
-                                {copy.stay}
-                            </button>
-                            <button
-                                type="button"
-                                onClick={confirmGameExit}
-                                className="flex-1 bg-error text-white font-bold py-3 rounded-full hover:brightness-110 transition-all active:scale-95"
-                            >
-                                {copy.leave}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            <GameResultModal
-                showModal={showModal}
-                winner={winner}
-                gameOverReason={gameOverReason}
-                copy={copy}
-                difficulty={difficulty}
-                isPvpMode={isPvpMode}
-                stats={stats}
-                rankedResult={rankedResult}
-                handlePlayAgain={handlePlayAgain}
-                rematchLoading={rematchLoading}
-                handleReturnHome={handleReturnHome}
-                returnHomeLoading={returnHomeLoading}
-            />
-            {showRankUpAnimation && rankedResult?.promoted && (
-                <RankUpAnimation
-                    oldRank={rankedResult.oldRank}
-                    newRank={rankedResult.newRank}
-                    onComplete={() => setShowRankUpAnimation(false)}
-                />
-            )}
+          </div>
         </div>
+      </div>
     );
+  };
+
+  return (
+    <div className="game-shell bg-background text-on-background font-body-md min-h-screen selection:bg-secondary/30 flex flex-col">
+      <header className="w-full top-0 sticky z-50 border-b border-white/5 bg-surface/40 backdrop-blur-xl shadow-[0_0_20px_rgba(0,210,255,0.1)]">
+        <div className="flex justify-between items-center w-full px-gutter max-w-[1440px] mx-auto h-12">
+          <Link
+            to="/"
+            onClick={(event) => {
+              if (!shouldConfirmPvpExit()) return;
+              event.preventDefault();
+              requestGameExit("/");
+            }}
+            className="font-display-lg text-[20px] font-black text-secondary tracking-tighter uppercase hover:text-white transition-colors truncate"
+          >
+            {isMobile ? "BATTLESHIP" : "Cloud Battleship Arena"}
+          </Link>
+          <div className="flex items-center gap-4">
+            {isPvpMode ? (
+              <button
+                onClick={(event) => {
+                  if (!shouldConfirmPvpExit()) {
+                    navigate("/");
+                    return;
+                  }
+                  event.preventDefault();
+                  requestGameExit("/");
+                }}
+                className="text-[10px] uppercase font-bold text-error bg-error/10 px-3 py-1.5 rounded-sm border border-error/20 hover:bg-error/20 hover:text-red-400 transition-colors"
+              >
+                {copy.leave || "Leave Match"}
+              </button>
+            ) : (
+              <span className="text-[10px] uppercase font-bold text-secondary bg-secondary/10 px-2 py-1 rounded-sm border border-secondary/20">
+                Difficulty: {difficulty}
+              </span>
+            )}
+            <Link
+              to="/"
+              onClick={(event) => {
+                if (!shouldConfirmPvpExit()) return;
+                event.preventDefault();
+                requestGameExit("/");
+              }}
+              className="material-symbols-outlined text-on-surface-variant hover:text-secondary active:scale-95 transition-all p-2 rounded-full hover:bg-white/5"
+            >
+              home
+            </Link>
+          </div>
+        </div>
+      </header>
+
+      <main className="game-main flex-1 w-full max-w-[1440px] mx-auto px-gutter flex flex-col lg:flex-row">
+        {/* Boards Section */}
+        <div className="game-board-column flex-1 flex flex-col">
+          {/* Status Header */}
+          <div className="game-status glass-card rounded-xl border border-white/10 flex justify-between items-center">
+            <div>
+              <h2 className="font-display-lg text-base md:text-xl uppercase tracking-widest text-on-surface">
+                {gameState === "PLACEMENT" || gameState === "READY"
+                  ? copy.deployFleet || "Deploy Your Fleet"
+                  : copy.sectorCommand || "Sector Command"}
+              </h2>
+              <p className="text-on-surface-variant text-xs md:text-sm mt-1 hidden md:block">
+                {gameState === "PLACEMENT" &&
+                  (isWaitingForOpponentFleet
+                    ? copy.waitingFleetLog
+                    : unplacedShipIds.length > 0
+                      ? copy.dragShipsInstructions ||
+                        "Drag ships from staging onto your map. Right-click to rotate."
+                      : copy.formationCompleteInstructions ||
+                        "Formation complete. Adjust ships, auto-arrange again, or press Ready.")}
+                {gameState === "READY" &&
+                  (selectedShip
+                    ? copy.moveSelectedShipInstructions ||
+                      "Move the selected ship or right-click to rotate it, then press Ready."
+                    : copy.selectShipInstructions ||
+                      "Select any ship to move or rotate it, then press Ready.")}
+                {gameState === "PLAYER_TURN" &&
+                  (isPvpMode ? (
+                    <span className="text-secondary glow-text">
+                      {getPvpStatusText()}
+                    </span>
+                  ) : (
+                    <span className="text-secondary glow-text">
+                      {copy.yourTurn || "Your turn! Target enemy waters."}
+                    </span>
+                  ))}
+                {gameState === "BOT_TURN" && (
+                  <span className="text-error">
+                    {copy.enemyFiring || "Enemy is firing! Brace for impact!"}
+                  </span>
+                )}
+                {gameState === "GAME_OVER" &&
+                  (winner === "PLAYER" ? (
+                    <span className="text-green-400">
+                      {copy.sectorSecured || "Sector Secured!"}
+                    </span>
+                  ) : (
+                    <span className="text-error">
+                      {copy.fleetAnnihilated || "Fleet Annihilated!"}
+                    </span>
+                  ))}
+              </p>
+            </div>
+            {(gameState === "PLACEMENT" || gameState === "READY") &&
+              unplacedShipIds.length === 0 && (
+                <button
+                  onClick={beginBattle}
+                  disabled={
+                    Boolean(invalidRotationPreview) ||
+                    unplacedShipIds.length > 0 ||
+                    Boolean(draggedShip) ||
+                    pvpReadyLoading ||
+                    isWaitingForOpponentFleet
+                  }
+                  className={`font-bold px-4 py-1.5 md:px-8 md:py-2 text-sm md:text-base rounded-sm transition-all tracking-widest ${
+                    invalidRotationPreview ||
+                    draggedShip ||
+                    pvpReadyLoading ||
+                    isWaitingForOpponentFleet
+                      ? "bg-surface-container text-on-surface-variant/40 cursor-not-allowed opacity-50"
+                      : "bg-secondary text-on-secondary-fixed hover:bg-secondary-container active:scale-95"
+                  }`}
+                >
+                  {pvpReadyLoading
+                    ? copy.syncing
+                    : isWaitingForOpponentFleet
+                      ? copy.waitingPlayer
+                      : copy.ready}
+                </button>
+              )}
+            {!isPvpMode &&
+              (gameState === "PLAYER_TURN" || gameState === "BOT_TURN") && (
+                <div className="text-center">
+                  <span className="text-[10px] text-on-surface-variant uppercase font-bold tracking-widest">
+                    {copy.timeLabel || "Time"}
+                  </span>
+                  <div
+                    className={`text-3xl font-black ${turnTimer <= 10 ? "text-error animate-pulse" : "text-secondary"}`}
+                  >
+                    {turnTimer}s
+                  </div>
+                </div>
+              )}
+          </div>
+
+          {/* Battle Tabs for Mobile */}
+          {isMobile && gameState !== "PLACEMENT" && gameState !== "READY" && (
+            <div className="flex w-full justify-center gap-2 mb-2 px-4">
+              <button
+                onClick={() => setActiveBattleTab("enemy")}
+                className={`flex-1 py-2 px-4 rounded-lg font-bold tracking-widest text-sm transition-all border ${
+                  activeBattleTab === "enemy"
+                    ? "bg-error/20 text-error border-error shadow-[0_0_15px_rgba(255,0,0,0.2)]"
+                    : "bg-surface-container border-white/10 text-on-surface-variant"
+                }`}
+              >
+                {copy.enemyWaters || "ENEMY WATERS"}
+              </button>
+              <button
+                onClick={() => setActiveBattleTab("fleet")}
+                className={`flex-1 py-2 px-4 rounded-lg font-bold tracking-widest text-sm transition-all border ${
+                  activeBattleTab === "fleet"
+                    ? "bg-secondary/20 text-secondary border-secondary shadow-[0_0_15px_rgba(0,210,255,0.2)]"
+                    : "bg-surface-container border-white/10 text-on-surface-variant"
+                }`}
+              >
+                {copy.yourFleet || "YOUR FLEET"}
+              </button>
+            </div>
+          )}
+
+          <div className="game-boards flex flex-col lg:flex-row justify-center items-center lg:items-start w-full relative">
+            {/* Player Board */}
+            <div
+              className={`battle-board-section flex flex-col items-center ${isMobile && gameState !== "PLACEMENT" && gameState !== "READY" && activeBattleTab !== "fleet" ? "hidden lg:flex" : ""}`}
+            >
+              <div className="board-heading">
+                {(!isMobile ||
+                  gameState === "PLACEMENT" ||
+                  gameState === "READY") && (
+                  <h3 className="font-bold text-secondary tracking-widest uppercase mb-1">
+                    {copy.yourFleet || "Your Fleet"}
+                  </h3>
+                )}
+                {gameState !== "PLACEMENT" ? (
+                  renderFleetStatus(playerSunkShipTypeIds)
+                ) : (
+                  <div
+                    className="fleet-image-panel fleet-image-panel-placeholder"
+                    aria-hidden="true"
+                  />
+                )}
+              </div>
+              {isMobile &&
+                (gameState === "PLACEMENT" || gameState === "READY") && (
+                  <div className="mobile-fleet-footprints flex overflow-x-auto overflow-y-visible py-2 px-2 gap-[40px] w-full justify-center items-center min-h-[40px] mb-2">
+                    {shipsToPlace.map((shipDef) => {
+                      const activeShipTypeId =
+                        draggedShip?.shipDef?.id || selectedShip?.shipDef?.id;
+                      const isActive = activeShipTypeId === shipDef.id;
+                      const offsets = getShipOffsets(
+                        shipDef,
+                        shipDef.rotations[0],
+                      );
+                      const bounds = getShipBounds(offsets);
+                      const minRow = Math.min(...offsets.map((o) => o[0]));
+                      const minCol = Math.min(...offsets.map((o) => o[1]));
+                      return (
+                        <div
+                          key={shipDef.id}
+                          className="grid flex-shrink-0 transition-all duration-300"
+                          style={{
+                            gridTemplateColumns: `repeat(${bounds.cols}, 7px)`,
+                            gridTemplateRows: `repeat(${bounds.rows}, 7px)`,
+                            gap: "2px",
+                            opacity: isActive ? 1 : 0.65,
+                            transform: isActive ? "scale(1.12)" : "scale(1)",
+                            filter: isActive
+                              ? "drop-shadow(0 0 8px rgba(142, 235, 255, 0.9))"
+                              : "none",
+                          }}
+                        >
+                          {offsets.map((pos, idx) => (
+                            <div
+                              key={idx}
+                              style={{
+                                gridColumn: pos[1] - minCol + 1,
+                                gridRow: pos[0] - minRow + 1,
+                                width: "7px",
+                                height: "7px",
+                                background: "#8EEBFF",
+                                border: "1px solid rgba(142, 235, 255, 0.8)",
+                                boxShadow: "0 0 6px rgba(142, 235, 255, 0.75)",
+                                borderRadius: "1px",
+                              }}
+                            />
+                          ))}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              {renderBoard(playerBoard, false, "player")}
+            </div>
+
+            {/* Enemy Board */}
+            <div
+              className={`battle-board-section flex flex-col items-center ${isMobile && gameState !== "PLACEMENT" && gameState !== "READY" && activeBattleTab !== "enemy" ? "hidden lg:flex" : ""}`}
+            >
+              {gameState === "PLACEMENT" ? (
+                isMobile ? (
+                  <div className="w-full mt-4 max-w-[430px]">
+                    <button
+                      type="button"
+                      className="auto-arrange-button"
+                      onClick={autoArrangeFleet}
+                      disabled={isPlacementLocked}
+                    >
+                      <span
+                        className="material-symbols-outlined"
+                        aria-hidden="true"
+                      >
+                        auto_fix_high
+                      </span>
+                      {copy.autoArrange || "AUTO ARRANGE"}
+                    </button>
+                  </div>
+                ) : (
+                  <div
+                    className="deployment-dock"
+                    style={{
+                      "--cell-size": `${CELL_SIZE}px`,
+                      "--cell-gap": `${CELL_GAP}px`,
+                    }}
+                  >
+                    <div className="deployment-dock-heading">
+                      <h3 className="font-bold text-error tracking-widest uppercase">
+                        {copy.fleetStaging || "Fleet Staging"}
+                      </h3>
+                      <span>
+                        {(
+                          copy.shipsRemaining || "{count} ships remaining"
+                        ).replace("{count}", unplacedShipIds.length)}
+                      </span>
+                    </div>
+                    <div className="deployment-ship-grid">
+                      {shipsToPlace.map((shipDef) => {
+                        const isPlaced = !unplacedShipIds.includes(shipDef.id);
+                        const trayRotation =
+                          trayRotations[shipDef.id] ?? shipDef.rotations[0];
+                        const trayOffsets = getShipOffsets(
+                          shipDef,
+                          trayRotation,
+                        );
+                        const trayBounds = getShipBounds(trayOffsets);
+                        const trayCell = {
+                          row: 0,
+                          col: 0,
+                          shipTypeId: shipDef.id,
+                          shipRotation: trayRotation,
+                          shipBounds: trayBounds,
+                        };
+                        const trayWidth =
+                          trayBounds.cols * CELL_SIZE +
+                          (trayBounds.cols - 1) * CELL_GAP;
+                        const trayHeight =
+                          trayBounds.rows * CELL_SIZE +
+                          (trayBounds.rows - 1) * CELL_GAP;
+                        const spriteUrl = resolveSpriteUrl(
+                          SHIP_SPRITES[shipDef.id]?.[trayRotation],
+                        );
+
+                        return (
+                          <div
+                            key={shipDef.id}
+                            className={`deployment-ship-card deployment-${shipDef.id} ${
+                              isPlaced ? "is-placed" : ""
+                            } ${isPlacementLocked ? "is-locked" : ""}`}
+                            onClick={(event) => {
+                              if (!isPlaced)
+                                handleTrayShipClick(event, shipDef);
+                            }}
+                            onContextMenu={(event) => {
+                              if (!isPlaced)
+                                handleTrayShipContextMenu(event, shipDef);
+                              else event.preventDefault();
+                            }}
+                          >
+                            <div className="deployment-ship-meta">
+                              <span className="deployment-ship-label">
+                                {shipDef.label}
+                              </span>
+                              <span className="deployment-ship-size">
+                                {shipDef.size} {copy.cellsLabel || "cells"}
+                              </span>
+                              <span
+                                className="deployment-footprint"
+                                style={{
+                                  gridTemplateColumns: `repeat(${trayBounds.cols}, 7px)`,
+                                  gridTemplateRows: `repeat(${trayBounds.rows}, 7px)`,
+                                }}
+                                aria-label={`${shipDef.label} occupies ${shipDef.size} ${copy.cellsLabel || "cells"}`}
+                              >
+                                {trayOffsets.map(([row, col]) => (
+                                  <span
+                                    key={`${row}-${col}`}
+                                    className="deployment-footprint-cell"
+                                    style={{
+                                      gridRow: row + 1,
+                                      gridColumn: col + 1,
+                                    }}
+                                  />
+                                ))}
+                              </span>
+                            </div>
+                            <div className="deployment-ship-stage">
+                              {!isPlaced && spriteUrl ? (
+                                <div
+                                  className="deployment-ship-preview"
+                                  style={{
+                                    width: `${trayWidth}px`,
+                                    height: `${trayHeight}px`,
+                                  }}
+                                >
+                                  <img
+                                    src={spriteUrl}
+                                    alt={shipDef.label}
+                                    style={getShipImageStyle(trayCell)}
+                                  />
+                                </div>
+                              ) : (
+                                <span className="deployment-placed-mark">
+                                  {copy.deployed || "Deployed"}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <button
+                      type="button"
+                      className="auto-arrange-button"
+                      onClick={autoArrangeFleet}
+                      disabled={isPlacementLocked}
+                    >
+                      <span
+                        className="material-symbols-outlined"
+                        aria-hidden="true"
+                      >
+                        auto_fix_high
+                      </span>
+                      {copy.autoArrange || "AUTO ARRANGE"}
+                    </button>
+                  </div>
+                )
+              ) : (
+                <>
+                  <div className="board-heading enemy-board-heading">
+                    {(!isMobile ||
+                      gameState === "PLACEMENT" ||
+                      gameState === "READY") && (
+                      <h3 className="font-bold text-error tracking-widest uppercase mb-1">
+                        {gameState === "READY"
+                          ? copy.enemyWatersScan || "Enemy Waters (Scanning...)"
+                          : copy.enemyWaters || "Enemy Waters"}
+                      </h3>
+                    )}
+
+                    {renderFleetStatus(enemyShipsSunk, gameState === "READY")}
+                  </div>
+
+                  <div
+                    className={`transition-opacity duration-700 ${gameState === "READY" ? "opacity-20 pointer-events-none" : "opacity-100"}`}
+                  >
+                    {renderBoard(enemyBoard, true, "enemy")}
+                  </div>
+                </>
+              )}
+            </div>
+
+            {sunkEffect && (
+              <div
+                className={`sunk-announcement ${
+                  sunkEffect.boardSide === "enemy"
+                    ? "sunk-announcement-victory"
+                    : "sunk-announcement-danger"
+                }`}
+              >
+                <span className="sunk-announcement-line" />
+                <strong>
+                  {sunkEffect.boardSide === "enemy" ? "ENEMY" : "YOUR"}{" "}
+                  {sunkEffect.shipLabel.toUpperCase()} SUNK!
+                </strong>
+                <span className="sunk-announcement-line" />
+              </div>
+            )}
+          </div>
+
+          {/* Mini Battle Log for Mobile */}
+          {isMobile && gameState !== "PLACEMENT" && gameState !== "READY" && (
+            <div className="mobile-mini-battle-log mx-4">
+              <div
+                className={`mini-turn-status text-center ${
+                  gameState === "PLAYER_TURN"
+                    ? "text-secondary shadow-secondary/50 drop-shadow-md"
+                    : gameState === "BOT_TURN"
+                      ? "text-error shadow-error/50 drop-shadow-md"
+                      : "text-yellow-400"
+                }`}
+              >
+                {gameState === "PLAYER_TURN"
+                  ? "YOUR TURN"
+                  : gameState === "BOT_TURN"
+                    ? "ENEMY TURN"
+                    : "GAME OVER"}
+              </div>
+
+              <div className="mini-log-list flex flex-col gap-1 items-center text-on-surface-variant mt-2">
+                {logs
+                  .filter((log) =>
+                    [
+                      "player_hit",
+                      "player_miss",
+                      "enemy_hit",
+                      "enemy_miss",
+                      "destroy",
+                    ].includes(log.type),
+                  )
+                  .slice(-2)
+                  .map((log) => (
+                    <div
+                      key={log.id}
+                      className="mini-log-item truncate w-full text-center"
+                    >
+                      {log.msg}
+                    </div>
+                  ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Battle Log Section */}
+        {!isMobile && (
+          <div className="game-log-column w-full lg:w-[350px] flex flex-col gap-4">
+            <div className="glass-card flex-1 flex flex-col rounded-xl overflow-hidden border border-white/10 min-h-[300px] lg:max-h-[600px]">
+              <div className="p-4 border-b border-white/5 bg-white/5">
+                <h3 className="font-bold text-on-surface uppercase tracking-widest flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[18px]">
+                    receipt_long
+                  </span>
+                  Battle Log
+                </h3>
+              </div>
+              <div
+                ref={logContainerRef}
+                className="flex-1 p-4 overflow-y-auto flex flex-col gap-2 font-mono text-xs"
+              >
+                {logs.map((log) => (
+                  <div
+                    key={log.id}
+                    className={`p-2 rounded-sm border-l-2 ${
+                      log.type === "player_hit"
+                        ? "bg-secondary/20 border-secondary text-secondary font-bold"
+                        : log.type === "player_miss"
+                          ? "bg-secondary/5 border-secondary/30 text-secondary/70"
+                          : log.type === "enemy_hit"
+                            ? "bg-error/20 border-error text-error font-bold"
+                            : log.type === "enemy_miss"
+                              ? "bg-error/5 border-error/30 text-error/70"
+                              : log.type === "destroy"
+                                ? "bg-green-500/20 border-green-500 text-green-400 font-bold glow-text"
+                                : log.type === "defeat"
+                                  ? "bg-error/30 border-error text-error font-bold glow-text-error"
+                                  : log.type === "victory"
+                                    ? "bg-yellow-500/20 border-yellow-500 text-yellow-400 font-bold glow-text"
+                                    : log.type === "warning"
+                                      ? "bg-orange-500/10 border-orange-500 text-orange-400"
+                                      : "bg-surface-container border-white/10 text-on-surface"
+                    } animate-fade-in`}
+                  >
+                    {log.msg}
+                  </div>
+                ))}
+                {logs.length === 0 && (
+                  <div className="text-on-surface-variant italic text-center mt-4 opacity-50">
+                    Awaiting deployment...
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </main>
+
+      {isMobile && (
+        <>
+          <button
+            className="fixed bottom-4 right-4 z-50 w-14 h-14 bg-secondary text-on-secondary-fixed rounded-full shadow-lg flex items-center justify-center active:scale-95 transition-all hover:scale-105"
+            onClick={() => setShowMobileLog(true)}
+            aria-label="Open Battle Log"
+          >
+            <span className="material-symbols-outlined text-2xl">
+              receipt_long
+            </span>
+          </button>
+          {showMobileLog && (
+            <div className="fixed inset-x-0 bottom-0 z-[100] bg-surface border-t border-white/10 rounded-t-2xl shadow-[0_-10px_40px_rgba(0,0,0,0.5)] flex flex-col max-h-[45vh] min-h-[40vh] transform transition-transform animate-slide-up">
+              <div className="flex justify-between items-center p-4 border-b border-white/5 bg-surface-container">
+                <h3 className="font-bold text-on-surface uppercase tracking-widest flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[18px]">
+                    receipt_long
+                  </span>
+                  Battle Log
+                </h3>
+                <button
+                  onClick={() => setShowMobileLog(false)}
+                  className="text-on-surface-variant hover:text-on-surface transition-colors p-2 -mr-2"
+                >
+                  <span className="material-symbols-outlined">close</span>
+                </button>
+              </div>
+              <div
+                ref={logContainerRef}
+                className="flex-1 p-4 overflow-y-auto flex flex-col gap-2 font-mono text-xs bg-background"
+              >
+                {logs.slice(-10).map((log) => (
+                  <div
+                    key={log.id}
+                    className={`p-2 rounded-sm border-l-2 ${
+                      log.type === "player_hit"
+                        ? "bg-secondary/20 border-secondary text-secondary font-bold"
+                        : log.type === "player_miss"
+                          ? "bg-secondary/5 border-secondary/30 text-secondary/70"
+                          : log.type === "enemy_hit"
+                            ? "bg-error/20 border-error text-error font-bold"
+                            : log.type === "enemy_miss"
+                              ? "bg-error/5 border-error/30 text-error/70"
+                              : log.type === "destroy"
+                                ? "bg-green-500/20 border-green-500 text-green-400 font-bold glow-text"
+                                : log.type === "defeat"
+                                  ? "bg-error/30 border-error text-error font-bold glow-text-error"
+                                  : log.type === "victory"
+                                    ? "bg-yellow-500/20 border-yellow-500 text-yellow-400 font-bold glow-text"
+                                    : log.type === "warning"
+                                      ? "bg-orange-500/10 border-orange-500 text-orange-400"
+                                      : "bg-surface-container border-white/10 text-on-surface"
+                    } animate-fade-in`}
+                  >
+                    {log.msg}
+                  </div>
+                ))}
+                {logs.length === 0 && (
+                  <div className="text-on-surface-variant italic text-center mt-4 opacity-50">
+                    Awaiting deployment...
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </>
+      )}
+
+      {exitPromptOpen && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-fade-in">
+          <div className="game-exit-dialog glass-card max-w-md w-full p-7 rounded-2xl border border-white/10 shadow-2xl text-center">
+            <span className="material-symbols-outlined text-[56px] text-error drop-shadow-[0_0_18px_rgba(255,87,87,0.45)]">
+              warning
+            </span>
+            <h2 className="font-display-lg text-3xl mt-3 mb-3 uppercase tracking-widest text-on-surface">
+              {copy.exitTitle}
+            </h2>
+            <p className="text-on-surface-variant text-sm leading-6 mb-6">
+              {copy.exitBody}
+            </p>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setExitPromptOpen(false)}
+                className="flex-1 bg-surface-container border border-white/10 text-on-surface font-bold py-3 rounded-full hover:bg-white/5 transition-all active:scale-95"
+              >
+                {copy.stay}
+              </button>
+              <button
+                type="button"
+                onClick={confirmGameExit}
+                className="flex-1 bg-error text-white font-bold py-3 rounded-full hover:brightness-110 transition-all active:scale-95"
+              >
+                {copy.leave}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <GameResultModal
+        showModal={showModal}
+        winner={winner}
+        gameOverReason={gameOverReason}
+        copy={copy}
+        difficulty={difficulty}
+        isPvpMode={isPvpMode}
+        stats={stats}
+        rankedResult={rankedResult}
+        handlePlayAgain={handlePlayAgain}
+        rematchLoading={rematchLoading}
+        handleReturnHome={handleReturnHome}
+        returnHomeLoading={returnHomeLoading}
+      />
+      {showRankUpAnimation && rankedResult?.promoted && (
+        <RankUpAnimation
+          oldRank={rankedResult.oldRank}
+          newRank={rankedResult.newRank}
+          onComplete={() => setShowRankUpAnimation(false)}
+        />
+      )}
+    </div>
+  );
 }
 
 export default Game;
