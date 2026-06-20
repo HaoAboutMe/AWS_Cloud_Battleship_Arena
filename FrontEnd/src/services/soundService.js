@@ -25,6 +25,7 @@ const soundBaseVolumes = new Map([
   ["ready", 0.62],
   ["miss", 0.72],
   ["hit", 0.72],
+  ["explosion", 0.72],
   ["sunk", 0.82],
   ["victory", 0.74],
   ["defeat", 0.66],
@@ -210,6 +211,7 @@ const ensureSounds = () => {
   sounds.set("ready", createSound(digitalClickSound, { volume: 0.62, pool: 6 }));
   sounds.set("miss", createSound(waterSplashSound, { volume: 0.72, pool: 8 }));
   sounds.set("hit", createSound(explosionSound, { volume: 0.72, pool: 8 }));
+  sounds.set("explosion", createSound(explosionSound, { volume: 0.72, pool: 8 }));
   sounds.set("sunk", createSound(sinkingExplosion(), { volume: 0.82, pool: 4 }));
   sounds.set("victory", createSound(victorySound, { volume: 0.74 }));
   sounds.set("defeat", createSound(defeatSound, { volume: 0.66 }));
@@ -320,7 +322,9 @@ export const installUIClickSounds = () => {
     );
     if (!interactive) return;
 
-    playSound("click", { minGap: 90 });
+    const customSound = interactive.getAttribute("data-sound");
+    if (customSound === "off") return;
+    playSound(customSound || "click", { minGap: 90 });
   }, true);
 };
 

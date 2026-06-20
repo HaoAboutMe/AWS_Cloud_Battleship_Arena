@@ -11,6 +11,7 @@ import {
   leaveRoom,
   markLobbyReady,
 } from "../services/matchService";
+import { playSound } from "../services/soundService";
 import "./HomeHeader.css";
 import "./Lobby.css";
 
@@ -119,6 +120,7 @@ function Lobby() {
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
   const [readyLoading, setReadyLoading] = useState(false);
+  const [hasPlayedMatchFoundSound, setHasPlayedMatchFoundSound] = useState(false);
 
   const player = useMemo(() => {
     const identity =
@@ -319,6 +321,18 @@ function Lobby() {
     (p) => p.userId !== currentPlayerInRoom?.userId,
   );
   const isOtherPlayerReady = Boolean(otherPlayer?.lobbyReady);
+
+  // Play explosion sound when match is found in matchmaking room
+  useEffect(() => {
+    if (isMatchmakingRoom && playerCount >= 2) {
+      if (!hasPlayedMatchFoundSound) {
+        playSound("explosion");
+        setHasPlayedMatchFoundSound(true);
+      }
+    } else {
+      setHasPlayedMatchFoundSound(false);
+    }
+  }, [playerCount, isMatchmakingRoom, hasPlayedMatchFoundSound]);
 
   return (
     <div className="lobby-page">
