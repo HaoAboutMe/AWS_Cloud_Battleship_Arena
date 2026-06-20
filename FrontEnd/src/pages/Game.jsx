@@ -473,7 +473,7 @@ function Game() {
     const isSameRoomPlayer = (left, right) => {
         if (!left || !right) return false;
         if (left.userId && right.userId && left.userId === right.userId) return true;
-        if (left.baseUserId && right.baseUserId && left.baseUserId === right.baseUserId) return true;
+        if (left.baseUserId && right.baseUserId && left.baseUserId !== "guest" && left.baseUserId === right.baseUserId) return true;
         if (left.email && right.email && left.email === right.email) return true;
         return false;
     };
@@ -1520,7 +1520,8 @@ function Game() {
 
         // Xác định người đi trước (players[0] là host)
         const starterPlayer = pvpRoom.players?.[0];
-        setPvpTurnUserId(pvpRoom.currentTurnUserId || getRoomPlayerKey(starterPlayer));
+        const initialTurnId = pvpRoom.currentTurnUserId ? pvpRoom.currentTurnUserId.split(':')[0] : getRoomPlayerKey(starterPlayer);
+        setPvpTurnUserId(initialTurnId);
     }, [addLog, isPvpMode, pvpRoom, roomPlayer]);
 
     const handleEnemyCellClick = (r, c) => {

@@ -296,7 +296,7 @@ function Lobby() {
     (roomPlayer) =>
       roomPlayer.userId === player.userId ||
       (roomPlayer.email && player.email && roomPlayer.email === player.email) ||
-      (roomPlayer.baseUserId && roomPlayer.baseUserId === player.baseUserId),
+      (roomPlayer.baseUserId && roomPlayer.baseUserId !== "guest" && roomPlayer.baseUserId === player.baseUserId),
   );
 
   const isLobbyReady = Boolean(currentPlayerInRoom?.lobbyReady);
