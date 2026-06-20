@@ -203,6 +203,10 @@
   color: #002431;
 }
 
+.command-enlist-mobile {
+  display: none;
+}
+
 .command-account {
   position: relative;
   min-width: 0;
@@ -266,6 +270,11 @@
   text-transform: uppercase;
 }
 
+
+.command-mobile-menu-actions {
+  display: none;
+}
+
 .command-rank-badge {
   width: 24px;
   height: 24px;
@@ -286,6 +295,7 @@
 .command-account-chevron {
   color: rgba(212, 228, 250, 0.48);
   font-size: 18px;
+  transition: transform 0.2s ease, color 0.2s ease;
 }
 
 .command-account-menu {
@@ -300,11 +310,16 @@
   transition: opacity 150ms ease, transform 150ms ease, visibility 150ms;
 }
 
-.command-account:hover .command-account-menu,
-.command-account:focus-within .command-account-menu {
-  visibility: visible;
-  opacity: 1;
-  transform: translateY(0);
+@media (min-width: 641px) {
+  .command-account:hover .command-account-chevron {
+    transform: rotate(180deg);
+  }
+
+  .command-account:hover .command-account-menu {
+    visibility: visible;
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .command-account-menu > div {
@@ -573,24 +588,104 @@
 
   .command-brand-copy small,
   .command-desktop-action,
-  .command-account-copy,
-  .command-account-chevron,
   .command-signin {
     display: none;
   }
 
+  .user-logged-in .command-actions > .language-toggle,
+  .user-logged-in .command-actions > button.command-icon-button {
+    display: none;
+  }
+
   .command-account {
-    width: 44px;
+    width: auto;
+    max-width: 220px;
     border-left: 0;
   }
 
   .command-account-trigger {
-    padding: 5px;
-    grid-template-columns: 34px;
+    padding: 2px 4px;
+    grid-template-columns: minmax(0, 1fr) 34px 16px;
+    gap: 6px;
+    height: 48px;
+    align-items: center;
+  }
+
+  .command-account-copy {
+    order: 1;
+    display: flex !important;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    min-width: 0;
+    text-align: right;
+  }
+
+  .command-avatar {
+    order: 2;
+  }
+
+  .command-account-chevron {
+    order: 3;
+    display: block;
+    font-size: 16px;
+    color: rgba(212, 228, 250, 0.6);
+  }
+
+  .command-account-rank {
+    display: none !important;
+  }
+
+
+
+  .command-mobile-menu-actions {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 10px;
+    padding: 10px 4px 2px 4px;
+    border-top: 1px solid rgba(117, 223, 255, 0.14);
+  }
+
+  .light-mode-active .command-mobile-menu-actions {
+    border-top-color: rgba(25, 78, 104, 0.15);
+  }
+
+  .command-mobile-menu-actions .language-toggle {
+    margin: 0;
+  }
+
+  .command-mobile-menu-actions button.command-icon-button {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    height: 36px;
+    width: 44px;
+    border: 1px solid rgba(117, 223, 255, 0.18);
+    border-radius: 5px;
+    background: rgba(0, 12, 22, 0.42);
+    color: rgba(212, 228, 250, 0.68);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin: 0;
+  }
+
+  .command-mobile-menu-actions button.command-icon-button:hover {
+    border-color: rgba(117, 223, 255, 0.32);
+    background: rgba(117, 223, 255, 0.08);
+    color: #a5e7ff;
+  }
+
+  .light-mode-active .command-mobile-menu-actions button.command-icon-button {
+    border-color: rgba(165, 231, 255, 0.2);
+    background: rgba(0, 12, 22, 0.46);
+    color: rgba(218, 235, 246, 0.72);
   }
 
   .command-account-menu {
     right: -4px;
+    width: 200px;
   }
 
   .command-enlist {
@@ -598,9 +693,27 @@
     padding: 0 11px;
   }
 
+  .command-enlist-desktop {
+    display: none;
+  }
+
+  .command-enlist-mobile {
+    display: inline;
+  }
+
 
   .command-toast {
     top: 70px;
     right: 16px;
+  }
+
+  .command-account.is-open .command-account-chevron {
+    transform: rotate(180deg);
+  }
+
+  .command-account.is-open .command-account-menu {
+    visibility: visible;
+    opacity: 1;
+    transform: translateY(0);
   }
 }
