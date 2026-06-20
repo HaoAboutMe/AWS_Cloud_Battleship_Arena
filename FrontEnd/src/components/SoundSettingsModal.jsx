@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useLanguage } from "../contexts/LanguageContext";
+import LanguageToggle from "./LanguageToggle";
 import {
   setSoundMuted,
   setSoundSettings,
@@ -12,6 +13,7 @@ const VOLUME_CONTROLS = [
   { key: "masterVolume", label: "settings.masterVolume", icon: "tune" },
   { key: "musicVolume", label: "settings.musicVolume", icon: "music_note" },
   { key: "effectsVolume", label: "settings.effectsVolume", icon: "graphic_eq" },
+  { key: "clickVolume", label: "settings.clickVolume", icon: "touch_app" },
 ];
 
 function SoundSettingsModal({ open, onClose }) {
@@ -21,8 +23,26 @@ function SoundSettingsModal({ open, onClose }) {
     masterVolume: 1,
     musicVolume: 1,
     effectsVolume: 1,
+    clickVolume: 1,
     muted: false,
   });
+
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 640);
+  const [localLightMode, setLocalLightMode] = useState(() =>
+    document.documentElement.classList.contains("light-mode-active")
+  );
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 640);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  const handleThemeToggle = () => {
+    const nextLightMode = !localLightMode;
+    document.documentElement.classList.toggle("light-mode-active", nextLightMode);
+    setLocalLightMode(nextLightMode);
+  };
 
   useEffect(() => subscribeSoundSettings(setSettings), []);
 
@@ -133,6 +153,39 @@ function SoundSettingsModal({ open, onClose }) {
                 );
               })}
             </div>
+
+            {isMobile && (
+              <div className="sound-settings-mobile-extras">
+                <div className="sound-volume-row settings-language-row">
+                  <label htmlFor="settings-language">
+                    <span className="material-symbols-outlined">language</span>
+                    <span>{t("common.language")}</span>
+                  </label>
+                  <div id="settings-language" className="settings-language-control">
+                    <LanguageToggle compact={true} />
+                  </div>
+                </div>
+                <div className="sound-volume-row settings-theme-row">
+                  <label htmlFor="settings-theme">
+                    <span className="material-symbols-outlined">
+                      {localLightMode ? "dark_mode" : "light_mode"}
+                    </span>
+                    <span>{localLightMode ? t("common.useDark") : t("common.useLight")}</span>
+                  </label>
+                  <button
+                    id="settings-theme"
+                    type="button"
+                    className="sound-settings-theme-btn"
+                    onClick={handleThemeToggle}
+                    aria-label={localLightMode ? t("common.useDark") : t("common.useLight")}
+                  >
+                    <span className="material-symbols-outlined">
+                      {localLightMode ? "dark_mode" : "light_mode"}
+                    </span>
+                  </button>
+                </div>
+              </div>
+            )}
 
             <p className="sound-settings-note">
               <span className="material-symbols-outlined">info</span>

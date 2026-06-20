@@ -120,7 +120,14 @@ export function AuthProvider({ children }) {
 
   const logout = async () => {
     try {
+      localStorage.setItem("justSignedOut", "true");
+      // Set a timeout to clear the flag in case we don't redirect (e.g. email/password login)
+      const timeoutId = setTimeout(() => {
+        localStorage.removeItem("justSignedOut");
+      }, 1500);
+
       await logoutUser();
+      
       setUser(null);
       setAttributes({});
       setIsAuthenticated(false);
@@ -128,6 +135,7 @@ export function AuthProvider({ children }) {
       localStorage.removeItem("customAvatarUrl");
     } catch (error) {
       console.error("Error logging out: ", error);
+      localStorage.removeItem("justSignedOut");
     }
   };
 

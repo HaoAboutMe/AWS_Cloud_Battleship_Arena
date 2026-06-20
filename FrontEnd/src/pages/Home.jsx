@@ -26,7 +26,11 @@ function Home() {
         messageKey: "home.signedInBody",
       };
     }
-    if (location.state?.authEvent === "signed-out") {
+    if (
+      location.state?.authEvent === "signed-out" ||
+      localStorage.getItem("justSignedOut") === "true"
+    ) {
+      localStorage.removeItem("justSignedOut");
       return {
         titleKey: "home.signedOutTitle",
         messageKey: "home.signedOutBody",
@@ -327,13 +331,13 @@ function Home() {
             <p>{t("home.pvpModalBody")}</p>
 
             <div className="pvp-mode-grid">
-              <button type="button" className="pvp-mode-option" onClick={() => handleSelectPvpMode("casual")}>
+              <button type="button" className="pvp-mode-option" data-sound="explosion" onClick={() => handleSelectPvpMode("casual")}>
                 <span className="material-symbols-outlined">sports_esports</span>
                 <strong>{t("home.casualPvp")}</strong>
                 <small>{t("home.casualPvpBody")}</small>
                 <em>{t("home.noLoginRequired")}</em>
               </button>
-              <button type="button" className="pvp-mode-option ranked" onClick={() => handleSelectPvpMode("ranked")}>
+              <button type="button" className="pvp-mode-option ranked" data-sound="explosion" onClick={() => handleSelectPvpMode("ranked")}>
                 <span className="material-symbols-outlined">military_tech</span>
                 <strong>{t("home.rankedPvp")}</strong>
                 <small>{t("home.rankedPvpBody")}</small>

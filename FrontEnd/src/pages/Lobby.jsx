@@ -11,6 +11,7 @@ import {
   leaveRoom,
   markLobbyReady,
 } from "../services/matchService";
+import { playSound } from "../services/soundService";
 import "./HomeHeader.css";
 import "./Lobby.css";
 
@@ -64,11 +65,20 @@ const LOBBY_COPY = {
     joinButton: "Vào phòng",
     placeholder: "NHẬP MÃ PHÒNG",
     processing: "Đang xử lý...",
-    copy: "Copy",
-    copied: "Đã copy!",
+    copy: "Sao chép",
+    copied: "Đã sao chép!",
     leaveRoom: "Rời phòng",
+    leaveQueue: "Rời hàng chờ",
     ready: "Sẵn sàng",
     standby: "Chờ",
+    matchmakingTitle: "Kênh ghép trận",
+    casualBattle: "Đấu thường",
+    rankedBattle: "Đấu hạng",
+    queueStatus: "Trạng thái hàng chờ",
+    searchingOpponent: "Đang tìm đối thủ...",
+    opponentFound: "Đã tìm thấy đối thủ",
+    secureRoom:
+      "Kênh trận đấu đã được bảo mật. Mã phòng được ẩn trong chế độ ghép trận.",
     waitingSecond: "Đang chờ chỉ huy thứ hai vào phòng...",
     waitingMessage: "Đang chờ đối thủ sẵn sàng...",
     startDeployment: "Bắt đầu xếp tàu",
@@ -94,15 +104,15 @@ const MATCHMAKING_COPY = {
       "Secure battle channel is active. Room code is hidden during matchmaking.",
   },
   vi: {
-    leaveQueue: "Roi hang cho",
-    matchmakingTitle: "Kenh ghep tran",
-    casualBattle: "Dau thuong",
-    rankedBattle: "Dau hang",
-    queueStatus: "Trang thai hang cho",
-    searchingOpponent: "Dang tim doi thu...",
-    opponentFound: "Da tim thay doi thu",
+    leaveQueue: "Rời hàng chờ",
+    matchmakingTitle: "Kênh ghép trận",
+    casualBattle: "Đấu thường",
+    rankedBattle: "Đấu hạng",
+    queueStatus: "Trạng thái hàng chờ",
+    searchingOpponent: "Đang tìm đối thủ...",
+    opponentFound: "Đã tìm thấy đối thủ",
     secureRoom:
-      "Kenh tran dau da duoc bao mat. Ma phong duoc an trong che do ghep tran.",
+      "Kênh trận đấu đã được bảo mật. Mã phòng được ẩn trong chế độ ghép trận.",
   },
 };
 
@@ -119,6 +129,13 @@ function Lobby() {
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
   const [readyLoading, setReadyLoading] = useState(false);
+  const [hasPlayedMatchFoundSound, setHasPlayedMatchFoundSound] = useState(false);
+
+  const handleLogout = async () => {
+    await logout();
+    localStorage.removeItem("battleshipSession");
+    navigate("/", { replace: true, state: { authEvent: "signed-out" } });
+  };
 
   const player = useMemo(() => {
     const identity =
@@ -288,7 +305,7 @@ function Lobby() {
     (roomPlayer) =>
       roomPlayer.userId === player.userId ||
       (roomPlayer.email && player.email && roomPlayer.email === player.email) ||
-      (roomPlayer.baseUserId && roomPlayer.baseUserId === player.baseUserId),
+      (roomPlayer.baseUserId && roomPlayer.baseUserId !== "guest" && roomPlayer.baseUserId === player.baseUserId),
   );
 
   const isLobbyReady = Boolean(currentPlayerInRoom?.lobbyReady);
@@ -320,13 +337,25 @@ function Lobby() {
   );
   const isOtherPlayerReady = Boolean(otherPlayer?.lobbyReady);
 
+  // Play explosion sound when match is found in matchmaking room
+  useEffect(() => {
+    if (isMatchmakingRoom && playerCount >= 2) {
+      if (!hasPlayedMatchFoundSound) {
+        playSound("explosion");
+        setHasPlayedMatchFoundSound(true);
+      }
+    } else {
+      setHasPlayedMatchFoundSound(false);
+    }
+  }, [playerCount, isMatchmakingRoom, hasPlayedMatchFoundSound]);
+
   return (
     <div className="lobby-page">
       <CommandHeader
         currentUser={user}
         attributes={attributes}
         authLoading={authLoading}
-        onLogout={logout}
+        onLogout={handleLogout}
         onNavigateRequest={handleHeaderNavigate}
       />
 

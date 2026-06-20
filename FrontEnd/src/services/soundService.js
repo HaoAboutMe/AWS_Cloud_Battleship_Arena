@@ -14,6 +14,7 @@ const DEFAULT_SOUND_SETTINGS = Object.freeze({
   masterVolume: 1,
   musicVolume: 1,
   effectsVolume: 1,
+  clickVolume: 1,
 });
 const sounds = new Map();
 const musicPlaybackIds = new Map();
@@ -25,6 +26,7 @@ const soundBaseVolumes = new Map([
   ["ready", 0.62],
   ["miss", 0.72],
   ["hit", 0.72],
+  ["explosion", 0.72],
   ["sunk", 0.82],
   ["victory", 0.74],
   ["defeat", 0.66],
@@ -51,12 +53,16 @@ const clampVolume = (value) => Math.max(0, Math.min(1, Number(value) || 0));
 
 const getStoredSoundSettings = () => {
   try {
-    const stored = JSON.parse(localStorage.getItem(SETTINGS_STORAGE_KEY) || "null");
-    if (!stored || typeof stored !== "object") return { ...DEFAULT_SOUND_SETTINGS };
+    const stored = JSON.parse(
+      localStorage.getItem(SETTINGS_STORAGE_KEY) || "null",
+    );
+    if (!stored || typeof stored !== "object")
+      return { ...DEFAULT_SOUND_SETTINGS };
     return {
       masterVolume: clampVolume(stored.masterVolume ?? 1),
       musicVolume: clampVolume(stored.musicVolume ?? 1),
       effectsVolume: clampVolume(stored.effectsVolume ?? 1),
+      clickVolume: clampVolume(stored.clickVolume ?? 1),
     };
   } catch {
     return { ...DEFAULT_SOUND_SETTINGS };
@@ -108,31 +114,30 @@ const createWavDataUri = (duration, sampler, sampleRate = 44100) => {
     view.setInt16(44 + index * 2, value * 0x7fff, true);
   }
 
-  const bytes = new Uint8Array(buffer);
-  let binary = "";
-  for (let index = 0; index < bytes.length; index += 1) {
-    binary += String.fromCharCode(bytes[index]);
-  }
-
-  return `data:audio/wav;base64,${btoa(binary)}`;
+  const blob = new Blob([buffer], { type: "audio/wav" });
+  return URL.createObjectURL(blob);
 };
 
-const tone = (frequency, duration, volume = 0.5, attack = 0.02, release = 0.2) => (
+const tone = (
+  frequency,
+  duration,
+  volume = 0.5,
+  attack = 0.02,
+  release = 0.2,
+) =>
   createWavDataUri(duration, (time, progress) => {
     const attackGain = Math.min(1, time / attack);
     const releaseGain = Math.min(1, (1 - progress) / release);
     const envelope = Math.max(0, Math.min(attackGain, releaseGain));
     return Math.sin(Math.PI * 2 * frequency * time) * volume * envelope;
-  })
-);
+  });
 
-const noise = (duration, volume = 0.55, lowTone = 0) => (
+const noise = (duration, volume = 0.55, lowTone = 0) =>
   createWavDataUri(duration, (time, progress) => {
     const envelope = Math.pow(1 - progress, 2.4);
     const rumble = lowTone ? Math.sin(Math.PI * 2 * lowTone * time) * 0.35 : 0;
     return ((Math.random() * 2 - 1) * volume + rumble) * envelope;
-  })
-);
+  });
 
 const splash = () => {
   let smoothNoise = 0;
@@ -140,9 +145,16 @@ const splash = () => {
     smoothNoise = smoothNoise * 0.68 + (Math.random() * 2 - 1) * 0.32;
     const impact = smoothNoise * Math.exp(-progress * 9.5) * 0.95;
     const spray = (Math.random() * 2 - 1) * Math.exp(-progress * 14) * 0.38;
-    const dropletA = Math.sin(Math.PI * 2 * (1180 - progress * 520) * time) * Math.exp(-progress * 5.8) * 0.18;
-    const dropletB = Math.sin(Math.PI * 2 * (760 + progress * 120) * time) * Math.exp(-progress * 7.2) * 0.12;
-    const ripple = Math.sin(Math.PI * 2 * 112 * time) * Math.exp(-progress * 3.4) * 0.16;
+    const dropletA =
+      Math.sin(Math.PI * 2 * (1180 - progress * 520) * time) *
+      Math.exp(-progress * 5.8) *
+      0.18;
+    const dropletB =
+      Math.sin(Math.PI * 2 * (760 + progress * 120) * time) *
+      Math.exp(-progress * 7.2) *
+      0.12;
+    const ripple =
+      Math.sin(Math.PI * 2 * 112 * time) * Math.exp(-progress * 3.4) * 0.16;
     return (impact + spray + dropletA + dropletB + ripple) * 0.82;
   });
 };
@@ -151,24 +163,42 @@ const explosion = () => {
   let crackle = 0;
   return createWavDataUri(0.95, (time, progress) => {
     crackle = crackle * 0.42 + (Math.random() * 2 - 1) * 0.58;
-    const thump = Math.sin(Math.PI * 2 * (52 + progress * 26) * time) * Math.exp(-progress * 5.4) * 1.08;
+    const thump =
+      Math.sin(Math.PI * 2 * (52 + progress * 26) * time) *
+      Math.exp(-progress * 5.4) *
+      1.08;
     const blast = crackle * Math.exp(-progress * 3.2) * 0.9;
     const flame = (Math.random() * 2 - 1) * Math.exp(-progress * 8.5) * 0.36;
-    const metal = Math.sin(Math.PI * 2 * (420 - progress * 170) * time) * Math.exp(-progress * 6.2) * 0.16;
+    const metal =
+      Math.sin(Math.PI * 2 * (420 - progress * 170) * time) *
+      Math.exp(-progress * 6.2) *
+      0.16;
     return (thump + blast + flame + metal) * 0.72;
   });
 };
 
-const sinkingExplosion = () => (
+const sinkingExplosion = () =>
   createWavDataUri(1.45, (time, progress) => {
-    const wave = Math.sin(Math.PI * 2 * 38 * time) * Math.exp(-progress * 2.1) * 0.48;
-    const blastOne = Math.max(0, 1 - Math.abs(time - 0.1) / 0.18) * (Math.random() * 2 - 1) * 0.78;
-    const blastTwo = Math.max(0, 1 - Math.abs(time - 0.46) / 0.22) * (Math.random() * 2 - 1) * 0.62;
-    const blastThree = Math.max(0, 1 - Math.abs(time - 0.82) / 0.26) * (Math.random() * 2 - 1) * 0.48;
-    const waterRush = (Math.random() * 2 - 1) * Math.exp(-Math.max(0, progress - 0.18) * 2.7) * 0.26;
+    const wave =
+      Math.sin(Math.PI * 2 * 38 * time) * Math.exp(-progress * 2.1) * 0.48;
+    const blastOne =
+      Math.max(0, 1 - Math.abs(time - 0.1) / 0.18) *
+      (Math.random() * 2 - 1) *
+      0.78;
+    const blastTwo =
+      Math.max(0, 1 - Math.abs(time - 0.46) / 0.22) *
+      (Math.random() * 2 - 1) *
+      0.62;
+    const blastThree =
+      Math.max(0, 1 - Math.abs(time - 0.82) / 0.26) *
+      (Math.random() * 2 - 1) *
+      0.48;
+    const waterRush =
+      (Math.random() * 2 - 1) *
+      Math.exp(-Math.max(0, progress - 0.18) * 2.7) *
+      0.26;
     return (wave + blastOne + blastTwo + blastThree + waterRush) * 0.82;
-  })
-);
+  });
 
 const sequence = (notes, volume = 0.45) => {
   const duration = notes.reduce((sum, note) => sum + note[1], 0);
@@ -187,7 +217,7 @@ const sequence = (notes, volume = 0.45) => {
   });
 };
 
-const createSound = (src, options = {}) => (
+const createSound = (src, options = {}) =>
   new Howl({
     src: [src],
     preload: true,
@@ -195,8 +225,7 @@ const createSound = (src, options = {}) => (
     loop: options.loop ?? false,
     volume: options.volume ?? 0.6,
     pool: options.pool ?? 4,
-  })
-);
+  });
 
 const ensureSounds = () => {
   if (initialized) return;
@@ -206,29 +235,66 @@ const ensureSounds = () => {
   Howler.volume(soundSettings.masterVolume);
   Howler.mute(muted);
 
-  sounds.set("click", createSound(digitalClickSound, { volume: 0.5, pool: 10 }));
-  sounds.set("ready", createSound(digitalClickSound, { volume: 0.62, pool: 6 }));
+  sounds.set(
+    "click",
+    createSound(digitalClickSound, { volume: 0.5, pool: 10 }),
+  );
+  sounds.set(
+    "ready",
+    createSound(digitalClickSound, { volume: 0.62, pool: 6 }),
+  );
   sounds.set("miss", createSound(waterSplashSound, { volume: 0.72, pool: 8 }));
   sounds.set("hit", createSound(explosionSound, { volume: 0.72, pool: 8 }));
-  sounds.set("sunk", createSound(sinkingExplosion(), { volume: 0.82, pool: 4 }));
+  sounds.set(
+    "explosion",
+    createSound(explosionSound, { volume: 0.72, pool: 8 }),
+  );
+  sounds.set(
+    "sunk",
+    createSound(sinkingExplosion(), { volume: 0.82, pool: 4 }),
+  );
   sounds.set("victory", createSound(victorySound, { volume: 0.74 }));
   sounds.set("defeat", createSound(defeatSound, { volume: 0.66 }));
-  sounds.set("rankUp", createSound(sequence([[659, 0.1], [880, 0.1], [1175, 0.18], [1568, 0.42]], 0.5), { volume: 0.75 }));
-  sounds.set("menuMusic", createSound(menuTheme, {
-    loop: true,
-    pool: 1,
-    volume: MUSIC_VOLUME,
-  }));
-  sounds.set("battleMusic", createSound(battleTheme, {
-    loop: true,
-    pool: 1,
-    volume: MUSIC_VOLUME,
-  }));
+  sounds.set(
+    "rankUp",
+    createSound(
+      sequence(
+        [
+          [659, 0.1],
+          [880, 0.1],
+          [1175, 0.18],
+          [1568, 0.42],
+        ],
+        0.5,
+      ),
+      { volume: 0.75 },
+    ),
+  );
+  sounds.set(
+    "menuMusic",
+    createSound(menuTheme, {
+      loop: true,
+      pool: 1,
+      volume: MUSIC_VOLUME,
+    }),
+  );
+  sounds.set(
+    "battleMusic",
+    createSound(battleTheme, {
+      loop: true,
+      pool: 1,
+      volume: MUSIC_VOLUME,
+    }),
+  );
 
   sounds.forEach((sound, name) => {
     const volume = name.endsWith("Music")
       ? getMusicTargetVolume()
-      : (soundBaseVolumes.get(name) ?? 0.6) * soundSettings.effectsVolume;
+      : name === "click"
+        ? (soundBaseVolumes.get(name) ?? 0.6) *
+          soundSettings.effectsVolume *
+          soundSettings.clickVolume
+        : (soundBaseVolumes.get(name) ?? 0.6) * soundSettings.effectsVolume;
     sound.volume(volume);
   });
 };
@@ -279,6 +345,13 @@ export const playSound = (name, options = {}) => {
   ensureSounds();
   if (muted) return;
 
+  if (
+    name === "click" &&
+    (soundSettings.clickVolume === 0 || soundSettings.effectsVolume === 0)
+  ) {
+    return;
+  }
+
   const now = Date.now();
   const minGap = options.minGap ?? 45;
   const last = lastPlayedAt.get(name) || 0;
@@ -287,6 +360,18 @@ export const playSound = (name, options = {}) => {
 
   const sound = sounds.get(name);
   if (!sound) return;
+
+  const volume = name.endsWith("Music")
+    ? getMusicTargetVolume()
+    : name === "click"
+      ? (soundBaseVolumes.get(name) ?? 0.6) *
+        soundSettings.effectsVolume *
+        soundSettings.clickVolume
+      : (soundBaseVolumes.get(name) ?? 0.6) * soundSettings.effectsVolume;
+
+  if (volume <= 0) return;
+
+  sound.volume(volume);
   sound.play();
 };
 
@@ -309,19 +394,30 @@ export const installUIClickSounds = () => {
   document.addEventListener("pointerdown", resumeMusic, { once: true });
   document.addEventListener("keydown", resumeMusic, { once: true });
 
-  document.addEventListener("click", (event) => {
-    const target = event.target;
-    if (!(target instanceof Element)) return;
+  document.addEventListener(
+    "click",
+    (event) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
 
-    if (target.closest("[data-sound='off'], .ocean-cell, .game-board, .battle-board")) return;
+      if (
+        target.closest(
+          "[data-sound='off'], .ocean-cell, .game-board, .battle-board",
+        )
+      )
+        return;
 
-    const interactive = target.closest(
-      "button, a, select, input[type='checkbox'], input[type='radio'], [role='button'], .profile-rank-card"
-    );
-    if (!interactive) return;
+      const interactive = target.closest(
+        "button, a, select, input[type='checkbox'], input[type='radio'], [role='button'], .profile-rank-card",
+      );
+      if (!interactive) return;
 
-    playSound("click", { minGap: 90 });
-  }, true);
+      const customSound = interactive.getAttribute("data-sound");
+      if (customSound === "off") return;
+      playSound(customSound || "click", { minGap: 90 });
+    },
+    true,
+  );
 };
 
 export const isSoundMuted = () => {
@@ -355,16 +451,29 @@ export const getSoundSettings = () => {
 export const setSoundSettings = (nextSettings = {}) => {
   ensureSounds();
   soundSettings = {
-    masterVolume: clampVolume(nextSettings.masterVolume ?? soundSettings.masterVolume),
-    musicVolume: clampVolume(nextSettings.musicVolume ?? soundSettings.musicVolume),
-    effectsVolume: clampVolume(nextSettings.effectsVolume ?? soundSettings.effectsVolume),
+    masterVolume: clampVolume(
+      nextSettings.masterVolume ?? soundSettings.masterVolume,
+    ),
+    musicVolume: clampVolume(
+      nextSettings.musicVolume ?? soundSettings.musicVolume,
+    ),
+    effectsVolume: clampVolume(
+      nextSettings.effectsVolume ?? soundSettings.effectsVolume,
+    ),
+    clickVolume: clampVolume(
+      nextSettings.clickVolume ?? soundSettings.clickVolume,
+    ),
   };
 
   Howler.volume(soundSettings.masterVolume);
   sounds.forEach((sound, name) => {
     const volume = name.endsWith("Music")
       ? getMusicTargetVolume()
-      : (soundBaseVolumes.get(name) ?? 0.6) * soundSettings.effectsVolume;
+      : name === "click"
+        ? (soundBaseVolumes.get(name) ?? 0.6) *
+          soundSettings.effectsVolume *
+          soundSettings.clickVolume
+        : (soundBaseVolumes.get(name) ?? 0.6) * soundSettings.effectsVolume;
     sound.volume(volume);
   });
 

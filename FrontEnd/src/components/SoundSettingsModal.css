@@ -321,6 +321,63 @@
   }
 }
 
+.sound-settings-mobile-extras {
+  border-top: 1px solid rgba(117, 223, 255, 0.14);
+  margin-top: 12px;
+  padding-top: 12px;
+}
+
+.sound-settings-mobile-extras .sound-volume-row {
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  min-height: 58px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(117, 223, 255, 0.09);
+}
+
+.sound-settings-mobile-extras .sound-volume-row label {
+  display: flex !important;
+  align-items: center !important;
+  gap: 9px !important;
+  margin: 0 !important;
+  grid-column: auto !important;
+  color: #cfe7f5;
+  font-size: 12px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.sound-settings-theme-btn {
+  width: 44px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(117, 223, 255, 0.2);
+  border-radius: 4px;
+  background: rgba(0, 10, 19, 0.32);
+  color: #bceeff;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.sound-settings-theme-btn:hover {
+  background: rgba(117, 223, 255, 0.1);
+  border-color: rgba(117, 223, 255, 0.4);
+}
+
+.light-mode-active .sound-settings-theme-btn {
+  background: rgba(0, 12, 22, 0.42);
+  color: rgba(218, 235, 246, 0.72);
+  border-color: rgba(165, 231, 255, 0.2);
+}
+
+.settings-language-control {
+  display: flex;
+  align-items: center;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .sound-settings-backdrop,
   .sound-settings-dialog {
