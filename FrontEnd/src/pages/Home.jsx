@@ -34,7 +34,9 @@ function Home() {
     }
     return null;
   });
-  const [isLightMode, setIsLightMode] = useState(false);
+  const [isLightMode, setIsLightMode] = useState(() =>
+    document.documentElement.classList.contains("light-mode-active"),
+  );
   const [botDifficulty, setBotDifficulty] = useState("easy");
   const [roomCreating, setRoomCreating] = useState(false);
   const [pvpModeOpen, setPvpModeOpen] = useState(false);

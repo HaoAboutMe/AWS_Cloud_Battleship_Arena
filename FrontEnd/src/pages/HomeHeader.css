@@ -346,12 +346,20 @@
   color: #bceeff;
 }
 
+.command-account-menu button.command-menu-settings {
+  color: #bceeff;
+}
+
 .command-account-menu button:hover,
 .command-account-menu a:hover {
   background: rgba(255, 119, 112, 0.08);
 }
 
 .command-account-menu a:hover {
+  background: rgba(117, 223, 255, 0.08);
+}
+
+.command-account-menu button.command-menu-settings:hover {
   background: rgba(117, 223, 255, 0.08);
 }
 

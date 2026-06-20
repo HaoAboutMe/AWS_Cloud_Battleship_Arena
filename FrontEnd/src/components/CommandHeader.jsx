@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useAuth } from "../contexts/AuthContext";
 import LanguageToggle from "./LanguageToggle";
+import SoundSettingsModal from "./SoundSettingsModal";
 import { RANKS, getRankMeta } from "../game/rankConfig";
 
 const COMMANDER_AVATAR =
@@ -11,13 +13,18 @@ function CommandHeader({
   currentUser,
   attributes = {},
   authLoading = false,
-  isLightMode = false,
+  isLightMode,
   onToggleTheme,
   onLogout,
   onNavigateRequest,
 }) {
   const location = useLocation();
   const { t } = useLanguage();
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [localLightMode, setLocalLightMode] = useState(() =>
+    document.documentElement.classList.contains("light-mode-active"),
+  );
+  const resolvedLightMode = isLightMode ?? localLightMode;
   const identity =
     attributes.preferred_username ||
     attributes.name ||
@@ -39,6 +46,17 @@ function CommandHeader({
 
     event.preventDefault();
     onNavigateRequest(targetPath);
+  };
+
+  const handleThemeToggle = (event) => {
+    if (onToggleTheme) {
+      onToggleTheme(event);
+      return;
+    }
+
+    const nextLightMode = !localLightMode;
+    document.documentElement.classList.toggle("light-mode-active", nextLightMode);
+    setLocalLightMode(nextLightMode);
   };
 
   return (
@@ -84,12 +102,12 @@ function CommandHeader({
           <LanguageToggle />
           <button
             type="button"
-            onClick={onToggleTheme}
+            onClick={handleThemeToggle}
             className="command-icon-button"
-            aria-label={isLightMode ? t("common.useDark") : t("common.useLight")}
+            aria-label={resolvedLightMode ? t("common.useDark") : t("common.useLight")}
           >
             <span className="material-symbols-outlined">
-              {isLightMode ? "dark_mode" : "light_mode"}
+              {resolvedLightMode ? "dark_mode" : "light_mode"}
             </span>
           </button>
 
@@ -138,6 +156,14 @@ function CommandHeader({
                       <span className="material-symbols-outlined">person</span>
                       {t("common.viewProfile")}
                     </Link>
+                    <button
+                      type="button"
+                      className="command-menu-settings"
+                      onClick={() => setSettingsOpen(true)}
+                    >
+                      <span className="material-symbols-outlined">settings</span>
+                      {t("common.settings")}
+                    </button>
                     <button type="button" onClick={onLogout}>
                       <span className="material-symbols-outlined">logout</span>
                       {t("common.signOut")}
@@ -149,6 +175,7 @@ function CommandHeader({
           ) : null}
         </div>
       </div>
+      <SoundSettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </header>
   );
 }

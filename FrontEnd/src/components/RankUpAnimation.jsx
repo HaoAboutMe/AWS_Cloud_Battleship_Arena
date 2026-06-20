@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import Phaser from "phaser";
 import { getRankMeta } from "../game/rankConfig";
+import { playSound } from "../services/soundService";
 import "./RankUpAnimation.css";
 
 const buildRankUpScene = ({ oldRank, newRank, onComplete }) => {
@@ -213,6 +214,7 @@ function RankUpAnimation({ oldRank, newRank, onComplete }) {
 
   useEffect(() => {
     if (!containerRef.current) return undefined;
+    playSound("rankUp", { minGap: 1200 });
 
     gameRef.current = new Phaser.Game({
       type: Phaser.AUTO,
