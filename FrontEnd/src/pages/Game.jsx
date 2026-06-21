@@ -109,6 +109,20 @@ const GAME_COPY = {
     autoArrange: "AUTO ARRANGE",
     deployed: "Deployed",
     cellsLabel: "cells",
+    customShipyardToggleOn: "Switch to Custom Shipyard",
+    customShipyardToggleOff: "Switch to Standard Ships",
+    customShipyardTitle: "Custom Shipyard",
+    customShipyardCellsCount: "{drawn}/15 cells",
+    customShipyardStatusValid: "Fleet structure is valid!",
+    customShipyardStatusInvalid: "Fleet invalid: {reason}",
+    customShipyardShipsDetected: "{count} (required 2 - 4)",
+    customShipyardRules:
+      "Draw ships of 2-13 cells. Total exactly 15 cells. Orthogonal connections only (no diagonal attachments).",
+    customShipyardClear: "Clear Drawing",
+    customShipyardCellCountLabel: "Cells Drawn:",
+    customShipyardShipsDetectedLabel: "Ships Detected:",
+    customShipyardMobileCellLabel: "Cell: ",
+    customShipyardMobileShipsLabel: "Ships: ",
   },
   vi: {
     ready: "Sẵn sàng",
@@ -167,6 +181,20 @@ const GAME_COPY = {
     autoArrange: "TỰ SẮP XẾP",
     deployed: "Đã triển khai",
     cellsLabel: "ô",
+    customShipyardToggleOn: "Tự đóng tàu (Xưởng vẽ)",
+    customShipyardToggleOff: "Dùng tàu mẫu chuẩn",
+    customShipyardTitle: "Xưởng Đóng Tàu Tự Do",
+    customShipyardCellsCount: "{drawn}/15 ô",
+    customShipyardStatusValid: "Cấu trúc hạm đội hợp lệ!",
+    customShipyardStatusInvalid: "Không hợp lệ: {reason}",
+    customShipyardShipsDetected: "{count} (yêu cầu 2 - 4)",
+    customShipyardRules:
+      "Vẽ các tàu từ 2-13 ô. Tổng cộng đúng 15 ô. Các ô phải liền kề ngang/dọc (không nối chéo).",
+    customShipyardClear: "Xóa Bản Vẽ",
+    customShipyardCellCountLabel: "Số ô đã vẽ:",
+    customShipyardShipsDetectedLabel: "Số tàu phát hiện:",
+    customShipyardMobileCellLabel: "Số ô: ",
+    customShipyardMobileShipsLabel: "Số tàu: ",
   },
 };
 
@@ -326,6 +354,9 @@ function Game() {
   const [pvpSocketReady, setPvpSocketReady] = useState(false);
   const [pvpTurnUserId, setPvpTurnUserId] = useState("");
   const [pvpFleetSubmitted, setPvpFleetSubmitted] = useState(false);
+  const [isCustomShipyardActive, setIsCustomShipyardActive] = useState(false);
+  const isCustomShipyardAllowed =
+    !isPvpMode || (isPvpMode && pvpRoom?.matchmakingMode !== "ranked");
   const [exitPromptOpen, setExitPromptOpen] = useState(false);
   const [pendingExitTarget, setPendingExitTarget] = useState("/");
   const [gameOverReason, setGameOverReason] = useState("");
@@ -2111,9 +2142,180 @@ function Game() {
     };
   }, [draggedShip, isMobile]);
 
+  const getConnectedComponents = (cells) => {
+    const cellSet = new Set(cells.map((c) => `${c.row}:${c.col}`));
+    const visited = new Set();
+    const components = [];
+
+    for (const cell of cells) {
+      const key = `${cell.row}:${cell.col}`;
+      if (visited.has(key)) continue;
+
+      const component = [];
+      const queue = [cell];
+      visited.add(key);
+
+      while (queue.length > 0) {
+        const current = queue.shift();
+        component.push(current);
+
+        const neighbors = [
+          { row: current.row - 1, col: current.col },
+          { row: current.row + 1, col: current.col },
+          { row: current.row, col: current.col - 1 },
+          { row: current.row, col: current.col + 1 },
+        ];
+
+        for (const neighbor of neighbors) {
+          const nKey = `${neighbor.row}:${neighbor.col}`;
+          if (cellSet.has(nKey) && !visited.has(nKey)) {
+            visited.add(nKey);
+            queue.push(neighbor);
+          }
+        }
+      }
+      components.push(component);
+    }
+    return components;
+  };
+
+  const toggleCustomShipyardCell = (r, c) => {
+    const currentOccupied = [];
+    for (let row = 0; row < 10; row++) {
+      for (let col = 0; col < 10; col++) {
+        if (playerBoard[row][col].hasShip) {
+          currentOccupied.push({ row, col });
+        }
+      }
+    }
+
+    const existsIndex = currentOccupied.findIndex(
+      (cell) => cell.row === r && cell.col === c,
+    );
+    if (existsIndex > -1) {
+      currentOccupied.splice(existsIndex, 1);
+    } else {
+      if (currentOccupied.length >= 15) {
+        playSound("error", { minGap: 250 });
+        return;
+      }
+      currentOccupied.push({ row: r, col: c });
+    }
+
+    const components = getConnectedComponents(currentOccupied);
+
+    let isValid = true;
+    let errorReason = "";
+    if (currentOccupied.length !== 15) {
+      isValid = false;
+      errorReason =
+        language === "vi"
+          ? `Tổng số ô phải đúng 15 (hiện tại: ${currentOccupied.length} ô)`
+          : `Total cells must be exactly 15 (currently: ${currentOccupied.length} cells)`;
+    } else if (components.length < 2 || components.length > 4) {
+      isValid = false;
+      errorReason =
+        language === "vi"
+          ? `Số lượng tàu là ${components.length} (yêu cầu từ 2 đến 4 tàu)`
+          : `Number of ships is ${components.length} (must be between 2 and 4)`;
+    } else {
+      for (let i = 0; i < components.length; i++) {
+        const size = components[i].length;
+        if (size < 2 || size > 13) {
+          isValid = false;
+          errorReason =
+            language === "vi"
+              ? `Tàu #${i + 1} có ${size} ô (mỗi tàu phải từ 2 đến 13 ô)`
+              : `Ship #${i + 1} has ${size} cells (each ship must be 2 to 13 cells)`;
+          break;
+        }
+      }
+    }
+
+    const newBoard = createBoard();
+    components.forEach((component, i) => {
+      const sortedCells = [...component].sort(
+        (a, b) => a.row - b.row || a.col - b.col,
+      );
+      const rootCellCoord = sortedCells[0];
+      const minRow = Math.min(...component.map((c) => c.row));
+      const minCol = Math.min(...component.map((c) => c.col));
+      const maxRow = Math.max(...component.map((c) => c.row));
+      const maxCol = Math.max(...component.map((c) => c.col));
+      const bounds = {
+        rows: maxRow - minRow + 1,
+        cols: maxCol - minCol + 1,
+      };
+
+      component.forEach((cellCoord) => {
+        const isRoot =
+          cellCoord.row === rootCellCoord.row &&
+          cellCoord.col === rootCellCoord.col;
+        newBoard[cellCoord.row][cellCoord.col] = {
+          row: cellCoord.row,
+          col: cellCoord.col,
+          hasShip: true,
+          shipId: `custom-ship-${i}`,
+          shipTypeId: `custom-type-${i}`,
+          shipLength: component.length,
+          shipRotation: 0,
+          shipOriginRow: minRow,
+          shipOriginCol: minCol,
+          shipRoot: isRoot,
+          shipBounds: isRoot ? bounds : null,
+          isHit: false,
+        };
+      });
+    });
+
+    setPlayerBoard(newBoard);
+
+    if (isValid) {
+      setUnplacedShipIds([]);
+    } else {
+      setUnplacedShipIds([errorReason || "custom-invalid"]);
+    }
+  };
+
+  const handleToggleCustomShipyard = () => {
+    if (isPlacementLocked) return;
+    const nextActive = !isCustomShipyardActive;
+    setIsCustomShipyardActive(nextActive);
+    setPlayerBoard(createBoard());
+    setHoverCell(null);
+    setSelectedShip(null);
+    setDraggedShip(null);
+    setOriginalPlacement(null);
+    setInvalidRotationPreview(null);
+    if (nextActive) {
+      setUnplacedShipIds([
+        language === "vi"
+          ? "Tổng số ô phải đúng 15 (hiện tại: 0 ô)"
+          : "Total cells must be exactly 15 (currently: 0 cells)",
+      ]);
+    } else {
+      setUnplacedShipIds(SHIP_DEFS.map((ship) => ship.id));
+    }
+  };
+
+  const clearCustomShipyard = () => {
+    if (isPlacementLocked) return;
+    setPlayerBoard(createBoard());
+    setUnplacedShipIds([
+      language === "vi"
+        ? "Tổng số ô phải đúng 15 (hiện tại: 0 ô)"
+        : "Total cells must be exactly 15 (currently: 0 cells)",
+    ]);
+  };
+
   const handlePlayerCellClick = (event, r, c) => {
     if (isPlacementLocked) return;
     if (gameState !== "PLACEMENT" && gameState !== "READY") return;
+
+    if (isCustomShipyardActive) {
+      toggleCustomShipyardCell(r, c);
+      return;
+    }
 
     if (draggedShip) {
       const targetRow = r - draggedShip.grabOffset.row;
@@ -2221,6 +2423,12 @@ function Game() {
     if (isPlacementLocked) return;
     if (!isMobile || (gameState !== "PLACEMENT" && gameState !== "READY"))
       return;
+
+    if (isCustomShipyardActive) {
+      toggleCustomShipyardCell(r, c);
+      return;
+    }
+
     const placedShip = getPlacedShipSelectionAt(r, c);
     if (!placedShip) return;
 
@@ -2397,19 +2605,25 @@ function Game() {
           ships: playerBoard
             .flat()
             .filter((cell) => cell.shipRoot)
-            .map((cell) => ({
-              shipId: cell.shipId,
-              shipTypeId: cell.shipTypeId,
-              row:
-                cell.shipOriginRow !== null && cell.shipOriginRow !== undefined
-                  ? cell.shipOriginRow
-                  : cell.row,
-              col:
-                cell.shipOriginCol !== null && cell.shipOriginCol !== undefined
-                  ? cell.shipOriginCol
-                  : cell.col,
-              rotation: cell.shipRotation,
-            })),
+            .map((cell) => {
+              const shipCells = playerBoard
+                .flat()
+                .filter((c) => c.shipId === cell.shipId);
+              const minRow = Math.min(...shipCells.map((c) => c.row));
+              const minCol = Math.min(...shipCells.map((c) => c.col));
+              const baseOffsets = shipCells.map((c) => [
+                c.row - minRow,
+                c.col - minCol,
+              ]);
+              return {
+                shipId: cell.shipId,
+                shipTypeId: cell.shipTypeId,
+                row: minRow,
+                col: minCol,
+                rotation: cell.shipRotation || 0,
+                baseOffsets,
+              };
+            }),
         };
         console.log("Payload sent to server:", board.ships);
         const nextRoom = await markPlayerReady({
@@ -2656,7 +2870,11 @@ function Game() {
                 getFallbackShipCells(board, cell.shipId).map((shipCell) => (
                   <div
                     key={`${cell.shipId}-${shipCell.row}-${shipCell.col}`}
-                    className="absolute bg-secondary/30 border border-secondary/40"
+                    className={`absolute border ${
+                      isShipSunk
+                        ? "bg-error/30 border-error/50"
+                        : "bg-secondary/30 border-secondary/40"
+                    }`}
                     style={{
                       left: `calc(${shipCell.col - (cell.shipOriginCol ?? cell.col)} * (var(--cell-size) + var(--cell-gap)))`,
                       top: `calc(${shipCell.row - (cell.shipOriginRow ?? cell.row)} * (var(--cell-size) + var(--cell-gap)))`,
@@ -3138,54 +3356,157 @@ function Game() {
                 )}
               </div>
               {isMobile &&
-                (gameState === "PLACEMENT" || gameState === "READY") && (
-                  <div className="mobile-fleet-footprints flex overflow-x-auto overflow-y-visible py-2 px-2 gap-[40px] w-full justify-center items-center min-h-[40px] mb-2">
-                    {shipsToPlace.map((shipDef) => {
-                      const activeShipTypeId =
-                        draggedShip?.shipDef?.id || selectedShip?.shipDef?.id;
-                      const isActive = activeShipTypeId === shipDef.id;
-                      const offsets = getShipOffsets(
-                        shipDef,
-                        shipDef.rotations[0],
-                      );
-                      const bounds = getShipBounds(offsets);
-                      const minRow = Math.min(...offsets.map((o) => o[0]));
-                      const minCol = Math.min(...offsets.map((o) => o[1]));
-                      return (
-                        <div
-                          key={shipDef.id}
-                          className="grid flex-shrink-0 transition-all duration-300"
-                          style={{
-                            gridTemplateColumns: `repeat(${bounds.cols}, 7px)`,
-                            gridTemplateRows: `repeat(${bounds.rows}, 7px)`,
-                            gap: "2px",
-                            opacity: isActive ? 1 : 0.65,
-                            transform: isActive ? "scale(1.12)" : "scale(1)",
-                            filter: isActive
-                              ? "drop-shadow(0 0 8px rgba(142, 235, 255, 0.9))"
-                              : "none",
-                          }}
+                (gameState === "PLACEMENT" || gameState === "READY") &&
+                (isCustomShipyardActive ? (
+                  <div className="w-full flex flex-col gap-2 px-4 py-2 bg-black/40 border border-secondary/20 rounded-md font-sans text-xs mb-2">
+                    <div className="flex justify-between items-center font-bold">
+                      <span className="text-error uppercase tracking-wider">
+                        {copy.customShipyardTitle}
+                      </span>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          className="px-2 py-0.5 bg-error/20 hover:bg-error/30 border border-error/40 text-error rounded transition-all uppercase text-[10px]"
+                          onClick={clearCustomShipyard}
+                          disabled={isPlacementLocked}
                         >
-                          {offsets.map((pos, idx) => (
-                            <div
-                              key={idx}
-                              style={{
-                                gridColumn: pos[1] - minCol + 1,
-                                gridRow: pos[0] - minRow + 1,
-                                width: "7px",
-                                height: "7px",
-                                background: "#8EEBFF",
-                                border: "1px solid rgba(142, 235, 255, 0.8)",
-                                boxShadow: "0 0 6px rgba(142, 235, 255, 0.75)",
-                                borderRadius: "1px",
-                              }}
-                            />
-                          ))}
-                        </div>
-                      );
-                    })}
+                          {copy.customShipyardClear || "Clear"}
+                        </button>
+                        {isCustomShipyardAllowed && (
+                          <button
+                            type="button"
+                            className="px-2 py-0.5 bg-secondary/15 hover:bg-secondary/25 border border-secondary/30 text-secondary-foreground rounded transition-all uppercase text-[10px]"
+                            onClick={handleToggleCustomShipyard}
+                            disabled={isPlacementLocked}
+                          >
+                            {copy.customShipyardToggleOff}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between items-center gap-4 text-[11px]">
+                      <div>
+                        <span>{copy.customShipyardMobileCellLabel}</span>
+                        <span
+                          className={`font-mono font-bold ${
+                            playerBoard.flat().filter((c) => c.hasShip)
+                              .length === 15
+                              ? "text-success"
+                              : "text-warning"
+                          }`}
+                        >
+                          {playerBoard.flat().filter((c) => c.hasShip).length}
+                          /15
+                        </span>
+                      </div>
+
+                      <div>
+                        <span>{copy.customShipyardMobileShipsLabel}</span>
+                        <span
+                          className={`font-mono font-bold ${
+                            getConnectedComponents(
+                              playerBoard.flat().filter((c) => c.hasShip),
+                            ).length >= 2 &&
+                            getConnectedComponents(
+                              playerBoard.flat().filter((c) => c.hasShip),
+                            ).length <= 4
+                              ? "text-success"
+                              : "text-error"
+                          }`}
+                        >
+                          {
+                            getConnectedComponents(
+                              playerBoard.flat().filter((c) => c.hasShip),
+                            ).length
+                          }{" "}
+                          (2-4)
+                        </span>
+                      </div>
+
+                      <div className="text-right flex-1 truncate">
+                        {unplacedShipIds.length === 0 ? (
+                          <span className="text-success font-bold">
+                            {copy.customShipyardStatusValid}
+                          </span>
+                        ) : (
+                          <span className="text-error font-semibold">
+                            {unplacedShipIds[0].startsWith("custom-invalid")
+                              ? language === "vi"
+                                ? "Không hợp lệ"
+                                : "Invalid"
+                              : unplacedShipIds[0]}
+                          </span>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                )}
+                ) : (
+                  <div className="w-full flex flex-col gap-2 mb-2">
+                    <div className="mobile-fleet-footprints flex overflow-x-auto overflow-y-visible py-2 px-2 gap-[40px] w-full justify-center items-center min-h-[40px]">
+                      {shipsToPlace.map((shipDef) => {
+                        const activeShipTypeId =
+                          draggedShip?.shipDef?.id || selectedShip?.shipDef?.id;
+                        const isActive = activeShipTypeId === shipDef.id;
+                        const offsets = getShipOffsets(
+                          shipDef,
+                          shipDef.rotations[0],
+                        );
+                        const bounds = getShipBounds(offsets);
+                        const minRow = Math.min(...offsets.map((o) => o[0]));
+                        const minCol = Math.min(...offsets.map((o) => o[1]));
+                        return (
+                          <div
+                            key={shipDef.id}
+                            className="grid flex-shrink-0 transition-all duration-300"
+                            style={{
+                              gridTemplateColumns: `repeat(${bounds.cols}, 7px)`,
+                              gridTemplateRows: `repeat(${bounds.rows}, 7px)`,
+                              gap: "2px",
+                              opacity: isActive ? 1 : 0.65,
+                              transform: isActive ? "scale(1.12)" : "scale(1)",
+                              filter: isActive
+                                ? "drop-shadow(0 0 8px rgba(142, 235, 255, 0.9))"
+                                : "none",
+                            }}
+                          >
+                            {offsets.map((pos, idx) => (
+                              <div
+                                key={idx}
+                                style={{
+                                  gridColumn: pos[1] - minCol + 1,
+                                  gridRow: pos[0] - minRow + 1,
+                                  width: "7px",
+                                  height: "7px",
+                                  background: "#8EEBFF",
+                                  border: "1px solid rgba(142, 235, 255, 0.8)",
+                                  boxShadow:
+                                    "0 0 6px rgba(142, 235, 255, 0.75)",
+                                  borderRadius: "1px",
+                                }}
+                              />
+                            ))}
+                          </div>
+                        );
+                      })}
+                    </div>
+                    {isCustomShipyardAllowed && (
+                      <div className="flex justify-center px-4">
+                        <button
+                          type="button"
+                          className="px-4 py-1.5 bg-secondary/20 hover:bg-secondary/30 border border-secondary/40 text-secondary-foreground text-xs font-bold rounded tracking-wider uppercase flex items-center justify-center gap-1"
+                          onClick={handleToggleCustomShipyard}
+                          disabled={isPlacementLocked}
+                        >
+                          <span className="material-symbols-outlined text-[14px]">
+                            construction
+                          </span>
+                          {copy.customShipyardToggleOn}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ))}
               {renderBoard(playerBoard, false, "player")}
             </div>
 
@@ -3195,149 +3516,290 @@ function Game() {
             >
               {gameState === "PLACEMENT" ? (
                 isMobile ? (
-                  <div className="w-full mt-4 max-w-[430px]">
-                    <button
-                      type="button"
-                      className="auto-arrange-button"
-                      onClick={autoArrangeFleet}
-                      disabled={isPlacementLocked}
-                    >
-                      <span
-                        className="material-symbols-outlined"
-                        aria-hidden="true"
+                  !isCustomShipyardActive && (
+                    <div className="w-full mt-4 max-w-[430px]">
+                      <button
+                        type="button"
+                        className="auto-arrange-button"
+                        onClick={autoArrangeFleet}
+                        disabled={isPlacementLocked}
                       >
-                        auto_fix_high
-                      </span>
-                      {copy.autoArrange || "AUTO ARRANGE"}
-                    </button>
-                  </div>
+                        <span
+                          className="material-symbols-outlined"
+                          aria-hidden="true"
+                        >
+                          auto_fix_high
+                        </span>
+                        {copy.autoArrange || "AUTO ARRANGE"}
+                      </button>
+                    </div>
+                  )
                 ) : (
                   <div
-                    className="deployment-dock"
+                    className="deployment-dock animate-fade-in"
                     style={{
                       "--cell-size": `${CELL_SIZE}px`,
                       "--cell-gap": `${CELL_GAP}px`,
                     }}
                   >
-                    <div className="deployment-dock-heading">
-                      <h3 className="font-bold text-error tracking-widest uppercase">
-                        {copy.fleetStaging || "Fleet Staging"}
-                      </h3>
-                      <span>
-                        {(
-                          copy.shipsRemaining || "{count} ships remaining"
-                        ).replace("{count}", unplacedShipIds.length)}
-                      </span>
-                    </div>
-                    <div className="deployment-ship-grid">
-                      {shipsToPlace.map((shipDef) => {
-                        const isPlaced = !unplacedShipIds.includes(shipDef.id);
-                        const trayRotation =
-                          trayRotations[shipDef.id] ?? shipDef.rotations[0];
-                        const trayOffsets = getShipOffsets(
-                          shipDef,
-                          trayRotation,
-                        );
-                        const trayBounds = getShipBounds(trayOffsets);
-                        const trayCell = {
-                          row: 0,
-                          col: 0,
-                          shipTypeId: shipDef.id,
-                          shipRotation: trayRotation,
-                          shipBounds: trayBounds,
-                        };
-                        const trayWidth =
-                          trayBounds.cols * CELL_SIZE +
-                          (trayBounds.cols - 1) * CELL_GAP;
-                        const trayHeight =
-                          trayBounds.rows * CELL_SIZE +
-                          (trayBounds.rows - 1) * CELL_GAP;
-                        const spriteUrl = resolveSpriteUrl(
-                          SHIP_SPRITES[shipDef.id]?.[trayRotation],
-                        );
+                    {isCustomShipyardActive ? (
+                      <div className="flex flex-col h-full justify-between gap-4 p-2">
+                        <div className="flex flex-col gap-3">
+                          <div className="deployment-dock-heading border-b border-secondary/20 pb-2">
+                            <h3 className="font-bold text-error tracking-wider uppercase">
+                              {copy.customShipyardTitle || "Custom Shipyard"}
+                            </h3>
+                          </div>
 
-                        return (
-                          <div
-                            key={shipDef.id}
-                            className={`deployment-ship-card deployment-${shipDef.id} ${
-                              isPlaced ? "is-placed" : ""
-                            } ${isPlacementLocked ? "is-locked" : ""}`}
-                            onClick={(event) => {
-                              if (!isPlaced)
-                                handleTrayShipClick(event, shipDef);
-                            }}
-                            onContextMenu={(event) => {
-                              if (!isPlaced)
-                                handleTrayShipContextMenu(event, shipDef);
-                              else event.preventDefault();
-                            }}
-                          >
-                            <div className="deployment-ship-meta">
-                              <span className="deployment-ship-label">
-                                {shipDef.label}
-                              </span>
-                              <span className="deployment-ship-size">
-                                {shipDef.size} {copy.cellsLabel || "cells"}
-                              </span>
+                          <div className="text-xs text-muted-foreground leading-relaxed bg-black/30 border border-secondary/15 rounded p-3 font-sans">
+                            {copy.customShipyardRules}
+                          </div>
+
+                          <div className="flex flex-col gap-2 bg-secondary/5 border border-secondary/10 rounded p-3 font-sans text-sm">
+                            <div className="flex justify-between items-center">
+                              <span>{copy.customShipyardCellCountLabel}</span>
                               <span
-                                className="deployment-footprint"
-                                style={{
-                                  gridTemplateColumns: `repeat(${trayBounds.cols}, 7px)`,
-                                  gridTemplateRows: `repeat(${trayBounds.rows}, 7px)`,
-                                }}
-                                aria-label={`${shipDef.label} occupies ${shipDef.size} ${copy.cellsLabel || "cells"}`}
+                                className={`font-mono font-bold ${
+                                  playerBoard.flat().filter((c) => c.hasShip)
+                                    .length === 15
+                                    ? "text-success"
+                                    : "text-warning"
+                                }`}
                               >
-                                {trayOffsets.map(([row, col]) => (
-                                  <span
-                                    key={`${row}-${col}`}
-                                    className="deployment-footprint-cell"
-                                    style={{
-                                      gridRow: row + 1,
-                                      gridColumn: col + 1,
-                                    }}
-                                  />
-                                ))}
+                                {copy.customShipyardCellsCount.replace(
+                                  "{drawn}",
+                                  playerBoard.flat().filter((c) => c.hasShip)
+                                    .length,
+                                )}
                               </span>
                             </div>
-                            <div className="deployment-ship-stage">
-                              {!isPlaced && spriteUrl ? (
-                                <div
-                                  className="deployment-ship-preview"
-                                  style={{
-                                    width: `${trayWidth}px`,
-                                    height: `${trayHeight}px`,
-                                  }}
-                                >
-                                  <img
-                                    src={spriteUrl}
-                                    alt={shipDef.label}
-                                    style={getShipImageStyle(trayCell)}
-                                  />
-                                </div>
+
+                            <div className="flex justify-between items-center">
+                              <span>
+                                {copy.customShipyardShipsDetectedLabel}
+                              </span>
+                              <span
+                                className={`font-mono font-bold ${
+                                  getConnectedComponents(
+                                    playerBoard.flat().filter((c) => c.hasShip),
+                                  ).length >= 2 &&
+                                  getConnectedComponents(
+                                    playerBoard.flat().filter((c) => c.hasShip),
+                                  ).length <= 4
+                                    ? "text-success"
+                                    : "text-error"
+                                }`}
+                              >
+                                {copy.customShipyardShipsDetected.replace(
+                                  "{count}",
+                                  getConnectedComponents(
+                                    playerBoard.flat().filter((c) => c.hasShip),
+                                  ).length,
+                                )}
+                              </span>
+                            </div>
+
+                            <div className="mt-2 text-center text-xs">
+                              {unplacedShipIds.length === 0 ? (
+                                <span className="text-success font-bold flex items-center justify-center gap-1">
+                                  <span className="material-symbols-outlined text-[16px]">
+                                    check_circle
+                                  </span>
+                                  {copy.customShipyardStatusValid}
+                                </span>
                               ) : (
-                                <span className="deployment-placed-mark">
-                                  {copy.deployed || "Deployed"}
+                                <span className="text-error font-semibold flex items-start gap-1 justify-center text-left">
+                                  <span className="material-symbols-outlined text-[16px] mt-0.5">
+                                    warning
+                                  </span>
+                                  {unplacedShipIds[0].startsWith(
+                                    "custom-invalid",
+                                  )
+                                    ? copy.customShipyardStatusInvalid.replace(
+                                        "{reason}",
+                                        language === "vi"
+                                          ? "15 ô, 2-4 tàu, cỡ 2-13"
+                                          : "15 cells, 2-4 ships, size 2-13",
+                                      )
+                                    : copy.customShipyardStatusInvalid.replace(
+                                        "{reason}",
+                                        unplacedShipIds[0],
+                                      )}
                                 </span>
                               )}
                             </div>
                           </div>
-                        );
-                      })}
-                    </div>
-                    <button
-                      type="button"
-                      className="auto-arrange-button"
-                      onClick={autoArrangeFleet}
-                      disabled={isPlacementLocked}
-                    >
-                      <span
-                        className="material-symbols-outlined"
-                        aria-hidden="true"
-                      >
-                        auto_fix_high
-                      </span>
-                      {copy.autoArrange || "AUTO ARRANGE"}
-                    </button>
+                        </div>
+
+                        <div className="flex flex-col gap-2 mt-auto">
+                          <button
+                            type="button"
+                            className="w-full py-2 bg-error/20 hover:bg-error/30 border border-error/40 text-error rounded font-bold transition-all text-xs tracking-wider uppercase flex items-center justify-center gap-1.5"
+                            onClick={clearCustomShipyard}
+                            disabled={isPlacementLocked}
+                          >
+                            <span className="material-symbols-outlined text-[16px]">
+                              delete
+                            </span>
+                            {copy.customShipyardClear || "Clear"}
+                          </button>
+
+                          {isCustomShipyardAllowed && (
+                            <button
+                              type="button"
+                              className="w-full py-2 bg-secondary/15 hover:bg-secondary/25 border border-secondary/30 text-secondary-foreground rounded font-bold transition-all text-xs tracking-wider uppercase flex items-center justify-center gap-1.5"
+                              onClick={handleToggleCustomShipyard}
+                              disabled={isPlacementLocked}
+                            >
+                              <span className="material-symbols-outlined text-[16px]">
+                                swap_horiz
+                              </span>
+                              {copy.customShipyardToggleOff}
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="deployment-dock-heading">
+                          <h3 className="font-bold text-error tracking-widest uppercase">
+                            {copy.fleetStaging || "Fleet Staging"}
+                          </h3>
+                          <span>
+                            {(
+                              copy.shipsRemaining || "{count} ships remaining"
+                            ).replace("{count}", unplacedShipIds.length)}
+                          </span>
+                        </div>
+                        <div className="deployment-ship-grid">
+                          {shipsToPlace.map((shipDef) => {
+                            const isPlaced = !unplacedShipIds.includes(
+                              shipDef.id,
+                            );
+                            const trayRotation =
+                              trayRotations[shipDef.id] ?? shipDef.rotations[0];
+                            const trayOffsets = getShipOffsets(
+                              shipDef,
+                              trayRotation,
+                            );
+                            const trayBounds = getShipBounds(trayOffsets);
+                            const trayCell = {
+                              row: 0,
+                              col: 0,
+                              shipTypeId: shipDef.id,
+                              shipRotation: trayRotation,
+                              shipBounds: trayBounds,
+                            };
+                            const trayWidth =
+                              trayBounds.cols * CELL_SIZE +
+                              (trayBounds.cols - 1) * CELL_GAP;
+                            const trayHeight =
+                              trayBounds.rows * CELL_SIZE +
+                              (trayBounds.rows - 1) * CELL_GAP;
+                            const spriteUrl = resolveSpriteUrl(
+                              SHIP_SPRITES[shipDef.id]?.[trayRotation],
+                            );
+
+                            return (
+                              <div
+                                key={shipDef.id}
+                                className={`deployment-ship-card deployment-${shipDef.id} ${
+                                  isPlaced ? "is-placed" : ""
+                                } ${isPlacementLocked ? "is-locked" : ""}`}
+                                onClick={(event) => {
+                                  if (!isPlaced)
+                                    handleTrayShipClick(event, shipDef);
+                                }}
+                                onContextMenu={(event) => {
+                                  if (!isPlaced)
+                                    handleTrayShipContextMenu(event, shipDef);
+                                  else event.preventDefault();
+                                }}
+                              >
+                                <div className="deployment-ship-meta">
+                                  <span className="deployment-ship-label">
+                                    {shipDef.label}
+                                  </span>
+                                  <span className="deployment-ship-size">
+                                    {shipDef.size} {copy.cellsLabel || "cells"}
+                                  </span>
+                                  <span
+                                    className="deployment-footprint"
+                                    style={{
+                                      gridTemplateColumns: `repeat(${trayBounds.cols}, 7px)`,
+                                      gridTemplateRows: `repeat(${trayBounds.rows}, 7px)`,
+                                    }}
+                                    aria-label={`${shipDef.label} occupies ${shipDef.size} ${copy.cellsLabel || "cells"}`}
+                                  >
+                                    {trayOffsets.map(([row, col]) => (
+                                      <span
+                                        key={`${row}-${col}`}
+                                        className="deployment-footprint-cell"
+                                        style={{
+                                          gridRow: row + 1,
+                                          gridColumn: col + 1,
+                                        }}
+                                      />
+                                    ))}
+                                  </span>
+                                </div>
+                                <div className="deployment-ship-stage">
+                                  {!isPlaced && spriteUrl ? (
+                                    <div
+                                      className="deployment-ship-preview"
+                                      style={{
+                                        width: `${trayWidth}px`,
+                                        height: `${trayHeight}px`,
+                                      }}
+                                    >
+                                      <img
+                                        src={spriteUrl}
+                                        alt={shipDef.label}
+                                        style={getShipImageStyle(trayCell)}
+                                      />
+                                    </div>
+                                  ) : (
+                                    <span className="deployment-placed-mark">
+                                      {copy.deployed || "Deployed"}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                        <div className="flex flex-col gap-2 mt-auto">
+                          <button
+                            type="button"
+                            className="auto-arrange-button"
+                            onClick={autoArrangeFleet}
+                            disabled={isPlacementLocked}
+                          >
+                            <span
+                              className="material-symbols-outlined"
+                              aria-hidden="true"
+                            >
+                              auto_fix_high
+                            </span>
+                            {copy.autoArrange || "AUTO ARRANGE"}
+                          </button>
+
+                          {isCustomShipyardAllowed && (
+                            <button
+                              type="button"
+                              className="w-full py-2.5 bg-secondary/20 hover:bg-secondary/30 border border-secondary/40 text-secondary-foreground rounded font-bold transition-all text-xs tracking-wider uppercase flex items-center justify-center gap-1.5"
+                              onClick={handleToggleCustomShipyard}
+                              disabled={isPlacementLocked}
+                            >
+                              <span className="material-symbols-outlined text-[16px]">
+                                construction
+                              </span>
+                              {copy.customShipyardToggleOn}
+                            </button>
+                          )}
+                        </div>
+                      </>
+                    )}
                   </div>
                 )
               ) : (
