@@ -25,6 +25,7 @@ import {
   checkVictory,
   createBoard,
   fireAt,
+  getConnectedComponents,
   getShipBounds,
   getShipOffsets,
   markWaterAroundSunkShip,
@@ -112,6 +113,12 @@ const getLegalFleetSelections = (shipDefs) => {
   return selections;
 };
 
+const CUSTOM_SHIPYARD_CELL_BUDGET = 15;
+const CUSTOM_SHIPYARD_MIN_SHIPS = 2;
+const CUSTOM_SHIPYARD_MAX_SHIPS = 4;
+const CUSTOM_SHIPYARD_MIN_SHIP_SIZE = 2;
+const CUSTOM_SHIPYARD_MAX_SHIP_SIZE = 13;
+
 const GAME_COPY = {
   en: {
     ready: "Ready",
@@ -148,6 +155,17 @@ const GAME_COPY = {
     defeatLog: "DEFEAT! Your fleet was destroyed.",
     sectorSecured: "Sector Secured!",
     fleetAnnihilated: "Fleet Annihilated!",
+    customShipyardToggle: "Custom Shipyard",
+    customShipyardToggleBack: "Standard Mode",
+    customShipyardClear: "Clear",
+    customShipyardBudget: "{used}/15 cells used",
+    customShipyardHint: "Paint your fleet. Tap cells to toggle. Orthogonal adjacency only.",
+    customShipyardRuleMinShips: "Need at least 2 ships (connected groups).",
+    customShipyardRuleMaxShips: "Max 4 ships (connected groups).",
+    customShipyardRuleMinSize: "Each ship must have at least 2 cells.",
+    customShipyardRuleMaxSize: "Each ship can have at most 13 cells.",
+    customShipyardRuleExact: "Paint exactly 15 cells total.",
+    customShipyardReady: "Fleet valid! Press Ready.",
     dragShipsInstructions:
       "Drag ships from staging onto your map. Right-click to rotate.",
     formationCompleteInstructions:
@@ -240,6 +258,17 @@ const GAME_COPY = {
     defeatLog: "THẤT BẠI! Hạm đội của bạn đã bị tiêu diệt.",
     sectorSecured: "Khu vực đã được bảo toàn!",
     fleetAnnihilated: "Hạm đội bị tiêu diệt!",
+    customShipyardToggle: "Xưởng Đóng Tàu",
+    customShipyardToggleBack: "Chế độ thường",
+    customShipyardClear: "Xóa",
+    customShipyardBudget: "{used}/15 ô đã dùng",
+    customShipyardHint: "Tô màu hạm đội của bạn. Nhấn ô để bật/tắt. Chỉ kề cạnh, không chéo.",
+    customShipyardRuleMinShips: "Cần ít nhất 2 tàu (nhóm ô liền nhau).",
+    customShipyardRuleMaxShips: "Tối đa 4 tàu (nhóm ô liền nhau).",
+    customShipyardRuleMinSize: "Mỗi tàu phải có ít nhất 2 ô.",
+    customShipyardRuleMaxSize: "Mỗi tàu tối đa 13 ô.",
+    customShipyardRuleExact: "Tô đúng 15 ô tổng cộng.",
+    customShipyardReady: "Hạm đội hợp lệ! Nhấn Sẵn sàng.",
     dragShipsInstructions:
       "Kéo tàu từ bến tàu lên bản đồ của bạn. Click chuột phải để xoay.",
     formationCompleteInstructions:
@@ -410,6 +439,9 @@ function Game() {
   const [difficulty, setDifficulty] = useState("easy");
 
   const [gameState, setGameState] = useState("PLACEMENT"); // PLACEMENT, READY, PLAYER_TURN, BOT_TURN, GAME_OVER
+  const [isCustomShipyardActive, setIsCustomShipyardActive] = useState(false);
+  const [customDrawBoard, setCustomDrawBoard] = useState(() => createBoard());
+  const [customShipyardValidation, setCustomShipyardValidation] = useState("");
   const [playerBoard, setPlayerBoard] = useState(createBoard());
   const [enemyBoard, setEnemyBoard] = useState(createBoard());
 
@@ -460,6 +492,30 @@ function Game() {
     placedFleetCellCount === FLEET_CELL_LIMIT &&
     placedFleetShipCount >= FLEET_MIN_SHIPS &&
     placedFleetShipCount <= FLEET_MAX_SHIPS;
+
+  // Custom Shipyard validation
+  const customDrawCellCount = customDrawBoard.flat().filter(c => c.hasShip).length;
+  const customComponents = isCustomShipyardActive ? getConnectedComponents(customDrawBoard) : [];
+  const isCustomFleetValid = isCustomShipyardActive && (() => {
+    if (customDrawCellCount !== CUSTOM_SHIPYARD_CELL_BUDGET) return false;
+    if (customComponents.length < CUSTOM_SHIPYARD_MIN_SHIPS) return false;
+    if (customComponents.length > CUSTOM_SHIPYARD_MAX_SHIPS) return false;
+    if (customComponents.some(comp => comp.length < CUSTOM_SHIPYARD_MIN_SHIP_SIZE)) return false;
+    if (customComponents.some(comp => comp.length > CUSTOM_SHIPYARD_MAX_SHIP_SIZE)) return false;
+    return true;
+  })();
+
+  const getCustomShipyardMessage = () => {
+    if (customDrawCellCount === 0) return copy.customShipyardHint || "Paint your fleet.";
+    if (customDrawCellCount > CUSTOM_SHIPYARD_CELL_BUDGET) return copy.customShipyardRuleExact || "Paint exactly 15 cells total.";
+    if (customDrawCellCount < CUSTOM_SHIPYARD_CELL_BUDGET) return (copy.customShipyardBudget || "{used}/15 cells used").replace("{used}", customDrawCellCount);
+    // Exactly 15 cells
+    if (customComponents.length < CUSTOM_SHIPYARD_MIN_SHIPS) return copy.customShipyardRuleMinShips || "Need at least 2 ships.";
+    if (customComponents.length > CUSTOM_SHIPYARD_MAX_SHIPS) return copy.customShipyardRuleMaxShips || "Max 4 ships.";
+    if (customComponents.some(c => c.length < CUSTOM_SHIPYARD_MIN_SHIP_SIZE)) return copy.customShipyardRuleMinSize || "Each ship must have at least 2 cells.";
+    if (customComponents.some(c => c.length > CUSTOM_SHIPYARD_MAX_SHIP_SIZE)) return copy.customShipyardRuleMaxSize || "Each ship can have at most 13 cells.";
+    return copy.customShipyardReady || "Fleet valid! Press Ready.";
+  };
   const fleetGuidanceMessage =
     fleetRuleMessage ||
     (placedFleetShipCount === 0
@@ -2752,6 +2808,109 @@ function Game() {
     }));
   };
 
+  // === Giai đoạn 1: Custom Shipyard handlers ===
+  const isCustomPaintingRef = useRef(false); // drag-to-paint state
+  const customPaintValueRef = useRef(true);  // true = paint ON, false = paint OFF
+
+  const applyCustomCellPaint = (r, c) => {
+    if (isPlacementLocked) return;
+    if (gameState !== "PLACEMENT" && gameState !== "READY") return;
+    setCustomDrawBoard(prev => {
+      const next = prev.map(row => row.map(cell => ({ ...cell })));
+      next[r][c].hasShip = customPaintValueRef.current;
+      return next;
+    });
+  };
+
+  const handleCustomCellClick = (r, c) => {
+    if (isPlacementLocked) return;
+    if (gameState !== "PLACEMENT" && gameState !== "READY") return;
+    setCustomDrawBoard(prev => {
+      const next = prev.map(row => row.map(cell => ({ ...cell })));
+      next[r][c].hasShip = !next[r][c].hasShip;
+      return next;
+    });
+  };
+
+  const handleCustomCellMouseDown = (e, r, c) => {
+    if (isPlacementLocked || isMobile) return;
+    if (gameState !== "PLACEMENT" && gameState !== "READY") return;
+    e.preventDefault();
+    // Determine paint value from the cell being clicked (toggle mode for first cell)
+    setCustomDrawBoard(prev => {
+      customPaintValueRef.current = !prev[r][c].hasShip;
+      const next = prev.map(row => row.map(cell => ({ ...cell })));
+      next[r][c].hasShip = customPaintValueRef.current;
+      return next;
+    });
+    isCustomPaintingRef.current = true;
+  };
+
+  const handleCustomCellMouseEnter = (r, c) => {
+    if (!isCustomPaintingRef.current || isPlacementLocked || isMobile) return;
+    applyCustomCellPaint(r, c);
+  };
+
+  // Touch-based drag painting on the main board
+  const handleCustomBoardTouchStart = (e, r, c) => {
+    if (isPlacementLocked) return;
+    if (gameState !== "PLACEMENT" && gameState !== "READY") return;
+    e.preventDefault();
+    setCustomDrawBoard(prev => {
+      customPaintValueRef.current = !prev[r][c].hasShip;
+      const next = prev.map(row => row.map(cell => ({ ...cell })));
+      next[r][c].hasShip = customPaintValueRef.current;
+      return next;
+    });
+    isCustomPaintingRef.current = true;
+  };
+
+  const handleCustomBoardTouchMove = (e, boardRef) => {
+    if (!isCustomPaintingRef.current || !boardRef?.current) return;
+    e.preventDefault();
+    const touch = e.touches[0];
+    const rect = boardRef.current.getBoundingClientRect();
+    const cellSize = rect.width / 10;
+    const c = Math.floor((touch.clientX - rect.left) / cellSize);
+    const r = Math.floor((touch.clientY - rect.top) / cellSize);
+    if (r >= 0 && r < BOARD_SIZE && c >= 0 && c < BOARD_SIZE) {
+      applyCustomCellPaint(r, c);
+    }
+  };
+
+  const stopCustomPainting = () => {
+    isCustomPaintingRef.current = false;
+  };
+
+  const toggleCustomShipyard = () => {
+    if (isPlacementLocked) return;
+    const next = !isCustomShipyardActive;
+    setIsCustomShipyardActive(next);
+    isCustomPaintingRef.current = false;
+    if (next) {
+      // Switching TO custom mode: clear standard board & tray
+      setCustomDrawBoard(createBoard());
+      setPlayerBoard(createBoard());
+      setUnplacedShipIds(SHIP_DEFS.map(s => s.id));
+      setDraggedShip(null);
+      setDragPointer(null);
+      setSelectedShip(null);
+      setHoverCell(null);
+      setInvalidRotationPreview(null);
+      setFleetRuleMessage("");
+    } else {
+      // Switching BACK to standard mode: clear custom draw
+      setPlayerBoard(createBoard());
+      setUnplacedShipIds(SHIP_DEFS.map(s => s.id));
+      setFleetRuleMessage("");
+    }
+  };
+
+  const clearCustomDraw = () => {
+    if (isPlacementLocked) return;
+    setCustomDrawBoard(createBoard());
+  };
+
   const autoArrangeFleet = () => {
     if (isPlacementLocked) return;
     const legalSelections = getLegalFleetSelections(shipsToPlace);
@@ -2785,6 +2944,98 @@ function Game() {
   };
 
   const beginBattle = async () => {
+    // === Custom Shipyard mode ===
+    if (isCustomShipyardActive) {
+      if (!isCustomFleetValid) {
+        addLog(getCustomShipyardMessage(), "warning");
+        return;
+      }
+      if (isWaitingForOpponentFleet) return;
+      playSound("click", { minGap: 250 });
+
+      // Extract BFS ships and build baseOffsets payload
+      const components = getConnectedComponents(customDrawBoard);
+      const customShipsPayload = components.map((cells, idx) => {
+        const minRow = Math.min(...cells.map(c => c.row));
+        const minCol = Math.min(...cells.map(c => c.col));
+        const baseOffsets = cells.map(c => [c.row - minRow, c.col - minCol]);
+        return {
+          shipId: `custom-${idx}-${Date.now()}`,
+          shipTypeId: "custom",
+          row: minRow,
+          col: minCol,
+          rotation: 0,
+          baseOffsets,
+        };
+      });
+
+      if (isPvpMode) {
+        try {
+          setPvpReadyLoading(true);
+          const board = { placedAt: new Date().toISOString(), ships: customShipsPayload };
+          const nextRoom = await markPlayerReady({ roomCode, player: roomPlayer, board });
+          setPvpRoom(nextRoom);
+          setPvpFleetSubmitted(true);
+          if (nextRoom.status === "IN_PROGRESS") {
+            setGameState("PLAYER_TURN");
+            setTurnTimer(30);
+          } else {
+            setGameState("PLACEMENT");
+          }
+          addLog(
+            nextRoom.status === "IN_PROGRESS" ? copy.bothReadyLog : copy.waitingFleetLog,
+            "info",
+          );
+        } catch (readyError) {
+          addLog(readyError.message || "Unable to mark fleet ready.", "warning");
+        } finally {
+          setPvpReadyLoading(false);
+        }
+        return;
+      }
+
+      // Single-player: apply custom board as player board
+      const newPlayerBoard = createBoard();
+      components.forEach((cells, idx) => {
+        const shipId = idx + 1;
+        const minRow = Math.min(...cells.map(c => c.row));
+        const minCol = Math.min(...cells.map(c => c.col));
+        const offsets = cells.map(c => [c.row - minRow, c.col - minCol]);
+        const bounds = getShipBounds(offsets);
+        cells.forEach(({ row, col }) => {
+          newPlayerBoard[row][col].hasShip = true;
+          newPlayerBoard[row][col].shipId = shipId;
+          newPlayerBoard[row][col].shipTypeId = "custom";
+          newPlayerBoard[row][col].shipRotation = 0;
+          newPlayerBoard[row][col].shipOriginRow = minRow;
+          newPlayerBoard[row][col].shipOriginCol = minCol;
+          newPlayerBoard[row][col].shipLength = cells.length;
+        });
+        newPlayerBoard[minRow][minCol].shipRoot = true;
+        newPlayerBoard[minRow][minCol].shipBounds = bounds;
+      });
+      setPlayerBoard(newPlayerBoard);
+
+      // Build simple straight-line enemy ships matching same sizes
+      const customEnemyDefs = components.map((cells, idx) => ({
+        id: `custom-enemy-${idx}`,
+        label: `Ship ${cells.length}`,
+        size: cells.length,
+        baseOffsets: Array.from({ length: cells.length }, (_, i) => [0, i]),
+        rotations: [0, 90, 180, 270],
+      }));
+      const newEnemyBoard = createBoard();
+      placeShipsRandomly(newEnemyBoard, customEnemyDefs);
+      setEnemyBoard(newEnemyBoard);
+      setGameState("PLAYER_TURN");
+      setTurnTimer(30);
+      addLog("Battle initiated!", "info");
+      addLog("Your turn started.", "info");
+      setStats((prev) => ({ ...prev, turns: 1 }));
+      return;
+    }
+
+    // === Standard mode ===
     if (!isFleetValid || invalidRotationPreview || draggedShip) {
       const validationMessage =
         placedFleetShipCount < FLEET_MIN_SHIPS
@@ -2802,31 +3053,29 @@ function Game() {
     if (isPvpMode) {
       try {
         setPvpReadyLoading(true);
+        // Encode baseOffsets for every ship (Giai đoạn 3 - backward compatible)
         const board = {
           placedAt: new Date().toISOString(),
           ships: playerBoard
             .flat()
             .filter((cell) => cell.shipRoot)
-            .map((cell) => ({
-              shipId: cell.shipId,
-              shipTypeId: cell.shipTypeId,
-              row:
-                cell.shipOriginRow !== null && cell.shipOriginRow !== undefined
-                  ? cell.shipOriginRow
-                  : cell.row,
-              col:
-                cell.shipOriginCol !== null && cell.shipOriginCol !== undefined
-                  ? cell.shipOriginCol
-                  : cell.col,
-              rotation: cell.shipRotation,
-            })),
+            .map((cell) => {
+              const shipDef = SHIP_DEFS.find(d => d.id === cell.shipTypeId);
+              const originRow = cell.shipOriginRow !== null && cell.shipOriginRow !== undefined ? cell.shipOriginRow : cell.row;
+              const originCol = cell.shipOriginCol !== null && cell.shipOriginCol !== undefined ? cell.shipOriginCol : cell.col;
+              const baseOffsets = shipDef ? getShipOffsets(shipDef, cell.shipRotation) : [];
+              return {
+                shipId: cell.shipId,
+                shipTypeId: cell.shipTypeId,
+                row: originRow,
+                col: originCol,
+                rotation: cell.shipRotation,
+                baseOffsets,
+              };
+            }),
         };
         console.log("Payload sent to server:", board.ships);
-        const nextRoom = await markPlayerReady({
-          roomCode,
-          player: roomPlayer,
-          board,
-        });
+        const nextRoom = await markPlayerReady({ roomCode, player: roomPlayer, board });
         setPvpRoom(nextRoom);
         setPvpFleetSubmitted(true);
         setSelectedShip(null);
@@ -2841,9 +3090,7 @@ function Game() {
           setGameState("PLACEMENT");
         }
         addLog(
-          nextRoom.status === "IN_PROGRESS"
-            ? copy.bothReadyLog
-            : copy.waitingFleetLog,
+          nextRoom.status === "IN_PROGRESS" ? copy.bothReadyLog : copy.waitingFleetLog,
           "info",
         );
       } catch (readyError) {
@@ -3357,8 +3604,41 @@ function Game() {
               gap: `var(--cell-gap)`,
             }}
           >
-            {board.flatMap((row, r) =>
+            {/* In custom mode: render customDrawBoard on the main player grid */}
+            {(!isEnemy && isCustomShipyardActive ? customDrawBoard : board).flatMap((row, r) =>
               row.map((cell, c) => {
+                // --- Custom Shipyard paint mode ---
+                if (!isEnemy && isCustomShipyardActive) {
+                  const isPainted = cell.hasShip;
+                  return (
+                    <div
+                      key={`${r}-${c}`}
+                      data-row={r}
+                      data-col={c}
+                      onMouseDown={(e) => handleCustomCellMouseDown(e, r, c)}
+                      onMouseEnter={() => handleCustomCellMouseEnter(r, c)}
+                      onMouseUp={stopCustomPainting}
+                      onTouchStart={(e) => handleCustomBoardTouchStart(e, r, c)}
+                      onTouchMove={(e) => handleCustomBoardTouchMove(e, playerBoardRef)}
+                      onTouchEnd={stopCustomPainting}
+                      className={`ocean-cell relative overflow-visible ${isPlacementLocked ? "cursor-default" : "cursor-crosshair"} ${isPainted ? "" : "bg-surface-container/50"}`}
+                      style={isPainted ? {
+                        background: "rgba(165,231,255,0.65)",
+                        border: "1px solid rgba(165,231,255,0.85)",
+                        boxShadow: "0 0 10px rgba(165,231,255,0.45), inset 0 0 4px rgba(165,231,255,0.3)",
+                        transition: "background 0.1s, box-shadow 0.1s",
+                        userSelect: "none",
+                        touchAction: "none",
+                      } : {
+                        transition: "background 0.1s",
+                        userSelect: "none",
+                        touchAction: "none",
+                      }}
+                    />
+                  );
+                }
+
+                // --- Standard mode ---
                 const isHovered = placementOffsets
                   ? placementOffsets.some((pos) => pos.r === r && pos.c === c)
                   : false;
@@ -3588,19 +3868,17 @@ function Game() {
               <button
                 onClick={beginBattle}
                 disabled={
-                  !isFleetValid ||
-                  Boolean(invalidRotationPreview) ||
-                  Boolean(draggedShip) ||
+                  (isCustomShipyardActive ? !isCustomFleetValid : !isFleetValid || Boolean(invalidRotationPreview) || Boolean(draggedShip)) ||
                   pvpReadyLoading ||
                   isWaitingForOpponentFleet
                 }
-                className={`font-bold px-4 py-1.5 md:px-8 md:py-2 text-sm md:text-base rounded-sm transition-all tracking-widest ${!isFleetValid || invalidRotationPreview ||
-                  draggedShip ||
+                className={`font-bold px-4 py-1.5 md:px-8 md:py-2 text-sm md:text-base rounded-sm transition-all tracking-widest ${
+                  (isCustomShipyardActive ? !isCustomFleetValid : !isFleetValid || invalidRotationPreview || draggedShip) ||
                   pvpReadyLoading ||
                   isWaitingForOpponentFleet
-                  ? "bg-surface-container text-on-surface-variant/40 cursor-not-allowed opacity-50"
-                  : "bg-secondary text-on-secondary-fixed hover:bg-secondary-container active:scale-95"
-                  }`}
+                    ? "bg-surface-container text-on-surface-variant/40 cursor-not-allowed opacity-50"
+                    : "bg-secondary text-on-secondary-fixed hover:bg-secondary-container active:scale-95"
+                }`}
               >
                 {pvpReadyLoading
                   ? copy.syncing
@@ -3743,6 +4021,99 @@ function Game() {
                         auto_fix_high
                       </span>
                       {copy.autoArrange || "AUTO ARRANGE"}
+                    </button>
+                  </div>
+                ) : isCustomShipyardActive ? (
+                  /* === Custom Shipyard Validation Panel === */
+                  <div
+                    className="deployment-dock"
+                    style={{ "--cell-size": `${CELL_SIZE}px`, "--cell-gap": `${CELL_GAP}px` }}
+                  >
+                    <div className="deployment-dock-heading">
+                      <h3 className="font-bold tracking-widest uppercase" style={{ color: "#a5e7ff" }}>
+                        {copy.customShipyardToggle || "Custom Shipyard"}
+                      </h3>
+                    </div>
+                    <p style={{ fontSize: "12px", color: "rgba(255,255,255,0.55)", lineHeight: "1.5", marginBottom: "12px" }}>
+                      {copy.customShipyardHint || "Paint your fleet directly on the board. Click or drag to toggle cells."}
+                    </p>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "12px" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                          {copy.cellsLabel || "Cells"}
+                        </span>
+                        <span style={{
+                          fontSize: "14px", fontWeight: "bold",
+                          color: customDrawCellCount > CUSTOM_SHIPYARD_CELL_BUDGET ? "#ef4444"
+                            : customDrawCellCount === CUSTOM_SHIPYARD_CELL_BUDGET ? "#22c55e" : "#a5e7ff",
+                        }}>
+                          {customDrawCellCount} / {CUSTOM_SHIPYARD_CELL_BUDGET}
+                        </span>
+                      </div>
+                      <div style={{ height: "4px", borderRadius: "2px", background: "rgba(255,255,255,0.1)", overflow: "hidden" }}>
+                        <div style={{
+                          height: "100%", borderRadius: "2px",
+                          width: `${Math.min(100, (customDrawCellCount / CUSTOM_SHIPYARD_CELL_BUDGET) * 100)}%`,
+                          background: customDrawCellCount > CUSTOM_SHIPYARD_CELL_BUDGET ? "#ef4444"
+                            : customDrawCellCount === CUSTOM_SHIPYARD_CELL_BUDGET && isCustomFleetValid ? "#22c55e" : "#a5e7ff",
+                          transition: "width 0.2s, background 0.2s",
+                        }} />
+                      </div>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Ships</span>
+                        <span style={{
+                          fontSize: "14px", fontWeight: "bold",
+                          color: customComponents.length >= CUSTOM_SHIPYARD_MIN_SHIPS && customComponents.length <= CUSTOM_SHIPYARD_MAX_SHIPS
+                            ? "#22c55e" : customComponents.length > 0 ? "#ef4444" : "#a5e7ff",
+                        }}>
+                          {customComponents.length} / {CUSTOM_SHIPYARD_MIN_SHIPS}&#x2013;{CUSTOM_SHIPYARD_MAX_SHIPS}
+                        </span>
+                      </div>
+                    </div>
+                    <div
+                      className={`fleet-rule-message ${isCustomFleetValid ? "is-valid" : customDrawCellCount > 0 ? "is-invalid" : ""}`}
+                      style={{ minHeight: "32px", marginBottom: "12px" }}
+                    >
+                      {getCustomShipyardMessage()}
+                    </div>
+                    {customComponents.length > 0 && (
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginBottom: "12px" }}>
+                        {customComponents.map((comp, idx) => {
+                          const sz = comp.length;
+                          const ok = sz >= CUSTOM_SHIPYARD_MIN_SHIP_SIZE && sz <= CUSTOM_SHIPYARD_MAX_SHIP_SIZE;
+                          return (
+                            <span key={idx} style={{
+                              fontSize: "11px", fontWeight: "bold", padding: "2px 8px",
+                              borderRadius: "99px",
+                              border: `1px solid ${ok ? "rgba(34,197,94,0.5)" : "rgba(239,68,68,0.5)"}`,
+                              background: ok ? "rgba(34,197,94,0.1)" : "rgba(239,68,68,0.1)",
+                              color: ok ? "#22c55e" : "#ef4444",
+                            }}>
+                              {sz} {copy.cellsLabel || "cells"}
+                            </span>
+                          );
+                        })}
+                      </div>
+                    )}
+                    <button
+                      type="button"
+                      className="auto-arrange-button"
+                      onClick={clearCustomDraw}
+                      disabled={isPlacementLocked || customDrawCellCount === 0}
+                      style={{ marginBottom: "6px" }}
+                    >
+                      <span className="material-symbols-outlined" aria-hidden="true">clear_all</span>
+                      {copy.customShipyardClear || "Clear"}
+                    </button>
+                    <button
+                      type="button"
+                      className="auto-arrange-button"
+                      style={{ background: "rgba(165,231,255,0.08)", border: "1px solid rgba(165,231,255,0.3)", color: "#a5e7ff" }}
+                      onClick={(e) => { e.stopPropagation(); toggleCustomShipyard(); }}
+                      disabled={isPlacementLocked}
+                    >
+                      <span className="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+                      {copy.customShipyardToggleBack || "Standard Mode"}
                     </button>
                   </div>
                 ) : (
@@ -3912,6 +4283,17 @@ function Game() {
                         auto_fix_high
                       </span>
                       {copy.autoArrange || "AUTO ARRANGE"}
+                    </button>
+                    {/* Custom Shipyard Toggle Button */}
+                    <button
+                      type="button"
+                      className="auto-arrange-button"
+                      style={{ marginTop: "6px", background: "rgba(165,231,255,0.08)", border: "1px solid rgba(165,231,255,0.3)", color: "#a5e7ff" }}
+                      onClick={(e) => { e.stopPropagation(); toggleCustomShipyard(); }}
+                      disabled={isPlacementLocked}
+                    >
+                      <span className="material-symbols-outlined" aria-hidden="true">brush</span>
+                      {copy.customShipyardToggle || "Custom Shipyard"}
                     </button>
                   </div>
                 )

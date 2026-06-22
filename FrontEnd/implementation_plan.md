@@ -1,160 +1,84 @@
-# Battle UI Redesign: 3-Column Layout + In-Game Chat
+# Kế hoạch triển khai tính năng: "Xưởng Đóng Tàu Tự Do" (Custom Shipyard)
 
-Thiết kế lại giao diện trang Battle để chuyển từ layout 2 cột (boards + log) sang layout 3 cột mới với Chat tích hợp, nhằm chuẩn bị cho tính năng chat trong game PvP.
+Dựa trên tài liệu thiết kế kỹ thuật, dưới đây là kế hoạch chi tiết từng bước để triển khai tính năng Xưởng Đóng Tàu Tự Do (cho phép người chơi tự vẽ hình dáng tàu). 
 
-## User Review Required
-
-> [!IMPORTANT]
-> **Chat Backend chưa có**: Hiện tại `matchService.js` chỉ hỗ trợ WebSocket cho các message game (FIRE, QUIT, etc.). Để chat thực sự hoạt động trong PvP, backend cần xử lý message type `CHAT` và `EMOTE`. Trong kế hoạch này, tôi sẽ:
-> - Gửi chat/emote qua WebSocket hiện có với `action: "CHAT"` / `action: "EMOTE"`
-> - Nhận và hiển thị chat từ đối thủ (nếu backend forward message)
-> - Nếu backend chưa hỗ trợ, chat sẽ chỉ hiển thị local + event log
-
-> [!WARNING]
-> **Thay đổi layout đáng kể**: Layout chính sẽ thay đổi từ `flex-row` 2 cột sang `grid` 3 cột. Điều này ảnh hưởng toàn bộ responsive design. Mobile sẽ giữ layout stack (1 cột) như hiện tại.
-
-## Open Questions
-
-> [!IMPORTANT]
-> 1. **Avatar trong PvP**: `roomPlayer` hiện chỉ có `displayName`, `email`, `userId`. Chưa có `avatarUrl`. Tôi sẽ thêm `avatarUrl` vào `roomPlayer` từ `customAvatarUrl` / `attributes.picture` hiện có. Đối thủ sẽ dùng avatar mặc định (COMMANDER_AVATAR) trừ khi backend gửi avatar URL của đối thủ qua room data.
-> 2. **Chat chỉ hiển thị ở chế độ PvP hay cả Bot?**: Dựa theo yêu cầu, chat sẽ hiển thị ở cả 2 mode nhưng chỉ PvP mới gửi được chat thực. Ở mode Bot, cột trái sẽ chỉ hiển thị Event Log (không có input chat).
-> 3. **Emote list cụ thể**: Tôi sẽ dùng 12 emoji phổ biến cho tab "Emotions" và 5 icon tàu cho tab "Ships". Bạn có muốn thay đổi danh sách này không?
-
-## Proposed Changes
-
-### Layout Architecture (Tổng quan)
-
-```
-┌──────────────────────────────────────────────────────────────┐
-│                        HEADER (sticky)                       │
-├────────────┬────────────────────────────────┬─────────────────┤
-│  LEFT 28%  │         CENTER 52%             │   RIGHT 20%    │
-│            │                                │                │
-│ [Avatar]   │  ┌──────────┐  ┌──────────┐   │   [Avatar]     │
-│ [Name]     │  │ YOUR     │  │ ENEMY    │   │   [Name]       │
-│ [Rank]     │  │ FLEET    │  │ WATERS   │   │   [Status]     │
-│            │  │          │  │          │   │                │
-│ ┌────────┐ │  │  Board   │  │  Board   │   │                │
-│ │ Emote  │ │  │          │  │          │   │                │
-│ │ Panel  │ │  │          │  │          │   │                │
-│ └────────┘ │  └──────────┘  └──────────┘   │                │
-│            │                                │                │
-│ ┌────────┐ │                                │                │
-│ │ Chat & │ │                                │                │
-│ │ Event  │ │                                │                │
-│ │  Log   │ │                                │                │
-│ │        │ │                                │                │
-│ │[input] │ │                                │                │
-│ └────────┘ │                                │                │
-└────────────┴────────────────────────────────┴─────────────────┘
-```
+Kế hoạch này được chia thành 5 giai đoạn, đi từ giao diện người dùng (FrontEnd), thuật toán kiểm tra, đồng bộ dữ liệu (BackEnd) và cuối cùng là hiệu ứng hình ảnh trong trận đấu.
 
 ---
 
-### Component: Game Page Layout
+## Giai đoạn 1: Xây dựng UI/UX trên FrontEnd (Giao diện người dùng)
 
-#### [MODIFY] [Game.jsx](file:///c:/Users/super/OneDrive/Documents/AWS_Cloud_Battleship_Arena/FrontEnd/src/pages/Game.jsx)
+**Mục tiêu:** Cung cấp cho người chơi công cụ để vẽ tàu và chuyển đổi giữa các chế độ.
 
-**State changes:**
-- Thêm state: `chatMessages`, `chatInput`, `activeEmoteTab`, `showEmotePanel`
-- Thêm `avatarUrl` vào `roomPlayer` memo
-- Import `COMMANDER_AVATAR` constant
-
-**Layout changes (lines ~3338-3860):**
-- Thay thế `<main>` layout từ `flex flex-col lg:flex-row` sang CSS Grid 3 cột
-- **Cột trái**: Player info panel mới (avatar + name + emote panel + chat/event log)
-- **Cột giữa**: Giữ nguyên 2 boards (chỉ thêm wrapper)
-- **Cột phải**: Opponent info panel tối giản (avatar + name + status)
-- **Xóa**: Battle Log column cũ (lines 3810-3859) - thay bằng Chat & Event Log trong cột trái
-
-**Chat/Emote functions:**
-- `sendChatMessage()`: Gửi chat text qua WebSocket (PvP) hoặc chỉ log local (Bot)
-- `sendEmote()`: Gửi emote qua WebSocket
-- `handleIncomingChat()`: Xử lý chat message nhận từ đối thủ
-- Tích hợp event log (hit/miss/sunk) vào unified chat window với timestamp + color coding
+1. **Quản lý State:** 
+   - Thêm state `isCustomShipyardActive` để theo dõi xem người chơi đang ở chế độ kéo thả truyền thống hay chế độ vẽ tự do.
+2. **Cập nhật Giao diện (UI):**
+   - **Chế độ Vẽ tự do:** Khi `isCustomShipyardActive == true`, ẩn danh sách tàu mặc định và nút "Tự động sắp xếp".
+   - Hiển thị bảng điều khiển vẽ tự do: Hiện số lượng ô còn lại (tổng ngân sách là 15 ô).
+   - Thêm nút **"Clear"** để làm sạch bản vẽ hiện tại.
+   - Thêm nút **"Toggle"** để chuyển đổi qua lại giữa chế độ vẽ và chế độ kéo thả thông thường.
+3. **Vô hiệu hóa kéo thả:** 
+   - Đảm bảo tính độc quyền (Mutual Exclusivity): Khi đang ở chế độ vẽ, các sự kiện Drag & Drop của chế độ cũ phải bị vô hiệu hóa.
+4. **Hỗ trợ thiết bị di động:**
+   - Thêm thuộc tính CSS `touch-action: none` vào lưới (grid).
+   - Triển khai sự kiện `handleTouchStart` để cho phép thao tác vẽ (vuốt/chạm) mượt mà trên màn hình cảm ứng.
 
 ---
 
-### Component: Chat & Event Log Styles
+## Giai đoạn 2: Thuật toán và Kiểm tra hợp lệ (Client-side Validation)
 
-#### [MODIFY] [GameEffects.css](file:///c:/Users/super/OneDrive/Documents/AWS_Cloud_Battleship_Arena/FrontEnd/src/pages/GameEffects.css)
+**Mục tiêu:** Đảm bảo hạm đội người chơi vẽ ra tuân thủ đúng luật chơi đã đề ra.
 
-**Thêm styles mới:**
-
-1. **3-Column Grid Layout** (`.game-main` override)
-   - `display: grid; grid-template-columns: 280px 1fr 200px;`
-   - Responsive: collapse to 1 column on mobile
-
-2. **Left Panel** (`.battle-left-panel`)
-   - Frosted glass effect: `backdrop-filter: blur(12px); background: rgba(2,17,30,0.85);`
-   - Cyan LED border glow: `border: 1px solid rgba(0,210,255,0.25); box-shadow: 0 0 15px rgba(0,210,255,0.08);`
-
-3. **Player Avatar Card** (`.battle-player-card`)
-   - Avatar circular frame with neon ring
-   - Player name + rank badge
-   
-4. **Emote Panel** (`.battle-emote-panel`)
-   - 2 tabs: Emotions / Ships
-   - Grid layout: `grid-template-columns: repeat(6, 1fr);`
-   - Hover glow effects
-
-5. **Chat & Event Log** (`.battle-chat-log`)
-   - Unified scrollable window
-   - Timestamps: `font-size: 9px; color: rgba(174,228,247,0.5);`
-   - Color coding:
-     - System events: `color: #ffb24d;` (yellow/orange)
-     - Player messages: `color: #00d2ff;` (cyan)  
-     - Opponent messages: `color: #ff5d62;` (red/pink)
-   - Chat input bar at bottom with send button
-
-6. **Right Panel** (`.battle-right-panel`)
-   - Compact opponent avatar + name
-   - Turn status indicator
-   - Ship count remaining
-
-7. **Mobile overrides**: Hide left/right panels on mobile, keep existing mobile layout
+1. **Thuật toán gom nhóm:**
+   - Cài đặt hàm `getConnectedComponents` sử dụng thuật toán tìm kiếm theo chiều rộng (BFS - Breadth-First Search).
+   - Hàm này sẽ quét lưới 10x10, nhóm các ô đã được chọn liền kề nhau (theo chiều ngang và dọc, không tính đường chéo) thành các con tàu riêng biệt.
+2. **Kiểm tra điều kiện khi "Sẵn sàng":**
+   - Khi người chơi bấm "Ready", thực hiện 3 bước kiểm tra bắt buộc:
+     - **Điều kiện 1:** Tổng số ô được vẽ trên bàn cờ phải bằng chính xác **15 ô**.
+     - **Điều kiện 2:** Tổng số con tàu (số lượng nhóm BFS tìm được) phải nằm trong khoảng **từ 2 đến 4 tàu**.
+     - **Điều kiện 3:** Kích thước của mỗi con tàu phải nằm trong khoảng **từ 2 đến 13 ô**.
+   - Nếu bất kỳ điều kiện nào bị vi phạm, chặn sự kiện gửi dữ liệu và hiển thị thông báo lỗi/hướng dẫn cho người chơi.
 
 ---
 
-### WebSocket Integration
+## Giai đoạn 3: Đóng gói Dữ liệu và Giao thức (FrontEnd -> BackEnd)
 
-#### [MODIFY] [Game.jsx](file:///c:/Users/super/OneDrive/Documents/AWS_Cloud_Battleship_Arena/FrontEnd/src/pages/Game.jsx)
+**Mục tiêu:** Dịch bản vẽ của người chơi thành cấu trúc dữ liệu mà BackEnd có thể hiểu được.
 
-Trong handler `onMessage` của PvP WebSocket (khoảng line 1960+):
-- Thêm case xử lý `action: "CHAT"` → push vào `chatMessages`
-- Thêm case xử lý `action: "EMOTE"` → hiển thị emote animation
-
-Khi gửi:
-```js
-sendSocketMessage(pvpSocketRef.current, {
-  action: "CHAT",
-  roomCode,
-  message: chatInput,
-  sender: roomPlayer.displayName,
-});
-```
+1. **Trích xuất Tọa độ (hàm `beginBattle`):**
+   - Duyệt qua từng con tàu (nhóm ô) được tạo ra từ hàm `getConnectedComponents`.
+   - Tìm tọa độ gốc cho mỗi tàu: `minRow` (hàng nhỏ nhất) và `minCol` (cột nhỏ nhất).
+2. **Tạo mảng `baseOffsets`:**
+   - Với mỗi ô trong tàu, tính toán vị trí tương đối của nó so với tọa độ gốc (offset).
+   - Gom các vị trí tương đối này vào mảng `baseOffsets` đại diện cho hình dạng thật của con tàu.
+3. **Tương thích ngược (Backward Compatibility):**
+   - Đóng gói dữ liệu tàu bao gồm `minRow`, `minCol` và `baseOffsets` để gửi lên máy chủ qua WebSockets/API. Đảm bảo cấu trúc này không làm hỏng logic của chế độ xếp tàu truyền thống.
 
 ---
 
-### Log Integration
+## Giai đoạn 4: Cập nhật BackEnd (Xử lý Tọa độ Động)
 
-Event log entries hiện tại (`logs` state) sẽ được merge vào unified chat/event view:
-- Mỗi log entry sẽ thêm `timestamp` field
-- Chat messages và event logs sẽ hiển thị xen kẽ theo thời gian
-- Event log entries giữ nguyên color coding hiện tại (secondary cho player, error cho enemy, green cho sunk)
+**Mục tiêu:** BackEnd phải hiểu và lưu trữ được hình dáng tự do của các con tàu để kiểm tra Hit/Miss.
 
-## Verification Plan
+1. **Cập nhật Handler (`wsMessage.js` hoặc tương đương):**
+   - Sửa đổi hàm `getOccupiedCells` (hàm tính toán các ô bị tàu chiếm dụng).
+   - **Logic mới:** Ưu tiên kiểm tra xem tàu có trường `baseOffsets` hay không.
+     - Nếu có `baseOffsets` (tàu tự vẽ): Sử dụng mảng này cộng với tọa độ gốc để xác định các ô chiếm dụng.
+     - Nếu không có (tàu mặc định/client cũ): Fallback về logic tính toán cũ (dùng chiều dài và góc quay dọc/ngang).
 
-### Manual Verification
-1. Kiểm tra layout 3 cột trên desktop (>= 1024px)
-2. Kiểm tra responsive mobile (collapse về 1 cột)
-3. Kiểm tra chat input gửi/nhận (local + nếu backend hỗ trợ)
-4. Kiểm tra emote panel hiển thị đúng
-5. Kiểm tra event log tích hợp (hit/miss/sunk/victory/defeat)
-6. Kiểm tra cả 2 mode: PvP và Bot
-7. Kiểm tra deployment/placement phase vẫn hoạt động bình thường
+---
 
-### Build Verification
-```bash
-cd FrontEnd && npm run build
-```
+## Giai đoạn 5: Cơ chế Tâm lý chiến và Hiển thị (Sương mù chiến tranh)
+
+**Mục tiêu:** Tạo trải nghiệm trò chơi thú vị với cơ chế giấu thông tin và vinh danh.
+
+1. **Bí mật hình dáng & Gợi ý đầu trận:**
+   - Đảm bảo BackEnd không bao giờ gửi hình dáng thật của tàu cho đối thủ khi trận đấu mới bắt đầu.
+   - Khi trận đấu bắt đầu, hiển thị thông báo tổng quan về hạm đội địch trên UI. *Ví dụ: "Kẻ địch có 3 tàu: Gồm 1 tàu 6 ô, 1 tàu 5 ô và 1 tàu 4 ô".*
+2. **Hiển thị khi chìm tàu (Vinh danh):**
+   - Khi một con tàu bị phá hủy hoàn toàn (chìm), BackEnd sẽ gửi thông tin chi tiết về tàu đó cho đối thủ.
+   - FrontEnd (Board Rendering) sẽ nhận thông tin và tự động tô màu đỏ (class `bg-error` hoặc `sunk-ship-silhouette`) cho toàn bộ các ô thuộc hình dáng thực tế của con tàu đó.
+   - Cập nhật thông báo vào Bảng thông báo (Match Log) để nhấn mạnh việc tàu đã bị hạ gục.
+
+---
+**Lưu ý:** Kế hoạch này được dùng làm khung tham chiếu chi tiết và tôi không thực hiện bất kỳ chỉnh sửa code nào trong dự án theo đúng yêu cầu của bạn.

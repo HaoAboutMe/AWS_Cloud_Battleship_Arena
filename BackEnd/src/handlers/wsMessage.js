@@ -9,6 +9,18 @@ const { SHIP_DEFS, getShipOffsets } = require("../config/shipDefs");
 const getOccupiedCells = (ships) => {
   const occupied = [];
   for (const ship of ships) {
+    if (ship.baseOffsets && Array.isArray(ship.baseOffsets)) {
+      for (const [dr, dc] of ship.baseOffsets) {
+        occupied.push({
+          row: ship.row + dr,
+          col: ship.col + dc,
+          shipId: ship.shipId,
+          shipTypeId: ship.shipTypeId || 'custom',
+          shipLength: ship.baseOffsets.length
+        });
+      }
+      continue;
+    }
     const shipDef = SHIP_DEFS.find(d => d.id === ship.shipTypeId);
     if (!shipDef) continue;
     const offsets = getShipOffsets(shipDef, ship.rotation);
