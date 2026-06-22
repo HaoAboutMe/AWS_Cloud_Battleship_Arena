@@ -714,13 +714,21 @@ function Game() {
     fleetDefs,
     sunkShipTypeIds,
     isScanning = false,
+    isCustom = false,
+    customShips = [],
   ) => (
     <div className="fleet-image-panel">
       <div
         className="fleet-image-list"
-        style={{ "--fleet-count": Math.max(1, fleetDefs.length) }}
+        style={{
+          "--fleet-count": Math.max(1, isCustom ? customShips.length : fleetDefs.length),
+          display: "grid",
+          gridTemplateColumns: `repeat(${isCustom ? customShips.length : fleetDefs.length}, 1fr)`,
+          gap: "5px",
+          height: "32px",
+        }}
       >
-        {!isScanning &&
+        {!isScanning && !isCustom &&
           fleetDefs.map((ship) => {
             const isSunk = sunkShipTypeIds.includes(ship.id);
             let offsets = getShipOffsets(ship, ship.rotations[0]);
@@ -760,6 +768,36 @@ function Game() {
               </div>
             );
           })}
+
+        {!isScanning && isCustom &&
+          customShips.map((ship) => (
+            <div
+              key={ship.id}
+              className={`fleet-shape-item ${ship.isSunk ? "is-sunk" : ""}`}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "2px 6px",
+                height: "32px",
+              }}
+            >
+              <span
+                style={{
+                  fontSize: "13px",
+                  fontWeight: "bold",
+                  color: ship.isSunk ? "#ff6a42" : "#91ebff",
+                  textShadow: ship.isSunk ? "0 0 4px #ff3c1f" : "0 0 4px rgba(81, 224, 255, 0.9)",
+                  textDecoration: ship.isSunk ? "line-through" : "none",
+                  textAlign: "center",
+                  whiteSpace: "nowrap"
+                }}
+              >
+                {ship.size} {copy.cellsLabel || "cells"}
+              </span>
+            </div>
+          ))}
+
         {isScanning && (
           <span className="enemy-fleet-scanning">Scanning...</span>
         )}
@@ -809,7 +847,7 @@ function Game() {
       if (gameStateRef.current === "GAME_OVER") return;
 
       try {
-        const nextRoom = await getRoom(roomCode);
+        const nextRoom = await getRoom(roomCode, roomPlayerRef.current?.userId || roomPlayer?.userId);
         if (cancelled) return;
 
         setPvpRoom(nextRoom);
@@ -913,6 +951,67 @@ function Game() {
     );
     return SHIP_DEFS.filter((ship) => opponentTypeIds.has(ship.id));
   }, [opponentBattlePlayer]);
+
+  const playerCustomShips = useMemo(() => {
+    if (isPvpMode) {
+      const pShips = currentBattlePlayer?.board?.ships || [];
+      const customPShips = pShips.filter(s => s.shipTypeId === "custom" || String(s.shipId).startsWith("custom"));
+      if (customPShips.length > 0) {
+        return customPShips.map(s => ({
+          id: s.shipId,
+          size: s.baseOffsets?.length || s.size || 0,
+          isSunk: playerShipsSunk.includes(s.shipId)
+        }));
+      }
+    } else {
+      const extracted = playerBoard.flat().reduce((acc, cell) => {
+        if (cell.hasShip && cell.shipId && (cell.shipTypeId === "custom" || String(cell.shipId).startsWith("custom"))) {
+          acc[cell.shipId] = cell.shipLength || 0;
+        }
+        return acc;
+      }, {});
+      const list = Object.entries(extracted).map(([id, size]) => ({
+        id,
+        size,
+        isSunk: playerShipsSunk.includes(id)
+      }));
+      if (list.length > 0) return list;
+    }
+
+    if (isCustomShipyardActive) {
+      const comps = getConnectedComponents(customDrawBoard);
+      return comps.map((cells, idx) => ({
+        id: `custom-${idx}`,
+        size: cells.length,
+        isSunk: false
+      }));
+    }
+    return [];
+  }, [isPvpMode, currentBattlePlayer, playerShipsSunk, playerBoard, isCustomShipyardActive, customDrawBoard]);
+
+  const enemyCustomShips = useMemo(() => {
+    if (isPvpMode) {
+      const eShips = opponentBattlePlayer?.board?.ships || [];
+      const customEShips = eShips.filter(s => s.shipTypeId === "custom" || String(s.shipId).startsWith("custom"));
+      return customEShips.map(s => ({
+        id: s.shipId,
+        size: s.size || s.baseOffsets?.length || 0,
+        isSunk: enemySunkShipIds.includes(s.shipId)
+      }));
+    } else {
+      const extracted = enemyBoard.flat().reduce((acc, cell) => {
+        if (cell.hasShip && cell.shipId && (cell.shipTypeId === "custom" || String(cell.shipId).startsWith("custom"))) {
+          acc[cell.shipId] = cell.shipLength || 0;
+        }
+        return acc;
+      }, {});
+      return Object.entries(extracted).map(([id, size]) => ({
+        id,
+        size,
+        isSunk: enemySunkShipIds.includes(id)
+      }));
+    }
+  }, [isPvpMode, opponentBattlePlayer, enemySunkShipIds, enemyBoard]);
 
   const appendChatMessage = useCallback((message) => {
     if (!message?.messageId) return;
@@ -2980,6 +3079,29 @@ function Game() {
           const nextRoom = await markPlayerReady({ roomCode, player: roomPlayer, board });
           setPvpRoom(nextRoom);
           setPvpFleetSubmitted(true);
+
+          // Apply custom board as player board
+          const newPlayerBoard = createBoard();
+          components.forEach((cells, idx) => {
+            const shipId = `custom-${idx}`;
+            const minRow = Math.min(...cells.map(c => c.row));
+            const minCol = Math.min(...cells.map(c => c.col));
+            const offsets = cells.map(c => [c.row - minRow, c.col - minCol]);
+            const bounds = getShipBounds(offsets);
+            cells.forEach(({ row, col }) => {
+              newPlayerBoard[row][col].hasShip = true;
+              newPlayerBoard[row][col].shipId = shipId;
+              newPlayerBoard[row][col].shipTypeId = "custom";
+              newPlayerBoard[row][col].shipRotation = 0;
+              newPlayerBoard[row][col].shipOriginRow = minRow;
+              newPlayerBoard[row][col].shipOriginCol = minCol;
+              newPlayerBoard[row][col].shipLength = cells.length;
+            });
+            newPlayerBoard[minRow][minCol].shipRoot = true;
+            newPlayerBoard[minRow][minCol].shipBounds = bounds;
+          });
+          setPlayerBoard(newPlayerBoard);
+
           if (nextRoom.status === "IN_PROGRESS") {
             setGameState("PLAYER_TURN");
             setTurnTimer(30);
@@ -3938,7 +4060,13 @@ function Game() {
                     </h3>
                   )}
                 {gameState !== "PLACEMENT" ? (
-                  renderFleetStatus(placedFleetDefs, playerSunkShipTypeIds)
+                  renderFleetStatus(
+                    placedFleetDefs,
+                    playerSunkShipTypeIds,
+                    false,
+                    playerCustomShips.length > 0,
+                    playerCustomShips,
+                  )
                 ) : (
                   <div
                     className="fleet-image-panel fleet-image-panel-placeholder"
@@ -4334,6 +4462,8 @@ function Game() {
                       isPvpMode ? opponentFleetStatusDefs : enemyFleetDefs,
                       enemyShipsSunk,
                       gameState === "READY",
+                      enemyCustomShips.length > 0,
+                      enemyCustomShips,
                     )}
                   </div>
 

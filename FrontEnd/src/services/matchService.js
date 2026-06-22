@@ -76,14 +76,19 @@ export const findMatch = async ({ mode = "casual", difficulty = "easy", player }
   return data.room;
 };
 
-export const getRoom = async (roomCode) => {
+export const getRoom = async (roomCode, userId) => {
   const normalizedRoomCode = String(roomCode || "").trim().toUpperCase();
 
   if (!normalizedRoomCode) {
     throw new Error("Room code is required.");
   }
 
-  const data = await requestJson(`/rooms/${encodeURIComponent(normalizedRoomCode)}`);
+  let path = `/rooms/${encodeURIComponent(normalizedRoomCode)}`;
+  if (userId) {
+    path += `?userId=${encodeURIComponent(userId)}`;
+  }
+
+  const data = await requestJson(path);
   return data.room;
 };
 

@@ -3,7 +3,9 @@ const { getRoom } = require("../services/roomService");
 
 exports.handler = async (event) => {
   try {
-    const roomCode = String(event.pathParameters?.roomCode || "").trim().toUpperCase();
+    const roomCode = String(event.pathParameters?.roomCode || "")
+      .trim()
+      .toUpperCase();
     const room = await getRoom(roomCode);
 
     if (!room) {
