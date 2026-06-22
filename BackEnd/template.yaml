@@ -4,7 +4,7 @@ Description: Cloud Battleship Arena serverless backend.
 
 Globals:
   Function:
-    Runtime: nodejs20.x
+    Runtime: nodejs24.x
     Architectures:
       - x86_64
     Timeout: 10
@@ -13,6 +13,7 @@ Globals:
       Variables:
         ROOMS_TABLE: !Ref RoomsTable
         CONNECTIONS_TABLE: !Ref ConnectionsTable
+        CHAT_MESSAGES_TABLE: !Ref ChatMessagesTable
         CORS_ORIGIN: !Ref CorsOrigin
 
 Parameters:
@@ -57,6 +58,25 @@ Resources:
               KeyType: HASH
           Projection:
             ProjectionType: ALL
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+
+  ChatMessagesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ChatMessages
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: roomCode
+          AttributeType: S
+        - AttributeName: messageKey
+          AttributeType: S
+      KeySchema:
+        - AttributeName: roomCode
+          KeyType: HASH
+        - AttributeName: messageKey
+          KeyType: RANGE
       TimeToLiveSpecification:
         AttributeName: ttl
         Enabled: true
@@ -250,6 +270,7 @@ Resources:
         Variables:
           ROOMS_TABLE: !Ref RoomsTable
           CONNECTIONS_TABLE: !Ref ConnectionsTable
+          CHAT_MESSAGES_TABLE: !Ref ChatMessagesTable
           CORS_ORIGIN: !Ref CorsOrigin
           MATCH_HISTORY_TABLE: !Ref MatchHistoryTable
           AVATAR_BUCKET_NAME: !Ref AvatarBucket
@@ -258,6 +279,8 @@ Resources:
             TableName: !Ref ConnectionsTable
         - DynamoDBCrudPolicy:
             TableName: !Ref RoomsTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ChatMessagesTable
         - DynamoDBCrudPolicy:
             TableName: !Ref MatchHistoryTable
         - DynamoDBCrudPolicy:
@@ -566,3 +589,6 @@ Outputs:
   RoomsTableName:
     Description: DynamoDB rooms table name.
     Value: !Ref RoomsTable
+  ChatMessagesTableName:
+    Description: DynamoDB room chat messages table name.
+    Value: !Ref ChatMessagesTable

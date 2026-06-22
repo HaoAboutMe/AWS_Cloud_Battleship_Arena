@@ -6,11 +6,16 @@ const {
   ScanCommand,
 } = require("@aws-sdk/lib-dynamodb");
 const { documentClient } = require("../lib/dynamodb");
+const { SHIP_DEFS, getShipOffsets } = require("../config/shipDefs");
 
 const ROOMS_TABLE = process.env.ROOMS_TABLE;
 const ROOM_CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 const ROOM_TTL_SECONDS = 60 * 60 * 6;
 const MAX_PLAYERS = 2;
+const BOARD_SIZE = 10;
+const FLEET_CELL_LIMIT = 15;
+const FLEET_MIN_SHIPS = 2;
+const FLEET_MAX_SHIPS = 4;
 
 const nowIso = () => new Date().toISOString();
 
@@ -20,6 +25,56 @@ const createHttpError = (statusCode, message) => {
   const error = new Error(message);
   error.statusCode = statusCode;
   return error;
+};
+
+const validateFleetBoard = (board) => {
+  const ships = Array.isArray(board?.ships) ? board.ships : [];
+  if (ships.length < FLEET_MIN_SHIPS) {
+    throw createHttpError(400, "Fleet must contain at least 2 ships.");
+  }
+  if (ships.length > FLEET_MAX_SHIPS) {
+    throw createHttpError(400, "Fleet cannot contain more than 4 ships.");
+  }
+
+  const occupiedCells = new Set();
+  const usedShipTypes = new Set();
+  let totalCells = 0;
+
+  for (const ship of ships) {
+    const shipDef = SHIP_DEFS.find((candidate) => candidate.id === ship.shipTypeId);
+    if (!shipDef) {
+      throw createHttpError(400, `Unknown ship type: ${ship.shipTypeId || "missing"}.`);
+    }
+    if (usedShipTypes.has(shipDef.id)) {
+      throw createHttpError(400, `Ship type ${shipDef.id} can only be selected once.`);
+    }
+    if (!Number.isInteger(ship.row) || !Number.isInteger(ship.col)) {
+      throw createHttpError(400, "Ship coordinates must be integers.");
+    }
+    if (!shipDef.rotations.includes(ship.rotation)) {
+      throw createHttpError(400, `Invalid rotation for ${shipDef.id}.`);
+    }
+
+    usedShipTypes.add(shipDef.id);
+    totalCells += shipDef.size;
+    const offsets = getShipOffsets(shipDef, ship.rotation);
+    for (const [rowOffset, colOffset] of offsets) {
+      const row = ship.row + rowOffset;
+      const col = ship.col + colOffset;
+      if (row < 0 || col < 0 || row >= BOARD_SIZE || col >= BOARD_SIZE) {
+        throw createHttpError(400, `${shipDef.id} is outside the board.`);
+      }
+      const cellKey = `${row}:${col}`;
+      if (occupiedCells.has(cellKey)) {
+        throw createHttpError(400, "Ships cannot overlap.");
+      }
+      occupiedCells.add(cellKey);
+    }
+  }
+
+  if (totalCells !== FLEET_CELL_LIMIT || occupiedCells.size !== FLEET_CELL_LIMIT) {
+    throw createHttpError(400, "Fleet must occupy exactly 15 cells.");
+  }
 };
 
 const createRoomCode = () => {
@@ -274,6 +329,8 @@ const markPlayerReady = async ({ roomCode, player, board }) => {
   if (!room) {
     throw createHttpError(404, "Room not found.");
   }
+
+  validateFleetBoard(board);
 
   const nextPlayer = normalizePlayer(player);
   const existingPlayers = room.players || [];

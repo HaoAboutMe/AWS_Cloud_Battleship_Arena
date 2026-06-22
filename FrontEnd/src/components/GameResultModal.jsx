@@ -28,7 +28,7 @@ function GameResultModal({
             ? (isVictory
                 ? copy.pvpVictorySubtitle || "Enemy command channel neutralized."
                 : copy.pvpDefeatSubtitle || "Your fleet has been shattered in PvP combat.")
-            : `${copy.difficultyLabel || "Difficulty"}: ${difficulty}`;
+            : `${copy.difficultyLabel || "Difficulty"}: ${copy.difficultyNames?.[difficulty] || difficulty}`;
     const posterTitle = isVictory ? (copy.victoryTitle || "VICTORY") : (copy.defeatTitle || "DEFEAT");
     const resultArt = isVictory ? resultVictoryArt : resultDefeatArt;
 
