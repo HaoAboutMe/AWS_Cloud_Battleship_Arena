@@ -158,6 +158,8 @@ const GAME_COPY = {
     customShipyardToggle: "Custom Shipyard",
     customShipyardToggleBack: "Standard Mode",
     customShipyardClear: "Clear",
+    customShipyardCellsDetected: "Cells detected",
+    customShipyardShipsDetected: "Ships detected",
     customShipyardBudget: "{used}/15 cells used",
     customShipyardHint: "Paint your fleet. Tap cells to toggle. Orthogonal adjacency only.",
     customShipyardRuleMinShips: "Need at least 2 ships (connected groups).",
@@ -261,6 +263,8 @@ const GAME_COPY = {
     customShipyardToggle: "Xưởng Đóng Tàu",
     customShipyardToggleBack: "Chế độ thường",
     customShipyardClear: "Xóa",
+    customShipyardCellsDetected: "Số ô phát hiện",
+    customShipyardShipsDetected: "Số tàu phát hiện",
     customShipyardBudget: "{used}/15 ô đã dùng",
     customShipyardHint: "Tô màu hạm đội của bạn. Nhấn ô để bật/tắt. Chỉ kề cạnh, không chéo.",
     customShipyardRuleMinShips: "Cần ít nhất 2 tàu (nhóm ô liền nhau).",
@@ -3621,15 +3625,8 @@ function Game() {
                       onTouchStart={(e) => handleCustomBoardTouchStart(e, r, c)}
                       onTouchMove={(e) => handleCustomBoardTouchMove(e, playerBoardRef)}
                       onTouchEnd={stopCustomPainting}
-                      className={`ocean-cell relative overflow-visible ${isPlacementLocked ? "cursor-default" : "cursor-crosshair"} ${isPainted ? "" : "bg-surface-container/50"}`}
-                      style={isPainted ? {
-                        background: "rgba(165,231,255,0.65)",
-                        border: "1px solid rgba(165,231,255,0.85)",
-                        boxShadow: "0 0 10px rgba(165,231,255,0.45), inset 0 0 4px rgba(165,231,255,0.3)",
-                        transition: "background 0.1s, box-shadow 0.1s",
-                        userSelect: "none",
-                        touchAction: "none",
-                      } : {
+                      className={`ocean-cell relative overflow-visible ${isPlacementLocked ? "cursor-default" : "cursor-crosshair"} ${isPainted ? "custom-painted-cell" : "bg-surface-container/50"}`}
+                      style={{
                         transition: "background 0.1s",
                         userSelect: "none",
                         touchAction: "none",
@@ -4027,94 +4024,113 @@ function Game() {
                   /* === Custom Shipyard Validation Panel === */
                   <div
                     className="deployment-dock"
-                    style={{ "--cell-size": `${CELL_SIZE}px`, "--cell-gap": `${CELL_GAP}px` }}
+                    style={{ "--cell-size": `${CELL_SIZE}px`, "--cell-gap": `${CELL_GAP}px`, display: "flex", flexDirection: "column" }}
                   >
-                    <div className="deployment-dock-heading">
+                    <div className="deployment-dock-heading" style={{ marginBottom: "8px" }}>
                       <h3 className="font-bold tracking-widest uppercase" style={{ color: "#a5e7ff" }}>
                         {copy.customShipyardToggle || "Custom Shipyard"}
                       </h3>
                     </div>
-                    <p style={{ fontSize: "12px", color: "rgba(255,255,255,0.55)", lineHeight: "1.5", marginBottom: "12px" }}>
-                      {copy.customShipyardHint || "Paint your fleet directly on the board. Click or drag to toggle cells."}
-                    </p>
-                    <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "12px" }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                        <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                          {copy.cellsLabel || "Cells"}
-                        </span>
-                        <span style={{
-                          fontSize: "14px", fontWeight: "bold",
-                          color: customDrawCellCount > CUSTOM_SHIPYARD_CELL_BUDGET ? "#ef4444"
-                            : customDrawCellCount === CUSTOM_SHIPYARD_CELL_BUDGET ? "#22c55e" : "#a5e7ff",
-                        }}>
-                          {customDrawCellCount} / {CUSTOM_SHIPYARD_CELL_BUDGET}
-                        </span>
+
+                    {/* Scrollable diagnostic panel content */}
+                    <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: "10px", paddingRight: "2px" }}>
+                      <p style={{ fontSize: "11px", color: "rgba(255,255,255,0.45)", lineHeight: "1.4" }}>
+                        {copy.customShipyardHint || "Paint your fleet directly on the board. Click or drag to toggle cells."}
+                      </p>
+
+                      {/* Stats Card */}
+                      <div className="fleet-rule-panel" style={{ margin: 0, padding: "10px", display: "flex", flexDirection: "column", gap: "8px" }}>
+                        <div style={{ display: "flex", alignItems: "baseline", gap: "6px" }}>
+                          <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)" }}>
+                            {copy.customShipyardCellsDetected || "Cells detected"}:
+                          </span>
+                          <span style={{
+                            fontSize: "13px", fontWeight: "bold",
+                            color: customDrawCellCount > CUSTOM_SHIPYARD_CELL_BUDGET ? "#ef4444"
+                              : customDrawCellCount === CUSTOM_SHIPYARD_CELL_BUDGET ? "#22c55e" : "#a5e7ff",
+                          }}>
+                            {customDrawCellCount}/{CUSTOM_SHIPYARD_CELL_BUDGET}
+                          </span>
+                        </div>
+                        <div style={{ height: "4px", borderRadius: "2px", background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
+                          <div className="custom-shipyard-progress" style={{
+                            height: "100%", borderRadius: "2px",
+                            width: `${Math.min(100, (customDrawCellCount / CUSTOM_SHIPYARD_CELL_BUDGET) * 100)}%`,
+                            background: customDrawCellCount > CUSTOM_SHIPYARD_CELL_BUDGET ? "#ef4444"
+                              : customDrawCellCount === CUSTOM_SHIPYARD_CELL_BUDGET && isCustomFleetValid ? "#22c55e" : "#a5e7ff",
+                            transition: "width 0.2s, background 0.2s",
+                          }} />
+                        </div>
+                        <div style={{ display: "flex", alignItems: "baseline", gap: "6px", marginTop: "2px" }}>
+                          <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)" }}>
+                            {copy.customShipyardShipsDetected || "Ships detected"}:
+                          </span>
+                          <span style={{
+                            fontSize: "13px", fontWeight: "bold",
+                            color: customComponents.length >= CUSTOM_SHIPYARD_MIN_SHIPS && customComponents.length <= CUSTOM_SHIPYARD_MAX_SHIPS
+                              ? "#22c55e" : customComponents.length > 0 ? "#ef4444" : "#a5e7ff",
+                          }}>
+                            {customComponents.length}/{CUSTOM_SHIPYARD_MAX_SHIPS}
+                          </span>
+                        </div>
                       </div>
-                      <div style={{ height: "4px", borderRadius: "2px", background: "rgba(255,255,255,0.1)", overflow: "hidden" }}>
-                        <div style={{
-                          height: "100%", borderRadius: "2px",
-                          width: `${Math.min(100, (customDrawCellCount / CUSTOM_SHIPYARD_CELL_BUDGET) * 100)}%`,
-                          background: customDrawCellCount > CUSTOM_SHIPYARD_CELL_BUDGET ? "#ef4444"
-                            : customDrawCellCount === CUSTOM_SHIPYARD_CELL_BUDGET && isCustomFleetValid ? "#22c55e" : "#a5e7ff",
-                          transition: "width 0.2s, background 0.2s",
-                        }} />
+
+                      {/* Validation message */}
+                      <div
+                        className={`fleet-rule-message ${isCustomFleetValid ? "is-valid" : customDrawCellCount > 0 ? "is-invalid" : ""}`}
+                        style={{ minHeight: "32px", margin: 0 }}
+                      >
+                        {getCustomShipyardMessage()}
                       </div>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                        <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Ships</span>
-                        <span style={{
-                          fontSize: "14px", fontWeight: "bold",
-                          color: customComponents.length >= CUSTOM_SHIPYARD_MIN_SHIPS && customComponents.length <= CUSTOM_SHIPYARD_MAX_SHIPS
-                            ? "#22c55e" : customComponents.length > 0 ? "#ef4444" : "#a5e7ff",
-                        }}>
-                          {customComponents.length} / {CUSTOM_SHIPYARD_MIN_SHIPS}&#x2013;{CUSTOM_SHIPYARD_MAX_SHIPS}
-                        </span>
-                      </div>
+
+                      {/* Ship size breakdown chips */}
+                      {customComponents.length > 0 && (
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginTop: "2px" }}>
+                          {customComponents.map((comp, idx) => {
+                            const sz = comp.length;
+                            const ok = sz >= CUSTOM_SHIPYARD_MIN_SHIP_SIZE && sz <= CUSTOM_SHIPYARD_MAX_SHIP_SIZE;
+                            return (
+                              <span key={idx} style={{
+                                fontSize: "10px", fontWeight: "bold", padding: "3px 8px",
+                                borderRadius: "4px",
+                                border: `1px solid ${ok ? "rgba(34,197,94,0.3)" : "rgba(239,68,68,0.3)"}`,
+                                background: ok ? "rgba(34,197,94,0.06)" : "rgba(239,68,68,0.06)",
+                                color: ok ? "#22c55e" : "#ef4444",
+                              }}>
+                                Ship {idx + 1}: {sz} {copy.cellsLabel || "cells"}
+                              </span>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
-                    <div
-                      className={`fleet-rule-message ${isCustomFleetValid ? "is-valid" : customDrawCellCount > 0 ? "is-invalid" : ""}`}
-                      style={{ minHeight: "32px", marginBottom: "12px" }}
-                    >
-                      {getCustomShipyardMessage()}
+
+                    {/* Action buttons - grouped and side by side */}
+                    <div style={{ display: "flex", gap: "8px", marginTop: "12px" }}>
+                      <button
+                        type="button"
+                        className="auto-arrange-button"
+                        onClick={clearCustomDraw}
+                        disabled={isPlacementLocked || customDrawCellCount === 0}
+                        style={{ margin: 0, flex: 1, minHeight: "36px", padding: "6px 12px" }}
+                      >
+                        <span className="material-symbols-outlined" style={{ fontSize: "18px" }} aria-hidden="true">clear_all</span>
+                        <span style={{ fontSize: "11px" }}>{copy.customShipyardClear || "Clear"}</span>
+                      </button>
+                      <button
+                        type="button"
+                        className="auto-arrange-button"
+                        style={{
+                          margin: 0, flex: 1.2, minHeight: "36px", padding: "6px 12px",
+                          background: "rgba(165,231,255,0.08)", border: "1px solid rgba(165,231,255,0.3)", color: "#a5e7ff"
+                        }}
+                        onClick={(e) => { e.stopPropagation(); toggleCustomShipyard(); }}
+                        disabled={isPlacementLocked}
+                      >
+                        <span className="material-symbols-outlined" style={{ fontSize: "18px" }} aria-hidden="true">arrow_back</span>
+                        <span style={{ fontSize: "11px" }}>{copy.customShipyardToggleBack || "Standard"}</span>
+                      </button>
                     </div>
-                    {customComponents.length > 0 && (
-                      <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginBottom: "12px" }}>
-                        {customComponents.map((comp, idx) => {
-                          const sz = comp.length;
-                          const ok = sz >= CUSTOM_SHIPYARD_MIN_SHIP_SIZE && sz <= CUSTOM_SHIPYARD_MAX_SHIP_SIZE;
-                          return (
-                            <span key={idx} style={{
-                              fontSize: "11px", fontWeight: "bold", padding: "2px 8px",
-                              borderRadius: "99px",
-                              border: `1px solid ${ok ? "rgba(34,197,94,0.5)" : "rgba(239,68,68,0.5)"}`,
-                              background: ok ? "rgba(34,197,94,0.1)" : "rgba(239,68,68,0.1)",
-                              color: ok ? "#22c55e" : "#ef4444",
-                            }}>
-                              {sz} {copy.cellsLabel || "cells"}
-                            </span>
-                          );
-                        })}
-                      </div>
-                    )}
-                    <button
-                      type="button"
-                      className="auto-arrange-button"
-                      onClick={clearCustomDraw}
-                      disabled={isPlacementLocked || customDrawCellCount === 0}
-                      style={{ marginBottom: "6px" }}
-                    >
-                      <span className="material-symbols-outlined" aria-hidden="true">clear_all</span>
-                      {copy.customShipyardClear || "Clear"}
-                    </button>
-                    <button
-                      type="button"
-                      className="auto-arrange-button"
-                      style={{ background: "rgba(165,231,255,0.08)", border: "1px solid rgba(165,231,255,0.3)", color: "#a5e7ff" }}
-                      onClick={(e) => { e.stopPropagation(); toggleCustomShipyard(); }}
-                      disabled={isPlacementLocked}
-                    >
-                      <span className="material-symbols-outlined" aria-hidden="true">arrow_back</span>
-                      {copy.customShipyardToggleBack || "Standard Mode"}
-                    </button>
                   </div>
                 ) : (
                   <div
