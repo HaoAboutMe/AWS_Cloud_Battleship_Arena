@@ -1,10 +1,21 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import ship1 from "../assets/ships/image/ship-1.png";
+import ship10 from "../assets/ships/image/ship-10.png";
 import ship2 from "../assets/ships/image/ship-2.png";
 import ship3 from "../assets/ships/image/ship-3.png";
 import ship4 from "../assets/ships/image/ship-4.png";
+import ship5 from "../assets/ships/image/ship-5.png";
+import ship6 from "../assets/ships/image/ship-6.png";
+import ship7 from "../assets/ships/image/ship-7.png";
+import ship8 from "../assets/ships/image/ship-8.png";
+import ship9 from "../assets/ships/image/ship-9.png";
 import GameResultModal from "../components/GameResultModal";
+import {
+  PvpBattleTools,
+  PvpCommanderPanel,
+  PvpOpponentPanel,
+} from "../components/PvpBattlePanels";
 import RankUpAnimation from "../components/RankUpAnimation";
 import { useAuth } from "../contexts/AuthContext";
 import { useLanguage } from "../contexts/LanguageContext";
@@ -49,7 +60,57 @@ const PATROL_IMAGE_OFFSET_X = 6;
 const PATROL_IMAGE_OFFSET_Y = 0;
 const PATROL_VERTICAL_IMAGE_OFFSET_X = 1.5;
 const PATROL_VERTICAL_IMAGE_OFFSET_Y = 8;
+
+// Visual calibration for the two T-shaped sprites. Adjust these values per angle
+// without changing the occupied board cells in GameLogic.js.
+const T_SHIP_IMAGE_TRANSFORMS = {
+  gunboat: {
+    // ship-5.png is portrait, so its image needs +90 degrees relative to
+    // the board footprint (three horizontal cells with the center cell above).
+    0: { x: -2, y: 20, scale: 1.45, rotation: 90 },
+    90: { x: -20, y: -4, scale: 1.45, rotation: 180 },
+    180: { x: 4, y: -20, scale: 1.45, rotation: 270 },
+    270: { x: 20, y: 4, scale: 1.45, rotation: 360 },
+  },
+  warship: {
+    0: { x: 0, y: -8, scale: 1, rotation: 0 },
+    90: { x: 8, y: 0, scale: 1, rotation: 90 },
+    180: { x: 0, y: 6, scale: 1, rotation: 180 },
+    270: { x: -6, y: 0, scale: 1, rotation: 270 },
+  },
+};
 const GRID_SIZE_PX = BOARD_SIZE * CELL_SIZE + (BOARD_SIZE - 1) * CELL_GAP;
+const FLEET_CELL_LIMIT = 15;
+const FLEET_MIN_SHIPS = 2;
+const FLEET_MAX_SHIPS = 4;
+
+const getLegalFleetSelections = (shipDefs) => {
+  const selections = [];
+
+  const collect = (startIndex, selected) => {
+    const totalCells = selected.reduce((total, ship) => total + ship.size, 0);
+    if (
+      selected.length >= FLEET_MIN_SHIPS &&
+      selected.length <= FLEET_MAX_SHIPS &&
+      totalCells === FLEET_CELL_LIMIT
+    ) {
+      selections.push([...selected]);
+    }
+    if (
+      selected.length >= FLEET_MAX_SHIPS ||
+      totalCells >= FLEET_CELL_LIMIT
+    ) {
+      return;
+    }
+
+    for (let index = startIndex; index < shipDefs.length; index += 1) {
+      collect(index + 1, [...selected, shipDefs[index]]);
+    }
+  };
+
+  collect(0, []);
+  return selections;
+};
 
 const GAME_COPY = {
   en: {
@@ -66,6 +127,11 @@ const GAME_COPY = {
     victoryTitle: "Victory",
     defeatTitle: "Defeat",
     difficultyLabel: "Difficulty",
+    difficultyNames: {
+      easy: "Recruit (Easy)",
+      normal: "Veteran (Normal)",
+      hard: "Elite (Hard)",
+    },
     pvpVictorySubtitle: "Enemy command channel neutralized.",
     pvpDefeatSubtitle: "Your fleet has been shattered in PvP combat.",
     playAgain: "Play again",
@@ -103,12 +169,41 @@ const GAME_COPY = {
     timeLabel: "Time",
     enemyWatersScan: "Enemy Waters (Scanning...)",
     enemyWaters: "Enemy Waters",
+    enemyFleetScan: "Enemy Fleet (Scanning...)",
+    enemyFleet: "Enemy Fleet",
     yourFleet: "Your Fleet",
     fleetStaging: "Fleet Staging",
     shipsRemaining: "{count} ships remaining",
     autoArrange: "AUTO ARRANGE",
     deployed: "Deployed",
     cellsLabel: "cells",
+    fleetRules: "Fleet: exactly 15 cells, from 2 to 4 ships.",
+    fleetFilterAll: "All",
+    fleetCellsUsed: "{used}/15 cells",
+    fleetShipsUsed: "{used}/4 ships",
+    fleetTooManyCells: "The fleet cannot exceed 15 cells.",
+    fleetTooManyShips: "The fleet cannot contain more than 4 ships.",
+    fleetTooFewShips: "Select at least 2 ships.",
+    fleetNeedExactCells: "The fleet must occupy exactly 15 cells.",
+    fleetValid: "Fleet formation is valid.",
+    commanderPanel: "Commander",
+    opponentPanel: "Opponent",
+    emotionsTab: "Emotions",
+    shipsTab: "Fleet signals",
+    chatEventLog: "Chat & event log",
+    battleChat: "Battle chat",
+    eventLog: "Event log",
+    chatPlaceholder: "Send a tactical message...",
+    sendChat: "Send message",
+    awaitingSignal: "Awaiting battle signals...",
+    connectedStatus: "Channel online",
+    disconnectedStatus: "Channel offline",
+    yourTurnStatus: "Your turn",
+    opponentTurnStatus: "Opponent turn",
+    deployingStatus: "Deploying fleet",
+    readyStatus: "Ready",
+    shipsAfloat: "{count} ships afloat",
+    unrankedLabel: "Unranked",
   },
   vi: {
     ready: "Sẵn sàng",
@@ -124,6 +219,11 @@ const GAME_COPY = {
     victoryTitle: "Chiến thắng",
     defeatTitle: "Thất bại",
     difficultyLabel: "Độ khó",
+    difficultyNames: {
+      easy: "Tân binh (Dễ)",
+      normal: "Cựu binh (Trung bình)",
+      hard: "Tinh nhuệ (Khó)",
+    },
     pvpVictorySubtitle: "Kênh chỉ huy đối phương đã bị vô hiệu hóa.",
     pvpDefeatSubtitle: "Hạm đội của bạn đã vỡ trận trong chiến đấu PvP.",
     playAgain: "Chơi lại",
@@ -161,12 +261,41 @@ const GAME_COPY = {
     timeLabel: "Thời gian",
     enemyWatersScan: "Vùng biển địch (Đang quét...)",
     enemyWaters: "Vùng biển địch",
+    enemyFleetScan: "Hạm đội địch (Đang quét...)",
+    enemyFleet: "Hạm đội địch",
     yourFleet: "Hạm đội của bạn",
     fleetStaging: "Bến tàu hạm đội",
     shipsRemaining: "Còn lại {count} tàu",
     autoArrange: "TỰ SẮP XẾP",
     deployed: "Đã triển khai",
     cellsLabel: "ô",
+    fleetRules: "Hạm đội: đúng 15 ô, từ 2 đến 4 tàu.",
+    fleetFilterAll: "Tất cả",
+    fleetCellsUsed: "{used}/15 ô",
+    fleetShipsUsed: "{used}/4 tàu",
+    fleetTooManyCells: "Hạm đội không được vượt quá 15 ô.",
+    fleetTooManyShips: "Hạm đội không được có nhiều hơn 4 tàu.",
+    fleetTooFewShips: "Hãy chọn ít nhất 2 tàu.",
+    fleetNeedExactCells: "Hạm đội phải chiếm đúng 15 ô.",
+    fleetValid: "Đội hình hạm đội hợp lệ.",
+    commanderPanel: "Chỉ huy",
+    opponentPanel: "Đối thủ",
+    emotionsTab: "Biểu cảm",
+    shipsTab: "Tín hiệu hạm đội",
+    chatEventLog: "Chat & nhật ký trận",
+    battleChat: "Chat trận đấu",
+    eventLog: "Nhật ký sự kiện",
+    chatPlaceholder: "Gửi thông điệp chiến thuật...",
+    sendChat: "Gửi tin nhắn",
+    awaitingSignal: "Đang chờ tín hiệu chiến đấu...",
+    connectedStatus: "Kênh đang kết nối",
+    disconnectedStatus: "Kênh mất kết nối",
+    yourTurnStatus: "Lượt của bạn",
+    opponentTurnStatus: "Lượt đối thủ",
+    deployingStatus: "Đang dàn trận",
+    readyStatus: "Đã sẵn sàng",
+    shipsAfloat: "Còn {count} tàu",
+    unrankedLabel: "Chưa xếp hạng",
   },
 };
 
@@ -175,6 +304,12 @@ const SHIP_SPRITES = {
   patrol: { 0: ship2, 90: ship2, 180: ship2, 270: ship2 },
   zship: { 0: ship4, 90: ship4, 180: ship4, 270: ship4 },
   destroyer: { 0: ship3, 90: ship3, 180: ship3, 270: ship3 },
+  gunboat: { 0: ship5, 90: ship5, 180: ship5, 270: ship5 },
+  warship: { 0: ship6, 90: ship6, 180: ship6, 270: ship6 },
+  cruiser: { 0: ship7, 90: ship7, 180: ship7, 270: ship7 },
+  flagship: { 0: ship8, 90: ship8, 180: ship8, 270: ship8 },
+  frigate: { 0: ship9, 90: ship9, 180: ship9, 270: ship9 },
+  lancer: { 0: ship10, 90: ship10, 180: ship10, 270: ship10 },
 };
 
 const resolveSpriteUrl = (sprite) => {
@@ -265,7 +400,7 @@ const useIsMobile = () => {
 function Game() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, attributes, checkAuth } = useAuth();
+  const { user, attributes, checkAuth, customAvatarUrl } = useAuth();
   const { language } = useLanguage();
   const copy = GAME_COPY[language] || GAME_COPY.en;
   const isMobile = useIsMobile();
@@ -280,6 +415,8 @@ function Game() {
 
   // Placement State
   const shipsToPlace = SHIP_DEFS;
+  const [fleetSizeFilter, setFleetSizeFilter] = useState("all");
+  const [fleetRuleMessage, setFleetRuleMessage] = useState("");
   const [currentShipIndex, setCurrentShipIndex] = useState(0);
   const [rotation, setRotation] = useState(0);
   const [hoverCell, setHoverCell] = useState(null);
@@ -295,6 +432,52 @@ function Game() {
     Object.fromEntries(
       SHIP_DEFS.map((ship) => [ship.id, getDefaultTrayRotation(ship)]),
     ),
+  );
+  const placedFleetDefs = useMemo(() => {
+    const placedTypeIds = new Set(
+      playerBoard
+        .flat()
+        .filter((cell) => cell.hasShip && cell.shipTypeId)
+        .map((cell) => cell.shipTypeId),
+    );
+    return SHIP_DEFS.filter((ship) => placedTypeIds.has(ship.id));
+  }, [playerBoard]);
+  const enemyFleetDefs = useMemo(() => {
+    const enemyTypeIds = new Set(
+      enemyBoard
+        .flat()
+        .filter((cell) => cell.hasShip && cell.shipTypeId)
+        .map((cell) => cell.shipTypeId),
+    );
+    return SHIP_DEFS.filter((ship) => enemyTypeIds.has(ship.id));
+  }, [enemyBoard]);
+  const placedFleetCellCount = placedFleetDefs.reduce(
+    (total, ship) => total + ship.size,
+    0,
+  );
+  const placedFleetShipCount = placedFleetDefs.length;
+  const isFleetValid =
+    placedFleetCellCount === FLEET_CELL_LIMIT &&
+    placedFleetShipCount >= FLEET_MIN_SHIPS &&
+    placedFleetShipCount <= FLEET_MAX_SHIPS;
+  const fleetGuidanceMessage =
+    fleetRuleMessage ||
+    (placedFleetShipCount === 0
+      ? ""
+      : placedFleetShipCount < FLEET_MIN_SHIPS
+        ? copy.fleetTooFewShips
+        : placedFleetCellCount !== FLEET_CELL_LIMIT
+          ? copy.fleetNeedExactCells
+          : isFleetValid
+            ? copy.fleetValid
+            : "");
+  const filteredDockShips =
+    fleetSizeFilter === "all"
+      ? shipsToPlace
+      : shipsToPlace.filter((ship) => ship.size === fleetSizeFilter);
+  const fleetSizeOptions = useMemo(
+    () => [...new Set(SHIP_DEFS.map((ship) => ship.size))].sort((a, b) => a - b),
+    [],
   );
 
   // Game State
@@ -330,6 +513,15 @@ function Game() {
   const [pendingExitTarget, setPendingExitTarget] = useState("/");
   const [gameOverReason, setGameOverReason] = useState("");
   const [rematchLoading, setRematchLoading] = useState(false);
+  const [chatMessages, setChatMessages] = useState([]);
+  const latestPlayerSignal = useMemo(
+    () => [...chatMessages].reverse().find((message) => message.side === "player") || null,
+    [chatMessages],
+  );
+  const latestOpponentSignal = useMemo(
+    () => [...chatMessages].reverse().find((message) => message.side === "opponent") || null,
+    [chatMessages],
+  );
   const [returnHomeLoading] = useState(false);
   const [rankedResult, setRankedResult] = useState(null);
   const [showRankUpAnimation, setShowRankUpAnimation] = useState(false);
@@ -362,7 +554,15 @@ function Game() {
     isPvpMode && pvpFleetSubmitted && pvpRoom?.status !== "IN_PROGRESS";
   const isPlacementLocked = isWaitingForOpponentFleet;
   const addLog = useCallback((msg, type = "info") => {
-    setLogs((prev) => [...prev, { id: Date.now() + Math.random(), msg, type }]);
+    setLogs((prev) => [
+      ...prev,
+      {
+        id: Date.now() + Math.random(),
+        msg,
+        type,
+        timestamp: new Date().toISOString(),
+      },
+    ]);
   }, []);
   const playerSunkShipTypeIds = playerBoard
     .flat()
@@ -388,6 +588,9 @@ function Game() {
       baseUserId,
       displayName,
       email: attributes?.email,
+      avatarUrl:
+        customAvatarUrl || attributes?.picture || attributes?.avatarUrl || "",
+      rank: attributes?.rank || "",
     };
   }, [
     attributes?.email,
@@ -396,6 +599,10 @@ function Game() {
     attributes?.nickname,
     attributes?.preferred_username,
     attributes?.sub,
+    attributes?.avatarUrl,
+    attributes?.picture,
+    attributes?.rank,
+    customAvatarUrl,
     roomCode,
     user?.signInDetails?.loginId,
     user?.userId,
@@ -443,13 +650,26 @@ function Game() {
     pvpEnemyBoardLoadedRef.current = false;
   }, [roomCode]);
 
-  const renderFleetStatus = (sunkShipTypeIds, isScanning = false) => (
+  const renderFleetStatus = (
+    fleetDefs,
+    sunkShipTypeIds,
+    isScanning = false,
+  ) => (
     <div className="fleet-image-panel">
-      <div className="fleet-image-list">
+      <div
+        className="fleet-image-list"
+        style={{ "--fleet-count": Math.max(1, fleetDefs.length) }}
+      >
         {!isScanning &&
-          shipsToPlace.map((ship) => {
+          fleetDefs.map((ship) => {
             const isSunk = sunkShipTypeIds.includes(ship.id);
-            const offsets = getShipOffsets(ship, ship.rotations[0]);
+            let offsets = getShipOffsets(ship, ship.rotations[0]);
+            const isStraightVertical =
+              offsets.length >= 3 &&
+              new Set(offsets.map(([, col]) => col)).size === 1;
+            if (isStraightVertical && ship.rotations.includes(90)) {
+              offsets = getShipOffsets(ship, 90);
+            }
             const rowCount = Math.max(...offsets.map(([row]) => row)) + 1;
             const colCount = Math.max(...offsets.map(([, col]) => col)) + 1;
 
@@ -495,10 +715,14 @@ function Game() {
   }, [location]);
 
   useEffect(() => {
-    if (isMobile && gameState === "PLACEMENT" && unplacedShipIds.length > 0) {
+    if (
+      isMobile &&
+      gameState === "PLACEMENT" &&
+      placedFleetShipCount === 0
+    ) {
       autoArrangeFleet();
     }
-  }, [isMobile, gameState, unplacedShipIds.length]);
+  }, [isMobile, gameState, placedFleetShipCount]);
 
   useEffect(() => {
     if (gameState === "PLAYER_TURN") {
@@ -619,6 +843,58 @@ function Game() {
       isSameRoomPlayer(candidate, player),
     ) || player;
 
+  const currentBattlePlayer = getCurrentRoomPlayer(pvpRoom, roomPlayer);
+  const opponentBattlePlayer = getOpponentPlayer(pvpRoom, roomPlayer);
+  const opponentFleetStatusDefs = useMemo(() => {
+    const opponentTypeIds = new Set(
+      (opponentBattlePlayer?.board?.ships || [])
+        .map((ship) => ship.shipTypeId)
+        .filter(Boolean),
+    );
+    return SHIP_DEFS.filter((ship) => opponentTypeIds.has(ship.id));
+  }, [opponentBattlePlayer]);
+
+  const appendChatMessage = useCallback((message) => {
+    if (!message?.messageId) return;
+    setChatMessages((current) => {
+      if (current.some((entry) => entry.messageId === message.messageId)) {
+        return current;
+      }
+      return [...current, message].slice(-80);
+    });
+  }, []);
+
+  const sendPvpSignal = useCallback(
+    ({ kind, value }) => {
+      if (!isPvpMode || !roomCode || !value) return false;
+
+      const sender = roomPlayerRef.current || roomPlayer;
+      const messageId = crypto.randomUUID();
+      const sentAt = new Date().toISOString();
+      const payload = {
+        action: kind === "emote" ? "EMOTE" : "CHAT",
+        roomCode,
+        messageId,
+        message: kind === "chat" ? String(value).trim().slice(0, 180) : undefined,
+        emote: kind === "emote" ? String(value).slice(0, 16) : undefined,
+      };
+      const sent = sendSocketMessage(pvpSocketRef.current, payload);
+      if (!sent) return false;
+
+      appendChatMessage({
+        messageId,
+        kind,
+        value: kind === "chat" ? payload.message : payload.emote,
+        senderUserId: getRoomPlayerKey(sender),
+        senderName: sender?.displayName || "Commander",
+        side: "player",
+        sentAt,
+      });
+      return true;
+    },
+    [appendChatMessage, isPvpMode, roomCode, roomPlayer],
+  );
+
   const releaseShotLock = useCallback((shotId = "") => {
     if (
       shotId &&
@@ -681,7 +957,7 @@ function Game() {
           headers: { "content-type": "application/json" },
           body: JSON.stringify({ player: currentPlayer }),
           keepalive: true,
-        }).catch(() => {});
+        }).catch(() => { });
         return;
       }
 
@@ -879,13 +1155,13 @@ function Game() {
       ).replace("{roomCode}", roomCode);
     return pvpTurnUserId === currentPlayerId
       ? (copy.yourTurnPvp || "Room {roomCode}: your turn.").replace(
-          "{roomCode}",
-          roomCode,
-        )
+        "{roomCode}",
+        roomCode,
+      )
       : (copy.opponentTurnPvp || "Room {roomCode}: opponent turn.").replace(
-          "{roomCode}",
-          roomCode,
-        );
+        "{roomCode}",
+        roomCode,
+      );
   };
 
   const clearShipFromBoard = (board, shipId) => {
@@ -909,6 +1185,50 @@ function Game() {
   const removeShipById = (board, shipId) => {
     clearShipFromBoard(board, shipId);
   };
+
+  const getPlacedShipSelectionByTypeId = (shipTypeId, board = playerBoard) => {
+    for (let r = 0; r < BOARD_SIZE; r++) {
+      for (let c = 0; c < BOARD_SIZE; c++) {
+        const cell = board[r][c];
+        if (cell.hasShip && cell.shipTypeId === shipTypeId) {
+          return getPlacedShipSelection(cell, board);
+        }
+      }
+    }
+    return null;
+  };
+
+  const returnShipToStaging = useCallback((shipId, shipTypeId) => {
+    if (isPlacementLocked) return;
+    if (gameState !== "PLACEMENT" && gameState !== "READY") return;
+
+    setPlayerBoard((prevBoard) => {
+      const newBoard = cloneBoard(prevBoard);
+      clearShipFromBoard(newBoard, shipId);
+      return newBoard;
+    });
+
+    setUnplacedShipIds((current) => {
+      if (current.includes(shipTypeId)) return current;
+      const newUnplaced = [...current, shipTypeId];
+      return newUnplaced.sort((a, b) => {
+        const idxA = SHIP_DEFS.findIndex((d) => d.id === a);
+        const idxB = SHIP_DEFS.findIndex((d) => d.id === b);
+        return idxA - idxB;
+      });
+    });
+    setFleetRuleMessage("");
+
+    if (selectedShip && selectedShip.shipId === shipId) {
+      setSelectedShip(null);
+    }
+    if (draggedShip && draggedShip.shipId === shipId) {
+      setDraggedShip(null);
+      setDragPointer(null);
+      setHoverCell(null);
+    }
+    addLog(`Returned ship to staging dock.`, "info");
+  }, [isPlacementLocked, gameState, selectedShip, draggedShip, addLog]);
 
   const getRootCellForShip = (board, shipId) => {
     for (const row of board) {
@@ -1780,8 +2100,37 @@ function Game() {
             return;
           }
 
-          if (message.type !== "ROOM_EVENT") return;
-          const payload = message.payload || {};
+          if (message.type === "ROOM_CHAT_HISTORY") {
+            const currentUserId = String(socketUserId || "").split(":")[0];
+            (message.messages || []).forEach((entry) => {
+              const senderUserId = String(entry.senderUserId || "").split(":")[0];
+              appendChatMessage({
+                messageId: entry.messageId,
+                kind: entry.type === "PVP_EMOTE" ? "emote" : "chat",
+                value: entry.type === "PVP_EMOTE" ? entry.emote : entry.message,
+                senderUserId: entry.senderUserId,
+                senderName: entry.senderName || "Commander",
+                side: senderUserId === currentUserId ? "player" : "opponent",
+                sentAt: entry.sentAt || new Date().toISOString(),
+              });
+            });
+            return;
+          }
+
+           if (message.type !== "ROOM_EVENT") return;
+           const payload = message.payload || {};
+          if (payload.type === "PVP_CHAT" || payload.type === "PVP_EMOTE") {
+            appendChatMessage({
+              messageId: payload.messageId,
+              kind: payload.type === "PVP_EMOTE" ? "emote" : "chat",
+              value:
+                payload.type === "PVP_EMOTE" ? payload.emote : payload.message,
+              senderUserId: payload.senderUserId,
+              senderName: payload.senderName || "Opponent",
+              side: "opponent",
+              sentAt: payload.sentAt || new Date().toISOString(),
+            });
+          }
           if (payload.type === "PVP_SHOT_RESULT") {
             applyPvpShotResultRef.current?.(payload);
           }
@@ -1841,7 +2190,7 @@ function Game() {
         pvpSocketRef.current = null;
       }
     };
-  }, [addLog, isPvpMode, roomCode, roomPlayer.userId]);
+  }, [addLog, appendChatMessage, isPvpMode, roomCode, roomPlayer.userId]);
 
   useEffect(() => {
     if (!isPvpMode || pvpRoom?.status !== "IN_PROGRESS") return;
@@ -2137,17 +2486,23 @@ function Game() {
             draggedShip.rotation,
           );
           setPlayerBoard(newBoard);
-          const isLastUnplacedShip =
-            unplacedShipIds.length === 1 &&
-            unplacedShipIds.includes(draggedShip.shipDef.id);
           setUnplacedShipIds((current) =>
             current.filter((id) => id !== draggedShip.shipDef.id),
           );
-          if (isLastUnplacedShip) {
+          const nextShipCount = placedFleetShipCount + 1;
+          const nextCellCount = placedFleetCellCount + draggedShip.shipDef.size;
+          if (
+            nextCellCount === FLEET_CELL_LIMIT &&
+            nextShipCount >= FLEET_MIN_SHIPS &&
+            nextShipCount <= FLEET_MAX_SHIPS
+          ) {
+            setFleetRuleMessage(copy.fleetValid);
             addLog(
               "Fleet deployed. Review the formation or press Ready.",
               "info",
             );
+          } else {
+            setFleetRuleMessage("");
           }
           setDraggedShip(null);
           setDragPointer(null);
@@ -2196,6 +2551,25 @@ function Game() {
       setRotation(placedShip.rotation);
       setDraggedShip(shipToDrag);
       setDragPointer({ x: event.clientX, y: event.clientY });
+    }
+  };
+
+  const handlePlayerCellDoubleClick = (event, r, c) => {
+    if (isPlacementLocked) return;
+    if (gameState !== "PLACEMENT" && gameState !== "READY") return;
+
+    const cell = playerBoard[r][c];
+    if (cell && cell.hasShip && cell.shipId) {
+      returnShipToStaging(cell.shipId, cell.shipTypeId);
+    }
+  };
+
+  const handleDockClick = () => {
+    if (isPlacementLocked) return;
+    if (gameState !== "PLACEMENT" && gameState !== "READY") return;
+
+    if (draggedShip && !draggedShip.fromTray) {
+      returnShipToStaging(draggedShip.shipId, draggedShip.shipDef.id);
     }
   };
 
@@ -2315,6 +2689,17 @@ function Game() {
     if (gameState !== "PLACEMENT") return;
     event.preventDefault();
 
+    if (placedFleetShipCount >= FLEET_MAX_SHIPS) {
+      setFleetRuleMessage(copy.fleetTooManyShips);
+      addLog(copy.fleetTooManyShips, "warning");
+      return;
+    }
+    if (placedFleetCellCount + shipDef.size > FLEET_CELL_LIMIT) {
+      setFleetRuleMessage(copy.fleetTooManyCells);
+      addLog(copy.fleetTooManyCells, "warning");
+      return;
+    }
+
     if (draggedShip && draggedShip.shipId === `tray-${shipDef.id}`) {
       return; // Already dragging this ship
     }
@@ -2352,6 +2737,7 @@ function Game() {
       },
     });
     setDragPointer({ x: event.clientX, y: event.clientY });
+    setFleetRuleMessage("");
   };
 
   const handleTrayShipContextMenu = (event, shipDef) => {
@@ -2368,15 +2754,30 @@ function Game() {
 
   const autoArrangeFleet = () => {
     if (isPlacementLocked) return;
+    const legalSelections = getLegalFleetSelections(shipsToPlace);
+    const selectedFleet =
+      legalSelections[Math.floor(Math.random() * legalSelections.length)];
+    if (!selectedFleet) {
+      setFleetRuleMessage(copy.fleetNeedExactCells);
+      addLog(copy.fleetNeedExactCells, "warning");
+      return;
+    }
+
     const arrangedBoard = createBoard();
-    placeShipsRandomly(arrangedBoard, shipsToPlace);
+    placeShipsRandomly(arrangedBoard, selectedFleet);
     setPlayerBoard(arrangedBoard);
-    setUnplacedShipIds([]);
+    const selectedIds = new Set(selectedFleet.map((ship) => ship.id));
+    setUnplacedShipIds(
+      shipsToPlace
+        .filter((ship) => !selectedIds.has(ship.id))
+        .map((ship) => ship.id),
+    );
     setSelectedShip(null);
     setDraggedShip(null);
     setDragPointer(null);
     setHoverCell(null);
     setInvalidRotationPreview(null);
+    setFleetRuleMessage(copy.fleetValid);
     addLog(
       "Fleet auto-arranged. Press again for another formation or press Ready.",
       "info",
@@ -2384,8 +2785,17 @@ function Game() {
   };
 
   const beginBattle = async () => {
-    if (invalidRotationPreview || unplacedShipIds.length > 0 || draggedShip)
+    if (!isFleetValid || invalidRotationPreview || draggedShip) {
+      const validationMessage =
+        placedFleetShipCount < FLEET_MIN_SHIPS
+          ? copy.fleetTooFewShips
+          : placedFleetCellCount !== FLEET_CELL_LIMIT
+            ? copy.fleetNeedExactCells
+            : copy.fleetTooManyShips;
+      setFleetRuleMessage(validationMessage);
+      addLog(validationMessage, "warning");
       return;
+    }
     if (isWaitingForOpponentFleet) return;
     playSound("click", { minGap: 250 });
 
@@ -2447,7 +2857,7 @@ function Game() {
     const newEnemyBoard = [
       ...enemyBoard.map((row) => [...row.map((c) => ({ ...c }))]),
     ];
-    placeShipsRandomly(newEnemyBoard, shipsToPlace);
+    placeShipsRandomly(newEnemyBoard, placedFleetDefs);
     setEnemyBoard(newEnemyBoard);
     setSelectedShip(null);
     setHoverCell(null);
@@ -2486,24 +2896,66 @@ function Game() {
     const quarterTurn = rotationDeg === 90 || rotationDeg === 270;
     const isAngledShip =
       cell.shipTypeId === "destroyer" || cell.shipTypeId === "zship";
+    const tShipTransform =
+      T_SHIP_IMAGE_TRANSFORMS[cell.shipTypeId]?.[rotationDeg] || null;
+    const tShipImageRotation = tShipTransform
+      ? ((tShipTransform.rotation % 360) + 360) % 360
+      : 0;
+    const tShipImageQuarterTurn =
+      tShipImageRotation === 90 || tShipImageRotation === 270;
+
+    // Ships that need the cover+dimension-swap treatment (portrait source images)
+    // carrier & patrol: stored as portrait, natural placement is horizontal → need +90°
+    // cruiser & frigate: stored as portrait, natural placement is vertical → no +90°
     const isStraightShip =
-      cell.shipTypeId === "carrier" || cell.shipTypeId === "patrol";
+      cell.shipTypeId === "carrier" ||
+      cell.shipTypeId === "patrol" ||
+      cell.shipTypeId === "cruiser" ||
+      cell.shipTypeId === "frigate";
+
     const usesVerticalSourceImage =
       cell.shipTypeId === "carrier" || cell.shipTypeId === "patrol";
     const straightImageRotation = usesVerticalSourceImage
       ? rotationDeg + 90
       : rotationDeg;
     const isLShip = cell.shipTypeId === "destroyer";
-    const rotatedOffset = isAngledShip
-      ? getAngledShipOffset(cell.shipTypeId, rotationDeg)
-      : { x: 0, y: 0 };
-    const offsetX = rotatedOffset.x;
-    const offsetY = rotatedOffset.y;
-    const scale = isLShip
-      ? L_SHIP_IMAGE_SCALE
-      : isAngledShip
-        ? SHIP_IMAGE_SCALE
-        : 1;
+    let offsetX = 0;
+    let offsetY = 0;
+    if (isAngledShip) {
+      const rotatedOffset = getAngledShipOffset(cell.shipTypeId, rotationDeg);
+      offsetX = rotatedOffset.x;
+      offsetY = rotatedOffset.y;
+    } else if (cell.shipTypeId === "lancer") {
+      const normRot = ((rotationDeg % 360) + 360) % 360;
+      if (normRot === 0) {
+        offsetX = -16;
+        offsetY = 6;
+      } else if (normRot === 90) {
+        offsetX = -4;
+        offsetY = -15;
+      } else if (normRot === 180) {
+        offsetX = 18;
+        offsetY = -4;
+      } else if (normRot === 270) {
+        offsetX = 6;
+        offsetY = 16;
+      }
+    }
+
+    // Per-ship scale overrides for ships that appear too small on the board
+    const SHIP_SCALE_OVERRIDES = {
+      cruiser: 1.1,
+      frigate: 1.1,
+      lancer: 1.28,
+    };
+
+    const scale = SHIP_SCALE_OVERRIDES[cell.shipTypeId]
+      ? SHIP_SCALE_OVERRIDES[cell.shipTypeId]
+      : isLShip
+        ? L_SHIP_IMAGE_SCALE
+        : isAngledShip
+          ? SHIP_IMAGE_SCALE
+          : 1;
 
     const wCalc = `calc(${cell.shipBounds.cols} * var(--cell-size) + ${cell.shipBounds.cols - 1} * var(--cell-gap))`;
     const hCalc = `calc(${cell.shipBounds.rows} * var(--cell-size) + ${cell.shipBounds.rows - 1} * var(--cell-gap))`;
@@ -2511,19 +2963,34 @@ function Game() {
     if (isStraightShip) {
       const straightQuarterTurn =
         straightImageRotation === 90 || straightImageRotation === 270;
-      const straightScale = cell.shipTypeId === "patrol" ? 1.5 : 1;
-      const isVerticalPatrol =
-        cell.shipTypeId === "patrol" && rotationDeg === 90;
-      const straightOffsetX = isVerticalPatrol
-        ? PATROL_VERTICAL_IMAGE_OFFSET_X
-        : cell.shipTypeId === "patrol"
-          ? PATROL_IMAGE_OFFSET_X
-          : 0;
-      const straightOffsetY = isVerticalPatrol
-        ? PATROL_VERTICAL_IMAGE_OFFSET_Y
-        : cell.shipTypeId === "patrol"
-          ? PATROL_IMAGE_OFFSET_Y
-          : 0;
+      const shipScale =
+        SHIP_SCALE_OVERRIDES[cell.shipTypeId] ||
+        (cell.shipTypeId === "patrol" ? 1.5 : 1);
+      const patrolOffsetsByRotation = {
+        0: { x: PATROL_IMAGE_OFFSET_X, y: PATROL_IMAGE_OFFSET_Y },
+        90: {
+          x: PATROL_VERTICAL_IMAGE_OFFSET_X,
+          y: PATROL_VERTICAL_IMAGE_OFFSET_Y,
+        },
+        180: { x: -PATROL_IMAGE_OFFSET_X, y: -PATROL_IMAGE_OFFSET_Y },
+        270: {
+          x: -PATROL_VERTICAL_IMAGE_OFFSET_X,
+          y: -PATROL_VERTICAL_IMAGE_OFFSET_Y,
+        },
+      };
+      const patrolOffset =
+        patrolOffsetsByRotation[rotationDeg] || patrolOffsetsByRotation[0];
+      const straightOffsetX =
+        cell.shipTypeId === "patrol" ? patrolOffset.x : 0;
+      const straightOffsetY =
+        cell.shipTypeId === "patrol" ? patrolOffset.y : 0;
+      // Per-ship objectPosition to crop white/transparent edges in source images
+      const SHIP_OBJECT_POSITION = {
+        cruiser: straightQuarterTurn ? "center 35%" : "center 35%",
+        frigate: "center",
+      };
+      const objectPosition =
+        SHIP_OBJECT_POSITION[cell.shipTypeId] || "center";
       return {
         position: "absolute",
         left: straightQuarterTurn ? `calc((${wCalc} - ${hCalc}) / 2)` : "0",
@@ -2531,8 +2998,8 @@ function Game() {
         width: straightQuarterTurn ? hCalc : "100%",
         height: straightQuarterTurn ? wCalc : "100%",
         objectFit: "cover",
-        objectPosition: "center",
-        transform: `translate(${straightOffsetX}px, ${straightOffsetY}px) rotate(${straightImageRotation}deg) scale(${straightScale})`,
+        objectPosition,
+        transform: `translate(${straightOffsetX}px, ${straightOffsetY}px) rotate(${straightImageRotation}deg) scale(${shipScale})`,
         transformOrigin: "center",
         imageRendering: "auto",
         maxWidth: "none",
@@ -2541,17 +3008,44 @@ function Game() {
 
     return {
       position: "absolute",
-      left: quarterTurn ? `calc((${wCalc} - ${hCalc}) / 2)` : "0",
-      top: quarterTurn ? `calc((${hCalc} - ${wCalc}) / 2)` : "0",
-      width: quarterTurn ? hCalc : "100%",
-      height: quarterTurn ? wCalc : "100%",
-      objectFit: isAngledShip ? "cover" : "fill",
+      left: tShipTransform
+        ? tShipImageQuarterTurn
+          ? `calc((${wCalc} - ${hCalc}) / 2)`
+          : "0"
+        : quarterTurn
+          ? `calc((${wCalc} - ${hCalc}) / 2)`
+          : "0",
+      top: tShipTransform
+        ? tShipImageQuarterTurn
+          ? `calc((${hCalc} - ${wCalc}) / 2)`
+          : "0"
+        : quarterTurn
+          ? `calc((${hCalc} - ${wCalc}) / 2)`
+          : "0",
+      width: tShipTransform
+        ? tShipImageQuarterTurn
+          ? hCalc
+          : "100%"
+        : quarterTurn
+          ? hCalc
+          : "100%",
+      height: tShipTransform
+        ? tShipImageQuarterTurn
+          ? wCalc
+          : "100%"
+        : quarterTurn
+          ? wCalc
+          : "100%",
+      objectFit: tShipTransform ? "contain" : isAngledShip ? "cover" : "fill",
       objectPosition: "center",
-      transform: `translate(${offsetX}px, ${offsetY}px) rotate(${rotationDeg}deg) scale(${scale})`,
+      transform: tShipTransform
+        ? `translate(${tShipTransform.x}px, ${tShipTransform.y}px) rotate(${tShipTransform.rotation}deg) scale(${tShipTransform.scale})`
+        : `translate(${offsetX}px, ${offsetY}px) rotate(${rotationDeg}deg) scale(${scale})`,
       transformOrigin: "center",
       maxWidth: "none",
     };
   };
+
 
   const getFallbackShipCells = (board, shipId) => {
     const cells = [];
@@ -2639,15 +3133,12 @@ function Game() {
               key={`ship-${cell.shipId}`}
               data-board-side={boardSide}
               data-ship-id={cell.shipId}
-              className={`pointer-events-none ship-overlay ${
-                isShipSunk ? "ship-sunk-silhouette" : ""
-              } ${!isShipSunk ? "ship-afloat" : ""} ${
-                draggedShip?.shipId === cell.shipId ? "ship-drag-source" : ""
-              } ${
-                invalidRotationPreview?.shipId === cell.shipId
+              className={`pointer-events-none ship-overlay ${isShipSunk ? "ship-sunk-silhouette" : ""
+                } ${!isShipSunk ? "ship-afloat" : ""} ${draggedShip?.shipId === cell.shipId ? "ship-drag-source" : ""
+                } ${invalidRotationPreview?.shipId === cell.shipId
                   ? "ship-invalid-source"
                   : ""
-              }`}
+                }`}
               style={overlayStyle}
             >
               {spriteUrl ? (
@@ -2694,7 +3185,7 @@ function Game() {
       };
       const invalidSpriteUrl = resolveSpriteUrl(
         SHIP_SPRITES[invalidRotationPreview.shipDef.id]?.[
-          invalidRotationPreview.rotation
+        invalidRotationPreview.rotation
         ],
       );
 
@@ -2736,15 +3227,26 @@ function Game() {
       );
       const ghostWidth = `calc(${bounds.cols} * var(--cell-size) + ${bounds.cols - 1} * var(--cell-gap))`;
       const ghostHeight = `calc(${bounds.rows} * var(--cell-size) + ${bounds.rows - 1} * var(--cell-gap))`;
+      const isSnappedToBoard = Boolean(hoverCell && placementOffsets?.length);
+      const snappedRootRow = isSnappedToBoard
+        ? hoverCell.r - draggedShip.grabOffset.row
+        : 0;
+      const snappedRootCol = isSnappedToBoard
+        ? hoverCell.c - draggedShip.grabOffset.col
+        : 0;
 
       if (ghostSpriteUrl) {
         dragGhostOverlay = (
           <div
             className={`ship-drag-ghost ${canPlace ? "is-valid" : "is-invalid"}`}
             style={{
-              position: "fixed",
-              left: `${dragPointer.x - draggedShip.pointerOffset.x}px`,
-              top: `${dragPointer.y - draggedShip.pointerOffset.y}px`,
+              position: isSnappedToBoard ? "absolute" : "fixed",
+              left: isSnappedToBoard
+                ? `calc(${snappedRootCol} * (var(--cell-size) + var(--cell-gap)))`
+                : `${dragPointer.x - draggedShip.pointerOffset.x}px`,
+              top: isSnappedToBoard
+                ? `calc(${snappedRootRow} * (var(--cell-size) + var(--cell-gap)))`
+                : `${dragPointer.y - draggedShip.pointerOffset.y}px`,
               width: ghostWidth,
               height: ghostHeight,
               overflow: "hidden",
@@ -2783,7 +3285,7 @@ function Game() {
 
     return (
       <div
-        className="select-none grid"
+        className={`battle-coordinate-grid select-none grid ${isPvpMode ? "is-pvp" : ""}`}
         style={{
           gridTemplateColumns: `24px var(--label-gap, 6px) repeat(${BOARD_SIZE}, var(--cell-size))`,
           gridTemplateRows: `24px var(--label-gap, 6px) repeat(${BOARD_SIZE}, var(--cell-size))`,
@@ -2794,7 +3296,7 @@ function Game() {
         {letters.map((l, colIndex) => (
           <div
             key={l}
-            className="flex items-center justify-center text-secondary/70 font-bold text-xs"
+            className="coordinate-label coordinate-label-column flex items-center justify-center text-secondary/70 font-bold text-xs"
             style={{
               gridRow: 1,
               gridColumn: colIndex + 3,
@@ -2808,7 +3310,7 @@ function Game() {
         {Array.from({ length: BOARD_SIZE }).map((_, rowIndex) => (
           <div
             key={rowIndex}
-            className="flex items-center justify-center text-secondary/70 font-bold text-xs"
+            className="coordinate-label coordinate-label-row flex items-center justify-center text-secondary/70 font-bold text-xs"
             style={{
               gridRow: rowIndex + 3,
               gridColumn: 1,
@@ -2897,6 +3399,9 @@ function Game() {
                         ? handleEnemyCellClick(r, c)
                         : !isMobile && handlePlayerCellClick(event, r, c)
                     }
+                    onDoubleClick={(event) =>
+                      !isEnemy && handlePlayerCellDoubleClick(event, r, c)
+                    }
                     onTouchStart={(event) =>
                       !isEnemy && handleTouchStart(event, r, c)
                     }
@@ -2904,31 +3409,26 @@ function Game() {
                     onTouchEnd={(event) =>
                       !isEnemy && handleTouchEnd(event, r, c)
                     }
-                    className={`ocean-cell relative ${cursorClass} overflow-visible transition-all duration-300 ${baseCellBg} ${
-                      !isEnemy && cell.hasShip ? "player-ship-cell" : ""
-                    } ${
-                      isHovered && draggedShip
+                    className={`ocean-cell relative ${cursorClass} overflow-visible transition-all duration-300 ${baseCellBg} ${!isEnemy && cell.hasShip ? "player-ship-cell" : ""
+                      } ${isHovered && draggedShip
                         ? canPlace
                           ? "drag-target-cell-valid"
                           : "drag-target-cell-invalid"
                         : ""
-                    } ${
-                      isHovered && invalidRotationPreview && !draggedShip
+                      } ${isHovered && invalidRotationPreview && !draggedShip
                         ? "drag-target-cell-invalid"
                         : ""
-                    } ${
-                      isHovered
+                      } ${isHovered
                         ? canPlace
                           ? "bg-secondary/50 shadow-[0_0_15px_#a5e7ff]"
                           : "bg-error/50"
                         : ""
-                    }`}
+                      }`}
                   >
                     {isCellMiss && !cell.autoMarked && (
                       <div
-                        className={`shot-effect shot-miss ${
-                          cell.autoMarked ? "shot-auto-marked" : ""
-                        }`}
+                        className={`shot-effect shot-miss ${cell.autoMarked ? "shot-auto-marked" : ""
+                          }`}
                         aria-hidden="true"
                       >
                         <span className="miss-dot" />
@@ -2970,13 +3470,16 @@ function Game() {
                   event.preventDefault();
                   requestGameExit("/");
                 }}
-                className="text-[10px] uppercase font-bold text-error bg-error/10 px-3 py-1.5 rounded-sm border border-error/20 hover:bg-error/20 hover:text-red-400 transition-colors"
+                className="pvp-leave-match-button"
               >
-                {copy.leave || "Leave Match"}
+                <span className="material-symbols-outlined" aria-hidden="true">
+                  logout
+                </span>
+                <span>{copy.leave || "Leave Match"}</span>
               </button>
             ) : (
               <span className="text-[10px] uppercase font-bold text-secondary bg-secondary/10 px-2 py-1 rounded-sm border border-secondary/20">
-                Difficulty: {difficulty}
+                {copy.difficultyLabel}: {copy.difficultyNames?.[difficulty] || difficulty}
               </span>
             )}
             <Link
@@ -2994,32 +3497,65 @@ function Game() {
         </div>
       </header>
 
-      <main className="game-main flex-1 w-full max-w-[1440px] mx-auto px-gutter flex flex-col lg:flex-row">
+      <main
+        className={`game-main flex-1 w-full max-w-[1440px] mx-auto px-gutter flex flex-col lg:flex-row ${isPvpMode ? "pvp-game-main" : ""}`}
+      >
+        {isPvpMode && !isMobile && (
+          <PvpCommanderPanel
+            player={currentBattlePlayer || roomPlayer}
+            rankLabel={
+              currentBattlePlayer?.rank ||
+              attributes?.rank ||
+              copy.unrankedLabel
+            }
+            isConnected={pvpSocketReady}
+            isMyTurn={
+              pvpTurnUserId === getRoomPlayerKey(currentBattlePlayer || roomPlayer)
+            }
+            isDeploying={gameState === "PLACEMENT" || gameState === "READY"}
+            isReady={
+              (gameState === "PLACEMENT" || gameState === "READY") &&
+              Boolean(currentBattlePlayer?.fleetReady)
+            }
+            shipsAfloat={Math.max(
+              0,
+              placedFleetDefs.length - playerSunkShipTypeIds.length,
+            )}
+            speechMessage={latestPlayerSignal}
+            copy={copy}
+          />
+        )}
         {/* Boards Section */}
         <div className="game-board-column flex-1 flex flex-col">
           {/* Status Header */}
-          <div className="game-status glass-card rounded-xl border border-white/10 flex justify-between items-center">
-            <div>
-              <h2 className="font-display-lg text-base md:text-xl uppercase tracking-widest text-on-surface">
+          <div className={`game-status glass-card rounded-xl border border-white/10 flex justify-between items-center ${isPvpMode ? "pvp-command-banner" : ""}`}>
+            <div className={isPvpMode ? "pvp-command-copy" : ""}>
+              {isPvpMode && (
+                <span className="pvp-command-emblem material-symbols-outlined" aria-hidden="true">
+                  radar
+                </span>
+              )}
+              <div>
+              <h2 className={`font-display-lg text-base md:text-xl uppercase tracking-widest text-on-surface ${isPvpMode ? "pvp-command-title" : ""}`}>
                 {gameState === "PLACEMENT" || gameState === "READY"
                   ? copy.deployFleet || "Deploy Your Fleet"
                   : copy.sectorCommand || "Sector Command"}
               </h2>
-              <p className="text-on-surface-variant text-xs md:text-sm mt-1 hidden md:block">
+              <p className={`text-on-surface-variant text-xs md:text-sm mt-1 hidden md:block ${isPvpMode ? "pvp-command-status" : ""}`}>
                 {gameState === "PLACEMENT" &&
                   (isWaitingForOpponentFleet
                     ? copy.waitingFleetLog
-                    : unplacedShipIds.length > 0
+                    : !isFleetValid
                       ? copy.dragShipsInstructions ||
-                        "Drag ships from staging onto your map. Right-click to rotate."
+                      "Drag ships from staging onto your map. Right-click to rotate."
                       : copy.formationCompleteInstructions ||
-                        "Formation complete. Adjust ships, auto-arrange again, or press Ready.")}
+                      "Formation complete. Adjust ships, auto-arrange again, or press Ready.")}
                 {gameState === "READY" &&
                   (selectedShip
                     ? copy.moveSelectedShipInstructions ||
-                      "Move the selected ship or right-click to rotate it, then press Ready."
+                    "Move the selected ship or right-click to rotate it, then press Ready."
                     : copy.selectShipInstructions ||
-                      "Select any ship to move or rotate it, then press Ready.")}
+                    "Select any ship to move or rotate it, then press Ready.")}
                 {gameState === "PLAYER_TURN" &&
                   (isPvpMode ? (
                     <span className="text-secondary glow-text">
@@ -3046,34 +3582,33 @@ function Game() {
                     </span>
                   ))}
               </p>
+              </div>
             </div>
-            {(gameState === "PLACEMENT" || gameState === "READY") &&
-              unplacedShipIds.length === 0 && (
-                <button
-                  onClick={beginBattle}
-                  disabled={
-                    Boolean(invalidRotationPreview) ||
-                    unplacedShipIds.length > 0 ||
-                    Boolean(draggedShip) ||
-                    pvpReadyLoading ||
-                    isWaitingForOpponentFleet
-                  }
-                  className={`font-bold px-4 py-1.5 md:px-8 md:py-2 text-sm md:text-base rounded-sm transition-all tracking-widest ${
-                    invalidRotationPreview ||
-                    draggedShip ||
-                    pvpReadyLoading ||
-                    isWaitingForOpponentFleet
-                      ? "bg-surface-container text-on-surface-variant/40 cursor-not-allowed opacity-50"
-                      : "bg-secondary text-on-secondary-fixed hover:bg-secondary-container active:scale-95"
+            {(gameState === "PLACEMENT" || gameState === "READY") && (
+              <button
+                onClick={beginBattle}
+                disabled={
+                  !isFleetValid ||
+                  Boolean(invalidRotationPreview) ||
+                  Boolean(draggedShip) ||
+                  pvpReadyLoading ||
+                  isWaitingForOpponentFleet
+                }
+                className={`font-bold px-4 py-1.5 md:px-8 md:py-2 text-sm md:text-base rounded-sm transition-all tracking-widest ${!isFleetValid || invalidRotationPreview ||
+                  draggedShip ||
+                  pvpReadyLoading ||
+                  isWaitingForOpponentFleet
+                  ? "bg-surface-container text-on-surface-variant/40 cursor-not-allowed opacity-50"
+                  : "bg-secondary text-on-secondary-fixed hover:bg-secondary-container active:scale-95"
                   }`}
-                >
-                  {pvpReadyLoading
-                    ? copy.syncing
-                    : isWaitingForOpponentFleet
-                      ? copy.waitingPlayer
-                      : copy.ready}
-                </button>
-              )}
+              >
+                {pvpReadyLoading
+                  ? copy.syncing
+                  : isWaitingForOpponentFleet
+                    ? copy.waitingPlayer
+                    : copy.ready}
+              </button>
+            )}
             {!isPvpMode &&
               (gameState === "PLAYER_TURN" || gameState === "BOT_TURN") && (
                 <div className="text-center">
@@ -3094,21 +3629,20 @@ function Game() {
             <div className="flex w-full justify-center gap-2 mb-2 px-4">
               <button
                 onClick={() => setActiveBattleTab("enemy")}
-                className={`flex-1 py-2 px-4 rounded-lg font-bold tracking-widest text-sm transition-all border ${
-                  activeBattleTab === "enemy"
-                    ? "bg-error/20 text-error border-error shadow-[0_0_15px_rgba(255,0,0,0.2)]"
-                    : "bg-surface-container border-white/10 text-on-surface-variant"
-                }`}
+                className={`flex-1 py-2 px-4 rounded-lg font-bold tracking-widest text-sm transition-all border ${activeBattleTab === "enemy"
+                  ? "bg-error/20 text-error border-error shadow-[0_0_15px_rgba(255,0,0,0.2)]"
+                  : "bg-surface-container border-white/10 text-on-surface-variant"
+                  }`}
               >
-                {copy.enemyWaters || "ENEMY WATERS"}
+                {(isPvpMode ? copy.enemyFleet : copy.enemyWaters) ||
+                  "ENEMY FLEET"}
               </button>
               <button
                 onClick={() => setActiveBattleTab("fleet")}
-                className={`flex-1 py-2 px-4 rounded-lg font-bold tracking-widest text-sm transition-all border ${
-                  activeBattleTab === "fleet"
-                    ? "bg-secondary/20 text-secondary border-secondary shadow-[0_0_15px_rgba(0,210,255,0.2)]"
-                    : "bg-surface-container border-white/10 text-on-surface-variant"
-                }`}
+                className={`flex-1 py-2 px-4 rounded-lg font-bold tracking-widest text-sm transition-all border ${activeBattleTab === "fleet"
+                  ? "bg-secondary/20 text-secondary border-secondary shadow-[0_0_15px_rgba(0,210,255,0.2)]"
+                  : "bg-surface-container border-white/10 text-on-surface-variant"
+                  }`}
               >
                 {copy.yourFleet || "YOUR FLEET"}
               </button>
@@ -3124,12 +3658,12 @@ function Game() {
                 {(!isMobile ||
                   gameState === "PLACEMENT" ||
                   gameState === "READY") && (
-                  <h3 className="font-bold text-secondary tracking-widest uppercase mb-1">
-                    {copy.yourFleet || "Your Fleet"}
-                  </h3>
-                )}
+                    <h3 className="font-bold text-secondary tracking-widest uppercase mb-1">
+                      {copy.yourFleet || "Your Fleet"}
+                    </h3>
+                  )}
                 {gameState !== "PLACEMENT" ? (
-                  renderFleetStatus(playerSunkShipTypeIds)
+                  renderFleetStatus(placedFleetDefs, playerSunkShipTypeIds)
                 ) : (
                   <div
                     className="fleet-image-panel fleet-image-panel-placeholder"
@@ -3218,19 +3752,54 @@ function Game() {
                       "--cell-size": `${CELL_SIZE}px`,
                       "--cell-gap": `${CELL_GAP}px`,
                     }}
+                    onClick={handleDockClick}
                   >
                     <div className="deployment-dock-heading">
                       <h3 className="font-bold text-error tracking-widest uppercase">
                         {copy.fleetStaging || "Fleet Staging"}
                       </h3>
-                      <span>
-                        {(
-                          copy.shipsRemaining || "{count} ships remaining"
-                        ).replace("{count}", unplacedShipIds.length)}
-                      </span>
+                      <div className="fleet-size-filters" aria-label="Fleet size filters">
+                        <button
+                          type="button"
+                          className={fleetSizeFilter === "all" ? "is-active" : ""}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            setFleetSizeFilter("all");
+                          }}
+                        >
+                          {copy.fleetFilterAll}
+                        </button>
+                        {fleetSizeOptions.map((size) => (
+                          <button
+                            key={size}
+                            type="button"
+                            className={fleetSizeFilter === size ? "is-active" : ""}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              setFleetSizeFilter(size);
+                            }}
+                          >
+                            {size} {copy.cellsLabel}
+                          </button>
+                        ))}
+                      </div>
                     </div>
+                    <div className="fleet-rule-panel">
+                      <span>{copy.fleetRules}</span>
+                      <strong className={placedFleetCellCount > FLEET_CELL_LIMIT ? "is-invalid" : ""}>
+                        {copy.fleetCellsUsed.replace("{used}", placedFleetCellCount)}
+                      </strong>
+                      <strong className={placedFleetShipCount > FLEET_MAX_SHIPS ? "is-invalid" : ""}>
+                        {copy.fleetShipsUsed.replace("{used}", placedFleetShipCount)}
+                      </strong>
+                    </div>
+                    {fleetGuidanceMessage && (
+                      <div className={`fleet-rule-message ${isFleetValid ? "is-valid" : "is-invalid"}`}>
+                        {fleetGuidanceMessage}
+                      </div>
+                    )}
                     <div className="deployment-ship-grid">
-                      {shipsToPlace.map((shipDef) => {
+                      {filteredDockShips.map((shipDef) => {
                         const isPlaced = !unplacedShipIds.includes(shipDef.id);
                         const trayRotation =
                           trayRotations[shipDef.id] ?? shipDef.rotations[0];
@@ -3259,12 +3828,18 @@ function Game() {
                         return (
                           <div
                             key={shipDef.id}
-                            className={`deployment-ship-card deployment-${shipDef.id} ${
-                              isPlaced ? "is-placed" : ""
-                            } ${isPlacementLocked ? "is-locked" : ""}`}
+                            className={`deployment-ship-card deployment-${shipDef.id} ${isPlaced ? "is-placed" : ""
+                              } ${isPlacementLocked ? "is-locked" : ""}`}
                             onClick={(event) => {
-                              if (!isPlaced)
+                              event.stopPropagation();
+                              if (!isPlaced) {
                                 handleTrayShipClick(event, shipDef);
+                              } else {
+                                const placedShip = getPlacedShipSelectionByTypeId(shipDef.id);
+                                if (placedShip) {
+                                  returnShipToStaging(placedShip.shipId, shipDef.id);
+                                }
+                              }
                             }}
                             onContextMenu={(event) => {
                               if (!isPlaced)
@@ -3346,14 +3921,22 @@ function Game() {
                     {(!isMobile ||
                       gameState === "PLACEMENT" ||
                       gameState === "READY") && (
-                      <h3 className="font-bold text-error tracking-widest uppercase mb-1">
-                        {gameState === "READY"
-                          ? copy.enemyWatersScan || "Enemy Waters (Scanning...)"
-                          : copy.enemyWaters || "Enemy Waters"}
-                      </h3>
-                    )}
+                        <h3 className="font-bold text-error tracking-widest uppercase mb-1">
+                          {gameState === "READY"
+                            ? isPvpMode
+                              ? copy.enemyFleetScan || "Enemy Fleet (Scanning...)"
+                              : copy.enemyWatersScan || "Enemy Waters (Scanning...)"
+                            : isPvpMode
+                              ? copy.enemyFleet || "Enemy Fleet"
+                              : copy.enemyWaters || "Enemy Waters"}
+                        </h3>
+                      )}
 
-                    {renderFleetStatus(enemyShipsSunk, gameState === "READY")}
+                    {renderFleetStatus(
+                      isPvpMode ? opponentFleetStatusDefs : enemyFleetDefs,
+                      enemyShipsSunk,
+                      gameState === "READY",
+                    )}
                   </div>
 
                   <div
@@ -3367,11 +3950,10 @@ function Game() {
 
             {sunkEffect && (
               <div
-                className={`sunk-announcement ${
-                  sunkEffect.boardSide === "enemy"
-                    ? "sunk-announcement-victory"
-                    : "sunk-announcement-danger"
-                }`}
+                className={`sunk-announcement ${sunkEffect.boardSide === "enemy"
+                  ? "sunk-announcement-victory"
+                  : "sunk-announcement-danger"
+                  }`}
               >
                 <span className="sunk-announcement-line" />
                 <strong>
@@ -3387,13 +3969,12 @@ function Game() {
           {isMobile && gameState !== "PLACEMENT" && gameState !== "READY" && (
             <div className="mobile-mini-battle-log mx-4">
               <div
-                className={`mini-turn-status text-center ${
-                  gameState === "PLAYER_TURN"
-                    ? "text-secondary shadow-secondary/50 drop-shadow-md"
-                    : gameState === "BOT_TURN"
-                      ? "text-error shadow-error/50 drop-shadow-md"
-                      : "text-yellow-400"
-                }`}
+                className={`mini-turn-status text-center ${gameState === "PLAYER_TURN"
+                  ? "text-secondary shadow-secondary/50 drop-shadow-md"
+                  : gameState === "BOT_TURN"
+                    ? "text-error shadow-error/50 drop-shadow-md"
+                    : "text-yellow-400"
+                  }`}
               >
                 {gameState === "PLAYER_TURN"
                   ? "YOUR TURN"
@@ -3427,8 +4008,32 @@ function Game() {
           )}
         </div>
 
+        {isPvpMode && !isMobile && (
+          <PvpOpponentPanel
+            player={opponentBattlePlayer}
+            rankLabel={opponentBattlePlayer?.rank || copy.unrankedLabel}
+            isConnected={Boolean(opponentBattlePlayer) && pvpSocketReady}
+            isTheirTurn={
+              Boolean(opponentBattlePlayer) &&
+              pvpTurnUserId === getRoomPlayerKey(opponentBattlePlayer)
+            }
+            isDeploying={gameState === "PLACEMENT" || gameState === "READY"}
+            isReady={
+              (gameState === "PLACEMENT" || gameState === "READY") &&
+              Boolean(opponentBattlePlayer?.fleetReady)
+            }
+            shipsAfloat={Math.max(
+              0,
+              (opponentBattlePlayer?.board?.ships?.length ||
+                enemyFleetDefs.length) - enemyShipsSunk.length,
+            )}
+            speechMessage={latestOpponentSignal}
+            copy={copy}
+          />
+        )}
+
         {/* Battle Log Section */}
-        {!isMobile && (
+        {!isMobile && !isPvpMode && (
           <div className="game-log-column w-full lg:w-[350px] flex flex-col gap-4">
             <div className="glass-card flex-1 flex flex-col rounded-xl overflow-hidden border border-white/10 min-h-[300px] lg:max-h-[600px]">
               <div className="p-4 border-b border-white/5 bg-white/5">
@@ -3446,25 +4051,24 @@ function Game() {
                 {logs.map((log) => (
                   <div
                     key={log.id}
-                    className={`p-2 rounded-sm border-l-2 ${
-                      log.type === "player_hit"
-                        ? "bg-secondary/20 border-secondary text-secondary font-bold"
-                        : log.type === "player_miss"
-                          ? "bg-secondary/5 border-secondary/30 text-secondary/70"
-                          : log.type === "enemy_hit"
-                            ? "bg-error/20 border-error text-error font-bold"
-                            : log.type === "enemy_miss"
-                              ? "bg-error/5 border-error/30 text-error/70"
-                              : log.type === "destroy"
-                                ? "bg-green-500/20 border-green-500 text-green-400 font-bold glow-text"
-                                : log.type === "defeat"
-                                  ? "bg-error/30 border-error text-error font-bold glow-text-error"
-                                  : log.type === "victory"
-                                    ? "bg-yellow-500/20 border-yellow-500 text-yellow-400 font-bold glow-text"
-                                    : log.type === "warning"
-                                      ? "bg-orange-500/10 border-orange-500 text-orange-400"
-                                      : "bg-surface-container border-white/10 text-on-surface"
-                    } animate-fade-in`}
+                    className={`p-2 rounded-sm border-l-2 ${log.type === "player_hit"
+                      ? "bg-secondary/20 border-secondary text-secondary font-bold"
+                      : log.type === "player_miss"
+                        ? "bg-secondary/5 border-secondary/30 text-secondary/70"
+                        : log.type === "enemy_hit"
+                          ? "bg-error/20 border-error text-error font-bold"
+                          : log.type === "enemy_miss"
+                            ? "bg-error/5 border-error/30 text-error/70"
+                            : log.type === "destroy"
+                              ? "bg-green-500/20 border-green-500 text-green-400 font-bold glow-text"
+                              : log.type === "defeat"
+                                ? "bg-error/30 border-error text-error font-bold glow-text-error"
+                                : log.type === "victory"
+                                  ? "bg-yellow-500/20 border-yellow-500 text-yellow-400 font-bold glow-text"
+                                  : log.type === "warning"
+                                    ? "bg-orange-500/10 border-orange-500 text-orange-400"
+                                    : "bg-surface-container border-white/10 text-on-surface"
+                      } animate-fade-in`}
                   >
                     {log.msg}
                   </div>
@@ -3479,6 +4083,22 @@ function Game() {
           </div>
         )}
       </main>
+
+      {isPvpMode && !isMobile && (
+        <PvpBattleTools
+          isConnected={pvpSocketReady}
+          logs={logs}
+          chatMessages={chatMessages}
+          copy={copy}
+          language={language}
+          onSendChat={(message) =>
+            sendPvpSignal({ kind: "chat", value: message })
+          }
+          onSendEmote={(emote) =>
+            sendPvpSignal({ kind: "emote", value: emote })
+          }
+        />
+      )}
 
       {isMobile && (
         <>
@@ -3514,25 +4134,24 @@ function Game() {
                 {logs.slice(-10).map((log) => (
                   <div
                     key={log.id}
-                    className={`p-2 rounded-sm border-l-2 ${
-                      log.type === "player_hit"
-                        ? "bg-secondary/20 border-secondary text-secondary font-bold"
-                        : log.type === "player_miss"
-                          ? "bg-secondary/5 border-secondary/30 text-secondary/70"
-                          : log.type === "enemy_hit"
-                            ? "bg-error/20 border-error text-error font-bold"
-                            : log.type === "enemy_miss"
-                              ? "bg-error/5 border-error/30 text-error/70"
-                              : log.type === "destroy"
-                                ? "bg-green-500/20 border-green-500 text-green-400 font-bold glow-text"
-                                : log.type === "defeat"
-                                  ? "bg-error/30 border-error text-error font-bold glow-text-error"
-                                  : log.type === "victory"
-                                    ? "bg-yellow-500/20 border-yellow-500 text-yellow-400 font-bold glow-text"
-                                    : log.type === "warning"
-                                      ? "bg-orange-500/10 border-orange-500 text-orange-400"
-                                      : "bg-surface-container border-white/10 text-on-surface"
-                    } animate-fade-in`}
+                    className={`p-2 rounded-sm border-l-2 ${log.type === "player_hit"
+                      ? "bg-secondary/20 border-secondary text-secondary font-bold"
+                      : log.type === "player_miss"
+                        ? "bg-secondary/5 border-secondary/30 text-secondary/70"
+                        : log.type === "enemy_hit"
+                          ? "bg-error/20 border-error text-error font-bold"
+                          : log.type === "enemy_miss"
+                            ? "bg-error/5 border-error/30 text-error/70"
+                            : log.type === "destroy"
+                              ? "bg-green-500/20 border-green-500 text-green-400 font-bold glow-text"
+                              : log.type === "defeat"
+                                ? "bg-error/30 border-error text-error font-bold glow-text-error"
+                                : log.type === "victory"
+                                  ? "bg-yellow-500/20 border-yellow-500 text-yellow-400 font-bold glow-text"
+                                  : log.type === "warning"
+                                    ? "bg-orange-500/10 border-orange-500 text-orange-400"
+                                    : "bg-surface-container border-white/10 text-on-surface"
+                      } animate-fade-in`}
                   >
                     {log.msg}
                   </div>

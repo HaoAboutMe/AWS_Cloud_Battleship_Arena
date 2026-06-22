@@ -29,6 +29,48 @@ export const SHIP_DEFS = [
         baseOffsets: [[0, 0], [0, 1]],
         rotations: [0, 90, 180, 270],
     },
+    {
+        id: "gunboat",
+        label: "Gunboat",
+        size: 4,
+        baseOffsets: [[0, 1], [1, 0], [1, 1], [1, 2]],
+        rotations: [0, 90, 180, 270],
+    },
+    {
+        id: "warship",
+        label: "Warship",
+        size: 5,
+        baseOffsets: [[0, 0], [0, 1], [0, 2], [1, 1], [2, 1]],
+        rotations: [0, 90, 180, 270],
+    },
+    {
+        id: "cruiser",
+        label: "Cruiser",
+        size: 3,
+        baseOffsets: [[0, 0], [1, 0], [2, 0]],
+        rotations: [0, 90, 180, 270],
+    },
+    {
+        id: "flagship",
+        label: "Flagship",
+        size: 6,
+        baseOffsets: [[0, 0], [0, 1], [1, 0], [1, 1], [2, 0], [2, 1]],
+        rotations: [0, 90, 180, 270],
+    },
+    {
+        id: "frigate",
+        label: "Frigate",
+        size: 4,
+        baseOffsets: [[0, 0], [1, 0], [2, 0], [3, 0]],
+        rotations: [0, 90, 180, 270],
+    },
+    {
+        id: "lancer",
+        label: "Lancer",
+        size: 5,
+        baseOffsets: [[0, 0], [1, 0], [1, 1], [2, 0], [2, 1]],
+        rotations: [0, 90, 180, 270],
+    },
 ];
 
 const LEGACY_SHIP_DEFS = [5, 4, 3, 2].map((length) => ({

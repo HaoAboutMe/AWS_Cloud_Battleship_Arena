@@ -1,64 +1,10 @@
 const { ApiGatewayManagementApiClient, PostToConnectionCommand } = require("@aws-sdk/client-apigatewaymanagementapi");
 const { deleteConnection, listConnectionsByRoom, updateConnectionRoom } = require("../services/connectionService");
-const { GetCommand, PutCommand, UpdateCommand, DeleteCommand } = require("@aws-sdk/lib-dynamodb");
+const { GetCommand, PutCommand, QueryCommand, UpdateCommand, DeleteCommand } = require("@aws-sdk/lib-dynamodb");
 const { documentClient } = require("../lib/dynamodb");
 const { buildRankUpdate, calculateRankDelta, getRankForRp } = require("../services/rankService");
 const { randomUUID } = require("crypto");
-
-const SHIP_DEFS = [
-  {
-    id: "carrier",
-    size: 5,
-    baseOffsets: [[0, 0], [0, 1], [0, 2], [0, 3], [0, 4]],
-    rotations: [0, 90, 180, 270],
-  },
-  {
-    id: "zship",
-    size: 4,
-    baseOffsets: [[0, 1], [1, 1], [1, 0], [2, 0]],
-    rotations: [0, 90, 180, 270],
-  },
-  {
-    id: "destroyer",
-    size: 4,
-    baseOffsets: [[0, 0], [1, 0], [2, 0], [2, 1]],
-    rotations: [0, 90, 180, 270],
-  },
-  {
-    id: "patrol",
-    size: 2,
-    baseOffsets: [[0, 0], [0, 1]],
-    rotations: [0, 90, 180, 270],
-  },
-];
-
-const rotateOffsetsClockwise = (offsets) => offsets.map(([r, c]) => [c, -r]);
-
-const normalizeOffsets = (offsets) => {
-  let minR = Infinity;
-  let minC = Infinity;
-  offsets.forEach(([r, c]) => {
-    minR = Math.min(minR, r);
-    minC = Math.min(minC, c);
-  });
-  return offsets.map(([r, c]) => [r - minR, c - minC]);
-};
-
-const applyRotation = (baseOffsets, rotation) => {
-  let offsets = baseOffsets.map(([r, c]) => [r, c]);
-  const steps = Math.round(rotation / 90) % 4;
-  for (let i = 0; i < steps; i++) {
-    offsets = rotateOffsetsClockwise(offsets);
-  }
-  return normalizeOffsets(offsets);
-};
-
-const getShipOffsets = (shipDef, rotation) => {
-  const safeRotation = shipDef.rotations.includes(rotation)
-    ? rotation
-    : shipDef.rotations[0];
-  return applyRotation(shipDef.baseOffsets, safeRotation);
-};
+const { SHIP_DEFS, getShipOffsets } = require("../config/shipDefs");
 
 const getOccupiedCells = (ships) => {
   const occupied = [];
@@ -393,6 +339,35 @@ exports.handler = async (event) => {
           roomCode,
         },
       });
+
+      if (process.env.CHAT_MESSAGES_TABLE) {
+        const historyResult = await documentClient.send(new QueryCommand({
+          TableName: process.env.CHAT_MESSAGES_TABLE,
+          KeyConditionExpression: "roomCode = :roomCode",
+          ExpressionAttributeValues: { ":roomCode": roomCode },
+          ScanIndexForward: false,
+          Limit: 80,
+        }));
+        const messages = (historyResult.Items || []).reverse().map((item) => ({
+          type: item.type,
+          messageId: item.messageId,
+          senderUserId: item.senderUserId,
+          senderName: item.senderName,
+          sentAt: item.sentAt,
+          ...(item.type === "PVP_EMOTE"
+            ? { emote: item.emote }
+            : { message: item.message }),
+        }));
+        await postToConnection({
+          client,
+          connectionId,
+          payload: {
+            type: "ROOM_CHAT_HISTORY",
+            roomCode,
+            messages,
+          },
+        });
+      }
       return { statusCode: 200, body: "Subscribed." };
     }
 
@@ -414,6 +389,81 @@ exports.handler = async (event) => {
       );
 
       return { statusCode: 200, body: "Broadcasted." };
+    }
+
+    if (action === "CHAT" || action === "EMOTE") {
+      const roomCode = String(message.roomCode || "").trim().toUpperCase();
+      const connectionResult = await documentClient.send(new GetCommand({
+        TableName: process.env.CONNECTIONS_TABLE,
+        Key: { connectionId },
+      }));
+      const connection = connectionResult.Item;
+      if (!connection || connection.roomCode !== roomCode) {
+        return { statusCode: 403, body: "Connection is not subscribed to this room." };
+      }
+
+      const roomResult = await documentClient.send(new GetCommand({
+        TableName: process.env.ROOMS_TABLE,
+        Key: { roomCode },
+      }));
+      const room = roomResult.Item;
+      if (!room) {
+        return { statusCode: 404, body: "Room not found." };
+      }
+
+      const senderUserId = String(connection.userId || "").split(":")[0];
+      const sender = (room.players || []).find((player) =>
+        String(player?.userId || "").split(":")[0] === senderUserId
+      );
+      if (!sender) {
+        return { statusCode: 403, body: "Sender is not a room player." };
+      }
+
+      const isEmote = action === "EMOTE";
+      const value = String(isEmote ? message.emote || "" : message.message || "").trim();
+      const maxLength = isEmote ? 16 : 180;
+      if (!value || value.length > maxLength) {
+        return { statusCode: 400, body: "Invalid room signal." };
+      }
+
+      const eventPayload = {
+        type: isEmote ? "PVP_EMOTE" : "PVP_CHAT",
+        messageId: String(message.messageId || randomUUID()),
+        senderUserId,
+        senderName: sender.displayName || "Commander",
+        sentAt: new Date().toISOString(),
+        ...(isEmote ? { emote: value } : { message: value }),
+      };
+
+      if (process.env.CHAT_MESSAGES_TABLE) {
+        await documentClient.send(new PutCommand({
+          TableName: process.env.CHAT_MESSAGES_TABLE,
+          Item: {
+            roomCode,
+            messageKey: `${eventPayload.sentAt}#${eventPayload.messageId}`,
+            ...eventPayload,
+            ttl: Math.floor(Date.now() / 1000) + (7 * 24 * 60 * 60),
+          },
+        }));
+      }
+      const connections = await listConnectionsByRoom(roomCode);
+      await Promise.all(
+        connections
+          .filter((candidate) => candidate.connectionId !== connectionId)
+          .map((candidate) =>
+            postToConnection({
+              client,
+              connectionId: candidate.connectionId,
+              payload: {
+                type: "ROOM_EVENT",
+                roomCode,
+                payload: eventPayload,
+              },
+            }),
+          ),
+      );
+
+      return { statusCode: 200, body: "Room signal sent." };
     }
 
     if (action === "SHOOT") {
