@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+﻿import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import ship1 from "../assets/ships/image/ship-1.png";
 import ship10 from "../assets/ships/image/ship-10.png";
@@ -97,10 +97,7 @@ const getLegalFleetSelections = (shipDefs) => {
     ) {
       selections.push([...selected]);
     }
-    if (
-      selected.length >= FLEET_MAX_SHIPS ||
-      totalCells >= FLEET_CELL_LIMIT
-    ) {
+    if (selected.length >= FLEET_MAX_SHIPS || totalCells >= FLEET_CELL_LIMIT) {
       return;
     }
 
@@ -161,7 +158,8 @@ const GAME_COPY = {
     customShipyardCellsDetected: "Cells detected",
     customShipyardShipsDetected: "Ships detected",
     customShipyardBudget: "{used}/15 cells used",
-    customShipyardHint: "Paint your fleet. Tap cells to toggle. Orthogonal adjacency only.",
+    customShipyardHint:
+      "Paint your fleet. Tap cells to toggle. Orthogonal adjacency only.",
     customShipyardRuleMinShips: "Need at least 2 ships (connected groups).",
     customShipyardRuleMaxShips: "Max 4 ships (connected groups).",
     customShipyardRuleMinSize: "Each ship must have at least 2 cells.",
@@ -266,7 +264,8 @@ const GAME_COPY = {
     customShipyardCellsDetected: "Số ô phát hiện",
     customShipyardShipsDetected: "Số tàu phát hiện",
     customShipyardBudget: "{used}/15 ô đã dùng",
-    customShipyardHint: "Tô màu hạm đội của bạn. Nhấn ô để bật/tắt. Chỉ kề cạnh, không chéo.",
+    customShipyardHint:
+      "Tô màu hạm đội của bạn. Nhấn ô để bật/tắt. Chỉ kề cạnh, không chéo.",
     customShipyardRuleMinShips: "Cần ít nhất 2 tàu (nhóm ô liền nhau).",
     customShipyardRuleMaxShips: "Tối đa 4 tàu (nhóm ô liền nhau).",
     customShipyardRuleMinSize: "Mỗi tàu phải có ít nhất 2 ô.",
@@ -498,26 +497,57 @@ function Game() {
     placedFleetShipCount <= FLEET_MAX_SHIPS;
 
   // Custom Shipyard validation
-  const customDrawCellCount = customDrawBoard.flat().filter(c => c.hasShip).length;
-  const customComponents = isCustomShipyardActive ? getConnectedComponents(customDrawBoard) : [];
-  const isCustomFleetValid = isCustomShipyardActive && (() => {
-    if (customDrawCellCount !== CUSTOM_SHIPYARD_CELL_BUDGET) return false;
-    if (customComponents.length < CUSTOM_SHIPYARD_MIN_SHIPS) return false;
-    if (customComponents.length > CUSTOM_SHIPYARD_MAX_SHIPS) return false;
-    if (customComponents.some(comp => comp.length < CUSTOM_SHIPYARD_MIN_SHIP_SIZE)) return false;
-    if (customComponents.some(comp => comp.length > CUSTOM_SHIPYARD_MAX_SHIP_SIZE)) return false;
-    return true;
-  })();
+  const customDrawCellCount = customDrawBoard
+    .flat()
+    .filter((c) => c.hasShip).length;
+  const customComponents = isCustomShipyardActive
+    ? getConnectedComponents(customDrawBoard)
+    : [];
+  const isCustomFleetValid =
+    isCustomShipyardActive &&
+    (() => {
+      if (customDrawCellCount !== CUSTOM_SHIPYARD_CELL_BUDGET) return false;
+      if (customComponents.length < CUSTOM_SHIPYARD_MIN_SHIPS) return false;
+      if (customComponents.length > CUSTOM_SHIPYARD_MAX_SHIPS) return false;
+      if (
+        customComponents.some(
+          (comp) => comp.length < CUSTOM_SHIPYARD_MIN_SHIP_SIZE,
+        )
+      )
+        return false;
+      if (
+        customComponents.some(
+          (comp) => comp.length > CUSTOM_SHIPYARD_MAX_SHIP_SIZE,
+        )
+      )
+        return false;
+      return true;
+    })();
 
   const getCustomShipyardMessage = () => {
-    if (customDrawCellCount === 0) return copy.customShipyardHint || "Paint your fleet.";
-    if (customDrawCellCount > CUSTOM_SHIPYARD_CELL_BUDGET) return copy.customShipyardRuleExact || "Paint exactly 15 cells total.";
-    if (customDrawCellCount < CUSTOM_SHIPYARD_CELL_BUDGET) return (copy.customShipyardBudget || "{used}/15 cells used").replace("{used}", customDrawCellCount);
+    if (customDrawCellCount === 0)
+      return copy.customShipyardHint || "Paint your fleet.";
+    if (customDrawCellCount > CUSTOM_SHIPYARD_CELL_BUDGET)
+      return copy.customShipyardRuleExact || "Paint exactly 15 cells total.";
+    if (customDrawCellCount < CUSTOM_SHIPYARD_CELL_BUDGET)
+      return (copy.customShipyardBudget || "{used}/15 cells used").replace(
+        "{used}",
+        customDrawCellCount,
+      );
     // Exactly 15 cells
-    if (customComponents.length < CUSTOM_SHIPYARD_MIN_SHIPS) return copy.customShipyardRuleMinShips || "Need at least 2 ships.";
-    if (customComponents.length > CUSTOM_SHIPYARD_MAX_SHIPS) return copy.customShipyardRuleMaxShips || "Max 4 ships.";
-    if (customComponents.some(c => c.length < CUSTOM_SHIPYARD_MIN_SHIP_SIZE)) return copy.customShipyardRuleMinSize || "Each ship must have at least 2 cells.";
-    if (customComponents.some(c => c.length > CUSTOM_SHIPYARD_MAX_SHIP_SIZE)) return copy.customShipyardRuleMaxSize || "Each ship can have at most 13 cells.";
+    if (customComponents.length < CUSTOM_SHIPYARD_MIN_SHIPS)
+      return copy.customShipyardRuleMinShips || "Need at least 2 ships.";
+    if (customComponents.length > CUSTOM_SHIPYARD_MAX_SHIPS)
+      return copy.customShipyardRuleMaxShips || "Max 4 ships.";
+    if (customComponents.some((c) => c.length < CUSTOM_SHIPYARD_MIN_SHIP_SIZE))
+      return (
+        copy.customShipyardRuleMinSize ||
+        "Each ship must have at least 2 cells."
+      );
+    if (customComponents.some((c) => c.length > CUSTOM_SHIPYARD_MAX_SHIP_SIZE))
+      return (
+        copy.customShipyardRuleMaxSize || "Each ship can have at most 13 cells."
+      );
     return copy.customShipyardReady || "Fleet valid! Press Ready.";
   };
   const fleetGuidanceMessage =
@@ -536,7 +566,8 @@ function Game() {
       ? shipsToPlace
       : shipsToPlace.filter((ship) => ship.size === fleetSizeFilter);
   const fleetSizeOptions = useMemo(
-    () => [...new Set(SHIP_DEFS.map((ship) => ship.size))].sort((a, b) => a - b),
+    () =>
+      [...new Set(SHIP_DEFS.map((ship) => ship.size))].sort((a, b) => a - b),
     [],
   );
 
@@ -575,11 +606,17 @@ function Game() {
   const [rematchLoading, setRematchLoading] = useState(false);
   const [chatMessages, setChatMessages] = useState([]);
   const latestPlayerSignal = useMemo(
-    () => [...chatMessages].reverse().find((message) => message.side === "player") || null,
+    () =>
+      [...chatMessages]
+        .reverse()
+        .find((message) => message.side === "player") || null,
     [chatMessages],
   );
   const latestOpponentSignal = useMemo(
-    () => [...chatMessages].reverse().find((message) => message.side === "opponent") || null,
+    () =>
+      [...chatMessages]
+        .reverse()
+        .find((message) => message.side === "opponent") || null,
     [chatMessages],
   );
   const [returnHomeLoading] = useState(false);
@@ -721,14 +758,18 @@ function Game() {
       <div
         className="fleet-image-list"
         style={{
-          "--fleet-count": Math.max(1, isCustom ? customShips.length : fleetDefs.length),
+          "--fleet-count": Math.max(
+            1,
+            isCustom ? customShips.length : fleetDefs.length,
+          ),
           display: "grid",
           gridTemplateColumns: `repeat(${isCustom ? customShips.length : fleetDefs.length}, 1fr)`,
           gap: "5px",
           height: "32px",
         }}
       >
-        {!isScanning && !isCustom &&
+        {!isScanning &&
+          !isCustom &&
           fleetDefs.map((ship) => {
             const isSunk = sunkShipTypeIds.includes(ship.id);
             let offsets = getShipOffsets(ship, ship.rotations[0]);
@@ -769,7 +810,8 @@ function Game() {
             );
           })}
 
-        {!isScanning && isCustom &&
+        {!isScanning &&
+          isCustom &&
           customShips.map((ship) => (
             <div
               key={ship.id}
@@ -787,10 +829,12 @@ function Game() {
                   fontSize: "13px",
                   fontWeight: "bold",
                   color: ship.isSunk ? "#ff6a42" : "#91ebff",
-                  textShadow: ship.isSunk ? "0 0 4px #ff3c1f" : "0 0 4px rgba(81, 224, 255, 0.9)",
+                  textShadow: ship.isSunk
+                    ? "0 0 4px #ff3c1f"
+                    : "0 0 4px rgba(81, 224, 255, 0.9)",
                   textDecoration: ship.isSunk ? "line-through" : "none",
                   textAlign: "center",
-                  whiteSpace: "nowrap"
+                  whiteSpace: "nowrap",
                 }}
               >
                 {ship.size} {copy.cellsLabel || "cells"}
@@ -813,11 +857,7 @@ function Game() {
   }, [location]);
 
   useEffect(() => {
-    if (
-      isMobile &&
-      gameState === "PLACEMENT" &&
-      placedFleetShipCount === 0
-    ) {
+    if (isMobile && gameState === "PLACEMENT" && placedFleetShipCount === 0) {
       autoArrangeFleet();
     }
   }, [isMobile, gameState, placedFleetShipCount]);
@@ -847,7 +887,10 @@ function Game() {
       if (gameStateRef.current === "GAME_OVER") return;
 
       try {
-        const nextRoom = await getRoom(roomCode, roomPlayerRef.current?.userId || roomPlayer?.userId);
+        const nextRoom = await getRoom(
+          roomCode,
+          roomPlayerRef.current?.userId || roomPlayer?.userId,
+        );
         if (cancelled) return;
 
         setPvpRoom(nextRoom);
@@ -955,17 +998,25 @@ function Game() {
   const playerCustomShips = useMemo(() => {
     if (isPvpMode) {
       const pShips = currentBattlePlayer?.board?.ships || [];
-      const customPShips = pShips.filter(s => s.shipTypeId === "custom" || String(s.shipId).startsWith("custom"));
+      const customPShips = pShips.filter(
+        (s) =>
+          s.shipTypeId === "custom" || String(s.shipId).startsWith("custom"),
+      );
       if (customPShips.length > 0) {
-        return customPShips.map(s => ({
+        return customPShips.map((s) => ({
           id: s.shipId,
           size: s.baseOffsets?.length || s.size || 0,
-          isSunk: playerShipsSunk.includes(s.shipId)
+          isSunk: playerShipsSunk.includes(s.shipId),
         }));
       }
     } else {
       const extracted = playerBoard.flat().reduce((acc, cell) => {
-        if (cell.hasShip && cell.shipId && (cell.shipTypeId === "custom" || String(cell.shipId).startsWith("custom"))) {
+        if (
+          cell.hasShip &&
+          cell.shipId &&
+          (cell.shipTypeId === "custom" ||
+            String(cell.shipId).startsWith("custom"))
+        ) {
           acc[cell.shipId] = cell.shipLength || 0;
         }
         return acc;
@@ -973,7 +1024,7 @@ function Game() {
       const list = Object.entries(extracted).map(([id, size]) => ({
         id,
         size,
-        isSunk: playerShipsSunk.includes(id)
+        isSunk: playerShipsSunk.includes(id),
       }));
       if (list.length > 0) return list;
     }
@@ -983,24 +1034,39 @@ function Game() {
       return comps.map((cells, idx) => ({
         id: `custom-${idx}`,
         size: cells.length,
-        isSunk: false
+        isSunk: false,
       }));
     }
     return [];
-  }, [isPvpMode, currentBattlePlayer, playerShipsSunk, playerBoard, isCustomShipyardActive, customDrawBoard]);
+  }, [
+    isPvpMode,
+    currentBattlePlayer,
+    playerShipsSunk,
+    playerBoard,
+    isCustomShipyardActive,
+    customDrawBoard,
+  ]);
 
   const enemyCustomShips = useMemo(() => {
     if (isPvpMode) {
       const eShips = opponentBattlePlayer?.board?.ships || [];
-      const customEShips = eShips.filter(s => s.shipTypeId === "custom" || String(s.shipId).startsWith("custom"));
-      return customEShips.map(s => ({
+      const customEShips = eShips.filter(
+        (s) =>
+          s.shipTypeId === "custom" || String(s.shipId).startsWith("custom"),
+      );
+      return customEShips.map((s) => ({
         id: s.shipId,
         size: s.size || s.baseOffsets?.length || 0,
-        isSunk: enemySunkShipIds.includes(s.shipId)
+        isSunk: enemySunkShipIds.includes(s.shipId),
       }));
     } else {
       const extracted = enemyBoard.flat().reduce((acc, cell) => {
-        if (cell.hasShip && cell.shipId && (cell.shipTypeId === "custom" || String(cell.shipId).startsWith("custom"))) {
+        if (
+          cell.hasShip &&
+          cell.shipId &&
+          (cell.shipTypeId === "custom" ||
+            String(cell.shipId).startsWith("custom"))
+        ) {
           acc[cell.shipId] = cell.shipLength || 0;
         }
         return acc;
@@ -1008,7 +1074,7 @@ function Game() {
       return Object.entries(extracted).map(([id, size]) => ({
         id,
         size,
-        isSunk: enemySunkShipIds.includes(id)
+        isSunk: enemySunkShipIds.includes(id),
       }));
     }
   }, [isPvpMode, opponentBattlePlayer, enemySunkShipIds, enemyBoard]);
@@ -1034,7 +1100,8 @@ function Game() {
         action: kind === "emote" ? "EMOTE" : "CHAT",
         roomCode,
         messageId,
-        message: kind === "chat" ? String(value).trim().slice(0, 180) : undefined,
+        message:
+          kind === "chat" ? String(value).trim().slice(0, 180) : undefined,
         emote: kind === "emote" ? String(value).slice(0, 16) : undefined,
       };
       const sent = sendSocketMessage(pvpSocketRef.current, payload);
@@ -1116,7 +1183,7 @@ function Game() {
           headers: { "content-type": "application/json" },
           body: JSON.stringify({ player: currentPlayer }),
           keepalive: true,
-        }).catch(() => { });
+        }).catch(() => {});
         return;
       }
 
@@ -1314,13 +1381,13 @@ function Game() {
       ).replace("{roomCode}", roomCode);
     return pvpTurnUserId === currentPlayerId
       ? (copy.yourTurnPvp || "Room {roomCode}: your turn.").replace(
-        "{roomCode}",
-        roomCode,
-      )
+          "{roomCode}",
+          roomCode,
+        )
       : (copy.opponentTurnPvp || "Room {roomCode}: opponent turn.").replace(
-        "{roomCode}",
-        roomCode,
-      );
+          "{roomCode}",
+          roomCode,
+        );
   };
 
   const clearShipFromBoard = (board, shipId) => {
@@ -1357,37 +1424,40 @@ function Game() {
     return null;
   };
 
-  const returnShipToStaging = useCallback((shipId, shipTypeId) => {
-    if (isPlacementLocked) return;
-    if (gameState !== "PLACEMENT" && gameState !== "READY") return;
+  const returnShipToStaging = useCallback(
+    (shipId, shipTypeId) => {
+      if (isPlacementLocked) return;
+      if (gameState !== "PLACEMENT" && gameState !== "READY") return;
 
-    setPlayerBoard((prevBoard) => {
-      const newBoard = cloneBoard(prevBoard);
-      clearShipFromBoard(newBoard, shipId);
-      return newBoard;
-    });
-
-    setUnplacedShipIds((current) => {
-      if (current.includes(shipTypeId)) return current;
-      const newUnplaced = [...current, shipTypeId];
-      return newUnplaced.sort((a, b) => {
-        const idxA = SHIP_DEFS.findIndex((d) => d.id === a);
-        const idxB = SHIP_DEFS.findIndex((d) => d.id === b);
-        return idxA - idxB;
+      setPlayerBoard((prevBoard) => {
+        const newBoard = cloneBoard(prevBoard);
+        clearShipFromBoard(newBoard, shipId);
+        return newBoard;
       });
-    });
-    setFleetRuleMessage("");
 
-    if (selectedShip && selectedShip.shipId === shipId) {
-      setSelectedShip(null);
-    }
-    if (draggedShip && draggedShip.shipId === shipId) {
-      setDraggedShip(null);
-      setDragPointer(null);
-      setHoverCell(null);
-    }
-    addLog(`Returned ship to staging dock.`, "info");
-  }, [isPlacementLocked, gameState, selectedShip, draggedShip, addLog]);
+      setUnplacedShipIds((current) => {
+        if (current.includes(shipTypeId)) return current;
+        const newUnplaced = [...current, shipTypeId];
+        return newUnplaced.sort((a, b) => {
+          const idxA = SHIP_DEFS.findIndex((d) => d.id === a);
+          const idxB = SHIP_DEFS.findIndex((d) => d.id === b);
+          return idxA - idxB;
+        });
+      });
+      setFleetRuleMessage("");
+
+      if (selectedShip && selectedShip.shipId === shipId) {
+        setSelectedShip(null);
+      }
+      if (draggedShip && draggedShip.shipId === shipId) {
+        setDraggedShip(null);
+        setDragPointer(null);
+        setHoverCell(null);
+      }
+      addLog(`Returned ship to staging dock.`, "info");
+    },
+    [isPlacementLocked, gameState, selectedShip, draggedShip, addLog],
+  );
 
   const getRootCellForShip = (board, shipId) => {
     for (const row of board) {
@@ -2262,7 +2332,9 @@ function Game() {
           if (message.type === "ROOM_CHAT_HISTORY") {
             const currentUserId = String(socketUserId || "").split(":")[0];
             (message.messages || []).forEach((entry) => {
-              const senderUserId = String(entry.senderUserId || "").split(":")[0];
+              const senderUserId = String(entry.senderUserId || "").split(
+                ":",
+              )[0];
               appendChatMessage({
                 messageId: entry.messageId,
                 kind: entry.type === "PVP_EMOTE" ? "emote" : "chat",
@@ -2276,8 +2348,8 @@ function Game() {
             return;
           }
 
-           if (message.type !== "ROOM_EVENT") return;
-           const payload = message.payload || {};
+          if (message.type !== "ROOM_EVENT") return;
+          const payload = message.payload || {};
           if (payload.type === "PVP_CHAT" || payload.type === "PVP_EMOTE") {
             appendChatMessage({
               messageId: payload.messageId,
@@ -2913,13 +2985,13 @@ function Game() {
 
   // === Giai đoạn 1: Custom Shipyard handlers ===
   const isCustomPaintingRef = useRef(false); // drag-to-paint state
-  const customPaintValueRef = useRef(true);  // true = paint ON, false = paint OFF
+  const customPaintValueRef = useRef(true); // true = paint ON, false = paint OFF
 
   const applyCustomCellPaint = (r, c) => {
     if (isPlacementLocked) return;
     if (gameState !== "PLACEMENT" && gameState !== "READY") return;
-    setCustomDrawBoard(prev => {
-      const next = prev.map(row => row.map(cell => ({ ...cell })));
+    setCustomDrawBoard((prev) => {
+      const next = prev.map((row) => row.map((cell) => ({ ...cell })));
       next[r][c].hasShip = customPaintValueRef.current;
       return next;
     });
@@ -2928,8 +3000,8 @@ function Game() {
   const handleCustomCellClick = (r, c) => {
     if (isPlacementLocked) return;
     if (gameState !== "PLACEMENT" && gameState !== "READY") return;
-    setCustomDrawBoard(prev => {
-      const next = prev.map(row => row.map(cell => ({ ...cell })));
+    setCustomDrawBoard((prev) => {
+      const next = prev.map((row) => row.map((cell) => ({ ...cell })));
       next[r][c].hasShip = !next[r][c].hasShip;
       return next;
     });
@@ -2940,9 +3012,9 @@ function Game() {
     if (gameState !== "PLACEMENT" && gameState !== "READY") return;
     e.preventDefault();
     // Determine paint value from the cell being clicked (toggle mode for first cell)
-    setCustomDrawBoard(prev => {
+    setCustomDrawBoard((prev) => {
       customPaintValueRef.current = !prev[r][c].hasShip;
-      const next = prev.map(row => row.map(cell => ({ ...cell })));
+      const next = prev.map((row) => row.map((cell) => ({ ...cell })));
       next[r][c].hasShip = customPaintValueRef.current;
       return next;
     });
@@ -2959,9 +3031,9 @@ function Game() {
     if (isPlacementLocked) return;
     if (gameState !== "PLACEMENT" && gameState !== "READY") return;
     e.preventDefault();
-    setCustomDrawBoard(prev => {
+    setCustomDrawBoard((prev) => {
       customPaintValueRef.current = !prev[r][c].hasShip;
-      const next = prev.map(row => row.map(cell => ({ ...cell })));
+      const next = prev.map((row) => row.map((cell) => ({ ...cell })));
       next[r][c].hasShip = customPaintValueRef.current;
       return next;
     });
@@ -2994,7 +3066,7 @@ function Game() {
       // Switching TO custom mode: clear standard board & tray
       setCustomDrawBoard(createBoard());
       setPlayerBoard(createBoard());
-      setUnplacedShipIds(SHIP_DEFS.map(s => s.id));
+      setUnplacedShipIds(SHIP_DEFS.map((s) => s.id));
       setDraggedShip(null);
       setDragPointer(null);
       setSelectedShip(null);
@@ -3004,7 +3076,7 @@ function Game() {
     } else {
       // Switching BACK to standard mode: clear custom draw
       setPlayerBoard(createBoard());
-      setUnplacedShipIds(SHIP_DEFS.map(s => s.id));
+      setUnplacedShipIds(SHIP_DEFS.map((s) => s.id));
       setFleetRuleMessage("");
     }
   };
@@ -3059,9 +3131,9 @@ function Game() {
       // Extract BFS ships and build baseOffsets payload
       const components = getConnectedComponents(customDrawBoard);
       const customShipsPayload = components.map((cells, idx) => {
-        const minRow = Math.min(...cells.map(c => c.row));
-        const minCol = Math.min(...cells.map(c => c.col));
-        const baseOffsets = cells.map(c => [c.row - minRow, c.col - minCol]);
+        const minRow = Math.min(...cells.map((c) => c.row));
+        const minCol = Math.min(...cells.map((c) => c.col));
+        const baseOffsets = cells.map((c) => [c.row - minRow, c.col - minCol]);
         return {
           shipId: `custom-${idx}-${Date.now()}`,
           shipTypeId: "custom",
@@ -3075,8 +3147,15 @@ function Game() {
       if (isPvpMode) {
         try {
           setPvpReadyLoading(true);
-          const board = { placedAt: new Date().toISOString(), ships: customShipsPayload };
-          const nextRoom = await markPlayerReady({ roomCode, player: roomPlayer, board });
+          const board = {
+            placedAt: new Date().toISOString(),
+            ships: customShipsPayload,
+          };
+          const nextRoom = await markPlayerReady({
+            roomCode,
+            player: roomPlayer,
+            board,
+          });
           setPvpRoom(nextRoom);
           setPvpFleetSubmitted(true);
 
@@ -3084,9 +3163,9 @@ function Game() {
           const newPlayerBoard = createBoard();
           components.forEach((cells, idx) => {
             const shipId = `custom-${idx}`;
-            const minRow = Math.min(...cells.map(c => c.row));
-            const minCol = Math.min(...cells.map(c => c.col));
-            const offsets = cells.map(c => [c.row - minRow, c.col - minCol]);
+            const minRow = Math.min(...cells.map((c) => c.row));
+            const minCol = Math.min(...cells.map((c) => c.col));
+            const offsets = cells.map((c) => [c.row - minRow, c.col - minCol]);
             const bounds = getShipBounds(offsets);
             cells.forEach(({ row, col }) => {
               newPlayerBoard[row][col].hasShip = true;
@@ -3109,11 +3188,16 @@ function Game() {
             setGameState("PLACEMENT");
           }
           addLog(
-            nextRoom.status === "IN_PROGRESS" ? copy.bothReadyLog : copy.waitingFleetLog,
+            nextRoom.status === "IN_PROGRESS"
+              ? copy.bothReadyLog
+              : copy.waitingFleetLog,
             "info",
           );
         } catch (readyError) {
-          addLog(readyError.message || "Unable to mark fleet ready.", "warning");
+          addLog(
+            readyError.message || "Unable to mark fleet ready.",
+            "warning",
+          );
         } finally {
           setPvpReadyLoading(false);
         }
@@ -3124,9 +3208,9 @@ function Game() {
       const newPlayerBoard = createBoard();
       components.forEach((cells, idx) => {
         const shipId = idx + 1;
-        const minRow = Math.min(...cells.map(c => c.row));
-        const minCol = Math.min(...cells.map(c => c.col));
-        const offsets = cells.map(c => [c.row - minRow, c.col - minCol]);
+        const minRow = Math.min(...cells.map((c) => c.row));
+        const minCol = Math.min(...cells.map((c) => c.col));
+        const offsets = cells.map((c) => [c.row - minRow, c.col - minCol]);
         const bounds = getShipBounds(offsets);
         cells.forEach(({ row, col }) => {
           newPlayerBoard[row][col].hasShip = true;
@@ -3186,10 +3270,18 @@ function Game() {
             .flat()
             .filter((cell) => cell.shipRoot)
             .map((cell) => {
-              const shipDef = SHIP_DEFS.find(d => d.id === cell.shipTypeId);
-              const originRow = cell.shipOriginRow !== null && cell.shipOriginRow !== undefined ? cell.shipOriginRow : cell.row;
-              const originCol = cell.shipOriginCol !== null && cell.shipOriginCol !== undefined ? cell.shipOriginCol : cell.col;
-              const baseOffsets = shipDef ? getShipOffsets(shipDef, cell.shipRotation) : [];
+              const shipDef = SHIP_DEFS.find((d) => d.id === cell.shipTypeId);
+              const originRow =
+                cell.shipOriginRow !== null && cell.shipOriginRow !== undefined
+                  ? cell.shipOriginRow
+                  : cell.row;
+              const originCol =
+                cell.shipOriginCol !== null && cell.shipOriginCol !== undefined
+                  ? cell.shipOriginCol
+                  : cell.col;
+              const baseOffsets = shipDef
+                ? getShipOffsets(shipDef, cell.shipRotation)
+                : [];
               return {
                 shipId: cell.shipId,
                 shipTypeId: cell.shipTypeId,
@@ -3201,7 +3293,11 @@ function Game() {
             }),
         };
         console.log("Payload sent to server:", board.ships);
-        const nextRoom = await markPlayerReady({ roomCode, player: roomPlayer, board });
+        const nextRoom = await markPlayerReady({
+          roomCode,
+          player: roomPlayer,
+          board,
+        });
         setPvpRoom(nextRoom);
         setPvpFleetSubmitted(true);
         setSelectedShip(null);
@@ -3216,7 +3312,9 @@ function Game() {
           setGameState("PLACEMENT");
         }
         addLog(
-          nextRoom.status === "IN_PROGRESS" ? copy.bothReadyLog : copy.waitingFleetLog,
+          nextRoom.status === "IN_PROGRESS"
+            ? copy.bothReadyLog
+            : copy.waitingFleetLog,
           "info",
         );
       } catch (readyError) {
@@ -3353,17 +3451,14 @@ function Game() {
       };
       const patrolOffset =
         patrolOffsetsByRotation[rotationDeg] || patrolOffsetsByRotation[0];
-      const straightOffsetX =
-        cell.shipTypeId === "patrol" ? patrolOffset.x : 0;
-      const straightOffsetY =
-        cell.shipTypeId === "patrol" ? patrolOffset.y : 0;
+      const straightOffsetX = cell.shipTypeId === "patrol" ? patrolOffset.x : 0;
+      const straightOffsetY = cell.shipTypeId === "patrol" ? patrolOffset.y : 0;
       // Per-ship objectPosition to crop white/transparent edges in source images
       const SHIP_OBJECT_POSITION = {
         cruiser: straightQuarterTurn ? "center 35%" : "center 35%",
         frigate: "center",
       };
-      const objectPosition =
-        SHIP_OBJECT_POSITION[cell.shipTypeId] || "center";
+      const objectPosition = SHIP_OBJECT_POSITION[cell.shipTypeId] || "center";
       return {
         position: "absolute",
         left: straightQuarterTurn ? `calc((${wCalc} - ${hCalc}) / 2)` : "0",
@@ -3418,7 +3513,6 @@ function Game() {
       maxWidth: "none",
     };
   };
-
 
   const getFallbackShipCells = (board, shipId) => {
     const cells = [];
@@ -3506,12 +3600,15 @@ function Game() {
               key={`ship-${cell.shipId}`}
               data-board-side={boardSide}
               data-ship-id={cell.shipId}
-              className={`pointer-events-none ship-overlay ${isShipSunk ? "ship-sunk-silhouette" : ""
-                } ${!isShipSunk ? "ship-afloat" : ""} ${draggedShip?.shipId === cell.shipId ? "ship-drag-source" : ""
-                } ${invalidRotationPreview?.shipId === cell.shipId
+              className={`pointer-events-none ship-overlay ${
+                isShipSunk ? "ship-sunk-silhouette" : ""
+              } ${!isShipSunk ? "ship-afloat" : ""} ${
+                draggedShip?.shipId === cell.shipId ? "ship-drag-source" : ""
+              } ${
+                invalidRotationPreview?.shipId === cell.shipId
                   ? "ship-invalid-source"
                   : ""
-                }`}
+              }`}
               style={overlayStyle}
             >
               {spriteUrl ? (
@@ -3558,7 +3655,7 @@ function Game() {
       };
       const invalidSpriteUrl = resolveSpriteUrl(
         SHIP_SPRITES[invalidRotationPreview.shipDef.id]?.[
-        invalidRotationPreview.rotation
+          invalidRotationPreview.rotation
         ],
       );
 
@@ -3633,26 +3730,48 @@ function Game() {
 
     board.forEach((row) => {
       row.forEach((cell) => {
-        if (!cell.isHit || !cell.hasShip) return;
-        smokeCells.push({ row: cell.row, col: cell.col });
+        if (!cell.isHit) return;
 
-        hitOverlays.push(
-          <div
-            key={`hit-${cell.row}-${cell.col}`}
-            className="shot-effect shot-hit"
-            style={{
-              left: `calc(${cell.col} * (var(--cell-size) + var(--cell-gap)))`,
-              top: `calc(${cell.row} * (var(--cell-size) + var(--cell-gap)))`,
-              right: "auto",
-              bottom: "auto",
-              width: `var(--cell-size)`,
-              height: `var(--cell-size)`,
-            }}
-            aria-hidden="true"
-          >
-            <span className="hit-static-mark" />
-          </div>,
-        );
+        if (cell.hasShip) {
+          // Hit on a ship cell → smoke + red hit mark
+          smokeCells.push({ row: cell.row, col: cell.col });
+          hitOverlays.push(
+            <div
+              key={`hit-${cell.row}-${cell.col}`}
+              className="shot-effect shot-hit"
+              style={{
+                left: `calc(${cell.col} * (var(--cell-size) + var(--cell-gap)))`,
+                top: `calc(${cell.row} * (var(--cell-size) + var(--cell-gap)))`,
+                right: "auto",
+                bottom: "auto",
+                width: `var(--cell-size)`,
+                height: `var(--cell-size)`,
+              }}
+              aria-hidden="true"
+            >
+              <span className="hit-static-mark" />
+            </div>,
+          );
+        } else if (!cell.autoMarked) {
+          // Miss on an empty cell → blue miss dot (rendered at z-40 to appear above ship overlays at z-20)
+          hitOverlays.push(
+            <div
+              key={`miss-${cell.row}-${cell.col}`}
+              className="shot-effect shot-miss"
+              style={{
+                left: `calc(${cell.col} * (var(--cell-size) + var(--cell-gap)))`,
+                top: `calc(${cell.row} * (var(--cell-size) + var(--cell-gap)))`,
+                right: "auto",
+                bottom: "auto",
+                width: `var(--cell-size)`,
+                height: `var(--cell-size)`,
+              }}
+              aria-hidden="true"
+            >
+              <span className="miss-dot" />
+            </div>,
+          );
+        }
       });
     });
 
@@ -3731,7 +3850,10 @@ function Game() {
             }}
           >
             {/* In custom mode: render customDrawBoard on the main player grid */}
-            {(!isEnemy && isCustomShipyardActive ? customDrawBoard : board).flatMap((row, r) =>
+            {(!isEnemy && isCustomShipyardActive
+              ? customDrawBoard
+              : board
+            ).flatMap((row, r) =>
               row.map((cell, c) => {
                 // --- Custom Shipyard paint mode ---
                 if (!isEnemy && isCustomShipyardActive) {
@@ -3745,7 +3867,9 @@ function Game() {
                       onMouseEnter={() => handleCustomCellMouseEnter(r, c)}
                       onMouseUp={stopCustomPainting}
                       onTouchStart={(e) => handleCustomBoardTouchStart(e, r, c)}
-                      onTouchMove={(e) => handleCustomBoardTouchMove(e, playerBoardRef)}
+                      onTouchMove={(e) =>
+                        handleCustomBoardTouchMove(e, playerBoardRef)
+                      }
                       onTouchEnd={stopCustomPainting}
                       className={`ocean-cell relative overflow-visible ${isPlacementLocked ? "cursor-default" : "cursor-crosshair"} ${isPainted ? "custom-painted-cell" : "bg-surface-container/50"}`}
                       style={{
@@ -3808,31 +3932,27 @@ function Game() {
                     onTouchEnd={(event) =>
                       !isEnemy && handleTouchEnd(event, r, c)
                     }
-                    className={`ocean-cell relative ${cursorClass} overflow-visible transition-all duration-300 ${baseCellBg} ${!isEnemy && cell.hasShip ? "player-ship-cell" : ""
-                      } ${isHovered && draggedShip
+                    className={`ocean-cell relative ${cursorClass} overflow-visible transition-all duration-300 ${baseCellBg} ${
+                      !isEnemy && cell.hasShip ? "player-ship-cell" : ""
+                    } ${
+                      isHovered && draggedShip
                         ? canPlace
                           ? "drag-target-cell-valid"
                           : "drag-target-cell-invalid"
                         : ""
-                      } ${isHovered && invalidRotationPreview && !draggedShip
+                    } ${
+                      isHovered && invalidRotationPreview && !draggedShip
                         ? "drag-target-cell-invalid"
                         : ""
-                      } ${isHovered
+                    } ${
+                      isHovered
                         ? canPlace
                           ? "bg-secondary/50 shadow-[0_0_15px_#a5e7ff]"
                           : "bg-error/50"
                         : ""
-                      }`}
+                    }`}
                   >
-                    {isCellMiss && !cell.autoMarked && (
-                      <div
-                        className={`shot-effect shot-miss ${cell.autoMarked ? "shot-auto-marked" : ""
-                          }`}
-                        aria-hidden="true"
-                      >
-                        <span className="miss-dot" />
-                      </div>
-                    )}
+                    {/* Miss dots are now rendered as overlays at z-40 (hitOverlays) to appear above ship overlays at z-20 */}
                   </div>
                 );
               }),
@@ -3878,7 +3998,8 @@ function Game() {
               </button>
             ) : (
               <span className="text-[10px] uppercase font-bold text-secondary bg-secondary/10 px-2 py-1 rounded-sm border border-secondary/20">
-                {copy.difficultyLabel}: {copy.difficultyNames?.[difficulty] || difficulty}
+                {copy.difficultyLabel}:{" "}
+                {copy.difficultyNames?.[difficulty] || difficulty}
               </span>
             )}
             <Link
@@ -3909,7 +4030,8 @@ function Game() {
             }
             isConnected={pvpSocketReady}
             isMyTurn={
-              pvpTurnUserId === getRoomPlayerKey(currentBattlePlayer || roomPlayer)
+              pvpTurnUserId ===
+              getRoomPlayerKey(currentBattlePlayer || roomPlayer)
             }
             isDeploying={gameState === "PLACEMENT" || gameState === "READY"}
             isReady={
@@ -3927,72 +4049,87 @@ function Game() {
         {/* Boards Section */}
         <div className="game-board-column flex-1 flex flex-col">
           {/* Status Header */}
-          <div className={`game-status glass-card rounded-xl border border-white/10 flex justify-between items-center ${isPvpMode ? "pvp-command-banner" : ""}`}>
+          <div
+            className={`game-status glass-card rounded-xl border border-white/10 flex justify-between items-center ${isPvpMode ? "pvp-command-banner" : ""}`}
+          >
             <div className={isPvpMode ? "pvp-command-copy" : ""}>
               {isPvpMode && (
-                <span className="pvp-command-emblem material-symbols-outlined" aria-hidden="true">
+                <span
+                  className="pvp-command-emblem material-symbols-outlined"
+                  aria-hidden="true"
+                >
                   radar
                 </span>
               )}
               <div>
-              <h2 className={`font-display-lg text-base md:text-xl uppercase tracking-widest text-on-surface ${isPvpMode ? "pvp-command-title" : ""}`}>
-                {gameState === "PLACEMENT" || gameState === "READY"
-                  ? copy.deployFleet || "Deploy Your Fleet"
-                  : copy.sectorCommand || "Sector Command"}
-              </h2>
-              <p className={`text-on-surface-variant text-xs md:text-sm mt-1 hidden md:block ${isPvpMode ? "pvp-command-status" : ""}`}>
-                {gameState === "PLACEMENT" &&
-                  (isWaitingForOpponentFleet
-                    ? copy.waitingFleetLog
-                    : !isFleetValid
-                      ? copy.dragShipsInstructions ||
-                      "Drag ships from staging onto your map. Right-click to rotate."
-                      : copy.formationCompleteInstructions ||
-                      "Formation complete. Adjust ships, auto-arrange again, or press Ready.")}
-                {gameState === "READY" &&
-                  (selectedShip
-                    ? copy.moveSelectedShipInstructions ||
-                    "Move the selected ship or right-click to rotate it, then press Ready."
-                    : copy.selectShipInstructions ||
-                    "Select any ship to move or rotate it, then press Ready.")}
-                {gameState === "PLAYER_TURN" &&
-                  (isPvpMode ? (
-                    <span className="text-secondary glow-text">
-                      {getPvpStatusText()}
-                    </span>
-                  ) : (
-                    <span className="text-secondary glow-text">
-                      {copy.yourTurn || "Your turn! Target enemy waters."}
-                    </span>
-                  ))}
-                {gameState === "BOT_TURN" && (
-                  <span className="text-error">
-                    {copy.enemyFiring || "Enemy is firing! Brace for impact!"}
-                  </span>
-                )}
-                {gameState === "GAME_OVER" &&
-                  (winner === "PLAYER" ? (
-                    <span className="text-green-400">
-                      {copy.sectorSecured || "Sector Secured!"}
-                    </span>
-                  ) : (
+                <h2
+                  className={`font-display-lg text-base md:text-xl uppercase tracking-widest text-on-surface ${isPvpMode ? "pvp-command-title" : ""}`}
+                >
+                  {gameState === "PLACEMENT" || gameState === "READY"
+                    ? copy.deployFleet || "Deploy Your Fleet"
+                    : copy.sectorCommand || "Sector Command"}
+                </h2>
+                <p
+                  className={`text-on-surface-variant text-xs md:text-sm mt-1 hidden md:block ${isPvpMode ? "pvp-command-status" : ""}`}
+                >
+                  {gameState === "PLACEMENT" &&
+                    (isWaitingForOpponentFleet
+                      ? copy.waitingFleetLog
+                      : !isFleetValid
+                        ? copy.dragShipsInstructions ||
+                          "Drag ships from staging onto your map. Right-click to rotate."
+                        : copy.formationCompleteInstructions ||
+                          "Formation complete. Adjust ships, auto-arrange again, or press Ready.")}
+                  {gameState === "READY" &&
+                    (selectedShip
+                      ? copy.moveSelectedShipInstructions ||
+                        "Move the selected ship or right-click to rotate it, then press Ready."
+                      : copy.selectShipInstructions ||
+                        "Select any ship to move or rotate it, then press Ready.")}
+                  {gameState === "PLAYER_TURN" &&
+                    (isPvpMode ? (
+                      <span className="text-secondary glow-text">
+                        {getPvpStatusText()}
+                      </span>
+                    ) : (
+                      <span className="text-secondary glow-text">
+                        {copy.yourTurn || "Your turn! Target enemy waters."}
+                      </span>
+                    ))}
+                  {gameState === "BOT_TURN" && (
                     <span className="text-error">
-                      {copy.fleetAnnihilated || "Fleet Annihilated!"}
+                      {copy.enemyFiring || "Enemy is firing! Brace for impact!"}
                     </span>
-                  ))}
-              </p>
+                  )}
+                  {gameState === "GAME_OVER" &&
+                    (winner === "PLAYER" ? (
+                      <span className="text-green-400">
+                        {copy.sectorSecured || "Sector Secured!"}
+                      </span>
+                    ) : (
+                      <span className="text-error">
+                        {copy.fleetAnnihilated || "Fleet Annihilated!"}
+                      </span>
+                    ))}
+                </p>
               </div>
             </div>
             {(gameState === "PLACEMENT" || gameState === "READY") && (
               <button
                 onClick={beginBattle}
                 disabled={
-                  (isCustomShipyardActive ? !isCustomFleetValid : !isFleetValid || Boolean(invalidRotationPreview) || Boolean(draggedShip)) ||
+                  (isCustomShipyardActive
+                    ? !isCustomFleetValid
+                    : !isFleetValid ||
+                      Boolean(invalidRotationPreview) ||
+                      Boolean(draggedShip)) ||
                   pvpReadyLoading ||
                   isWaitingForOpponentFleet
                 }
                 className={`font-bold px-4 py-1.5 md:px-8 md:py-2 text-sm md:text-base rounded-sm transition-all tracking-widest ${
-                  (isCustomShipyardActive ? !isCustomFleetValid : !isFleetValid || invalidRotationPreview || draggedShip) ||
+                  (isCustomShipyardActive
+                    ? !isCustomFleetValid
+                    : !isFleetValid || invalidRotationPreview || draggedShip) ||
                   pvpReadyLoading ||
                   isWaitingForOpponentFleet
                     ? "bg-surface-container text-on-surface-variant/40 cursor-not-allowed opacity-50"
@@ -4026,20 +4163,22 @@ function Game() {
             <div className="flex w-full justify-center gap-2 mb-2 px-4">
               <button
                 onClick={() => setActiveBattleTab("enemy")}
-                className={`flex-1 py-2 px-4 rounded-lg font-bold tracking-widest text-sm transition-all border ${activeBattleTab === "enemy"
-                  ? "bg-error/20 text-error border-error shadow-[0_0_15px_rgba(255,0,0,0.2)]"
-                  : "bg-surface-container border-white/10 text-on-surface-variant"
-                  }`}
+                className={`flex-1 py-2 px-4 rounded-lg font-bold tracking-widest text-sm transition-all border ${
+                  activeBattleTab === "enemy"
+                    ? "bg-error/20 text-error border-error shadow-[0_0_15px_rgba(255,0,0,0.2)]"
+                    : "bg-surface-container border-white/10 text-on-surface-variant"
+                }`}
               >
                 {(isPvpMode ? copy.enemyFleet : copy.enemyWaters) ||
                   "ENEMY FLEET"}
               </button>
               <button
                 onClick={() => setActiveBattleTab("fleet")}
-                className={`flex-1 py-2 px-4 rounded-lg font-bold tracking-widest text-sm transition-all border ${activeBattleTab === "fleet"
-                  ? "bg-secondary/20 text-secondary border-secondary shadow-[0_0_15px_rgba(0,210,255,0.2)]"
-                  : "bg-surface-container border-white/10 text-on-surface-variant"
-                  }`}
+                className={`flex-1 py-2 px-4 rounded-lg font-bold tracking-widest text-sm transition-all border ${
+                  activeBattleTab === "fleet"
+                    ? "bg-secondary/20 text-secondary border-secondary shadow-[0_0_15px_rgba(0,210,255,0.2)]"
+                    : "bg-surface-container border-white/10 text-on-surface-variant"
+                }`}
               >
                 {copy.yourFleet || "YOUR FLEET"}
               </button>
@@ -4055,10 +4194,10 @@ function Game() {
                 {(!isMobile ||
                   gameState === "PLACEMENT" ||
                   gameState === "READY") && (
-                    <h3 className="font-bold text-secondary tracking-widest uppercase mb-1">
-                      {copy.yourFleet || "Your Fleet"}
-                    </h3>
-                  )}
+                  <h3 className="font-bold text-secondary tracking-widest uppercase mb-1">
+                    {copy.yourFleet || "Your Fleet"}
+                  </h3>
+                )}
                 {gameState !== "PLACEMENT" ? (
                   renderFleetStatus(
                     placedFleetDefs,
@@ -4152,53 +4291,154 @@ function Game() {
                   /* === Custom Shipyard Validation Panel === */
                   <div
                     className="deployment-dock"
-                    style={{ "--cell-size": `${CELL_SIZE}px`, "--cell-gap": `${CELL_GAP}px`, display: "flex", flexDirection: "column" }}
+                    style={{
+                      "--cell-size": `${CELL_SIZE}px`,
+                      "--cell-gap": `${CELL_GAP}px`,
+                      display: "flex",
+                      flexDirection: "column",
+                    }}
                   >
-                    <div className="deployment-dock-heading" style={{ marginBottom: "8px" }}>
-                      <h3 className="font-bold tracking-widest uppercase" style={{ color: "#a5e7ff" }}>
+                    <div
+                      className="deployment-dock-heading"
+                      style={{ marginBottom: "8px" }}
+                    >
+                      <h3
+                        className="font-bold tracking-widest uppercase"
+                        style={{ color: "#a5e7ff" }}
+                      >
                         {copy.customShipyardToggle || "Custom Shipyard"}
                       </h3>
                     </div>
 
                     {/* Scrollable diagnostic panel content */}
-                    <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: "10px", paddingRight: "2px" }}>
-                      <p style={{ fontSize: "11px", color: "rgba(255,255,255,0.45)", lineHeight: "1.4" }}>
-                        {copy.customShipyardHint || "Paint your fleet directly on the board. Click or drag to toggle cells."}
+                    <div
+                      style={{
+                        flex: 1,
+                        overflowY: "auto",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "10px",
+                        paddingRight: "2px",
+                      }}
+                    >
+                      <p
+                        style={{
+                          fontSize: "11px",
+                          color: "rgba(255,255,255,0.45)",
+                          lineHeight: "1.4",
+                        }}
+                      >
+                        {copy.customShipyardHint ||
+                          "Paint your fleet directly on the board. Click or drag to toggle cells."}
                       </p>
 
                       {/* Stats Card */}
-                      <div className="fleet-rule-panel" style={{ margin: 0, padding: "10px", display: "flex", flexDirection: "column", gap: "8px" }}>
-                        <div style={{ display: "flex", alignItems: "baseline", gap: "6px" }}>
-                          <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)" }}>
-                            {copy.customShipyardCellsDetected || "Cells detected"}:
+                      <div
+                        className="fleet-rule-panel"
+                        style={{
+                          margin: 0,
+                          padding: "10px",
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "8px",
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "baseline",
+                            gap: "6px",
+                          }}
+                        >
+                          <span
+                            style={{
+                              fontSize: "11px",
+                              color: "rgba(255,255,255,0.4)",
+                            }}
+                          >
+                            {copy.customShipyardCellsDetected ||
+                              "Cells detected"}
+                            :
                           </span>
-                          <span style={{
-                            fontSize: "13px", fontWeight: "bold",
-                            color: customDrawCellCount > CUSTOM_SHIPYARD_CELL_BUDGET ? "#ef4444"
-                              : customDrawCellCount === CUSTOM_SHIPYARD_CELL_BUDGET ? "#22c55e" : "#a5e7ff",
-                          }}>
+                          <span
+                            style={{
+                              fontSize: "13px",
+                              fontWeight: "bold",
+                              color:
+                                customDrawCellCount >
+                                CUSTOM_SHIPYARD_CELL_BUDGET
+                                  ? "#ef4444"
+                                  : customDrawCellCount ===
+                                      CUSTOM_SHIPYARD_CELL_BUDGET
+                                    ? "#22c55e"
+                                    : "#a5e7ff",
+                            }}
+                          >
                             {customDrawCellCount}/{CUSTOM_SHIPYARD_CELL_BUDGET}
                           </span>
                         </div>
-                        <div style={{ height: "4px", borderRadius: "2px", background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
-                          <div className="custom-shipyard-progress" style={{
-                            height: "100%", borderRadius: "2px",
-                            width: `${Math.min(100, (customDrawCellCount / CUSTOM_SHIPYARD_CELL_BUDGET) * 100)}%`,
-                            background: customDrawCellCount > CUSTOM_SHIPYARD_CELL_BUDGET ? "#ef4444"
-                              : customDrawCellCount === CUSTOM_SHIPYARD_CELL_BUDGET && isCustomFleetValid ? "#22c55e" : "#a5e7ff",
-                            transition: "width 0.2s, background 0.2s",
-                          }} />
+                        <div
+                          style={{
+                            height: "4px",
+                            borderRadius: "2px",
+                            background: "rgba(255,255,255,0.08)",
+                            overflow: "hidden",
+                          }}
+                        >
+                          <div
+                            className="custom-shipyard-progress"
+                            style={{
+                              height: "100%",
+                              borderRadius: "2px",
+                              width: `${Math.min(100, (customDrawCellCount / CUSTOM_SHIPYARD_CELL_BUDGET) * 100)}%`,
+                              background:
+                                customDrawCellCount >
+                                CUSTOM_SHIPYARD_CELL_BUDGET
+                                  ? "#ef4444"
+                                  : customDrawCellCount ===
+                                        CUSTOM_SHIPYARD_CELL_BUDGET &&
+                                      isCustomFleetValid
+                                    ? "#22c55e"
+                                    : "#a5e7ff",
+                              transition: "width 0.2s, background 0.2s",
+                            }}
+                          />
                         </div>
-                        <div style={{ display: "flex", alignItems: "baseline", gap: "6px", marginTop: "2px" }}>
-                          <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)" }}>
-                            {copy.customShipyardShipsDetected || "Ships detected"}:
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "baseline",
+                            gap: "6px",
+                            marginTop: "2px",
+                          }}
+                        >
+                          <span
+                            style={{
+                              fontSize: "11px",
+                              color: "rgba(255,255,255,0.4)",
+                            }}
+                          >
+                            {copy.customShipyardShipsDetected ||
+                              "Ships detected"}
+                            :
                           </span>
-                          <span style={{
-                            fontSize: "13px", fontWeight: "bold",
-                            color: customComponents.length >= CUSTOM_SHIPYARD_MIN_SHIPS && customComponents.length <= CUSTOM_SHIPYARD_MAX_SHIPS
-                              ? "#22c55e" : customComponents.length > 0 ? "#ef4444" : "#a5e7ff",
-                          }}>
-                            {customComponents.length}/{CUSTOM_SHIPYARD_MAX_SHIPS}
+                          <span
+                            style={{
+                              fontSize: "13px",
+                              fontWeight: "bold",
+                              color:
+                                customComponents.length >=
+                                  CUSTOM_SHIPYARD_MIN_SHIPS &&
+                                customComponents.length <=
+                                  CUSTOM_SHIPYARD_MAX_SHIPS
+                                  ? "#22c55e"
+                                  : customComponents.length > 0
+                                    ? "#ef4444"
+                                    : "#a5e7ff",
+                            }}
+                          >
+                            {customComponents.length}/
+                            {CUSTOM_SHIPYARD_MAX_SHIPS}
                           </span>
                         </div>
                       </div>
@@ -4213,19 +4453,36 @@ function Game() {
 
                       {/* Ship size breakdown chips */}
                       {customComponents.length > 0 && (
-                        <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginTop: "2px" }}>
+                        <div
+                          style={{
+                            display: "flex",
+                            flexWrap: "wrap",
+                            gap: "6px",
+                            marginTop: "2px",
+                          }}
+                        >
                           {customComponents.map((comp, idx) => {
                             const sz = comp.length;
-                            const ok = sz >= CUSTOM_SHIPYARD_MIN_SHIP_SIZE && sz <= CUSTOM_SHIPYARD_MAX_SHIP_SIZE;
+                            const ok =
+                              sz >= CUSTOM_SHIPYARD_MIN_SHIP_SIZE &&
+                              sz <= CUSTOM_SHIPYARD_MAX_SHIP_SIZE;
                             return (
-                              <span key={idx} style={{
-                                fontSize: "10px", fontWeight: "bold", padding: "3px 8px",
-                                borderRadius: "4px",
-                                border: `1px solid ${ok ? "rgba(34,197,94,0.3)" : "rgba(239,68,68,0.3)"}`,
-                                background: ok ? "rgba(34,197,94,0.06)" : "rgba(239,68,68,0.06)",
-                                color: ok ? "#22c55e" : "#ef4444",
-                              }}>
-                                Ship {idx + 1}: {sz} {copy.cellsLabel || "cells"}
+                              <span
+                                key={idx}
+                                style={{
+                                  fontSize: "10px",
+                                  fontWeight: "bold",
+                                  padding: "3px 8px",
+                                  borderRadius: "4px",
+                                  border: `1px solid ${ok ? "rgba(34,197,94,0.3)" : "rgba(239,68,68,0.3)"}`,
+                                  background: ok
+                                    ? "rgba(34,197,94,0.06)"
+                                    : "rgba(239,68,68,0.06)",
+                                  color: ok ? "#22c55e" : "#ef4444",
+                                }}
+                              >
+                                Ship {idx + 1}: {sz}{" "}
+                                {copy.cellsLabel || "cells"}
                               </span>
                             );
                           })}
@@ -4234,29 +4491,62 @@ function Game() {
                     </div>
 
                     {/* Action buttons - grouped and side by side */}
-                    <div style={{ display: "flex", gap: "8px", marginTop: "12px" }}>
+                    <div
+                      style={{ display: "flex", gap: "8px", marginTop: "12px" }}
+                    >
                       <button
                         type="button"
                         className="auto-arrange-button"
                         onClick={clearCustomDraw}
-                        disabled={isPlacementLocked || customDrawCellCount === 0}
-                        style={{ margin: 0, flex: 1, minHeight: "36px", padding: "6px 12px" }}
+                        disabled={
+                          isPlacementLocked || customDrawCellCount === 0
+                        }
+                        style={{
+                          margin: 0,
+                          flex: 1,
+                          minHeight: "36px",
+                          padding: "6px 12px",
+                        }}
                       >
-                        <span className="material-symbols-outlined" style={{ fontSize: "18px" }} aria-hidden="true">clear_all</span>
-                        <span style={{ fontSize: "11px" }}>{copy.customShipyardClear || "Clear"}</span>
+                        <span
+                          className="material-symbols-outlined"
+                          style={{ fontSize: "18px" }}
+                          aria-hidden="true"
+                        >
+                          clear_all
+                        </span>
+                        <span style={{ fontSize: "11px" }}>
+                          {copy.customShipyardClear || "Clear"}
+                        </span>
                       </button>
                       <button
                         type="button"
                         className="auto-arrange-button"
                         style={{
-                          margin: 0, flex: 1.2, minHeight: "36px", padding: "6px 12px",
-                          background: "rgba(165,231,255,0.08)", border: "1px solid rgba(165,231,255,0.3)", color: "#a5e7ff"
+                          margin: 0,
+                          flex: 1.2,
+                          minHeight: "36px",
+                          padding: "6px 12px",
+                          background: "rgba(165,231,255,0.08)",
+                          border: "1px solid rgba(165,231,255,0.3)",
+                          color: "#a5e7ff",
                         }}
-                        onClick={(e) => { e.stopPropagation(); toggleCustomShipyard(); }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleCustomShipyard();
+                        }}
                         disabled={isPlacementLocked}
                       >
-                        <span className="material-symbols-outlined" style={{ fontSize: "18px" }} aria-hidden="true">arrow_back</span>
-                        <span style={{ fontSize: "11px" }}>{copy.customShipyardToggleBack || "Standard"}</span>
+                        <span
+                          className="material-symbols-outlined"
+                          style={{ fontSize: "18px" }}
+                          aria-hidden="true"
+                        >
+                          arrow_back
+                        </span>
+                        <span style={{ fontSize: "11px" }}>
+                          {copy.customShipyardToggleBack || "Standard"}
+                        </span>
                       </button>
                     </div>
                   </div>
@@ -4273,10 +4563,15 @@ function Game() {
                       <h3 className="font-bold text-error tracking-widest uppercase">
                         {copy.fleetStaging || "Fleet Staging"}
                       </h3>
-                      <div className="fleet-size-filters" aria-label="Fleet size filters">
+                      <div
+                        className="fleet-size-filters"
+                        aria-label="Fleet size filters"
+                      >
                         <button
                           type="button"
-                          className={fleetSizeFilter === "all" ? "is-active" : ""}
+                          className={
+                            fleetSizeFilter === "all" ? "is-active" : ""
+                          }
                           onClick={(event) => {
                             event.stopPropagation();
                             setFleetSizeFilter("all");
@@ -4288,7 +4583,9 @@ function Game() {
                           <button
                             key={size}
                             type="button"
-                            className={fleetSizeFilter === size ? "is-active" : ""}
+                            className={
+                              fleetSizeFilter === size ? "is-active" : ""
+                            }
                             onClick={(event) => {
                               event.stopPropagation();
                               setFleetSizeFilter(size);
@@ -4301,15 +4598,35 @@ function Game() {
                     </div>
                     <div className="fleet-rule-panel">
                       <span>{copy.fleetRules}</span>
-                      <strong className={placedFleetCellCount > FLEET_CELL_LIMIT ? "is-invalid" : ""}>
-                        {copy.fleetCellsUsed.replace("{used}", placedFleetCellCount)}
+                      <strong
+                        className={
+                          placedFleetCellCount > FLEET_CELL_LIMIT
+                            ? "is-invalid"
+                            : ""
+                        }
+                      >
+                        {copy.fleetCellsUsed.replace(
+                          "{used}",
+                          placedFleetCellCount,
+                        )}
                       </strong>
-                      <strong className={placedFleetShipCount > FLEET_MAX_SHIPS ? "is-invalid" : ""}>
-                        {copy.fleetShipsUsed.replace("{used}", placedFleetShipCount)}
+                      <strong
+                        className={
+                          placedFleetShipCount > FLEET_MAX_SHIPS
+                            ? "is-invalid"
+                            : ""
+                        }
+                      >
+                        {copy.fleetShipsUsed.replace(
+                          "{used}",
+                          placedFleetShipCount,
+                        )}
                       </strong>
                     </div>
                     {fleetGuidanceMessage && (
-                      <div className={`fleet-rule-message ${isFleetValid ? "is-valid" : "is-invalid"}`}>
+                      <div
+                        className={`fleet-rule-message ${isFleetValid ? "is-valid" : "is-invalid"}`}
+                      >
                         {fleetGuidanceMessage}
                       </div>
                     )}
@@ -4343,16 +4660,21 @@ function Game() {
                         return (
                           <div
                             key={shipDef.id}
-                            className={`deployment-ship-card deployment-${shipDef.id} ${isPlaced ? "is-placed" : ""
-                              } ${isPlacementLocked ? "is-locked" : ""}`}
+                            className={`deployment-ship-card deployment-${shipDef.id} ${
+                              isPlaced ? "is-placed" : ""
+                            } ${isPlacementLocked ? "is-locked" : ""}`}
                             onClick={(event) => {
                               event.stopPropagation();
                               if (!isPlaced) {
                                 handleTrayShipClick(event, shipDef);
                               } else {
-                                const placedShip = getPlacedShipSelectionByTypeId(shipDef.id);
+                                const placedShip =
+                                  getPlacedShipSelectionByTypeId(shipDef.id);
                                 if (placedShip) {
-                                  returnShipToStaging(placedShip.shipId, shipDef.id);
+                                  returnShipToStaging(
+                                    placedShip.shipId,
+                                    shipDef.id,
+                                  );
                                 }
                               }
                             }}
@@ -4432,11 +4754,24 @@ function Game() {
                     <button
                       type="button"
                       className="auto-arrange-button"
-                      style={{ marginTop: "6px", background: "rgba(165,231,255,0.08)", border: "1px solid rgba(165,231,255,0.3)", color: "#a5e7ff" }}
-                      onClick={(e) => { e.stopPropagation(); toggleCustomShipyard(); }}
+                      style={{
+                        marginTop: "6px",
+                        background: "rgba(165,231,255,0.08)",
+                        border: "1px solid rgba(165,231,255,0.3)",
+                        color: "#a5e7ff",
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleCustomShipyard();
+                      }}
                       disabled={isPlacementLocked}
                     >
-                      <span className="material-symbols-outlined" aria-hidden="true">brush</span>
+                      <span
+                        className="material-symbols-outlined"
+                        aria-hidden="true"
+                      >
+                        brush
+                      </span>
                       {copy.customShipyardToggle || "Custom Shipyard"}
                     </button>
                   </div>
@@ -4447,16 +4782,17 @@ function Game() {
                     {(!isMobile ||
                       gameState === "PLACEMENT" ||
                       gameState === "READY") && (
-                        <h3 className="font-bold text-error tracking-widest uppercase mb-1">
-                          {gameState === "READY"
-                            ? isPvpMode
-                              ? copy.enemyFleetScan || "Enemy Fleet (Scanning...)"
-                              : copy.enemyWatersScan || "Enemy Waters (Scanning...)"
-                            : isPvpMode
-                              ? copy.enemyFleet || "Enemy Fleet"
-                              : copy.enemyWaters || "Enemy Waters"}
-                        </h3>
-                      )}
+                      <h3 className="font-bold text-error tracking-widest uppercase mb-1">
+                        {gameState === "READY"
+                          ? isPvpMode
+                            ? copy.enemyFleetScan || "Enemy Fleet (Scanning...)"
+                            : copy.enemyWatersScan ||
+                              "Enemy Waters (Scanning...)"
+                          : isPvpMode
+                            ? copy.enemyFleet || "Enemy Fleet"
+                            : copy.enemyWaters || "Enemy Waters"}
+                      </h3>
+                    )}
 
                     {renderFleetStatus(
                       isPvpMode ? opponentFleetStatusDefs : enemyFleetDefs,
@@ -4478,10 +4814,11 @@ function Game() {
 
             {sunkEffect && (
               <div
-                className={`sunk-announcement ${sunkEffect.boardSide === "enemy"
-                  ? "sunk-announcement-victory"
-                  : "sunk-announcement-danger"
-                  }`}
+                className={`sunk-announcement ${
+                  sunkEffect.boardSide === "enemy"
+                    ? "sunk-announcement-victory"
+                    : "sunk-announcement-danger"
+                }`}
               >
                 <span className="sunk-announcement-line" />
                 <strong>
@@ -4497,12 +4834,13 @@ function Game() {
           {isMobile && gameState !== "PLACEMENT" && gameState !== "READY" && (
             <div className="mobile-mini-battle-log mx-4">
               <div
-                className={`mini-turn-status text-center ${gameState === "PLAYER_TURN"
-                  ? "text-secondary shadow-secondary/50 drop-shadow-md"
-                  : gameState === "BOT_TURN"
-                    ? "text-error shadow-error/50 drop-shadow-md"
-                    : "text-yellow-400"
-                  }`}
+                className={`mini-turn-status text-center ${
+                  gameState === "PLAYER_TURN"
+                    ? "text-secondary shadow-secondary/50 drop-shadow-md"
+                    : gameState === "BOT_TURN"
+                      ? "text-error shadow-error/50 drop-shadow-md"
+                      : "text-yellow-400"
+                }`}
               >
                 {gameState === "PLAYER_TURN"
                   ? "YOUR TURN"
@@ -4579,24 +4917,25 @@ function Game() {
                 {logs.map((log) => (
                   <div
                     key={log.id}
-                    className={`p-2 rounded-sm border-l-2 ${log.type === "player_hit"
-                      ? "bg-secondary/20 border-secondary text-secondary font-bold"
-                      : log.type === "player_miss"
-                        ? "bg-secondary/5 border-secondary/30 text-secondary/70"
-                        : log.type === "enemy_hit"
-                          ? "bg-error/20 border-error text-error font-bold"
-                          : log.type === "enemy_miss"
-                            ? "bg-error/5 border-error/30 text-error/70"
-                            : log.type === "destroy"
-                              ? "bg-green-500/20 border-green-500 text-green-400 font-bold glow-text"
-                              : log.type === "defeat"
-                                ? "bg-error/30 border-error text-error font-bold glow-text-error"
-                                : log.type === "victory"
-                                  ? "bg-yellow-500/20 border-yellow-500 text-yellow-400 font-bold glow-text"
-                                  : log.type === "warning"
-                                    ? "bg-orange-500/10 border-orange-500 text-orange-400"
-                                    : "bg-surface-container border-white/10 text-on-surface"
-                      } animate-fade-in`}
+                    className={`p-2 rounded-sm border-l-2 ${
+                      log.type === "player_hit"
+                        ? "bg-secondary/20 border-secondary text-secondary font-bold"
+                        : log.type === "player_miss"
+                          ? "bg-secondary/5 border-secondary/30 text-secondary/70"
+                          : log.type === "enemy_hit"
+                            ? "bg-error/20 border-error text-error font-bold"
+                            : log.type === "enemy_miss"
+                              ? "bg-error/5 border-error/30 text-error/70"
+                              : log.type === "destroy"
+                                ? "bg-green-500/20 border-green-500 text-green-400 font-bold glow-text"
+                                : log.type === "defeat"
+                                  ? "bg-error/30 border-error text-error font-bold glow-text-error"
+                                  : log.type === "victory"
+                                    ? "bg-yellow-500/20 border-yellow-500 text-yellow-400 font-bold glow-text"
+                                    : log.type === "warning"
+                                      ? "bg-orange-500/10 border-orange-500 text-orange-400"
+                                      : "bg-surface-container border-white/10 text-on-surface"
+                    } animate-fade-in`}
                   >
                     {log.msg}
                   </div>
@@ -4662,24 +5001,25 @@ function Game() {
                 {logs.slice(-10).map((log) => (
                   <div
                     key={log.id}
-                    className={`p-2 rounded-sm border-l-2 ${log.type === "player_hit"
-                      ? "bg-secondary/20 border-secondary text-secondary font-bold"
-                      : log.type === "player_miss"
-                        ? "bg-secondary/5 border-secondary/30 text-secondary/70"
-                        : log.type === "enemy_hit"
-                          ? "bg-error/20 border-error text-error font-bold"
-                          : log.type === "enemy_miss"
-                            ? "bg-error/5 border-error/30 text-error/70"
-                            : log.type === "destroy"
-                              ? "bg-green-500/20 border-green-500 text-green-400 font-bold glow-text"
-                              : log.type === "defeat"
-                                ? "bg-error/30 border-error text-error font-bold glow-text-error"
-                                : log.type === "victory"
-                                  ? "bg-yellow-500/20 border-yellow-500 text-yellow-400 font-bold glow-text"
-                                  : log.type === "warning"
-                                    ? "bg-orange-500/10 border-orange-500 text-orange-400"
-                                    : "bg-surface-container border-white/10 text-on-surface"
-                      } animate-fade-in`}
+                    className={`p-2 rounded-sm border-l-2 ${
+                      log.type === "player_hit"
+                        ? "bg-secondary/20 border-secondary text-secondary font-bold"
+                        : log.type === "player_miss"
+                          ? "bg-secondary/5 border-secondary/30 text-secondary/70"
+                          : log.type === "enemy_hit"
+                            ? "bg-error/20 border-error text-error font-bold"
+                            : log.type === "enemy_miss"
+                              ? "bg-error/5 border-error/30 text-error/70"
+                              : log.type === "destroy"
+                                ? "bg-green-500/20 border-green-500 text-green-400 font-bold glow-text"
+                                : log.type === "defeat"
+                                  ? "bg-error/30 border-error text-error font-bold glow-text-error"
+                                  : log.type === "victory"
+                                    ? "bg-yellow-500/20 border-yellow-500 text-yellow-400 font-bold glow-text"
+                                    : log.type === "warning"
+                                      ? "bg-orange-500/10 border-orange-500 text-orange-400"
+                                      : "bg-surface-container border-white/10 text-on-surface"
+                    } animate-fade-in`}
                   >
                     {log.msg}
                   </div>
