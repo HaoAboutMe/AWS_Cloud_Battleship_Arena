@@ -242,7 +242,7 @@ const translations = {
       updateSuccess: "Name changed successfully!",
       updateError: "Error changing name.",
       saveChanges: "SAVE CHANGES",
-      unranked: "Unranked",
+      unranked: "UNRANKED",
       commanderLadder: "Commander ladder",
       closeRankLadder: "Close rank ladder",
       pressureGauge: "Pressure gauge",

@@ -167,7 +167,7 @@ function CommandHeader({
                       ) : (
                         <i className="command-empty-rank-badge" />
                       )}
-                      {hasRank ? `${rankMeta.label} - ${rankPoints} RP` : "Unranked"}
+                      {hasRank ? `${rankMeta.label} - ${rankPoints} RP` : t("profile.unranked")}
                     </small>
                   </span>
                   <span className="material-symbols-outlined command-account-chevron">expand_more</span>

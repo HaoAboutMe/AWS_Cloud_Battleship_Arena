@@ -11,11 +11,7 @@ import ship7 from "../assets/ships/image/ship-7.png";
 import ship8 from "../assets/ships/image/ship-8.png";
 import ship9 from "../assets/ships/image/ship-9.png";
 import GameResultModal from "../components/GameResultModal";
-import {
-  PvpBattleTools,
-  PvpCommanderPanel,
-  PvpOpponentPanel,
-} from "../components/PvpBattlePanels";
+import { PvpCommandStrip, PvpCommsPanel } from "../components/PvpBattlePanels";
 import RankUpAnimation from "../components/RankUpAnimation";
 import { useAuth } from "../contexts/AuthContext";
 import { useLanguage } from "../contexts/LanguageContext";
@@ -87,25 +83,169 @@ const FLEET_MAX_SHIPS = 4;
 
 const BOT_CUSTOM_FLEETS = [
   [
-    { id: "custom-bot-1-1", label: "Custom 1", size: 6, baseOffsets: [[0,0], [0,1], [0,2], [1,1], [2,1], [2,2]], rotations: [0, 90, 180, 270] },
-    { id: "custom-bot-1-2", label: "Custom 2", size: 5, baseOffsets: [[0,0], [1,0], [1,1], [2,1], [3,1]], rotations: [0, 90, 180, 270] },
-    { id: "custom-bot-1-3", label: "Custom 3", size: 4, baseOffsets: [[0,0], [0,1], [1,0], [1,1]], rotations: [0, 90, 180, 270] }
+    {
+      id: "custom-bot-1-1",
+      label: "Custom 1",
+      size: 6,
+      baseOffsets: [
+        [0, 0],
+        [0, 1],
+        [0, 2],
+        [1, 1],
+        [2, 1],
+        [2, 2],
+      ],
+      rotations: [0, 90, 180, 270],
+    },
+    {
+      id: "custom-bot-1-2",
+      label: "Custom 2",
+      size: 5,
+      baseOffsets: [
+        [0, 0],
+        [1, 0],
+        [1, 1],
+        [2, 1],
+        [3, 1],
+      ],
+      rotations: [0, 90, 180, 270],
+    },
+    {
+      id: "custom-bot-1-3",
+      label: "Custom 3",
+      size: 4,
+      baseOffsets: [
+        [0, 0],
+        [0, 1],
+        [1, 0],
+        [1, 1],
+      ],
+      rotations: [0, 90, 180, 270],
+    },
   ],
   [
-    { id: "custom-bot-2-1", label: "Custom 1", size: 7, baseOffsets: [[0,1], [1,1], [2,1], [3,1], [1,0], [1,2], [2,0]], rotations: [0, 90, 180, 270] },
-    { id: "custom-bot-2-2", label: "Custom 2", size: 5, baseOffsets: [[0,0], [0,1], [0,2], [1,0], [2,0]], rotations: [0, 90, 180, 270] },
-    { id: "custom-bot-2-3", label: "Custom 3", size: 3, baseOffsets: [[0,0], [1,0], [1,1]], rotations: [0, 90, 180, 270] }
+    {
+      id: "custom-bot-2-1",
+      label: "Custom 1",
+      size: 7,
+      baseOffsets: [
+        [0, 1],
+        [1, 1],
+        [2, 1],
+        [3, 1],
+        [1, 0],
+        [1, 2],
+        [2, 0],
+      ],
+      rotations: [0, 90, 180, 270],
+    },
+    {
+      id: "custom-bot-2-2",
+      label: "Custom 2",
+      size: 5,
+      baseOffsets: [
+        [0, 0],
+        [0, 1],
+        [0, 2],
+        [1, 0],
+        [2, 0],
+      ],
+      rotations: [0, 90, 180, 270],
+    },
+    {
+      id: "custom-bot-2-3",
+      label: "Custom 3",
+      size: 3,
+      baseOffsets: [
+        [0, 0],
+        [1, 0],
+        [1, 1],
+      ],
+      rotations: [0, 90, 180, 270],
+    },
   ],
   [
-    { id: "custom-bot-3-1", label: "Custom 1", size: 8, baseOffsets: [[0,0], [0,1], [0,2], [1,1], [2,1], [2,0], [2,2], [3,1]], rotations: [0, 90, 180, 270] },
-    { id: "custom-bot-3-2", label: "Custom 2", size: 5, baseOffsets: [[0,0], [0,1], [1,1], [2,1], [2,2]], rotations: [0, 90, 180, 270] },
-    { id: "custom-bot-3-3", label: "Custom 3", size: 2, baseOffsets: [[0,0], [0,1]], rotations: [0, 90, 180, 270] }
+    {
+      id: "custom-bot-3-1",
+      label: "Custom 1",
+      size: 8,
+      baseOffsets: [
+        [0, 0],
+        [0, 1],
+        [0, 2],
+        [1, 1],
+        [2, 1],
+        [2, 0],
+        [2, 2],
+        [3, 1],
+      ],
+      rotations: [0, 90, 180, 270],
+    },
+    {
+      id: "custom-bot-3-2",
+      label: "Custom 2",
+      size: 5,
+      baseOffsets: [
+        [0, 0],
+        [0, 1],
+        [1, 1],
+        [2, 1],
+        [2, 2],
+      ],
+      rotations: [0, 90, 180, 270],
+    },
+    {
+      id: "custom-bot-3-3",
+      label: "Custom 3",
+      size: 2,
+      baseOffsets: [
+        [0, 0],
+        [0, 1],
+      ],
+      rotations: [0, 90, 180, 270],
+    },
   ],
   [
-    { id: "custom-bot-4-1", label: "Custom 1", size: 5, baseOffsets: [[0,0], [0,1], [0,2], [1,1], [2,1]], rotations: [0, 90, 180, 270] },
-    { id: "custom-bot-4-2", label: "Custom 2", size: 5, baseOffsets: [[0,1], [1,1], [1,0], [2,0], [2,1]], rotations: [0, 90, 180, 270] },
-    { id: "custom-bot-4-3", label: "Custom 3", size: 5, baseOffsets: [[0,0], [0,1], [1,0], [1,1], [2,0]], rotations: [0, 90, 180, 270] }
-  ]
+    {
+      id: "custom-bot-4-1",
+      label: "Custom 1",
+      size: 5,
+      baseOffsets: [
+        [0, 0],
+        [0, 1],
+        [0, 2],
+        [1, 1],
+        [2, 1],
+      ],
+      rotations: [0, 90, 180, 270],
+    },
+    {
+      id: "custom-bot-4-2",
+      label: "Custom 2",
+      size: 5,
+      baseOffsets: [
+        [0, 1],
+        [1, 1],
+        [1, 0],
+        [2, 0],
+        [2, 1],
+      ],
+      rotations: [0, 90, 180, 270],
+    },
+    {
+      id: "custom-bot-4-3",
+      label: "Custom 3",
+      size: 5,
+      baseOffsets: [
+        [0, 0],
+        [0, 1],
+        [1, 0],
+        [1, 1],
+        [2, 0],
+      ],
+      rotations: [0, 90, 180, 270],
+    },
+  ],
 ];
 
 const getLegalFleetSelections = (shipDefs) => {
@@ -229,11 +369,11 @@ const GAME_COPY = {
     fleetValid: "Fleet formation is valid.",
     commanderPanel: "Commander",
     opponentPanel: "Opponent",
-    emotionsTab: "Emotions",
+    emotionsTab: "Biểu cảm",
     shipsTab: "Fleet signals",
     chatEventLog: "Chat & event log",
-    battleChat: "Battle chat",
-    eventLog: "Event log",
+    battleChat: "Chat",
+    eventLog: "Nhật Ký",
     chatPlaceholder: "Send a tactical message...",
     sendChat: "Send message",
     awaitingSignal: "Awaiting battle signals...",
@@ -244,7 +384,7 @@ const GAME_COPY = {
     deployingStatus: "Deploying fleet",
     readyStatus: "Ready",
     shipsAfloat: "{count} ships afloat",
-    unrankedLabel: "Unranked",
+    unrankedLabel: "UNRANKED",
   },
   vi: {
     ready: "Sẵn sàng",
@@ -338,8 +478,8 @@ const GAME_COPY = {
     emotionsTab: "Biểu cảm",
     shipsTab: "Tín hiệu hạm đội",
     chatEventLog: "Chat & nhật ký trận",
-    battleChat: "Chat trận đấu",
-    eventLog: "Nhật ký sự kiện",
+    battleChat: "Chat",
+    eventLog: "Nhật Ký",
     chatPlaceholder: "Gửi thông điệp chiến thuật...",
     sendChat: "Gửi tin nhắn",
     awaitingSignal: "Đang chờ tín hiệu chiến đấu...",
@@ -3254,7 +3394,8 @@ function Game() {
       if (difficulty === "easy" || difficulty === "normal") {
         // Bot is NOT allowed to use shipyard, choose random standard fleet
         const legalSelections = getLegalFleetSelections(SHIP_DEFS);
-        selectedFleet = legalSelections[Math.floor(Math.random() * legalSelections.length)];
+        selectedFleet =
+          legalSelections[Math.floor(Math.random() * legalSelections.length)];
       } else {
         // Hard bot: allowed to use shipyard! Choose between copying player or predefined custom layouts
         const usePlayerShapes = Math.random() < 0.5;
@@ -3262,7 +3403,10 @@ function Game() {
           selectedFleet = components.map((cells, idx) => {
             const minRow = Math.min(...cells.map((c) => c.row));
             const minCol = Math.min(...cells.map((c) => c.col));
-            const baseOffsets = cells.map((c) => [c.row - minRow, c.col - minCol]);
+            const baseOffsets = cells.map((c) => [
+              c.row - minRow,
+              c.col - minCol,
+            ]);
             return {
               id: `custom-enemy-${idx}`,
               label: `Ship ${cells.length}`,
@@ -3273,7 +3417,9 @@ function Game() {
           });
         } else {
           // Predefined bot shipyard layouts
-          const botFleetIndex = Math.floor(Math.random() * BOT_CUSTOM_FLEETS.length);
+          const botFleetIndex = Math.floor(
+            Math.random() * BOT_CUSTOM_FLEETS.length,
+          );
           selectedFleet = BOT_CUSTOM_FLEETS[botFleetIndex];
         }
       }
@@ -4062,60 +4208,57 @@ function Game() {
       </header>
 
       <main
-        className={`game-main flex-1 w-full max-w-[1440px] mx-auto px-gutter flex flex-col lg:flex-row ${isPvpMode ? "pvp-game-main" : ""}`}
+        className={`game-main flex-1 w-full max-w-[1440px] mx-auto px-gutter flex flex-col lg:flex-row gap-4 ${isPvpMode ? "pvp-game-main" : ""}`}
       >
-        {isPvpMode && !isMobile && (
-          <PvpCommanderPanel
-            player={currentBattlePlayer || roomPlayer}
-            rankLabel={
-              currentBattlePlayer?.rank ||
-              attributes?.rank ||
-              copy.unrankedLabel
-            }
-            isConnected={pvpSocketReady}
-            isMyTurn={
-              pvpTurnUserId ===
-              getRoomPlayerKey(currentBattlePlayer || roomPlayer)
-            }
-            isDeploying={gameState === "PLACEMENT" || gameState === "READY"}
-            isReady={
-              (gameState === "PLACEMENT" || gameState === "READY") &&
-              Boolean(currentBattlePlayer?.fleetReady)
-            }
-            shipsAfloat={Math.max(
-              0,
-              placedFleetDefs.length - playerSunkShipTypeIds.length,
-            )}
-            speechMessage={latestPlayerSignal}
-            copy={copy}
-          />
-        )}
         {/* Boards Section */}
-        <div className="game-board-column flex-1 flex flex-col">
-          {/* Status Header */}
-          <div
-            className={`game-status glass-card rounded-xl border border-white/10 flex justify-between items-center ${isPvpMode ? "pvp-command-banner" : ""}`}
-          >
-            <div className={isPvpMode ? "pvp-command-copy" : ""}>
-              {isPvpMode && (
-                <span
-                  className="pvp-command-emblem material-symbols-outlined"
-                  aria-hidden="true"
-                >
-                  radar
-                </span>
+        <div className="game-board-column flex-1 flex flex-col lg:w-[70%] lg:flex-none transition-all">
+          {/* PvP Command Strip — replaces two side panels and game-status */}
+          {isPvpMode && (
+            <PvpCommandStrip
+              myPlayer={currentBattlePlayer || roomPlayer}
+              myRankLabel={
+                (currentBattlePlayer?.rank && currentBattlePlayer.rank.toLowerCase() !== "unranked" ? currentBattlePlayer.rank : null) ||
+                (attributes?.rank && attributes.rank.toLowerCase() !== "unranked" ? attributes.rank : null) ||
+                copy.unrankedLabel
+              }
+              myIsConnected={pvpSocketReady}
+              myIsMyTurn={
+                pvpTurnUserId ===
+                getRoomPlayerKey(currentBattlePlayer || roomPlayer)
+              }
+              myIsDeploying={gameState === "PLACEMENT" || gameState === "READY"}
+              myIsReady={
+                (gameState === "PLACEMENT" || gameState === "READY") &&
+                Boolean(currentBattlePlayer?.fleetReady)
+              }
+              myShipsAfloat={Math.max(
+                0,
+                placedFleetDefs.length - playerSunkShipTypeIds.length,
               )}
-              <div>
-                <h2
-                  className={`font-display-lg text-base md:text-xl uppercase tracking-widest text-on-surface ${isPvpMode ? "pvp-command-title" : ""}`}
-                >
-                  {gameState === "PLACEMENT" || gameState === "READY"
-                    ? copy.deployFleet || "Deploy Your Fleet"
-                    : copy.sectorCommand || "Sector Command"}
-                </h2>
-                <p
-                  className={`text-on-surface-variant text-xs md:text-sm mt-1 hidden md:block ${isPvpMode ? "pvp-command-status" : ""}`}
-                >
+              oppPlayer={opponentBattlePlayer}
+              oppRankLabel={
+                (opponentBattlePlayer?.rank && opponentBattlePlayer.rank.toLowerCase() !== "unranked" ? opponentBattlePlayer.rank : null) ||
+                copy.unrankedLabel
+              }
+              oppIsConnected={Boolean(opponentBattlePlayer) && pvpSocketReady}
+              oppIsTheirTurn={
+                Boolean(opponentBattlePlayer) &&
+                pvpTurnUserId === getRoomPlayerKey(opponentBattlePlayer)
+              }
+              oppIsDeploying={
+                gameState === "PLACEMENT" || gameState === "READY"
+              }
+              oppIsReady={
+                (gameState === "PLACEMENT" || gameState === "READY") &&
+                Boolean(opponentBattlePlayer?.fleetReady)
+              }
+              oppShipsAfloat={Math.max(
+                0,
+                (opponentBattlePlayer?.board?.ships?.length ||
+                  enemyFleetDefs.length) - enemyShipsSunk.length,
+              )}
+              statusTextNode={
+                <>
                   {gameState === "PLACEMENT" &&
                     (isWaitingForOpponentFleet
                       ? copy.waitingFleetLog
@@ -4130,16 +4273,91 @@ function Game() {
                         "Move the selected ship or right-click to rotate it, then press Ready."
                       : copy.selectShipInstructions ||
                         "Select any ship to move or rotate it, then press Ready.")}
-                  {gameState === "PLAYER_TURN" &&
-                    (isPvpMode ? (
-                      <span className="text-secondary glow-text">
-                        {getPvpStatusText()}
+                  {gameState === "PLAYER_TURN" && (
+                    <span className="text-secondary glow-text">
+                      {getPvpStatusText()}
+                    </span>
+                  )}
+                  {gameState === "BOT_TURN" && (
+                    <span className="text-error">
+                      {copy.enemyFiring || "Enemy is firing! Brace for impact!"}
+                    </span>
+                  )}
+                  {gameState === "GAME_OVER" &&
+                    (winner === "PLAYER" ? (
+                      <span className="text-green-400">
+                        {copy.sectorSecured || "Sector Secured!"}
                       </span>
                     ) : (
-                      <span className="text-secondary glow-text">
-                        {copy.yourTurn || "Your turn! Target enemy waters."}
+                      <span className="text-error">
+                        {copy.fleetAnnihilated || "Fleet Annihilated!"}
                       </span>
                     ))}
+                </>
+              }
+              actionButtonNode={
+                (gameState === "PLACEMENT" || gameState === "READY") && (
+                  <button
+                    onClick={beginBattle}
+                    disabled={
+                      (isCustomShipyardActive
+                        ? !isCustomFleetValid
+                        : !isFleetValid ||
+                          Boolean(invalidRotationPreview) ||
+                          Boolean(draggedShip)) ||
+                      pvpReadyLoading ||
+                      isWaitingForOpponentFleet
+                    }
+                    className={`font-bold px-4 py-1.5 md:px-8 md:py-2 text-sm md:text-base rounded-sm transition-all tracking-widest ${
+                      (isCustomShipyardActive
+                        ? !isCustomFleetValid
+                        : !isFleetValid ||
+                          invalidRotationPreview ||
+                          draggedShip) ||
+                      pvpReadyLoading ||
+                      isWaitingForOpponentFleet
+                        ? "bg-surface-container text-on-surface-variant/40 cursor-not-allowed opacity-50"
+                        : "bg-secondary text-on-secondary-fixed hover:bg-secondary-container active:scale-95"
+                    }`}
+                  >
+                    {pvpReadyLoading
+                      ? copy.syncing
+                      : isWaitingForOpponentFleet
+                        ? copy.waitingPlayer
+                        : copy.ready}
+                  </button>
+                )
+              }
+              copy={copy}
+            />
+          )}
+          {/* Status Header — Only for Single Player Modes */}
+          {!isPvpMode && (
+            <div className="game-status glass-card rounded-xl border border-white/10 flex justify-between items-center mb-4">
+              <div>
+                <h2 className="font-display-lg text-base md:text-xl uppercase tracking-widest text-on-surface">
+                  {gameState === "PLACEMENT" || gameState === "READY"
+                    ? copy.deployFleet || "Deploy Your Fleet"
+                    : copy.sectorCommand || "Sector Command"}
+                </h2>
+                <p className="text-on-surface-variant text-xs md:text-sm mt-1 hidden md:block">
+                  {gameState === "PLACEMENT" &&
+                    (!isFleetValid
+                      ? copy.dragShipsInstructions ||
+                        "Drag ships from staging onto your map. Right-click to rotate."
+                      : copy.formationCompleteInstructions ||
+                        "Formation complete. Adjust ships, auto-arrange again, or press Ready.")}
+                  {gameState === "READY" &&
+                    (selectedShip
+                      ? copy.moveSelectedShipInstructions ||
+                        "Move the selected ship or right-click to rotate it, then press Ready."
+                      : copy.selectShipInstructions ||
+                        "Select any ship to move or rotate it, then press Ready.")}
+                  {gameState === "PLAYER_TURN" && (
+                    <span className="text-secondary glow-text">
+                      {copy.yourTurn || "Your turn! Target enemy waters."}
+                    </span>
+                  )}
                   {gameState === "BOT_TURN" && (
                     <span className="text-error">
                       {copy.enemyFiring || "Enemy is firing! Brace for impact!"}
@@ -4157,38 +4375,28 @@ function Game() {
                     ))}
                 </p>
               </div>
-            </div>
-            {(gameState === "PLACEMENT" || gameState === "READY") && (
-              <button
-                onClick={beginBattle}
-                disabled={
-                  (isCustomShipyardActive
-                    ? !isCustomFleetValid
-                    : !isFleetValid ||
-                      Boolean(invalidRotationPreview) ||
-                      Boolean(draggedShip)) ||
-                  pvpReadyLoading ||
-                  isWaitingForOpponentFleet
-                }
-                className={`font-bold px-4 py-1.5 md:px-8 md:py-2 text-sm md:text-base rounded-sm transition-all tracking-widest ${
-                  (isCustomShipyardActive
-                    ? !isCustomFleetValid
-                    : !isFleetValid || invalidRotationPreview || draggedShip) ||
-                  pvpReadyLoading ||
-                  isWaitingForOpponentFleet
-                    ? "bg-surface-container text-on-surface-variant/40 cursor-not-allowed opacity-50"
-                    : "bg-secondary text-on-secondary-fixed hover:bg-secondary-container active:scale-95"
-                }`}
-              >
-                {pvpReadyLoading
-                  ? copy.syncing
-                  : isWaitingForOpponentFleet
-                    ? copy.waitingPlayer
-                    : copy.ready}
-              </button>
-            )}
-            {!isPvpMode &&
-              (gameState === "PLAYER_TURN" || gameState === "BOT_TURN") && (
+              {(gameState === "PLACEMENT" || gameState === "READY") && (
+                <button
+                  onClick={beginBattle}
+                  disabled={
+                    isCustomShipyardActive
+                      ? !isCustomFleetValid
+                      : !isFleetValid ||
+                        Boolean(invalidRotationPreview) ||
+                        Boolean(draggedShip)
+                  }
+                  className={`font-bold px-4 py-1.5 md:px-8 md:py-2 text-sm md:text-base rounded-sm transition-all tracking-widest ${
+                    isCustomShipyardActive
+                      ? !isCustomFleetValid
+                      : !isFleetValid || invalidRotationPreview || draggedShip
+                        ? "bg-surface-container text-on-surface-variant/40 cursor-not-allowed opacity-50"
+                        : "bg-secondary text-on-secondary-fixed hover:bg-secondary-container active:scale-95"
+                  }`}
+                >
+                  {copy.ready}
+                </button>
+              )}
+              {(gameState === "PLAYER_TURN" || gameState === "BOT_TURN") && (
                 <div className="text-center">
                   <span className="text-[10px] text-on-surface-variant uppercase font-bold tracking-widest">
                     {copy.timeLabel || "Time"}
@@ -4200,7 +4408,8 @@ function Game() {
                   </div>
                 </div>
               )}
-          </div>
+            </div>
+          )}
 
           {/* Battle Tabs for Mobile */}
           {isMobile && gameState !== "PLACEMENT" && gameState !== "READY" && (
@@ -4918,166 +5127,27 @@ function Game() {
           )}
         </div>
 
-        {isPvpMode && !isMobile && (
-          <PvpOpponentPanel
-            player={opponentBattlePlayer}
-            rankLabel={opponentBattlePlayer?.rank || copy.unrankedLabel}
-            isConnected={Boolean(opponentBattlePlayer) && pvpSocketReady}
-            isTheirTurn={
-              Boolean(opponentBattlePlayer) &&
-              pvpTurnUserId === getRoomPlayerKey(opponentBattlePlayer)
-            }
-            isDeploying={gameState === "PLACEMENT" || gameState === "READY"}
-            isReady={
-              (gameState === "PLACEMENT" || gameState === "READY") &&
-              Boolean(opponentBattlePlayer?.fleetReady)
-            }
-            shipsAfloat={Math.max(
-              0,
-              (opponentBattlePlayer?.board?.ships?.length ||
-                enemyFleetDefs.length) - enemyShipsSunk.length,
-            )}
-            speechMessage={latestOpponentSignal}
-            copy={copy}
-          />
-        )}
-
-        {/* Battle Log Section */}
-        {!isMobile && !isPvpMode && (
-          <div className="game-log-column w-full lg:w-[350px] flex flex-col gap-4">
-            <div className="glass-card flex-1 flex flex-col rounded-xl overflow-hidden border border-white/10 min-h-[300px] lg:max-h-[600px]">
-              <div className="p-4 border-b border-white/5 bg-white/5">
-                <h3 className="font-bold text-on-surface uppercase tracking-widest flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[18px]">
-                    receipt_long
-                  </span>
-                  Battle Log
-                </h3>
-              </div>
-              <div
-                ref={logContainerRef}
-                className="flex-1 p-4 overflow-y-auto flex flex-col gap-2 font-mono text-xs"
-              >
-                {logs.map((log) => (
-                  <div
-                    key={log.id}
-                    className={`p-2 rounded-sm border-l-2 ${
-                      log.type === "player_hit"
-                        ? "bg-secondary/20 border-secondary text-secondary font-bold"
-                        : log.type === "player_miss"
-                          ? "bg-secondary/5 border-secondary/30 text-secondary/70"
-                          : log.type === "enemy_hit"
-                            ? "bg-error/20 border-error text-error font-bold"
-                            : log.type === "enemy_miss"
-                              ? "bg-error/5 border-error/30 text-error/70"
-                              : log.type === "destroy"
-                                ? "bg-green-500/20 border-green-500 text-green-400 font-bold glow-text"
-                                : log.type === "defeat"
-                                  ? "bg-error/30 border-error text-error font-bold glow-text-error"
-                                  : log.type === "victory"
-                                    ? "bg-yellow-500/20 border-yellow-500 text-yellow-400 font-bold glow-text"
-                                    : log.type === "warning"
-                                      ? "bg-orange-500/10 border-orange-500 text-orange-400"
-                                      : "bg-surface-container border-white/10 text-on-surface"
-                    } animate-fade-in`}
-                  >
-                    {log.msg}
-                  </div>
-                ))}
-                {logs.length === 0 && (
-                  <div className="text-on-surface-variant italic text-center mt-4 opacity-50">
-                    Awaiting deployment...
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
+        {/* PvP Comms Panel — Right Sidebar */}
+        {isPvpMode && (
+          <aside className="pvp-sidebar-column w-full lg:w-[30%] lg:flex-none flex flex-col mt-4 lg:mt-0 transition-all lg:h-[calc(100vh-120px)] lg:min-h-0">
+            <PvpCommsPanel
+              myPlayer={currentBattlePlayer || roomPlayer}
+              oppPlayer={opponentBattlePlayer}
+              isConnected={pvpSocketReady}
+              logs={logs}
+              chatMessages={chatMessages}
+              copy={copy}
+              language={language}
+              onSendChat={(message) =>
+                sendPvpSignal({ kind: "chat", value: message })
+              }
+              onSendEmote={(emote) =>
+                sendPvpSignal({ kind: "emote", value: emote })
+              }
+            />
+          </aside>
         )}
       </main>
-
-      {isPvpMode && !isMobile && (
-        <PvpBattleTools
-          isConnected={pvpSocketReady}
-          logs={logs}
-          chatMessages={chatMessages}
-          copy={copy}
-          language={language}
-          onSendChat={(message) =>
-            sendPvpSignal({ kind: "chat", value: message })
-          }
-          onSendEmote={(emote) =>
-            sendPvpSignal({ kind: "emote", value: emote })
-          }
-        />
-      )}
-
-      {isMobile && (
-        <>
-          <button
-            className="fixed bottom-4 right-4 z-50 w-14 h-14 bg-secondary text-on-secondary-fixed rounded-full shadow-lg flex items-center justify-center active:scale-95 transition-all hover:scale-105"
-            onClick={() => setShowMobileLog(true)}
-            aria-label="Open Battle Log"
-          >
-            <span className="material-symbols-outlined text-2xl">
-              receipt_long
-            </span>
-          </button>
-          {showMobileLog && (
-            <div className="fixed inset-x-0 bottom-0 z-[100] bg-surface border-t border-white/10 rounded-t-2xl shadow-[0_-10px_40px_rgba(0,0,0,0.5)] flex flex-col max-h-[45vh] min-h-[40vh] transform transition-transform animate-slide-up">
-              <div className="flex justify-between items-center p-4 border-b border-white/5 bg-surface-container">
-                <h3 className="font-bold text-on-surface uppercase tracking-widest flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[18px]">
-                    receipt_long
-                  </span>
-                  Battle Log
-                </h3>
-                <button
-                  onClick={() => setShowMobileLog(false)}
-                  className="text-on-surface-variant hover:text-on-surface transition-colors p-2 -mr-2"
-                >
-                  <span className="material-symbols-outlined">close</span>
-                </button>
-              </div>
-              <div
-                ref={logContainerRef}
-                className="flex-1 p-4 overflow-y-auto flex flex-col gap-2 font-mono text-xs bg-background"
-              >
-                {logs.slice(-10).map((log) => (
-                  <div
-                    key={log.id}
-                    className={`p-2 rounded-sm border-l-2 ${
-                      log.type === "player_hit"
-                        ? "bg-secondary/20 border-secondary text-secondary font-bold"
-                        : log.type === "player_miss"
-                          ? "bg-secondary/5 border-secondary/30 text-secondary/70"
-                          : log.type === "enemy_hit"
-                            ? "bg-error/20 border-error text-error font-bold"
-                            : log.type === "enemy_miss"
-                              ? "bg-error/5 border-error/30 text-error/70"
-                              : log.type === "destroy"
-                                ? "bg-green-500/20 border-green-500 text-green-400 font-bold glow-text"
-                                : log.type === "defeat"
-                                  ? "bg-error/30 border-error text-error font-bold glow-text-error"
-                                  : log.type === "victory"
-                                    ? "bg-yellow-500/20 border-yellow-500 text-yellow-400 font-bold glow-text"
-                                    : log.type === "warning"
-                                      ? "bg-orange-500/10 border-orange-500 text-orange-400"
-                                      : "bg-surface-container border-white/10 text-on-surface"
-                    } animate-fade-in`}
-                  >
-                    {log.msg}
-                  </div>
-                ))}
-                {logs.length === 0 && (
-                  <div className="text-on-surface-variant italic text-center mt-4 opacity-50">
-                    Awaiting deployment...
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-        </>
-      )}
 
       {exitPromptOpen && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-fade-in">
