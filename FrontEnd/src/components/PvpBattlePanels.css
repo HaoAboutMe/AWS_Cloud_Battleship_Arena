@@ -157,13 +157,10 @@
 
 .pvp-strip-info > strong {
   display: block;
-  overflow: hidden;
   color: #e2f7ff;
   font-size: 13px;
   font-weight: 900;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 130px;
+  word-break: break-word;
 }
 
 .pvp-strip-rank {

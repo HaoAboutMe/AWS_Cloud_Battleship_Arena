@@ -5127,26 +5127,25 @@ function Game() {
           )}
         </div>
 
-        {/* PvP Comms Panel — Right Sidebar */}
-        {isPvpMode && (
-          <aside className="pvp-sidebar-column w-full lg:w-[30%] lg:flex-none flex flex-col mt-4 lg:mt-0 transition-all lg:h-[calc(100vh-120px)] lg:min-h-0">
-            <PvpCommsPanel
-              myPlayer={currentBattlePlayer || roomPlayer}
-              oppPlayer={opponentBattlePlayer}
-              isConnected={pvpSocketReady}
-              logs={logs}
-              chatMessages={chatMessages}
-              copy={copy}
-              language={language}
-              onSendChat={(message) =>
-                sendPvpSignal({ kind: "chat", value: message })
-              }
-              onSendEmote={(emote) =>
-                sendPvpSignal({ kind: "emote", value: emote })
-              }
-            />
-          </aside>
-        )}
+        {/* Comms Panel — Right Sidebar */}
+        <aside className="pvp-sidebar-column w-full lg:w-[30%] lg:flex-none flex flex-col mt-4 lg:mt-0 transition-all lg:h-[calc(100vh-120px)] lg:min-h-0">
+          <PvpCommsPanel
+            myPlayer={currentBattlePlayer || roomPlayer}
+            oppPlayer={opponentBattlePlayer}
+            isConnected={isPvpMode ? pvpSocketReady : true}
+            logs={logs}
+            chatMessages={chatMessages}
+            copy={copy}
+            language={language}
+            isPveMode={!isPvpMode}
+            onSendChat={(message) =>
+              isPvpMode && sendPvpSignal({ kind: "chat", value: message })
+            }
+            onSendEmote={(emote) =>
+              isPvpMode && sendPvpSignal({ kind: "emote", value: emote })
+            }
+          />
+        </aside>
       </main>
 
       {exitPromptOpen && (

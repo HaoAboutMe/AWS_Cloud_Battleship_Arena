@@ -182,8 +182,9 @@ export function PvpCommsPanel({
   language,
   onSendChat,
   onSendEmote,
+  isPveMode = false,
 }) {
-  const [activeTab, setActiveTab] = useState("chat"); // default open to chat
+  const [activeTab, setActiveTab] = useState(isPveMode ? "log" : "chat");
   const [emoteTab, setEmoteTab] = useState("emotions");
   const [chatInput, setChatInput] = useState("");
   const chatFeedRef = useRef(null);
@@ -229,20 +230,22 @@ export function PvpCommsPanel({
     >
       {/* ── Tab Bar (always visible) ── */}
       <div className="pvp-comms-tabbar" role="tablist">
-        <button
-          type="button"
-          role="tab"
-          aria-selected={activeTab === "chat"}
-          className={`pvp-comms-tab ${activeTab === "chat" ? "is-active" : ""}`}
-          onClick={() => toggleTab("chat")}
-          title={copy.battleChat}
-        >
-          <span className="material-symbols-outlined" aria-hidden="true">forum</span>
-          <span className="pvp-comms-tab-label">{copy.battleChat || "Chat"}</span>
-          {chatMessages.length > 0 && activeTab !== "chat" && (
-            <span className="pvp-comms-badge">{Math.min(chatMessages.length, 99)}</span>
-          )}
-        </button>
+        {!isPveMode && (
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === "chat"}
+            className={`pvp-comms-tab ${activeTab === "chat" ? "is-active" : ""}`}
+            onClick={() => toggleTab("chat")}
+            title={copy.battleChat}
+          >
+            <span className="material-symbols-outlined" aria-hidden="true">forum</span>
+            <span className="pvp-comms-tab-label">{copy.battleChat || "Chat"}</span>
+            {chatMessages.length > 0 && activeTab !== "chat" && (
+              <span className="pvp-comms-badge">{Math.min(chatMessages.length, 99)}</span>
+            )}
+          </button>
+        )}
 
         <button
           type="button"
@@ -256,17 +259,19 @@ export function PvpCommsPanel({
           <span className="pvp-comms-tab-label">{copy.eventLog || "Log"}</span>
         </button>
 
-        <button
-          type="button"
-          role="tab"
-          aria-selected={activeTab === "emotes"}
-          className={`pvp-comms-tab ${activeTab === "emotes" ? "is-active" : ""}`}
-          onClick={() => toggleTab("emotes")}
-          title={copy.emotionsTab}
-        >
-          <span className="material-symbols-outlined" aria-hidden="true">mood</span>
-          <span className="pvp-comms-tab-label">{copy.emotionsTab || "Emotes"}</span>
-        </button>
+        {!isPveMode && (
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === "emotes"}
+            className={`pvp-comms-tab ${activeTab === "emotes" ? "is-active" : ""}`}
+            onClick={() => toggleTab("emotes")}
+            title={copy.emotionsTab}
+          >
+            <span className="material-symbols-outlined" aria-hidden="true">mood</span>
+            <span className="pvp-comms-tab-label">{copy.emotionsTab || "Emotes"}</span>
+          </button>
+        )}
 
         {isExpanded && (
           <button
