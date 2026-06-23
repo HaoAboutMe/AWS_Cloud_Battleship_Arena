@@ -606,50 +606,83 @@
   }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 767px) {
   .lobby-shell {
     width: 100%;
-    padding: 20px 15px;
+    padding: 16px;
   }
 
   .lobby-centered-card {
-    padding: 30px 20px;
-    border-radius: 0;
-    border-left: none;
-    border-right: none;
+    padding: 24px 20px;
+    border-radius: 14px;
+    border: 1px solid rgba(117, 223, 255, 0.16);
   }
 
   .lobby-panel {
-    padding: 20px 15px;
-    border-radius: 0;
-    border-left: none;
-    border-right: none;
+    padding: 20px;
+    border-radius: 14px;
+    border: 1px solid rgba(117, 223, 255, 0.16);
+  }
+
+  .lobby-room-container.is-matchmaking-room .lobby-panel {
+    padding: 16px;
   }
 
   .lobby-room-code-display strong {
-    font-size: 40px;
+    font-size: 32px;
   }
 
   .lobby-player {
-    flex-direction: column;
-    align-items: flex-start;
+    flex-direction: row;
+    align-items: center;
     gap: 10px;
+    padding: 12px;
   }
 
-  /* Sticky bottom action for mobile */
+  .lobby-player-name {
+    font-size: 14px;
+  }
+
+  .lobby-room-container.is-matchmaking-room .lobby-panel-title {
+    font-size: 18px;
+    margin-bottom: 10px;
+  }
+
+  .lobby-matchmaking-display h2 {
+    font-size: 20px;
+    margin: 8px 0;
+  }
+
+  .lobby-queue-orb {
+    width: 64px;
+    margin-bottom: 10px;
+  }
+
+  .lobby-queue-orb span {
+    width: 24px;
+    height: 24px;
+  }
+
+  .lobby-matchmaking-display p {
+    font-size: 12px;
+    margin-bottom: 12px;
+  }
+
+  .lobby-queue-status strong {
+    font-size: 13px;
+  }
+
+  /* Sticky bottom action for mobile - changed to static to fit in card */
   .lobby-mobile-sticky-action {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    padding: 15px;
-    background: rgba(6, 23, 37, 0.95);
-    backdrop-filter: blur(10px);
-    border-top: 1px solid rgba(117, 223, 255, 0.2);
-    z-index: 100;
+    position: static;
+    margin-top: 16px;
+    padding: 0;
+    background: transparent;
+    backdrop-filter: none;
+    border-top: none;
   }
   
   .lobby-room-container {
-    padding-bottom: 90px; /* space for sticky button */
+    padding-bottom: 20px;
   }
 }
