@@ -184,7 +184,9 @@ export function PvpCommsPanel({
   onSendEmote,
   isPveMode = false,
 }) {
-  const [activeTab, setActiveTab] = useState(isPveMode ? "log" : "chat");
+  const [activeTab, setActiveTab] = useState(
+    window.innerWidth < 1024 ? null : isPveMode ? "log" : "chat"
+  );
   const [emoteTab, setEmoteTab] = useState("emotions");
   const [chatInput, setChatInput] = useState("");
   const chatFeedRef = useRef(null);
@@ -224,10 +226,19 @@ export function PvpCommsPanel({
   const isExpanded = activeTab !== null;
 
   return (
-    <section
-      className={`pvp-comms-panel ${isExpanded ? "is-expanded" : ""}`}
-      aria-label="Battle Communications"
-    >
+    <>
+      {isExpanded && (
+        <div 
+          className="fixed inset-0 z-[-1] lg:hidden bg-background/80 backdrop-blur-sm transition-opacity"
+          style={{ height: "100vh", width: "100vw" }}
+          onClick={() => setActiveTab(null)}
+          aria-hidden="true"
+        />
+      )}
+      <section
+        className={`pvp-comms-panel ${isExpanded ? "is-expanded" : ""}`}
+        aria-label="Battle Communications"
+      >
       {/* ── Tab Bar (always visible) ── */}
       <div className="pvp-comms-tabbar" role="tablist">
         {!isPveMode && (
@@ -453,6 +464,7 @@ export function PvpCommsPanel({
         </div>
       )}
     </section>
+    </>
   );
 }
 

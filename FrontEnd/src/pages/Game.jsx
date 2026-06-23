@@ -428,7 +428,7 @@ const GAME_COPY = {
     customShipyardShipsDetected: "Số tàu phát hiện",
     customShipyardBudget: "{used}/15 ô đã dùng",
     customShipyardHint:
-      "Tô màu hạm đội của bạn. Nhấn ô để bật/tắt. Chỉ kề cạnh, không chéo.",
+      "Tô màu hạm đội của bạn. Nhấn ô để bật/tắt. Không đi đường chéo.",
     customShipyardRuleMinShips: "Cần ít nhất 2 tàu (nhóm ô liền nhau).",
     customShipyardRuleMaxShips: "Tối đa 4 tàu (nhóm ô liền nhau).",
     customShipyardRuleMinSize: "Mỗi tàu phải có ít nhất 2 ô.",
@@ -1032,11 +1032,7 @@ function Game() {
     resetBotAI();
   }, [location]);
 
-  useEffect(() => {
-    if (isMobile && gameState === "PLACEMENT" && placedFleetShipCount === 0) {
-      autoArrangeFleet();
-    }
-  }, [isMobile, gameState, placedFleetShipCount]);
+
 
   useEffect(() => {
     if (gameState === "PLAYER_TURN") {
@@ -2731,15 +2727,17 @@ function Game() {
     const updateDragPointer = (event) => {
       let clientX, clientY;
       if (event.touches) {
-        // prevent scrolling while dragging
-        event.preventDefault();
-        clientX = event.touches[0].clientX;
-        clientY = event.touches[0].clientY;
+        if (!isMobile) {
+          event.preventDefault();
+          clientX = event.touches[0].clientX;
+          clientY = event.touches[0].clientY;
+          setDragPointer({ x: clientX, y: clientY });
+        }
       } else {
         clientX = event.clientX;
         clientY = event.clientY;
+        setDragPointer({ x: clientX, y: clientY });
       }
-      setDragPointer({ x: clientX, y: clientY });
 
       if (isMobile && playerBoardRef.current && draggedShip) {
         const rect = playerBoardRef.current.getBoundingClientRect();
@@ -2937,6 +2935,10 @@ function Game() {
 
     const placedShip = getPlacedShipSelectionAt(r, c);
     if (placedShip) {
+      if (isMobile) {
+        return;
+      }
+
       const newCenter = getCenterOffset(
         placedShip.shipDef,
         placedShip.rotation,
@@ -3108,6 +3110,17 @@ function Game() {
     }
 
     if (draggedShip && draggedShip.shipId === `tray-${shipDef.id}`) {
+      rotateShip();
+      
+      setTrayRotations((prev) => {
+        const currentRot = prev[shipDef.id] ?? shipDef.rotations[0];
+        const nextRot = shipDef.rotations[(shipDef.rotations.indexOf(currentRot) + 1) % shipDef.rotations.length];
+        return {
+          ...prev,
+          [shipDef.id]: nextRot
+        };
+      });
+
       return; // Already dragging this ship
     }
 
@@ -3985,6 +3998,8 @@ function Game() {
           gridTemplateColumns: `24px var(--label-gap, 6px) repeat(${BOARD_SIZE}, var(--cell-size))`,
           gridTemplateRows: `24px var(--label-gap, 6px) repeat(${BOARD_SIZE}, var(--cell-size))`,
           gap: `var(--cell-gap)`,
+          touchAction: "none",
+          overscrollBehaviorY: "contain",
         }}
       >
         {/* Column Headers (A-J) */}
@@ -4123,7 +4138,7 @@ function Game() {
                     onClick={(event) =>
                       isEnemy
                         ? handleEnemyCellClick(r, c)
-                        : !isMobile && handlePlayerCellClick(event, r, c)
+                        : handlePlayerCellClick(event, r, c)
                     }
                     onDoubleClick={(event) =>
                       !isEnemy && handlePlayerCellDoubleClick(event, r, c)
@@ -4221,13 +4236,14 @@ function Game() {
       </header>
 
       <main
-        className={`game-main flex-1 w-full max-w-[1440px] mx-auto px-gutter flex flex-col lg:flex-row gap-4 ${isPvpMode ? "pvp-game-main" : ""}`}
+        className={`game-main flex-1 w-full max-w-[1440px] mx-auto px-gutter flex flex-col lg:flex-row gap-4 pb-20 lg:pb-0 ${isPvpMode ? "pvp-game-main" : ""} ${gameState === "PLACEMENT" || gameState === "READY" ? "is-deploying" : ""}`}
       >
         {/* Boards Section */}
         <div className="game-board-column flex-1 flex flex-col lg:w-[70%] lg:flex-none transition-all">
           {/* PvP Command Strip — replaces two side panels and game-status */}
           {isPvpMode && (
-            <PvpCommandStrip
+            <div className="sticky top-12 z-40 lg:static bg-background/95 lg:bg-transparent pb-2 lg:pb-0 pt-2 lg:pt-0 backdrop-blur-md lg:backdrop-blur-none -mx-gutter px-gutter lg:mx-0 lg:px-0">
+              <PvpCommandStrip
               myPlayer={currentBattlePlayer || roomPlayer}
               myRankLabel={
                 (currentBattlePlayer?.rank && currentBattlePlayer.rank.toLowerCase() !== "unranked" ? currentBattlePlayer.rank : null) ||
@@ -4343,6 +4359,7 @@ function Game() {
               }
               copy={copy}
             />
+            </div>
           )}
           {/* Status Header — Only for Single Player Modes */}
           {!isPvpMode && (
@@ -4451,15 +4468,105 @@ function Game() {
             </div>
           )}
 
-          <div className="game-boards flex flex-col lg:flex-row justify-center items-center lg:items-start w-full relative">
+          <div className={`game-boards flex ${isMobile && isCustomShipyardActive && gameState === "PLACEMENT" ? "flex-col-reverse" : "flex-col"} lg:flex-row justify-center items-center lg:items-start w-full relative`}>
             {/* Player Board */}
             <div
               className={`battle-board-section flex flex-col items-center ${isMobile && gameState !== "PLACEMENT" && gameState !== "READY" && activeBattleTab !== "fleet" ? "hidden lg:flex" : ""}`}
             >
+              {isMobile && !isCustomShipyardActive && (gameState === "PLACEMENT" || gameState === "READY") && (
+                <div className="flex flex-col w-full max-w-[430px] mb-2 lg:hidden">
+                  <div 
+                    className="mobile-fleet-tray flex overflow-x-auto overflow-y-hidden py-1 gap-2 w-full snap-x"
+                    style={{
+                      "--cell-size": "16px",
+                      "--cell-gap": "1px",
+                    }}
+                  >
+                    {filteredDockShips.map((shipDef) => {
+                      const isPlaced = !unplacedShipIds.includes(shipDef.id);
+                      const trayRotation = trayRotations[shipDef.id] ?? shipDef.rotations[0];
+                      const trayOffsets = getShipOffsets(shipDef, trayRotation);
+                      const trayBounds = getShipBounds(trayOffsets);
+                      const trayCell = {
+                        row: 0,
+                        col: 0,
+                        shipTypeId: shipDef.id,
+                        shipRotation: trayRotation,
+                        shipBounds: trayBounds,
+                      };
+                      const mCellSize = 16;
+                      const mCellGap = 1;
+                      const trayWidth = trayBounds.cols * mCellSize + (trayBounds.cols - 1) * mCellGap;
+                      const trayHeight = trayBounds.rows * mCellSize + (trayBounds.rows - 1) * mCellGap;
+                      const spriteUrl = resolveSpriteUrl(SHIP_SPRITES[shipDef.id]?.[trayRotation]);
+                      const activeShipTypeId = draggedShip?.shipDef?.id || selectedShip?.shipDef?.id;
+                      const isActive = activeShipTypeId === shipDef.id;
+
+                      return (
+                        <div
+                          key={shipDef.id}
+                          className={`deployment-ship-card deployment-${shipDef.id} flex-shrink-0 w-[120px] snap-center p-2 ${isPlaced ? "is-placed" : ""} ${isPlacementLocked ? "is-locked" : ""}`}
+                          style={{
+                            opacity: isActive ? 1 : 0.85,
+                            transform: isActive ? "translateY(-2px)" : "none",
+                            boxShadow: isActive ? "0 4px 12px rgba(142, 235, 255, 0.4)" : "none",
+                            borderColor: isActive ? "rgba(142, 235, 255, 0.8)" : "",
+                            transition: "all 0.2s ease"
+                          }}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            if (!isPlaced) {
+                              handleTrayShipClick(event, shipDef);
+                            } else {
+                              const placedShip = getPlacedShipSelectionByTypeId(shipDef.id);
+                              if (placedShip) {
+                                returnShipToStaging(placedShip.shipId, shipDef.id);
+                              }
+                            }
+                          }}
+                        >
+                          <div className="deployment-ship-meta" style={{ marginBottom: "6px" }}>
+                            <span className="deployment-ship-label text-[11px] font-bold text-[#a5e7ff]">{shipDef.label}</span>
+                            <span className="deployment-ship-size text-[10px] text-white/50">{shipDef.size} {copy.cellsLabel || "cells"}</span>
+                          </div>
+                          <div className="deployment-ship-stage flex items-center justify-center min-h-[24px]">
+                            {!isPlaced && spriteUrl ? (
+                              <div className="deployment-ship-preview pointer-events-none" style={{ width: `${trayWidth}px`, height: `${trayHeight}px` }}>
+                                <img src={spriteUrl} alt={shipDef.label} style={getShipImageStyle(trayCell)} />
+                              </div>
+                            ) : (
+                              <span className="deployment-placed-mark text-[10px] font-bold text-[#22c55e] uppercase tracking-wider">{copy.deployed || "Deployed"}</span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  
+                  <div className="flex justify-between items-center px-3 mt-1 mb-2">
+                    <div className="text-[11px] text-white/50 tracking-wide">
+                      <span className={`font-bold mr-1 ${placedFleetCellCount > FLEET_CELL_LIMIT ? 'text-red-500' : 'text-white/90'}`}>{placedFleetCellCount}</span>
+                      / {FLEET_CELL_LIMIT} {copy.cellsLabel || "ô"}
+                    </div>
+                    <div className="text-[11px] text-white/50 tracking-wide">
+                      <span className={`font-bold mr-1 ${placedFleetShipCount > FLEET_MAX_SHIPS ? 'text-red-500' : 'text-white/90'}`}>{placedFleetShipCount}</span>
+                      / {FLEET_MAX_SHIPS} {copy.fleetShipsUsed ? copy.fleetShipsUsed.split(' ')[1] : "tàu"}
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2 w-full px-2">
+                    <button onClick={autoArrangeFleet} className="flex-1 auto-arrange-button m-0 min-h-[32px] text-[11px] p-1.5" disabled={isPlacementLocked}>
+                      <span className="material-symbols-outlined text-[15px]">auto_fix_high</span> {copy.autoArrange || "TỰ SẮP XẾP"}
+                    </button>
+                    <button onClick={(e) => { e.stopPropagation(); toggleCustomShipyard(); }} className="flex-1 auto-arrange-button m-0 min-h-[32px] text-[11px] p-1.5" style={{background: "rgba(165,231,255,0.08)", color: "#a5e7ff", border: "1px solid rgba(165,231,255,0.3)"}} disabled={isPlacementLocked}>
+                      <span className="material-symbols-outlined text-[15px]">brush</span> {copy.customShipyardToggle || "Xưởng Đóng Tàu"}
+                    </button>
+                  </div>
+                </div>
+              )}
+
               <div className="board-heading">
-                {(!isMobile ||
-                  gameState === "PLACEMENT" ||
-                  gameState === "READY") && (
+                {!isMobile && (
                   <h3 className="font-bold text-secondary tracking-widest uppercase mb-1">
                     {copy.yourFleet || "Your Fleet"}
                   </h3>
@@ -4474,86 +4581,23 @@ function Game() {
                   )
                 ) : (
                   <div
-                    className="fleet-image-panel fleet-image-panel-placeholder"
+                    className="fleet-image-panel fleet-image-panel-placeholder hidden lg:block"
                     aria-hidden="true"
                   />
                 )}
               </div>
-              {isMobile &&
-                (gameState === "PLACEMENT" || gameState === "READY") && (
-                  <div className="mobile-fleet-footprints flex overflow-x-auto overflow-y-visible py-2 px-2 gap-[40px] w-full justify-center items-center min-h-[40px] mb-2">
-                    {shipsToPlace.map((shipDef) => {
-                      const activeShipTypeId =
-                        draggedShip?.shipDef?.id || selectedShip?.shipDef?.id;
-                      const isActive = activeShipTypeId === shipDef.id;
-                      const offsets = getShipOffsets(
-                        shipDef,
-                        shipDef.rotations[0],
-                      );
-                      const bounds = getShipBounds(offsets);
-                      const minRow = Math.min(...offsets.map((o) => o[0]));
-                      const minCol = Math.min(...offsets.map((o) => o[1]));
-                      return (
-                        <div
-                          key={shipDef.id}
-                          className="grid flex-shrink-0 transition-all duration-300"
-                          style={{
-                            gridTemplateColumns: `repeat(${bounds.cols}, 7px)`,
-                            gridTemplateRows: `repeat(${bounds.rows}, 7px)`,
-                            gap: "2px",
-                            opacity: isActive ? 1 : 0.65,
-                            transform: isActive ? "scale(1.12)" : "scale(1)",
-                            filter: isActive
-                              ? "drop-shadow(0 0 8px rgba(142, 235, 255, 0.9))"
-                              : "none",
-                          }}
-                        >
-                          {offsets.map((pos, idx) => (
-                            <div
-                              key={idx}
-                              style={{
-                                gridColumn: pos[1] - minCol + 1,
-                                gridRow: pos[0] - minRow + 1,
-                                width: "7px",
-                                height: "7px",
-                                background: "#8EEBFF",
-                                border: "1px solid rgba(142, 235, 255, 0.8)",
-                                boxShadow: "0 0 6px rgba(142, 235, 255, 0.75)",
-                                borderRadius: "1px",
-                              }}
-                            />
-                          ))}
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
+
+
+
               {renderBoard(playerBoard, false, "player")}
             </div>
 
             {/* Enemy Board */}
             <div
-              className={`battle-board-section flex flex-col items-center ${isMobile && gameState !== "PLACEMENT" && gameState !== "READY" && activeBattleTab !== "enemy" ? "hidden lg:flex" : ""}`}
+              className={`battle-board-section flex flex-col items-center ${isMobile && gameState === "PLACEMENT" && !isCustomShipyardActive ? "hidden lg:flex" : ""} ${isMobile && gameState !== "PLACEMENT" && gameState !== "READY" && activeBattleTab !== "enemy" ? "hidden lg:flex" : ""}`}
             >
               {gameState === "PLACEMENT" ? (
-                isMobile ? (
-                  <div className="w-full mt-4 max-w-[430px]">
-                    <button
-                      type="button"
-                      className="auto-arrange-button"
-                      onClick={autoArrangeFleet}
-                      disabled={isPlacementLocked}
-                    >
-                      <span
-                        className="material-symbols-outlined"
-                        aria-hidden="true"
-                      >
-                        auto_fix_high
-                      </span>
-                      {copy.autoArrange || "AUTO ARRANGE"}
-                    </button>
-                  </div>
-                ) : isCustomShipyardActive ? (
+                isCustomShipyardActive ? (
                   /* === Custom Shipyard Validation Panel === */
                   <div
                     className="deployment-dock"
@@ -4565,7 +4609,7 @@ function Game() {
                     }}
                   >
                     <div
-                      className="deployment-dock-heading"
+                      className="deployment-dock-heading !hidden md:!flex"
                       style={{ marginBottom: "8px" }}
                     >
                       <h3
@@ -4588,6 +4632,7 @@ function Game() {
                       }}
                     >
                       <p
+                        className="hidden md:block"
                         style={{
                           fontSize: "11px",
                           color: "rgba(255,255,255,0.45)",
@@ -4609,103 +4654,69 @@ function Game() {
                           gap: "8px",
                         }}
                       >
-                        <div
-                          style={{
-                            display: "flex",
-                            alignItems: "baseline",
-                            gap: "6px",
-                          }}
-                        >
-                          <span
-                            style={{
-                              fontSize: "11px",
-                              color: "rgba(255,255,255,0.4)",
-                            }}
-                          >
-                            {copy.customShipyardCellsDetected ||
-                              "Cells detected"}
-                            :
-                          </span>
-                          <span
-                            style={{
-                              fontSize: "13px",
-                              fontWeight: "bold",
-                              color:
-                                customDrawCellCount >
-                                CUSTOM_SHIPYARD_CELL_BUDGET
+                        <div className="grid grid-cols-2 md:grid-cols-1 gap-2 md:gap-[6px] w-full items-start md:items-start">
+                          {/* Cells Detected */}
+                          <div className="order-1 md:order-1 flex flex-col items-start gap-0">
+                            <div className="flex items-baseline gap-[6px]">
+                              <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)" }}>
+                                {copy.customShipyardCellsDetected || "Cells detected"}:
+                              </span>
+                              <span
+                                style={{
+                                  fontSize: "13px",
+                                  fontWeight: "bold",
+                                  color: customDrawCellCount > CUSTOM_SHIPYARD_CELL_BUDGET
+                                    ? "#ef4444"
+                                    : customDrawCellCount === CUSTOM_SHIPYARD_CELL_BUDGET
+                                      ? "#22c55e"
+                                      : "#a5e7ff",
+                                }}
+                              >
+                                {customDrawCellCount}/{CUSTOM_SHIPYARD_CELL_BUDGET}
+                              </span>
+                            </div>
+                            <span style={{ fontSize: "9px", color: "rgba(255,255,255,0.3)", fontStyle: "italic", marginTop: "2px" }}>
+                              ({copy.customShipyardRuleExact || "Paint exactly 15 cells total."})
+                            </span>
+                          </div>
+
+                          {/* Progress Bar */}
+                          <div className="order-3 md:order-2 col-span-2 md:col-span-1 w-full h-1 rounded-sm bg-white/10 overflow-hidden">
+                            <div
+                              className="custom-shipyard-progress"
+                              style={{
+                                height: "100%",
+                                borderRadius: "2px",
+                                width: `${Math.min(100, (customDrawCellCount / CUSTOM_SHIPYARD_CELL_BUDGET) * 100)}%`,
+                                background: customDrawCellCount > CUSTOM_SHIPYARD_CELL_BUDGET
                                   ? "#ef4444"
-                                  : customDrawCellCount ===
-                                      CUSTOM_SHIPYARD_CELL_BUDGET
+                                  : customDrawCellCount === CUSTOM_SHIPYARD_CELL_BUDGET && isCustomFleetValid
                                     ? "#22c55e"
                                     : "#a5e7ff",
-                            }}
-                          >
-                            {customDrawCellCount}/{CUSTOM_SHIPYARD_CELL_BUDGET}
-                          </span>
-                        </div>
-                        <div
-                          style={{
-                            height: "4px",
-                            borderRadius: "2px",
-                            background: "rgba(255,255,255,0.08)",
-                            overflow: "hidden",
-                          }}
-                        >
-                          <div
-                            className="custom-shipyard-progress"
-                            style={{
-                              height: "100%",
-                              borderRadius: "2px",
-                              width: `${Math.min(100, (customDrawCellCount / CUSTOM_SHIPYARD_CELL_BUDGET) * 100)}%`,
-                              background:
-                                customDrawCellCount >
-                                CUSTOM_SHIPYARD_CELL_BUDGET
-                                  ? "#ef4444"
-                                  : customDrawCellCount ===
-                                        CUSTOM_SHIPYARD_CELL_BUDGET &&
-                                      isCustomFleetValid
-                                    ? "#22c55e"
-                                    : "#a5e7ff",
-                              transition: "width 0.2s, background 0.2s",
-                            }}
-                          />
-                        </div>
-                        <div
-                          style={{
-                            display: "flex",
-                            alignItems: "baseline",
-                            gap: "6px",
-                            marginTop: "2px",
-                          }}
-                        >
-                          <span
-                            style={{
-                              fontSize: "11px",
-                              color: "rgba(255,255,255,0.4)",
-                            }}
-                          >
-                            {copy.customShipyardShipsDetected ||
-                              "Ships detected"}
-                            :
-                          </span>
-                          <span
-                            style={{
-                              fontSize: "13px",
-                              fontWeight: "bold",
-                              color:
-                                customComponents.length >=
-                                  CUSTOM_SHIPYARD_MIN_SHIPS &&
-                                customComponents.length <=
-                                  CUSTOM_SHIPYARD_MAX_SHIPS
+                                transition: "width 0.2s, background 0.2s",
+                              }}
+                            />
+                          </div>
+
+                          {/* Ships Detected */}
+                          <div className="order-2 md:order-3 flex items-baseline gap-[6px] justify-end md:justify-start">
+                            <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)" }}>
+                              {copy.customShipyardShipsDetected || "Ships detected"}:
+                            </span>
+                            <span
+                              style={{
+                                fontSize: "13px",
+                                fontWeight: "bold",
+                                color: customComponents.length >= CUSTOM_SHIPYARD_MIN_SHIPS && customComponents.length <= CUSTOM_SHIPYARD_MAX_SHIPS
                                   ? "#22c55e"
                                   : customComponents.length > 0
                                     ? "#ef4444"
                                     : "#a5e7ff",
-                            }}
-                          >
-                            {customComponents.length}/
-                            {CUSTOM_SHIPYARD_MAX_SHIPS}
-                          </span>
+                              }}
+                            >
+                              {customComponents.length}/{CUSTOM_SHIPYARD_MAX_SHIPS}
+                            </span>
+                          </div>
                         </div>
                       </div>
 
@@ -4896,7 +4907,7 @@ function Game() {
                         {fleetGuidanceMessage}
                       </div>
                     )}
-                    <div className="deployment-ship-grid">
+                    <div className="deployment-ship-grid hidden lg:grid">
                       {filteredDockShips.map((shipDef) => {
                         const isPlaced = !unplacedShipIds.includes(shipDef.id);
                         const trayRotation =
@@ -5140,8 +5151,8 @@ function Game() {
           )}
         </div>
 
-        {/* Comms Panel — Right Sidebar */}
-        <aside className="pvp-sidebar-column w-full lg:w-[30%] lg:flex-none flex flex-col mt-4 lg:mt-0 transition-all lg:h-[calc(100vh-120px)] lg:min-h-0">
+        {/* Comms Panel — Right Sidebar / Bottom Sheet on Mobile */}
+        <aside className="pvp-sidebar-column w-full fixed bottom-0 left-0 right-0 z-[100] lg:static lg:w-[30%] lg:flex-none flex flex-col transition-all lg:h-[calc(100vh-120px)] lg:min-h-0 max-h-[60vh] lg:max-h-none bg-surface/95 lg:bg-transparent backdrop-blur-xl lg:backdrop-blur-none border-t border-white/10 lg:border-none shadow-[0_-10px_40px_rgba(0,0,0,0.5)] lg:shadow-none pb-safe">
           <PvpCommsPanel
             myPlayer={currentBattlePlayer || roomPlayer}
             oppPlayer={opponentBattlePlayer}
