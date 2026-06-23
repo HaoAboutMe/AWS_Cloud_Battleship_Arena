@@ -598,6 +598,19 @@ function Game() {
   const { user, attributes, checkAuth, customAvatarUrl } = useAuth();
   const { language } = useLanguage();
   const copy = GAME_COPY[language] || GAME_COPY.en;
+
+  // Force re-render of transient visual states when returning to tab
+  const [visibilityTrigger, setVisibilityTrigger] = useState(0);
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        setVisibilityTrigger((prev) => prev + 1);
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, []);
   const isMobile = useIsMobile();
   const searchParams = new URLSearchParams(location.search);
   const isPvpMode = searchParams.get("mode") === "pvp";
@@ -3927,7 +3940,7 @@ function Game() {
           smokeCells.push({ row: cell.row, col: cell.col });
           hitOverlays.push(
             <div
-              key={`hit-${cell.row}-${cell.col}`}
+              key={`hit-${cell.row}-${cell.col}-${visibilityTrigger}`}
               className="shot-effect shot-hit"
               style={{
                 left: `calc(${cell.col} * (var(--cell-size) + var(--cell-gap)))`,
@@ -3946,7 +3959,7 @@ function Game() {
           // Miss on an empty cell → blue miss dot (rendered at z-40 to appear above ship overlays at z-20)
           hitOverlays.push(
             <div
-              key={`miss-${cell.row}-${cell.col}`}
+              key={`miss-${cell.row}-${cell.col}-${visibilityTrigger}`}
               className="shot-effect shot-miss"
               style={{
                 left: `calc(${cell.col} * (var(--cell-size) + var(--cell-gap)))`,
