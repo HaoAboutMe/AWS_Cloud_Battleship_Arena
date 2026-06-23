@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import ship1 from "../assets/ships/image/ship-1.png";
 import ship10 from "../assets/ships/image/ship-10.png";
@@ -84,6 +84,29 @@ const GRID_SIZE_PX = BOARD_SIZE * CELL_SIZE + (BOARD_SIZE - 1) * CELL_GAP;
 const FLEET_CELL_LIMIT = 15;
 const FLEET_MIN_SHIPS = 2;
 const FLEET_MAX_SHIPS = 4;
+
+const BOT_CUSTOM_FLEETS = [
+  [
+    { id: "custom-bot-1-1", label: "Custom 1", size: 6, baseOffsets: [[0,0], [0,1], [0,2], [1,1], [2,1], [2,2]], rotations: [0, 90, 180, 270] },
+    { id: "custom-bot-1-2", label: "Custom 2", size: 5, baseOffsets: [[0,0], [1,0], [1,1], [2,1], [3,1]], rotations: [0, 90, 180, 270] },
+    { id: "custom-bot-1-3", label: "Custom 3", size: 4, baseOffsets: [[0,0], [0,1], [1,0], [1,1]], rotations: [0, 90, 180, 270] }
+  ],
+  [
+    { id: "custom-bot-2-1", label: "Custom 1", size: 7, baseOffsets: [[0,1], [1,1], [2,1], [3,1], [1,0], [1,2], [2,0]], rotations: [0, 90, 180, 270] },
+    { id: "custom-bot-2-2", label: "Custom 2", size: 5, baseOffsets: [[0,0], [0,1], [0,2], [1,0], [2,0]], rotations: [0, 90, 180, 270] },
+    { id: "custom-bot-2-3", label: "Custom 3", size: 3, baseOffsets: [[0,0], [1,0], [1,1]], rotations: [0, 90, 180, 270] }
+  ],
+  [
+    { id: "custom-bot-3-1", label: "Custom 1", size: 8, baseOffsets: [[0,0], [0,1], [0,2], [1,1], [2,1], [2,0], [2,2], [3,1]], rotations: [0, 90, 180, 270] },
+    { id: "custom-bot-3-2", label: "Custom 2", size: 5, baseOffsets: [[0,0], [0,1], [1,1], [2,1], [2,2]], rotations: [0, 90, 180, 270] },
+    { id: "custom-bot-3-3", label: "Custom 3", size: 2, baseOffsets: [[0,0], [0,1]], rotations: [0, 90, 180, 270] }
+  ],
+  [
+    { id: "custom-bot-4-1", label: "Custom 1", size: 5, baseOffsets: [[0,0], [0,1], [0,2], [1,1], [2,1]], rotations: [0, 90, 180, 270] },
+    { id: "custom-bot-4-2", label: "Custom 2", size: 5, baseOffsets: [[0,1], [1,1], [1,0], [2,0], [2,1]], rotations: [0, 90, 180, 270] },
+    { id: "custom-bot-4-3", label: "Custom 3", size: 5, baseOffsets: [[0,0], [0,1], [1,0], [1,1], [2,0]], rotations: [0, 90, 180, 270] }
+  ]
+];
 
 const getLegalFleetSelections = (shipDefs) => {
   const selections = [];
@@ -3226,16 +3249,37 @@ function Game() {
       });
       setPlayerBoard(newPlayerBoard);
 
-      // Build simple straight-line enemy ships matching same sizes
-      const customEnemyDefs = components.map((cells, idx) => ({
-        id: `custom-enemy-${idx}`,
-        label: `Ship ${cells.length}`,
-        size: cells.length,
-        baseOffsets: Array.from({ length: cells.length }, (_, i) => [0, i]),
-        rotations: [0, 90, 180, 270],
-      }));
+      // Build enemy board based on difficulty and shipyard rules
+      let selectedFleet;
+      if (difficulty === "easy" || difficulty === "normal") {
+        // Bot is NOT allowed to use shipyard, choose random standard fleet
+        const legalSelections = getLegalFleetSelections(SHIP_DEFS);
+        selectedFleet = legalSelections[Math.floor(Math.random() * legalSelections.length)];
+      } else {
+        // Hard bot: allowed to use shipyard! Choose between copying player or predefined custom layouts
+        const usePlayerShapes = Math.random() < 0.5;
+        if (usePlayerShapes) {
+          selectedFleet = components.map((cells, idx) => {
+            const minRow = Math.min(...cells.map((c) => c.row));
+            const minCol = Math.min(...cells.map((c) => c.col));
+            const baseOffsets = cells.map((c) => [c.row - minRow, c.col - minCol]);
+            return {
+              id: `custom-enemy-${idx}`,
+              label: `Ship ${cells.length}`,
+              size: cells.length,
+              baseOffsets,
+              rotations: [0, 90, 180, 270],
+            };
+          });
+        } else {
+          // Predefined bot shipyard layouts
+          const botFleetIndex = Math.floor(Math.random() * BOT_CUSTOM_FLEETS.length);
+          selectedFleet = BOT_CUSTOM_FLEETS[botFleetIndex];
+        }
+      }
+
       const newEnemyBoard = createBoard();
-      placeShipsRandomly(newEnemyBoard, customEnemyDefs);
+      placeShipsRandomly(newEnemyBoard, selectedFleet);
       setEnemyBoard(newEnemyBoard);
       setGameState("PLAYER_TURN");
       setTurnTimer(30);
