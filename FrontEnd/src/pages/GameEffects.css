@@ -333,11 +333,11 @@
 
 /* Wide, unframed enemy fleet strip */
 .fleet-image-panel {
-    top: 30px;
+    top: 38px;
     left: 50%;
     right: auto;
     width: 380px;
-    height: 80px;
+    height: 60px;
     padding: 0;
     border: 0;
     background: transparent;
@@ -382,7 +382,7 @@
 
 .fleet-image-panel-placeholder {
     width: 380px;
-    height: 80px;
+    height: 60px;
 }
 
 .game-main {
@@ -599,7 +599,7 @@
 }
 
 .board-heading {
-    height: 118px;
+    height: 100px;
 }
 
 @media (max-width: 720px) {
