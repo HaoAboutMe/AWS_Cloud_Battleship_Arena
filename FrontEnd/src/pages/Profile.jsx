@@ -35,6 +35,8 @@ function Profile() {
   const [loadingHistory, setLoadingHistory] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
 
+  const [recordMode, setRecordMode] = useState("all");
+
   useEffect(() => {
     const fetchStats = async () => {
       const userEmail = attributes.email || currentUser?.signInDetails?.loginId;
@@ -45,6 +47,9 @@ function Profile() {
             totalGames: userProfile.totalGames || 0,
             wins: userProfile.wins || 0,
             losses: userProfile.losses || 0,
+            rankedMatches: userProfile.rankedMatches || 0,
+            rankedWins: userProfile.rankedWins || 0,
+            rankedLosses: userProfile.rankedLosses || 0,
           });
         }
       }
@@ -222,9 +227,13 @@ function Profile() {
       ? attributes.picture
       : COMMANDER_AVATAR);
   const winRate =
-    stats.totalGames > 0
-      ? Math.round((stats.wins / stats.totalGames) * 100)
-      : 0;
+    recordMode === "ranked"
+      ? stats.rankedMatches > 0
+        ? Math.round((stats.rankedWins / stats.rankedMatches) * 100)
+        : 0
+      : stats.totalGames > 0
+        ? Math.round((stats.wins / stats.totalGames) * 100)
+        : 0;
   const rankedMatches = Number(attributes.rankedMatches || 0);
   const rankPoints = Number(attributes.rankPoints || 0);
   const hasRank = rankedMatches > 0 && rankPoints >= RANKS[0].minRp;
@@ -388,25 +397,79 @@ function Profile() {
             {activeTab === 'overview' && (
               <section className="profile-content">
                 <div className="profile-record">
-                  <div className="profile-section-heading">
-                    <span className="material-symbols-outlined">monitoring</span>
-                    <div>
-                      <h2>{t("profile.serviceRecord")}</h2>
-                      <p>{t("profile.serviceBody")}</p>
+                  <div className="profile-section-heading" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                      <span className="material-symbols-outlined">monitoring</span>
+                      <div>
+                        <h2>{t("profile.serviceRecord")}</h2>
+                        <p>{t("profile.serviceBody")}</p>
+                      </div>
                     </div>
+                    <select
+                      value={recordMode}
+                      onChange={(e) => setRecordMode(e.target.value)}
+                      style={{
+                        padding: '8px 16px',
+                        background: 'rgba(255, 255, 255, 0.1)',
+                        border: '1px solid rgba(255, 255, 255, 0.2)',
+                        borderRadius: '8px',
+                        color: 'var(--text-main)',
+                        outline: 'none',
+                        cursor: 'pointer',
+                        fontSize: '14px',
+                      }}
+                    >
+                      <option value="all" style={{ background: '#0a1929' }}>{language === 'vi' ? 'Tất cả (All)' : 'All Mode'}</option>
+                      <option value="ranked" style={{ background: '#0a1929' }}>{language === 'vi' ? 'Xếp hạng (Ranked)' : 'Ranked'}</option>
+                    </select>
                   </div>
-                  <div className="profile-stat-grid">
+                  <div style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '12px', marginBottom: '12px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: hasRank ? '12px' : '0' }}>
+                      <span style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 'bold' }}>
+                        {t("profile.rank") || "Rank Tier"}
+                      </span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        {hasRank && (
+                          <img 
+                            src={rankMeta.badge} 
+                            alt={getRankDisplayName(rankMeta)} 
+                            style={{ width: '48px', height: '48px', objectFit: 'contain', filter: 'drop-shadow(0 0 8px rgba(255,215,0,0.6))' }} 
+                          />
+                        )}
+                        <span style={{ fontSize: '18px', fontWeight: 'bold', color: '#FFD700', textShadow: '0 0 10px rgba(255,215,0,0.5)', textTransform: 'uppercase' }}>
+                          {hasRank ? getRankDisplayName(rankMeta) : t("profile.unranked")}
+                        </span>
+                      </div>
+                    </div>
+                    {hasRank && nextRank && (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-muted)', fontWeight: 'bold' }}>
+                          <span>{rankPoints} RP</span>
+                          <span>{nextRank.minRp} RP</span>
+                        </div>
+                        <div style={{ width: '100%', height: '6px', background: 'rgba(255,255,255,0.1)', borderRadius: '3px', overflow: 'hidden' }}>
+                          <div style={{ height: '100%', background: 'linear-gradient(90deg, #FFD700, #FFA500)', width: `${Math.min(100, Math.max(0, ((rankPoints - rankMeta.minRp) / (nextRank.minRp - rankMeta.minRp)) * 100))}%`, boxShadow: '0 0 8px rgba(255,215,0,0.8)', borderRadius: '3px' }}></div>
+                        </div>
+                      </div>
+                    )}
+                    {hasRank && !nextRank && (
+                      <div style={{ display: 'flex', justifyContent: 'flex-end', fontSize: '11px', color: '#FFD700', fontWeight: 'bold' }}>
+                        <span>{rankPoints} RP (MAX)</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="profile-stat-grid" style={{ marginTop: '0' }}>
                     <article>
                       <span>{t("profile.totalBattles")}</span>
-                      <strong>{stats.totalGames}</strong>
+                      <strong>{recordMode === "ranked" ? stats.rankedMatches : stats.totalGames}</strong>
                     </article>
                     <article>
                       <span>{t("profile.victories")}</span>
-                      <strong>{stats.wins}</strong>
+                      <strong>{recordMode === "ranked" ? stats.rankedWins : stats.wins}</strong>
                     </article>
                     <article>
                       <span>{t("home.defeats")}</span>
-                      <strong>{stats.losses}</strong>
+                      <strong>{recordMode === "ranked" ? stats.rankedLosses : stats.losses}</strong>
                     </article>
                     <article>
                       <span>{t("profile.winRate")}</span>
