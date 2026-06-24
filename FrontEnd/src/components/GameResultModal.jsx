@@ -59,17 +59,12 @@ function GameResultModal({
                 </p>
 
                 <div className="result-stats">
-                    {subMessage ? (
-                        <div className="result-stat flex flex-col">
-                            <p>{copy.reason || "Reason"}</p>
-                            <strong className="!text-[16px] md:!text-[18px] !leading-tight !mt-auto">{subMessage}</strong>
-                        </div>
-                    ) : (
-                        <div className="result-stat">
-                            <p>{copy.totalTurns || "Total Turns"}</p>
-                            <strong>{stats.turns}</strong>
-                        </div>
-                    )}
+                    <div className="result-stat flex flex-col">
+                        <p>{copy.reason || "Reason"}</p>
+                        <strong className="!text-[16px] md:!text-[18px] !leading-tight !mt-auto">
+                            {subMessage || (isVictory ? (copy.sectorSecured || "Sector Secured!") : (copy.fleetAnnihilated || "Fleet Annihilated!"))}
+                        </strong>
+                    </div>
                     <div className="result-stat">
                         <p>{copy.totalShots || "Total Shots"}</p>
                         <strong>{stats.shots}</strong>

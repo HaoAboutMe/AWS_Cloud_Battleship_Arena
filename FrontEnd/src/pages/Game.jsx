@@ -421,7 +421,7 @@ const GAME_COPY = {
     rankedResult: "Kết quả xếp hạng",
     victoryLog: "CHIẾN THẮNG! Hạm đội đối phương đã bị tiêu diệt!",
     defeatLog: "THẤT BẠI! Hạm đội của bạn đã bị tiêu diệt.",
-    sectorSecured: "Khu vực đã được bảo toàn!",
+    sectorSecured: "Đánh chiếm quá hay!",
     fleetAnnihilated: "Hạm đội bị tiêu diệt!",
     customShipyardToggle: "Xưởng Đóng Tàu",
     customShipyardToggleBack: "Chế độ thường",
