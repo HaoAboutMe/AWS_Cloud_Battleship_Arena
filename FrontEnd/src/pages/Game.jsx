@@ -489,7 +489,7 @@ const GAME_COPY = {
     disconnectedStatus: "Kênh mất kết nối",
     yourTurnStatus: "Lượt của bạn",
     opponentTurnStatus: "Lượt đối thủ",
-    deployingStatus: "Đang dàn trận",
+    deployingStatus: "Đang xếp tàu",
     readyStatus: "Đã sẵn sàng",
     shipsAfloat: "Còn {count} tàu",
     unrankedLabel: "Chưa xếp hạng",

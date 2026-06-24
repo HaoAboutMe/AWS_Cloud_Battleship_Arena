@@ -107,7 +107,14 @@ export function PvpCommandStrip({
             <strong title={myPlayer?.displayName}>
               {myPlayer?.displayName || "Commander"}
             </strong>
-            <span className="pvp-strip-rank">{myRankLabel}</span>
+            <span className="pvp-strip-rank">
+              {myRankLabel}
+              {myIsDeploying && myIsConnected && (
+                <span className="ml-1 opacity-80 italic">
+                  - {myIsReady ? (copy?.readyStatus || "Đã sẵn sàng") : (copy?.deployingStatus || "Đang xếp tàu")}
+                </span>
+              )}
+            </span>
           </div>
 
         </div>
@@ -140,7 +147,14 @@ export function PvpCommandStrip({
             <strong title={oppPlayer?.displayName}>
               {oppPlayer?.displayName || (copy.waitingPlayer || "Waiting…")}
             </strong>
-            <span className="pvp-strip-rank">{oppRankLabel}</span>
+            <span className="pvp-strip-rank">
+              {oppRankLabel}
+              {oppIsDeploying && oppIsConnected && (
+                <span className="ml-1 opacity-80 italic">
+                  - {oppIsReady ? (copy?.readyStatus || "Đã sẵn sàng") : (copy?.deployingStatus || "Đang xếp tàu")}
+                </span>
+              )}
+            </span>
           </div>
           <div className="pvp-strip-avatar-wrap">
             <MiniAvatar player={oppPlayer} tone="red" />
