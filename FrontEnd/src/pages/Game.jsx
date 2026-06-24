@@ -621,6 +621,7 @@ function Game() {
 
   const [gameState, setGameState] = useState("PLACEMENT"); // PLACEMENT, READY, PLAYER_TURN, BOT_TURN, GAME_OVER
   const [isCustomShipyardActive, setIsCustomShipyardActive] = useState(false);
+  const [activeShipBrush, setActiveShipBrush] = useState(1);
   const [customDrawBoard, setCustomDrawBoard] = useState(() => createBoard());
   const [customShipyardValidation, setCustomShipyardValidation] = useState("");
   const [playerBoard, setPlayerBoard] = useState(createBoard());
@@ -678,6 +679,9 @@ function Game() {
   const customDrawCellCount = customDrawBoard
     .flat()
     .filter((c) => c.hasShip).length;
+  const customBrushCounts = [1, 2, 3, 4].map(
+    (brushId) => customDrawBoard.flat().filter((c) => c.hasShip && c.shipBrushId === brushId).length
+  );
   const customComponents = isCustomShipyardActive
     ? getConnectedComponents(customDrawBoard)
     : [];
@@ -3204,8 +3208,26 @@ function Game() {
     if (isPlacementLocked) return;
     if (gameState !== "PLACEMENT" && gameState !== "READY") return;
     setCustomDrawBoard((prev) => {
+      const currentCell = prev[r][c];
+      const isTryingToPaint = customPaintValueRef.current;
+      
+      if (isTryingToPaint) {
+        if (currentCell.hasShip && currentCell.shipBrushId === activeShipBrush) return prev;
+        const currentBrushCellsList = prev.flat().filter(cell => cell.hasShip && cell.shipBrushId === activeShipBrush);
+        if (currentBrushCellsList.length > 0 && currentCell.shipBrushId !== activeShipBrush) {
+          const isAdjacent = currentBrushCellsList.some(cell => Math.abs(cell.row - r) + Math.abs(cell.col - c) === 1);
+          if (!isAdjacent) return prev;
+        }
+        const totalPaintedCells = prev.flat().filter(cell => cell.hasShip).length;
+        const currentBrushCells = currentBrushCellsList.length;
+        const isNewCell = !currentCell.hasShip;
+        if (isNewCell && totalPaintedCells >= 15) return prev;
+        if (currentBrushCells >= 13 && currentCell.shipBrushId !== activeShipBrush) return prev;
+      }
+
       const next = prev.map((row) => row.map((cell) => ({ ...cell })));
-      next[r][c].hasShip = customPaintValueRef.current;
+      next[r][c].hasShip = isTryingToPaint;
+      next[r][c].shipBrushId = isTryingToPaint ? activeShipBrush : null;
       return next;
     });
   };
@@ -3214,8 +3236,26 @@ function Game() {
     if (isPlacementLocked) return;
     if (gameState !== "PLACEMENT" && gameState !== "READY") return;
     setCustomDrawBoard((prev) => {
+      const currentCell = prev[r][c];
+      const isSameBrush = currentCell.hasShip && currentCell.shipBrushId === activeShipBrush;
+      const isTryingToPaint = !isSameBrush;
+
+      if (isTryingToPaint) {
+        const currentBrushCellsList = prev.flat().filter(cell => cell.hasShip && cell.shipBrushId === activeShipBrush);
+        if (currentBrushCellsList.length > 0 && currentCell.shipBrushId !== activeShipBrush) {
+          const isAdjacent = currentBrushCellsList.some(cell => Math.abs(cell.row - r) + Math.abs(cell.col - c) === 1);
+          if (!isAdjacent) return prev;
+        }
+        const totalPaintedCells = prev.flat().filter(cell => cell.hasShip).length;
+        const currentBrushCells = currentBrushCellsList.length;
+        const isNewCell = !currentCell.hasShip;
+        if (isNewCell && totalPaintedCells >= 15) return prev;
+        if (currentBrushCells >= 13 && currentCell.shipBrushId !== activeShipBrush) return prev;
+      }
+
       const next = prev.map((row) => row.map((cell) => ({ ...cell })));
-      next[r][c].hasShip = !next[r][c].hasShip;
+      next[r][c].hasShip = isTryingToPaint;
+      next[r][c].shipBrushId = isTryingToPaint ? activeShipBrush : null;
       return next;
     });
   };
@@ -3224,11 +3264,27 @@ function Game() {
     if (isPlacementLocked || isMobile) return;
     if (gameState !== "PLACEMENT" && gameState !== "READY") return;
     e.preventDefault();
-    // Determine paint value from the cell being clicked (toggle mode for first cell)
     setCustomDrawBoard((prev) => {
-      customPaintValueRef.current = !prev[r][c].hasShip;
+      const currentCell = prev[r][c];
+      const isSameBrush = currentCell.hasShip && currentCell.shipBrushId === activeShipBrush;
+      customPaintValueRef.current = !isSameBrush;
+
+      if (customPaintValueRef.current) {
+        const currentBrushCellsList = prev.flat().filter(cell => cell.hasShip && cell.shipBrushId === activeShipBrush);
+        if (currentBrushCellsList.length > 0 && currentCell.shipBrushId !== activeShipBrush) {
+          const isAdjacent = currentBrushCellsList.some(cell => Math.abs(cell.row - r) + Math.abs(cell.col - c) === 1);
+          if (!isAdjacent) return prev;
+        }
+        const totalPaintedCells = prev.flat().filter(cell => cell.hasShip).length;
+        const currentBrushCells = currentBrushCellsList.length;
+        const isNewCell = !currentCell.hasShip;
+        if (isNewCell && totalPaintedCells >= 15) return prev;
+        if (currentBrushCells >= 13 && currentCell.shipBrushId !== activeShipBrush) return prev;
+      }
+
       const next = prev.map((row) => row.map((cell) => ({ ...cell })));
       next[r][c].hasShip = customPaintValueRef.current;
+      next[r][c].shipBrushId = customPaintValueRef.current ? activeShipBrush : null;
       return next;
     });
     isCustomPaintingRef.current = true;
@@ -3245,9 +3301,26 @@ function Game() {
     if (gameState !== "PLACEMENT" && gameState !== "READY") return;
     e.preventDefault();
     setCustomDrawBoard((prev) => {
-      customPaintValueRef.current = !prev[r][c].hasShip;
+      const currentCell = prev[r][c];
+      const isSameBrush = currentCell.hasShip && currentCell.shipBrushId === activeShipBrush;
+      customPaintValueRef.current = !isSameBrush;
+
+      if (customPaintValueRef.current) {
+        const currentBrushCellsList = prev.flat().filter(cell => cell.hasShip && cell.shipBrushId === activeShipBrush);
+        if (currentBrushCellsList.length > 0 && currentCell.shipBrushId !== activeShipBrush) {
+          const isAdjacent = currentBrushCellsList.some(cell => Math.abs(cell.row - r) + Math.abs(cell.col - c) === 1);
+          if (!isAdjacent) return prev;
+        }
+        const totalPaintedCells = prev.flat().filter(cell => cell.hasShip).length;
+        const currentBrushCells = currentBrushCellsList.length;
+        const isNewCell = !currentCell.hasShip;
+        if (isNewCell && totalPaintedCells >= 15) return prev;
+        if (currentBrushCells >= 13 && currentCell.shipBrushId !== activeShipBrush) return prev;
+      }
+
       const next = prev.map((row) => row.map((cell) => ({ ...cell })));
       next[r][c].hasShip = customPaintValueRef.current;
+      next[r][c].shipBrushId = customPaintValueRef.current ? activeShipBrush : null;
       return next;
     });
     isCustomPaintingRef.current = true;
@@ -4113,9 +4186,9 @@ function Game() {
                         handleCustomBoardTouchMove(e, playerBoardRef)
                       }
                       onTouchEnd={stopCustomPainting}
-                      className={`ocean-cell relative overflow-visible ${isPlacementLocked ? "cursor-default" : "cursor-crosshair"} ${isPainted ? "custom-painted-cell" : "bg-surface-container/50"}`}
+                      className={`ocean-cell relative overflow-visible ${isPlacementLocked ? "cursor-default" : "cursor-crosshair"} ${!isPainted ? "bg-surface-container/50" : `custom-painted-cell-${cell.shipBrushId}`}`}
                       style={{
-                        transition: "background 0.1s",
+                        transition: "background 0.1s, border 0.1s, box-shadow 0.1s",
                         userSelect: "none",
                         touchAction: "none",
                       }}
@@ -4655,19 +4728,35 @@ function Game() {
                         paddingRight: "2px",
                       }}
                     >
-                      <p
-                        className="hidden md:block"
-                        style={{
-                          fontSize: "11px",
-                          color: "rgba(255,255,255,0.45)",
-                          lineHeight: "1.4",
-                        }}
-                      >
-                        {copy.customShipyardHint ||
-                          "Paint your fleet directly on the board. Click or drag to toggle cells."}
-                      </p>
-
-                      {/* Stats Card */}
+                      {/* Brush Toolbar */}
+                      <div className="flex gap-[4px] w-full">
+                        {[1, 2, 3, 4].map(brushId => {
+                          const count = customBrushCounts[brushId - 1];
+                          const isActive = activeShipBrush === brushId;
+                          const isInvalid = count > 0 && (count < CUSTOM_SHIPYARD_MIN_SHIP_SIZE || count > CUSTOM_SHIPYARD_MAX_SHIP_SIZE);
+                          const colors = ["#4ea8de", "#4ade80", "#fbbf24", "#c084fc"];
+                          const brushColor = colors[brushId - 1];
+                          return (
+                            <button
+                              key={brushId}
+                              onClick={(e) => { e.stopPropagation(); setActiveShipBrush(brushId); }}
+                              className={`flex-1 flex flex-col items-center justify-center py-[2px] rounded-sm transition-all`}
+                              style={{ 
+                                background: isActive ? `${brushColor}30` : "rgba(255,255,255,0.03)", 
+                                border: `1px solid ${isInvalid ? "#ef4444" : isActive ? brushColor : "rgba(255,255,255,0.1)"}`,
+                                borderTopWidth: isActive ? "3px" : "1px"
+                              }}
+                            >
+                              <span style={{ fontSize: "10px", fontWeight: "bold", color: isInvalid ? "#ef4444" : isActive ? brushColor : "rgba(255,255,255,0.7)" }}>
+                                Tàu {brushId}
+                              </span>
+                              <span style={{ fontSize: "9px", color: isInvalid ? "#ef4444" : "rgba(255,255,255,0.5)" }}>
+                                {count} {copy.cellsLabel || "ô"}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
                       <div
                         className="fleet-rule-panel"
                         style={{

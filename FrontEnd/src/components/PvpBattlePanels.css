@@ -616,9 +616,13 @@
    8. RESPONSIVE
 ───────────────────────────────────────────── */
 @media (max-width: 767px) {
+  .pvp-command-strip-wrapper {
+    margin-bottom: 4px;
+  }
+
   .pvp-command-strip {
-    padding: 8px 10px;
-    gap: 6px;
+    padding: 6px 8px;
+    gap: 4px;
     border-radius: 10px;
   }
 
@@ -627,13 +631,24 @@
     border-radius: 9px;
   }
 
+  .pvp-strip-info {
+    max-width: 80px;
+  }
+
   .pvp-strip-info > strong {
     font-size: 11px;
-    max-width: 70px;
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .pvp-strip-rank {
     font-size: 8px;
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .pvp-strip-fleet {
