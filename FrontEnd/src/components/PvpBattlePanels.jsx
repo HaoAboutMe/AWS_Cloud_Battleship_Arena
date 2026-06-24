@@ -266,9 +266,6 @@ export function PvpCommsPanel({
           >
             <span className="material-symbols-outlined" aria-hidden="true">forum</span>
             <span className="pvp-comms-tab-label">{copy.battleChat || "Chat"}</span>
-            {chatMessages.length > 0 && activeTab !== "chat" && (
-              <span className="pvp-comms-badge">{Math.min(chatMessages.length, 99)}</span>
-            )}
           </button>
         )}
 
