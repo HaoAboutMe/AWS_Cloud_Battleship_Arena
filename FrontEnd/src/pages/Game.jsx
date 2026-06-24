@@ -386,6 +386,7 @@ const GAME_COPY = {
     readyStatus: "Ready",
     shipsAfloat: "{count} ships afloat",
     unrankedLabel: "UNRANKED",
+    shipLabel: "Ship",
   },
   vi: {
     ready: "Sẵn sàng",
@@ -493,6 +494,7 @@ const GAME_COPY = {
     readyStatus: "Đã sẵn sàng",
     shipsAfloat: "Còn {count} tàu",
     unrankedLabel: "Chưa xếp hạng",
+    shipLabel: "Tàu",
   },
 };
 
@@ -4856,6 +4858,14 @@ function Game() {
                             const ok =
                               sz >= CUSTOM_SHIPYARD_MIN_SHIP_SIZE &&
                               sz <= CUSTOM_SHIPYARD_MAX_SHIP_SIZE;
+                            const brushId = customDrawBoard[comp[0].row][comp[0].col].shipBrushId;
+                            const colors = {
+                              1: { main: "#4ea8de", bg: "rgba(78,168,222,0.1)", border: "rgba(78,168,222,0.3)" },
+                              2: { main: "#4ade80", bg: "rgba(74,222,128,0.1)", border: "rgba(74,222,128,0.3)" },
+                              3: { main: "#fbbf24", bg: "rgba(251,191,36,0.1)", border: "rgba(251,191,36,0.3)" },
+                              4: { main: "#c084fc", bg: "rgba(192,132,252,0.1)", border: "rgba(192,132,252,0.3)" }
+                            };
+                            const theme = colors[brushId] || colors[1];
                             return (
                               <span
                                 key={idx}
@@ -4864,14 +4874,12 @@ function Game() {
                                   fontWeight: "bold",
                                   padding: "3px 8px",
                                   borderRadius: "4px",
-                                  border: `1px solid ${ok ? "rgba(34,197,94,0.3)" : "rgba(239,68,68,0.3)"}`,
-                                  background: ok
-                                    ? "rgba(34,197,94,0.06)"
-                                    : "rgba(239,68,68,0.06)",
-                                  color: ok ? "#22c55e" : "#ef4444",
+                                  border: `1px solid ${ok ? theme.border : "rgba(239,68,68,0.5)"}`,
+                                  background: ok ? theme.bg : "rgba(239,68,68,0.1)",
+                                  color: ok ? theme.main : "#ef4444",
                                 }}
                               >
-                                Ship {idx + 1}: {sz}{" "}
+                                {copy.shipLabel || "Ship"} {brushId}: {sz}{" "}
                                 {copy.cellsLabel || "cells"}
                               </span>
                             );
