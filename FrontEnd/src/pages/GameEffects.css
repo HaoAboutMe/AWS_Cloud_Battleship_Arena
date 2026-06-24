@@ -741,8 +741,16 @@
 
 @media (max-width: 767px) {
     .ocean-board-surface {
-        --cell-gap: 2px;
-        --cell-size: calc((100vw - 32px - 9 * var(--cell-gap)) / 10);
+        --cell-gap: 1px;
+        --cell-size: min(8.5vw, 36px, calc((100dvh - 360px) / 10));
+    }
+    
+    .pvp-game-main .ocean-board-surface {
+        --cell-size: min(8.5vw, 36px, calc((100dvh - 220px) / 10));
+    }
+    
+    .is-deploying .ocean-board-surface {
+        --cell-size: min(8.5vw, 36px, calc((100dvh - 380px) / 10));
     }
 }
 
@@ -946,6 +954,14 @@
     padding-right: 4px;
     scrollbar-width: thin;
     scrollbar-color: rgba(100, 200, 230, 0.3) transparent;
+}
+
+.mobile-fleet-tray {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+.mobile-fleet-tray::-webkit-scrollbar {
+    display: none;
 }
 
 .deployment-ship-grid::-webkit-scrollbar {
@@ -1257,7 +1273,8 @@
 
     .deployment-dock {
         height: auto;
-        min-height: 520px;
+        min-height: 140px;
+        padding: 8px 12px;
     }
 
     .auto-arrange-button {
@@ -1305,4 +1322,13 @@ box-shadow{
 
 .shot-hit {
     background: radial-gradient(circle at center, rgba(72, 19, 12, 0.3), transparent 66%);
+}
+
+/* Custom Shipyard Painted Cell */
+.ocean-cell.custom-painted-cell {
+    background: radial-gradient(circle at center, rgba(165, 231, 255, 0.8), rgba(65, 180, 220, 0.95)) !important;
+    border: 1px solid rgba(165, 231, 255, 1) !important;
+    box-shadow: 
+        0 0 12px rgba(165, 231, 255, 0.6), 
+        inset 0 0 6px rgba(255, 255, 255, 0.4) !important;
 }

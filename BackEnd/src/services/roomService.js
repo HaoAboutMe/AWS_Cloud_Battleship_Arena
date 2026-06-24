@@ -41,28 +41,45 @@ const validateFleetBoard = (board) => {
   let totalCells = 0;
 
   for (const ship of ships) {
-    const shipDef = SHIP_DEFS.find((candidate) => candidate.id === ship.shipTypeId);
-    if (!shipDef) {
-      throw createHttpError(400, `Unknown ship type: ${ship.shipTypeId || "missing"}.`);
-    }
-    if (usedShipTypes.has(shipDef.id)) {
-      throw createHttpError(400, `Ship type ${shipDef.id} can only be selected once.`);
-    }
     if (!Number.isInteger(ship.row) || !Number.isInteger(ship.col)) {
       throw createHttpError(400, "Ship coordinates must be integers.");
     }
-    if (!shipDef.rotations.includes(ship.rotation)) {
-      throw createHttpError(400, `Invalid rotation for ${shipDef.id}.`);
+
+    const isCustom = ship.shipTypeId === "custom" || (ship.baseOffsets && !SHIP_DEFS.some(candidate => candidate.id === ship.shipTypeId));
+    let shipSize = 0;
+    let offsets = [];
+
+    if (isCustom) {
+      if (!ship.baseOffsets || !Array.isArray(ship.baseOffsets) || ship.baseOffsets.length === 0) {
+        throw createHttpError(400, "Custom ship must have baseOffsets.");
+      }
+      shipSize = ship.baseOffsets.length;
+      if (shipSize < 2 || shipSize > 13) {
+        throw createHttpError(400, `Custom ship size must be between 2 and 13 cells. Found ${shipSize}.`);
+      }
+      offsets = ship.baseOffsets;
+    } else {
+      const shipDef = SHIP_DEFS.find((candidate) => candidate.id === ship.shipTypeId);
+      if (!shipDef) {
+        throw createHttpError(400, `Unknown ship type: ${ship.shipTypeId || "missing"}.`);
+      }
+      if (usedShipTypes.has(shipDef.id)) {
+        throw createHttpError(400, `Ship type ${shipDef.id} can only be selected once.`);
+      }
+      if (!shipDef.rotations.includes(ship.rotation)) {
+        throw createHttpError(400, `Invalid rotation for ${shipDef.id}.`);
+      }
+      usedShipTypes.add(shipDef.id);
+      shipSize = shipDef.size;
+      offsets = getShipOffsets(shipDef, ship.rotation);
     }
 
-    usedShipTypes.add(shipDef.id);
-    totalCells += shipDef.size;
-    const offsets = getShipOffsets(shipDef, ship.rotation);
+    totalCells += shipSize;
     for (const [rowOffset, colOffset] of offsets) {
       const row = ship.row + rowOffset;
       const col = ship.col + colOffset;
       if (row < 0 || col < 0 || row >= BOARD_SIZE || col >= BOARD_SIZE) {
-        throw createHttpError(400, `${shipDef.id} is outside the board.`);
+        throw createHttpError(400, "Ship is outside the board.");
       }
       const cellKey = `${row}:${col}`;
       if (occupiedCells.has(cellKey)) {

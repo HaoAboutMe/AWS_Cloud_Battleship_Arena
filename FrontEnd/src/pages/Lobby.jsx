@@ -129,7 +129,8 @@ function Lobby() {
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
   const [readyLoading, setReadyLoading] = useState(false);
-  const [hasPlayedMatchFoundSound, setHasPlayedMatchFoundSound] = useState(false);
+  const [hasPlayedMatchFoundSound, setHasPlayedMatchFoundSound] =
+    useState(false);
 
   const handleLogout = async () => {
     await logout();
@@ -305,7 +306,9 @@ function Lobby() {
     (roomPlayer) =>
       roomPlayer.userId === player.userId ||
       (roomPlayer.email && player.email && roomPlayer.email === player.email) ||
-      (roomPlayer.baseUserId && roomPlayer.baseUserId !== "guest" && roomPlayer.baseUserId === player.baseUserId),
+      (roomPlayer.baseUserId &&
+        roomPlayer.baseUserId !== "guest" &&
+        roomPlayer.baseUserId === player.baseUserId),
   );
 
   const isLobbyReady = Boolean(currentPlayerInRoom?.lobbyReady);
@@ -449,7 +452,9 @@ function Lobby() {
                             }}
                           />
                         ) : roomPlayer.isEmpty ? (
-                          <span className="material-symbols-outlined">person_add</span>
+                          <span className="material-symbols-outlined">
+                            person_add
+                          </span>
                         ) : (
                           <img src={COMMANDER_AVATAR} alt="" />
                         )}
@@ -474,7 +479,9 @@ function Lobby() {
             </div>
 
             {/* Right Column: Actions & Controls */}
-            <div className={`lobby-panel ${isMatchmakingRoom ? "is-matchmaking" : ""}`}>
+            <div
+              className={`lobby-panel ${isMatchmakingRoom ? "is-matchmaking" : ""}`}
+            >
               {isMatchmakingRoom ? (
                 <div className="lobby-matchmaking-display">
                   <span className="lobby-mode-kicker">{matchmakingLabel}</span>

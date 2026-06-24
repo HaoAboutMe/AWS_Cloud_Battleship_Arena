@@ -326,3 +326,34 @@ export function checkVictory(board) {
     }
     return true;
 }
+
+export function getConnectedComponents(board) {
+    const visited = Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill(false));
+    const components = [];
+    const dirs = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+
+    for (let r = 0; r < BOARD_SIZE; r++) {
+        for (let c = 0; c < BOARD_SIZE; c++) {
+            if (board[r][c].hasShip && !visited[r][c]) {
+                const comp = [];
+                const q = [[r, c]];
+                visited[r][c] = true;
+                while (q.length > 0) {
+                    const [cr, cc] = q.shift();
+                    comp.push({ row: cr, col: cc });
+                    for (const [dr, dc] of dirs) {
+                        const nr = cr + dr, nc = cc + dc;
+                        if (nr >= 0 && nr < BOARD_SIZE && nc >= 0 && nc < BOARD_SIZE) {
+                            if (board[nr][nc].hasShip && !visited[nr][nc]) {
+                                visited[nr][nc] = true;
+                                q.push([nr, nc]);
+                            }
+                        }
+                    }
+                }
+                components.push(comp);
+            }
+        }
+    }
+    return components;
+}

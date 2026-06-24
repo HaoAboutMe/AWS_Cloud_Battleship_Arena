@@ -1,9 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import "./PvpBattlePanels.css";
 
+// ─────────────────────────────────────────────
+//  Constants
+// ─────────────────────────────────────────────
 const EMOTES = ["🙂", "😎", "🫡", "🤔", "😮", "😤", "👏", "🔥", "🎯", "⚓", "💥", "🌊"];
 const FLEET_SIGNALS = ["🚢", "🛳️", "⛴️", "🛥️", "⚓", "🚀", "🎯", "💣"];
 
+// ─────────────────────────────────────────────
+//  Helpers
+// ─────────────────────────────────────────────
 const getInitials = (name = "Commander") =>
   name
     .split(/[\s@#._-]+/)
@@ -11,24 +17,6 @@ const getInitials = (name = "Commander") =>
     .slice(0, 2)
     .map((part) => part[0]?.toUpperCase())
     .join("") || "C";
-
-const CommanderAvatar = ({ player, tone = "cyan" }) => (
-  <div className={`pvp-avatar pvp-avatar-${tone}`}>
-    {player?.avatarUrl ? (
-      <img src={player.avatarUrl} alt="" />
-    ) : (
-      <span>{getInitials(player?.displayName)}</span>
-    )}
-    <i aria-hidden="true" />
-  </div>
-);
-
-const getStatusText = ({ copy, isConnected, isTurn, isDeploying, isReady }) => {
-  if (!isConnected) return copy.disconnectedStatus;
-  if (isReady) return copy.readyStatus;
-  if (isDeploying) return copy.deployingStatus;
-  return isTurn ? copy.yourTurnStatus : copy.opponentTurnStatus;
-};
 
 const formatTime = (value, language) => {
   const date = value ? new Date(value) : new Date();
@@ -40,85 +28,153 @@ const formatTime = (value, language) => {
   });
 };
 
-function PlayerIdentityPanel({
-  side,
-  player,
-  rankLabel,
-  isConnected,
-  isTurn,
-  isDeploying,
-  isReady,
-  shipsAfloat,
-  speechMessage,
-  copy,
-}) {
-  const isOpponent = side === "opponent";
-  const [hiddenSpeechId, setHiddenSpeechId] = useState(null);
-  const status = getStatusText({
-    copy,
-    isConnected,
-    isTurn,
-    isDeploying,
-    isReady,
-  });
-  const visibleSpeech =
-    speechMessage?.messageId !== hiddenSpeechId ? speechMessage : null;
-
-  useEffect(() => {
-    if (!speechMessage?.messageId) return undefined;
-    const messageId = speechMessage.messageId;
-    const timeoutId = window.setTimeout(() => setHiddenSpeechId(messageId), 6500);
-    return () => window.clearTimeout(timeoutId);
-  }, [speechMessage]);
-
+// ─────────────────────────────────────────────
+//  Mini Avatar (40px, inline in strip)
+// ─────────────────────────────────────────────
+function MiniAvatar({ player, tone = "cyan" }) {
   return (
-    <aside
-      className={`pvp-identity-panel is-${side}`}
-      aria-label={isOpponent ? copy.opponentPanel : copy.commanderPanel}
-    >
-      <span className="pvp-panel-kicker">
-        {isOpponent ? copy.opponentPanel : copy.commanderPanel}
-      </span>
-      <div className="pvp-avatar-stage">
-        <CommanderAvatar player={player} tone={isOpponent ? "red" : "cyan"} />
-        {visibleSpeech && (
-          <div
-            key={visibleSpeech.messageId}
-            className={`pvp-speech-bubble ${visibleSpeech.kind === "emote" ? "is-emote" : ""}`}
-            role="status"
-          >
-            {visibleSpeech.value}
-          </div>
-        )}
-      </div>
-      <strong title={player?.displayName}>
-        {player?.displayName || (isOpponent ? copy.waitingPlayer : "Commander")}
-      </strong>
-      <span className="pvp-rank-label">{rankLabel}</span>
-      <div
-        className={`pvp-channel-status ${isOpponent ? "is-hostile" : ""} ${isConnected ? "is-online" : ""} ${isReady ? "is-ready" : ""}`}
-      >
-        <i /> {status}
-      </div>
-      <div className="pvp-fleet-meter">
-        <span className="material-symbols-outlined" aria-hidden="true">
-          {isOpponent ? "radar" : "directions_boat"}
-        </span>
-        <b>{copy.shipsAfloat.replace("{count}", shipsAfloat)}</b>
-      </div>
-    </aside>
+    <div className={`pvp-mini-avatar pvp-mini-avatar-${tone}`}>
+      {player?.avatarUrl ? (
+        <img src={player.avatarUrl} alt="" />
+      ) : (
+        <span>{getInitials(player?.displayName)}</span>
+      )}
+    </div>
   );
 }
 
-export function PvpCommanderPanel(props) {
-  return <PlayerIdentityPanel side="commander" isTurn={props.isMyTurn} {...props} />;
+
+// ─────────────────────────────────────────────
+//  PvpCommandStrip — replaces the two side panels
+//  Layout: [Avatar | Name · Rank · ⚓Ships] ── [STATUS BADGE] ── [⚓Ships · Rank · Name | Avatar]
+// ─────────────────────────────────────────────
+export function PvpCommandStrip({
+  myPlayer,
+  myRankLabel,
+  myIsConnected,
+  myIsMyTurn,
+  myIsDeploying,
+  myIsReady,
+  myShipsAfloat,
+  oppPlayer,
+  oppRankLabel,
+  oppIsConnected,
+  oppIsTheirTurn,
+  oppIsDeploying,
+  oppIsReady,
+  oppShipsAfloat,
+  statusTextNode,
+  actionButtonNode,
+  copy,
+}) {
+  const myStatusDot = myIsConnected
+    ? myIsReady
+      ? "ready"
+      : myIsMyTurn
+        ? "turn"
+        : "online"
+    : "offline";
+
+  const oppStatusDot = oppIsConnected
+    ? oppIsReady
+      ? "ready"
+      : oppIsTheirTurn
+        ? "turn"
+        : "online"
+    : "offline";
+
+  const centerLabel = (() => {
+    if (myIsDeploying) return copy.deployingStatus || "Deploying";
+    if (myIsMyTurn) return copy.yourTurnStatus || "Your Turn";
+    if (oppIsTheirTurn) return copy.opponentTurnStatus || "Opponent Turn";
+    return "VS";
+  })();
+
+  const isBattlePhase = !myIsDeploying && !myIsReady;
+
+  return (
+    <div className="pvp-command-strip-wrapper" aria-label="Battle HUD">
+
+      <div className="pvp-command-strip flex flex-col gap-2">
+        <div className="pvp-command-strip-top">
+          {/* ── LEFT: Commander ── */}
+        <div className="pvp-strip-player pvp-strip-commander">
+          <div className="pvp-strip-avatar-wrap">
+            <MiniAvatar player={myPlayer} tone="cyan" />
+            <span className={`pvp-strip-dot is-${myStatusDot}`} aria-hidden="true" />
+          </div>
+          <div className="pvp-strip-info">
+            <strong title={myPlayer?.displayName}>
+              {myPlayer?.displayName || "Commander"}
+            </strong>
+            <span className="pvp-strip-rank">{myRankLabel}</span>
+          </div>
+
+        </div>
+
+        {/* ── CENTER: Status badge ── */}
+        <div
+          className={`pvp-strip-center ${
+            myIsMyTurn
+              ? "is-my-turn"
+              : oppIsTheirTurn
+                ? "is-opp-turn"
+                : myIsReady || myIsDeploying
+                  ? "is-deploying"
+                  : ""
+          }`}
+        >
+          {(myIsMyTurn || oppIsTheirTurn) && (
+            <span className="pvp-strip-center-pulse" aria-hidden="true" />
+          )}
+          <span className="pvp-strip-center-icon material-symbols-outlined" aria-hidden="true">
+            {myIsMyTurn ? "my_location" : oppIsTheirTurn ? "radar" : "anchor"}
+          </span>
+          <span className="pvp-strip-center-label">{centerLabel}</span>
+        </div>
+
+        {/* ── RIGHT: Opponent ── */}
+        <div className="pvp-strip-player pvp-strip-opponent">
+
+          <div className="pvp-strip-info pvp-strip-info-right">
+            <strong title={oppPlayer?.displayName}>
+              {oppPlayer?.displayName || (copy.waitingPlayer || "Waiting…")}
+            </strong>
+            <span className="pvp-strip-rank">{oppRankLabel}</span>
+          </div>
+          <div className="pvp-strip-avatar-wrap">
+            <MiniAvatar player={oppPlayer} tone="red" />
+            <span className={`pvp-strip-dot is-${oppStatusDot}`} aria-hidden="true" />
+          </div>
+        </div>
+        </div>
+
+        {/* ── BOTTOM: Status & Action ── */}
+        {(statusTextNode || actionButtonNode) && (
+          <div className="pvp-command-strip-bottom">
+            <div className="pvp-strip-status-text">
+              {statusTextNode}
+            </div>
+            {actionButtonNode && (
+              <div className="pvp-strip-action">
+                {actionButtonNode}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
 
-export function PvpOpponentPanel(props) {
-  return <PlayerIdentityPanel side="opponent" isTurn={props.isTheirTurn} {...props} />;
-}
-
-export function PvpBattleTools({
+// ─────────────────────────────────────────────
+//  PvpCommsPanel — replaces FABs + drawers
+//  Tabs: Chat | Log | Emotes
+//  Collapsed by default, expands on tab click
+// ─────────────────────────────────────────────
+export function PvpCommsPanel({
+  myPlayer,
+  oppPlayer,
   isConnected,
   logs,
   chatMessages,
@@ -126,24 +182,37 @@ export function PvpBattleTools({
   language,
   onSendChat,
   onSendEmote,
+  isPveMode = false,
 }) {
-  const [openDrawer, setOpenDrawer] = useState(null);
-  const [activeTab, setActiveTab] = useState("emotions");
+  const [activeTab, setActiveTab] = useState(
+    window.innerWidth < 1024 ? null : isPveMode ? "log" : "chat"
+  );
+  const [emoteTab, setEmoteTab] = useState("emotions");
   const [chatInput, setChatInput] = useState("");
   const chatFeedRef = useRef(null);
   const eventFeedRef = useRef(null);
 
+  // Auto-scroll feeds on new messages
   useEffect(() => {
-    if (openDrawer === "chat" && chatFeedRef.current) {
+    if (activeTab === "chat" && chatFeedRef.current) {
       chatFeedRef.current.scrollTop = chatFeedRef.current.scrollHeight;
     }
-    if (openDrawer === "log" && eventFeedRef.current) {
+    if (activeTab === "log" && eventFeedRef.current) {
       eventFeedRef.current.scrollTop = eventFeedRef.current.scrollHeight;
     }
-  }, [chatMessages, logs, openDrawer]);
+  }, [chatMessages, logs, activeTab]);
 
-  const toggleDrawer = (drawer) => {
-    setOpenDrawer((current) => (current === drawer ? null : drawer));
+  const toggleTab = (tab) => {
+    setActiveTab((cur) => {
+      // Don't allow collapsing on desktop where it's a sidebar.
+      // For mobile, maybe allow it, but for simplicity, just keep it open or switch tabs.
+      // We will let it toggle to null if we want, or just always be open.
+      // Let's just switch tabs. If they click the same tab, maybe we allow collapse on small screens.
+      if (window.innerWidth < 1024) {
+        return cur === tab ? null : tab;
+      }
+      return tab;
+    });
   };
 
   const submitChat = (event) => {
@@ -153,133 +222,257 @@ export function PvpBattleTools({
     if (onSendChat(message) !== false) setChatInput("");
   };
 
-  const signals = activeTab === "emotions" ? EMOTES : FLEET_SIGNALS;
+  const signals = emoteTab === "emotions" ? EMOTES : FLEET_SIGNALS;
+  const isExpanded = activeTab !== null;
 
   return (
     <>
-      <button
-        type="button"
-        className={`pvp-tool-launcher is-chat ${openDrawer === "chat" ? "is-active" : ""}`}
-        onClick={() => toggleDrawer("chat")}
-        title={copy.battleChat}
-        aria-label={copy.battleChat}
-        aria-expanded={openDrawer === "chat"}
+      {isExpanded && (
+        <div 
+          className="fixed inset-0 z-[-1] lg:hidden bg-background/80 backdrop-blur-sm transition-opacity"
+          style={{ height: "100vh", width: "100vw" }}
+          onClick={() => setActiveTab(null)}
+          aria-hidden="true"
+        />
+      )}
+      <section
+        className={`pvp-comms-panel ${isExpanded ? "is-expanded" : ""}`}
+        aria-label="Battle Communications"
       >
-        <span className="material-symbols-outlined" aria-hidden="true">forum</span>
-      </button>
+      {/* ── Tab Bar (always visible) ── */}
+      <div className="pvp-comms-tabbar" role="tablist">
+        {!isPveMode && (
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === "chat"}
+            className={`pvp-comms-tab ${activeTab === "chat" ? "is-active" : ""}`}
+            onClick={() => toggleTab("chat")}
+            title={copy.battleChat}
+          >
+            <span className="material-symbols-outlined" aria-hidden="true">forum</span>
+            <span className="pvp-comms-tab-label">{copy.battleChat || "Chat"}</span>
+            {chatMessages.length > 0 && activeTab !== "chat" && (
+              <span className="pvp-comms-badge">{Math.min(chatMessages.length, 99)}</span>
+            )}
+          </button>
+        )}
 
-      <button
-        type="button"
-        className={`pvp-tool-launcher is-log ${openDrawer === "log" ? "is-active" : ""}`}
-        onClick={() => toggleDrawer("log")}
-        title={copy.eventLog}
-        aria-label={copy.eventLog}
-        aria-expanded={openDrawer === "log"}
-      >
-        <span className="material-symbols-outlined" aria-hidden="true">receipt_long</span>
-      </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeTab === "log"}
+          className={`pvp-comms-tab ${activeTab === "log" ? "is-active" : ""}`}
+          onClick={() => toggleTab("log")}
+          title={copy.eventLog}
+        >
+          <span className="material-symbols-outlined" aria-hidden="true">receipt_long</span>
+          <span className="pvp-comms-tab-label">{copy.eventLog || "Log"}</span>
+        </button>
 
-      {openDrawer === "chat" && (
-        <aside className="pvp-tool-drawer is-left" aria-label={copy.battleChat}>
-          <header className="pvp-drawer-header">
-            <span><span className="material-symbols-outlined" aria-hidden="true">forum</span>{copy.battleChat}</span>
-            <button type="button" onClick={() => setOpenDrawer(null)} aria-label="Close">
-              <span className="material-symbols-outlined" aria-hidden="true">close</span>
-            </button>
-          </header>
+        {!isPveMode && (
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === "emotes"}
+            className={`pvp-comms-tab ${activeTab === "emotes" ? "is-active" : ""}`}
+            onClick={() => toggleTab("emotes")}
+            title={copy.emotionsTab}
+          >
+            <span className="material-symbols-outlined" aria-hidden="true">mood</span>
+            <span className="pvp-comms-tab-label">{copy.emotionsTab || "Emotes"}</span>
+          </button>
+        )}
 
-          <section className="battle-emote-panel">
-            <div className="pvp-panel-tabs" role="tablist">
-              <button
-                type="button"
-                className={activeTab === "emotions" ? "is-active" : ""}
-                onClick={() => setActiveTab("emotions")}
-              >
-                {copy.emotionsTab}
-              </button>
-              <button
-                type="button"
-                className={activeTab === "ships" ? "is-active" : ""}
-                onClick={() => setActiveTab("ships")}
-              >
-                {copy.shipsTab}
-              </button>
-            </div>
-            <div className="pvp-emote-grid">
-              {signals.map((signal, index) => (
-                <button
-                  key={`${signal}-${index}`}
-                  type="button"
-                  title={signal}
+        {isExpanded && (
+          <button
+            type="button"
+            className="pvp-comms-collapse"
+            onClick={() => setActiveTab(null)}
+            aria-label="Collapse panel"
+          >
+            <span className="material-symbols-outlined" aria-hidden="true">keyboard_arrow_down</span>
+          </button>
+        )}
+      </div>
+
+      {/* ── Expandable Body ── */}
+      {isExpanded && (
+        <div className="pvp-comms-body">
+          {/* CHAT TAB */}
+          {activeTab === "chat" && (
+            <>
+              <div ref={chatFeedRef} className="pvp-comms-feed flex flex-col px-3 py-4">
+                {chatMessages.length === 0 ? (
+                  <p className="pvp-comms-empty">{copy.awaitingSignal || "Awaiting signals…"}</p>
+                ) : (
+                  chatMessages.slice(-60).map((msg, idx, arr) => {
+                    const prevMsg = idx > 0 ? arr[idx - 1] : null;
+                    const nextMsg = idx < arr.length - 1 ? arr[idx + 1] : null;
+
+                    const isSameSenderAsPrev = prevMsg && prevMsg.side === msg.side;
+                    const isSameSenderAsNext = nextMsg && nextMsg.side === msg.side;
+                    const isPlayer = msg.side === "player";
+
+                    return (
+                      <div
+                        key={msg.messageId}
+                        className={`flex flex-col w-full ${isSameSenderAsPrev ? "mt-[2px]" : "mt-4"}`}
+                      >
+                        {/* Sender Name (above bubble and avatar) */}
+                        {!isSameSenderAsPrev && (
+                          <span 
+                            className={`text-[10px] text-on-surface-variant/70 mb-[2px] px-1 font-medium tracking-wide uppercase ${
+                              isPlayer ? "text-right mr-10" : "text-left ml-10"
+                            }`}
+                          >
+                            {msg.senderName} • {formatTime(msg.sentAt, language)}
+                          </span>
+                        )}
+
+                        {/* Avatar & Bubble Row */}
+                        <div className={`flex w-full ${isPlayer ? "justify-end" : "justify-start"}`}>
+                          {/* Opponent Avatar Column (Left) */}
+                          {!isPlayer && (
+                            <div 
+                              className="flex-shrink-0 w-8 flex flex-col justify-start mr-2" 
+                              style={{ "--avatar-size": "32px" }}
+                            >
+                              {!isSameSenderAsPrev && (
+                                <MiniAvatar player={oppPlayer} tone="red" />
+                              )}
+                            </div>
+                          )}
+
+                          {/* Message Content */}
+                          <div
+                            className={`flex flex-col max-w-[75%] ${
+                              isPlayer ? "items-end" : "items-start"
+                            }`}
+                          >
+                          <div
+                            className={`px-3 py-2 text-sm shadow-md transition-all ${
+                              isPlayer
+                                ? "bg-[#0b5478]/90 text-[#e2f7ff] border border-[#21a1d1]/30"
+                                : "bg-[#252836]/95 text-[#f1f1f1] border border-[#ffffff]/10"
+                            } ${
+                              isPlayer
+                                ? `rounded-l-2xl ${
+                                    !isSameSenderAsPrev ? "rounded-tr-2xl" : "rounded-tr-md"
+                                  } ${!isSameSenderAsNext ? "rounded-br-2xl" : "rounded-br-md"}`
+                                : `rounded-r-2xl ${
+                                    !isSameSenderAsPrev ? "rounded-tl-2xl" : "rounded-tl-md"
+                                  } ${!isSameSenderAsNext ? "rounded-bl-2xl" : "rounded-bl-md"}`
+                            }`}
+                          >
+                            {msg.kind === "emote" ? (
+                              <span className="text-3xl leading-none filter drop-shadow-sm">{msg.value}</span>
+                            ) : (
+                              <span className="break-words leading-relaxed">{msg.value}</span>
+                            )}
+                          </div>
+                          </div>
+
+                          {/* Player Avatar Column (Right) */}
+                          {isPlayer && (
+                            <div 
+                              className="flex-shrink-0 w-8 flex flex-col justify-start ml-2" 
+                              style={{ "--avatar-size": "32px" }}
+                            >
+                              {!isSameSenderAsPrev && (
+                                <MiniAvatar player={myPlayer} tone="cyan" />
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+              <form className="pvp-comms-form" onSubmit={submitChat}>
+                <input
+                  value={chatInput}
+                  maxLength={180}
                   disabled={!isConnected}
-                  onClick={() => onSendEmote(signal)}
+                  onChange={(e) => setChatInput(e.target.value)}
+                  placeholder={copy.chatPlaceholder || "Send a message…"}
+                  aria-label={copy.chatPlaceholder}
+                />
+                <button
+                  type="submit"
+                  disabled={!isConnected || !chatInput.trim()}
+                  title={copy.sendChat}
+                  aria-label={copy.sendChat}
                 >
-                  {signal}
+                  <span className="material-symbols-outlined" aria-hidden="true">send</span>
                 </button>
-              ))}
+              </form>
+            </>
+          )}
+
+          {/* LOG TAB */}
+          {activeTab === "log" && (
+            <div ref={eventFeedRef} className="pvp-comms-feed">
+              {logs.length === 0 ? (
+                <p className="pvp-comms-empty">{copy.awaitingSignal || "Awaiting signals…"}</p>
+              ) : (
+                logs.slice(-80).map((log) => (
+                  <div key={log.id} className={`pvp-event-entry is-${log.type || "info"}`}>
+                    <time>{formatTime(log.timestamp, language)}</time>
+                    <span>{log.msg}</span>
+                  </div>
+                ))
+              )}
             </div>
-          </section>
+          )}
 
-          <div ref={chatFeedRef} className="pvp-chat-feed">
-            {chatMessages.length === 0 ? (
-              <p className="pvp-empty-feed">{copy.awaitingSignal}</p>
-            ) : (
-              chatMessages.slice(-60).map((message) => (
-                <div
-                  key={message.messageId}
-                  className={`pvp-feed-entry ${message.side === "player" ? "is-player" : "is-opponent"}`}
+          {/* EMOTES TAB */}
+          {activeTab === "emotes" && (
+            <div className="pvp-comms-emotes">
+              <div className="pvp-emote-tabs" role="tablist">
+                <button
+                  type="button"
+                  className={emoteTab === "emotions" ? "is-active" : ""}
+                  onClick={() => setEmoteTab("emotions")}
                 >
-                  <time>{formatTime(message.sentAt, language)}</time>
-                  <b>{message.senderName}</b>
-                  <span className={message.kind === "emote" ? "is-emote" : ""}>{message.value}</span>
-                </div>
-              ))
-            )}
-          </div>
-
-          <form className="pvp-chat-form" onSubmit={submitChat}>
-            <input
-              value={chatInput}
-              maxLength={180}
-              disabled={!isConnected}
-              onChange={(event) => setChatInput(event.target.value)}
-              placeholder={copy.chatPlaceholder}
-              aria-label={copy.chatPlaceholder}
-            />
-            <button
-              type="submit"
-              disabled={!isConnected || !chatInput.trim()}
-              title={copy.sendChat}
-              aria-label={copy.sendChat}
-            >
-              <span className="material-symbols-outlined" aria-hidden="true">send</span>
-            </button>
-          </form>
-        </aside>
+                  {copy.emotionsTab || "Emotions"}
+                </button>
+                <button
+                  type="button"
+                  className={emoteTab === "ships" ? "is-active" : ""}
+                  onClick={() => setEmoteTab("ships")}
+                >
+                  {copy.shipsTab || "Fleet signals"}
+                </button>
+              </div>
+              <div className="pvp-emote-grid">
+                {signals.map((signal, index) => (
+                  <button
+                    key={`${signal}-${index}`}
+                    type="button"
+                    title={signal}
+                    disabled={!isConnected}
+                    onClick={() => onSendEmote(signal)}
+                  >
+                    {signal}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
       )}
-
-      {openDrawer === "log" && (
-        <aside className="pvp-tool-drawer is-right" aria-label={copy.eventLog}>
-          <header className="pvp-drawer-header">
-            <span><span className="material-symbols-outlined" aria-hidden="true">receipt_long</span>{copy.eventLog}</span>
-            <button type="button" onClick={() => setOpenDrawer(null)} aria-label="Close">
-              <span className="material-symbols-outlined" aria-hidden="true">close</span>
-            </button>
-          </header>
-          <div ref={eventFeedRef} className="pvp-event-feed">
-            {logs.length === 0 ? (
-              <p className="pvp-empty-feed">{copy.awaitingSignal}</p>
-            ) : (
-              logs.slice(-80).map((log) => (
-                <div key={log.id} className={`pvp-event-entry is-${log.type || "info"}`}>
-                  <time>{formatTime(log.timestamp, language)}</time>
-                  <span>{log.msg}</span>
-                </div>
-              ))
-            )}
-          </div>
-        </aside>
-      )}
+    </section>
     </>
   );
 }
+
+// ─────────────────────────────────────────────
+//  Legacy exports kept for backward-compat
+//  (Game.jsx will import new names, but keep
+//   these so no other file breaks)
+// ─────────────────────────────────────────────
+export function PvpCommanderPanel() { return null; }
+export function PvpOpponentPanel() { return null; }
+export function PvpBattleTools() { return null; }
