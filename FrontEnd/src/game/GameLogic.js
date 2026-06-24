@@ -337,6 +337,7 @@ export function getConnectedComponents(board) {
             if (board[r][c].hasShip && !visited[r][c]) {
                 const comp = [];
                 const q = [[r, c]];
+                const brushId = board[r][c].shipBrushId;
                 visited[r][c] = true;
                 while (q.length > 0) {
                     const [cr, cc] = q.shift();
@@ -344,7 +345,7 @@ export function getConnectedComponents(board) {
                     for (const [dr, dc] of dirs) {
                         const nr = cr + dr, nc = cc + dc;
                         if (nr >= 0 && nr < BOARD_SIZE && nc >= 0 && nc < BOARD_SIZE) {
-                            if (board[nr][nc].hasShip && !visited[nr][nc]) {
+                            if (board[nr][nc].hasShip && !visited[nr][nc] && board[nr][nc].shipBrushId === brushId) {
                                 visited[nr][nc] = true;
                                 q.push([nr, nc]);
                             }

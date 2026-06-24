@@ -310,6 +310,7 @@ const GAME_COPY = {
     totalShots: "Total Shots",
     hitsMisses: "Hits / Misses",
     accuracy: "Accuracy",
+    reason: "Reason",
     rankedResult: "Ranked Result",
     victoryLog: "VICTORY! Enemy fleet destroyed!",
     defeatLog: "DEFEAT! Your fleet was destroyed.",
@@ -385,6 +386,7 @@ const GAME_COPY = {
     readyStatus: "Ready",
     shipsAfloat: "{count} ships afloat",
     unrankedLabel: "UNRANKED",
+    shipLabel: "Ship",
   },
   vi: {
     ready: "Sẵn sàng",
@@ -416,10 +418,11 @@ const GAME_COPY = {
     totalShots: "Tổng phát bắn",
     hitsMisses: "Trúng / Trượt",
     accuracy: "Độ chính xác",
+    reason: "Lý do",
     rankedResult: "Kết quả xếp hạng",
     victoryLog: "CHIẾN THẮNG! Hạm đội đối phương đã bị tiêu diệt!",
     defeatLog: "THẤT BẠI! Hạm đội của bạn đã bị tiêu diệt.",
-    sectorSecured: "Khu vực đã được bảo toàn!",
+    sectorSecured: "Đánh chiếm quá hay!",
     fleetAnnihilated: "Hạm đội bị tiêu diệt!",
     customShipyardToggle: "Xưởng Đóng Tàu",
     customShipyardToggleBack: "Chế độ thường",
@@ -478,8 +481,8 @@ const GAME_COPY = {
     emotionsTab: "Biểu cảm",
     shipsTab: "Tín hiệu hạm đội",
     chatEventLog: "Chat & nhật ký trận",
-    battleChat: "Chat",
-    eventLog: "Nhật Ký",
+    battleChat: "Trò Chuyện",
+    eventLog: "Nhật Ký Trận",
     chatPlaceholder: "Gửi thông điệp chiến thuật...",
     sendChat: "Gửi tin nhắn",
     awaitingSignal: "Đang chờ tín hiệu chiến đấu...",
@@ -487,10 +490,11 @@ const GAME_COPY = {
     disconnectedStatus: "Kênh mất kết nối",
     yourTurnStatus: "Lượt của bạn",
     opponentTurnStatus: "Lượt đối thủ",
-    deployingStatus: "Đang dàn trận",
+    deployingStatus: "Đang xếp tàu",
     readyStatus: "Đã sẵn sàng",
     shipsAfloat: "Còn {count} tàu",
     unrankedLabel: "Chưa xếp hạng",
+    shipLabel: "Tàu",
   },
 };
 
@@ -619,6 +623,7 @@ function Game() {
 
   const [gameState, setGameState] = useState("PLACEMENT"); // PLACEMENT, READY, PLAYER_TURN, BOT_TURN, GAME_OVER
   const [isCustomShipyardActive, setIsCustomShipyardActive] = useState(false);
+  const [activeShipBrush, setActiveShipBrush] = useState(1);
   const [customDrawBoard, setCustomDrawBoard] = useState(() => createBoard());
   const [customShipyardValidation, setCustomShipyardValidation] = useState("");
   const [playerBoard, setPlayerBoard] = useState(createBoard());
@@ -676,6 +681,9 @@ function Game() {
   const customDrawCellCount = customDrawBoard
     .flat()
     .filter((c) => c.hasShip).length;
+  const customBrushCounts = [1, 2, 3, 4].map(
+    (brushId) => customDrawBoard.flat().filter((c) => c.hasShip && c.shipBrushId === brushId).length
+  );
   const customComponents = isCustomShipyardActive
     ? getConnectedComponents(customDrawBoard)
     : [];
@@ -779,6 +787,7 @@ function Game() {
   const [exitPromptOpen, setExitPromptOpen] = useState(false);
   const [pendingExitTarget, setPendingExitTarget] = useState("/");
   const [gameOverReason, setGameOverReason] = useState("");
+  const [gameOverSubMessage, setGameOverSubMessage] = useState("");
   const [rematchLoading, setRematchLoading] = useState(false);
   const [chatMessages, setChatMessages] = useState([]);
   const latestPlayerSignal = useMemo(
@@ -1385,8 +1394,18 @@ function Game() {
       addLog(leaveError.message || "Unable to leave room cleanly.", "warning");
     }
     setExitPromptOpen(false);
-    navigate(pendingExitTarget || "/");
-  }, [addLog, leavePvpRoomCleanly, navigate, notifyPvpExit, pendingExitTarget]);
+    
+    // Instead of navigate, we set Game Over state for player A
+    gameStateRef.current = "GAME_OVER";
+    setGameOverReason("player_left");
+    setGameOverSubMessage("Bạn đã rời trận");
+    setGameState("GAME_OVER");
+    setWinner("BOT"); // This triggers a Lose popup (since winner !== "PLAYER")
+    releaseShotLock();
+    playSound("defeat", { minGap: 1000 });
+    addLog("Bạn đã rời trận.", "warning");
+    setShowModal(true);
+  }, [addLog, leavePvpRoomCleanly, notifyPvpExit, releaseShotLock]);
 
   const handlePlayAgain = useCallback(async () => {
     setRankedResult(null);
@@ -2020,6 +2039,7 @@ function Game() {
 
   const endGame = useCallback(
     (isPlayerVictory) => {
+      if (gameStateRef.current === "GAME_OVER") return;
       setGameOverReason("");
       gameStateRef.current = "GAME_OVER";
       setGameState("GAME_OVER");
@@ -2039,9 +2059,9 @@ function Game() {
   );
 
   const handleOpponentLeft = useCallback(() => {
-    if (gameStateRef.current === "GAME_OVER") return;
     gameStateRef.current = "GAME_OVER";
     setGameOverReason("opponent_left");
+    setGameOverSubMessage("Đối phương rời trận");
     setGameState("GAME_OVER");
     setWinner("PLAYER");
     releaseShotLock();
@@ -2540,6 +2560,17 @@ function Game() {
           if (payload.type === "GAME_OVER") {
             const currentPlayerId = getRoomPlayerKey(getCurrentRoomPlayer());
             const isVictory = payload.winnerId === currentPlayerId;
+
+            // If game is over during placement/ready, it means the opponent aborted the match.
+            // (Player A who clicked exit would already have gameState = "GAME_OVER")
+            if (
+              gameStateRef.current === "PLACEMENT" ||
+              gameStateRef.current === "READY"
+            ) {
+              handleOpponentLeftRef.current?.();
+              return;
+            }
+
             if (payload.rankedResult) {
               const result = payload.rankedResult;
               const currentResult = isVictory ? result.winner : result.loser;
@@ -2556,7 +2587,6 @@ function Game() {
           if (payload.type === "PVP_PLAYER_LEFT") {
             const currentPlayerId = getRoomPlayerKey(getCurrentRoomPlayer());
             if (
-              payload.reason === "intentional_exit" &&
               payload.playerId &&
               payload.playerId !== currentPlayerId
             ) {
@@ -3180,8 +3210,26 @@ function Game() {
     if (isPlacementLocked) return;
     if (gameState !== "PLACEMENT" && gameState !== "READY") return;
     setCustomDrawBoard((prev) => {
+      const currentCell = prev[r][c];
+      const isTryingToPaint = customPaintValueRef.current;
+      
+      if (isTryingToPaint) {
+        if (currentCell.hasShip && currentCell.shipBrushId === activeShipBrush) return prev;
+        const currentBrushCellsList = prev.flat().filter(cell => cell.hasShip && cell.shipBrushId === activeShipBrush);
+        if (currentBrushCellsList.length > 0 && currentCell.shipBrushId !== activeShipBrush) {
+          const isAdjacent = currentBrushCellsList.some(cell => Math.abs(cell.row - r) + Math.abs(cell.col - c) === 1);
+          if (!isAdjacent) return prev;
+        }
+        const totalPaintedCells = prev.flat().filter(cell => cell.hasShip).length;
+        const currentBrushCells = currentBrushCellsList.length;
+        const isNewCell = !currentCell.hasShip;
+        if (isNewCell && totalPaintedCells >= 15) return prev;
+        if (currentBrushCells >= 13 && currentCell.shipBrushId !== activeShipBrush) return prev;
+      }
+
       const next = prev.map((row) => row.map((cell) => ({ ...cell })));
-      next[r][c].hasShip = customPaintValueRef.current;
+      next[r][c].hasShip = isTryingToPaint;
+      next[r][c].shipBrushId = isTryingToPaint ? activeShipBrush : null;
       return next;
     });
   };
@@ -3190,8 +3238,26 @@ function Game() {
     if (isPlacementLocked) return;
     if (gameState !== "PLACEMENT" && gameState !== "READY") return;
     setCustomDrawBoard((prev) => {
+      const currentCell = prev[r][c];
+      const isSameBrush = currentCell.hasShip && currentCell.shipBrushId === activeShipBrush;
+      const isTryingToPaint = !isSameBrush;
+
+      if (isTryingToPaint) {
+        const currentBrushCellsList = prev.flat().filter(cell => cell.hasShip && cell.shipBrushId === activeShipBrush);
+        if (currentBrushCellsList.length > 0 && currentCell.shipBrushId !== activeShipBrush) {
+          const isAdjacent = currentBrushCellsList.some(cell => Math.abs(cell.row - r) + Math.abs(cell.col - c) === 1);
+          if (!isAdjacent) return prev;
+        }
+        const totalPaintedCells = prev.flat().filter(cell => cell.hasShip).length;
+        const currentBrushCells = currentBrushCellsList.length;
+        const isNewCell = !currentCell.hasShip;
+        if (isNewCell && totalPaintedCells >= 15) return prev;
+        if (currentBrushCells >= 13 && currentCell.shipBrushId !== activeShipBrush) return prev;
+      }
+
       const next = prev.map((row) => row.map((cell) => ({ ...cell })));
-      next[r][c].hasShip = !next[r][c].hasShip;
+      next[r][c].hasShip = isTryingToPaint;
+      next[r][c].shipBrushId = isTryingToPaint ? activeShipBrush : null;
       return next;
     });
   };
@@ -3200,11 +3266,27 @@ function Game() {
     if (isPlacementLocked || isMobile) return;
     if (gameState !== "PLACEMENT" && gameState !== "READY") return;
     e.preventDefault();
-    // Determine paint value from the cell being clicked (toggle mode for first cell)
     setCustomDrawBoard((prev) => {
-      customPaintValueRef.current = !prev[r][c].hasShip;
+      const currentCell = prev[r][c];
+      const isSameBrush = currentCell.hasShip && currentCell.shipBrushId === activeShipBrush;
+      customPaintValueRef.current = !isSameBrush;
+
+      if (customPaintValueRef.current) {
+        const currentBrushCellsList = prev.flat().filter(cell => cell.hasShip && cell.shipBrushId === activeShipBrush);
+        if (currentBrushCellsList.length > 0 && currentCell.shipBrushId !== activeShipBrush) {
+          const isAdjacent = currentBrushCellsList.some(cell => Math.abs(cell.row - r) + Math.abs(cell.col - c) === 1);
+          if (!isAdjacent) return prev;
+        }
+        const totalPaintedCells = prev.flat().filter(cell => cell.hasShip).length;
+        const currentBrushCells = currentBrushCellsList.length;
+        const isNewCell = !currentCell.hasShip;
+        if (isNewCell && totalPaintedCells >= 15) return prev;
+        if (currentBrushCells >= 13 && currentCell.shipBrushId !== activeShipBrush) return prev;
+      }
+
       const next = prev.map((row) => row.map((cell) => ({ ...cell })));
       next[r][c].hasShip = customPaintValueRef.current;
+      next[r][c].shipBrushId = customPaintValueRef.current ? activeShipBrush : null;
       return next;
     });
     isCustomPaintingRef.current = true;
@@ -3221,9 +3303,26 @@ function Game() {
     if (gameState !== "PLACEMENT" && gameState !== "READY") return;
     e.preventDefault();
     setCustomDrawBoard((prev) => {
-      customPaintValueRef.current = !prev[r][c].hasShip;
+      const currentCell = prev[r][c];
+      const isSameBrush = currentCell.hasShip && currentCell.shipBrushId === activeShipBrush;
+      customPaintValueRef.current = !isSameBrush;
+
+      if (customPaintValueRef.current) {
+        const currentBrushCellsList = prev.flat().filter(cell => cell.hasShip && cell.shipBrushId === activeShipBrush);
+        if (currentBrushCellsList.length > 0 && currentCell.shipBrushId !== activeShipBrush) {
+          const isAdjacent = currentBrushCellsList.some(cell => Math.abs(cell.row - r) + Math.abs(cell.col - c) === 1);
+          if (!isAdjacent) return prev;
+        }
+        const totalPaintedCells = prev.flat().filter(cell => cell.hasShip).length;
+        const currentBrushCells = currentBrushCellsList.length;
+        const isNewCell = !currentCell.hasShip;
+        if (isNewCell && totalPaintedCells >= 15) return prev;
+        if (currentBrushCells >= 13 && currentCell.shipBrushId !== activeShipBrush) return prev;
+      }
+
       const next = prev.map((row) => row.map((cell) => ({ ...cell })));
       next[r][c].hasShip = customPaintValueRef.current;
+      next[r][c].shipBrushId = customPaintValueRef.current ? activeShipBrush : null;
       return next;
     });
     isCustomPaintingRef.current = true;
@@ -4089,9 +4188,9 @@ function Game() {
                         handleCustomBoardTouchMove(e, playerBoardRef)
                       }
                       onTouchEnd={stopCustomPainting}
-                      className={`ocean-cell relative overflow-visible ${isPlacementLocked ? "cursor-default" : "cursor-crosshair"} ${isPainted ? "custom-painted-cell" : "bg-surface-container/50"}`}
+                      className={`ocean-cell relative overflow-visible ${isPlacementLocked ? "cursor-default" : "cursor-crosshair"} ${!isPainted ? "bg-surface-container/50" : `custom-painted-cell-${cell.shipBrushId}`}`}
                       style={{
-                        transition: "background 0.1s",
+                        transition: "background 0.1s, border 0.1s, box-shadow 0.1s",
                         userSelect: "none",
                         touchAction: "none",
                       }}
@@ -4631,19 +4730,35 @@ function Game() {
                         paddingRight: "2px",
                       }}
                     >
-                      <p
-                        className="hidden md:block"
-                        style={{
-                          fontSize: "11px",
-                          color: "rgba(255,255,255,0.45)",
-                          lineHeight: "1.4",
-                        }}
-                      >
-                        {copy.customShipyardHint ||
-                          "Paint your fleet directly on the board. Click or drag to toggle cells."}
-                      </p>
-
-                      {/* Stats Card */}
+                      {/* Brush Toolbar */}
+                      <div className="flex gap-[4px] w-full">
+                        {[1, 2, 3, 4].map(brushId => {
+                          const count = customBrushCounts[brushId - 1];
+                          const isActive = activeShipBrush === brushId;
+                          const isInvalid = count > 0 && (count < CUSTOM_SHIPYARD_MIN_SHIP_SIZE || count > CUSTOM_SHIPYARD_MAX_SHIP_SIZE);
+                          const colors = ["#4ea8de", "#4ade80", "#fbbf24", "#c084fc"];
+                          const brushColor = colors[brushId - 1];
+                          return (
+                            <button
+                              key={brushId}
+                              onClick={(e) => { e.stopPropagation(); setActiveShipBrush(brushId); }}
+                              className={`flex-1 flex flex-col items-center justify-center py-[2px] rounded-sm transition-all`}
+                              style={{ 
+                                background: isActive ? `${brushColor}30` : "rgba(255,255,255,0.03)", 
+                                border: `1px solid ${isInvalid ? "#ef4444" : isActive ? brushColor : "rgba(255,255,255,0.1)"}`,
+                                borderTopWidth: isActive ? "3px" : "1px"
+                              }}
+                            >
+                              <span style={{ fontSize: "10px", fontWeight: "bold", color: isInvalid ? "#ef4444" : isActive ? brushColor : "rgba(255,255,255,0.7)" }}>
+                                Tàu {brushId}
+                              </span>
+                              <span style={{ fontSize: "9px", color: isInvalid ? "#ef4444" : "rgba(255,255,255,0.5)" }}>
+                                {count} {copy.cellsLabel || "ô"}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
                       <div
                         className="fleet-rule-panel"
                         style={{
@@ -4743,6 +4858,14 @@ function Game() {
                             const ok =
                               sz >= CUSTOM_SHIPYARD_MIN_SHIP_SIZE &&
                               sz <= CUSTOM_SHIPYARD_MAX_SHIP_SIZE;
+                            const brushId = customDrawBoard[comp[0].row][comp[0].col].shipBrushId;
+                            const colors = {
+                              1: { main: "#4ea8de", bg: "rgba(78,168,222,0.1)", border: "rgba(78,168,222,0.3)" },
+                              2: { main: "#4ade80", bg: "rgba(74,222,128,0.1)", border: "rgba(74,222,128,0.3)" },
+                              3: { main: "#fbbf24", bg: "rgba(251,191,36,0.1)", border: "rgba(251,191,36,0.3)" },
+                              4: { main: "#c084fc", bg: "rgba(192,132,252,0.1)", border: "rgba(192,132,252,0.3)" }
+                            };
+                            const theme = colors[brushId] || colors[1];
                             return (
                               <span
                                 key={idx}
@@ -4751,14 +4874,12 @@ function Game() {
                                   fontWeight: "bold",
                                   padding: "3px 8px",
                                   borderRadius: "4px",
-                                  border: `1px solid ${ok ? "rgba(34,197,94,0.3)" : "rgba(239,68,68,0.3)"}`,
-                                  background: ok
-                                    ? "rgba(34,197,94,0.06)"
-                                    : "rgba(239,68,68,0.06)",
-                                  color: ok ? "#22c55e" : "#ef4444",
+                                  border: `1px solid ${ok ? theme.border : "rgba(239,68,68,0.5)"}`,
+                                  background: ok ? theme.bg : "rgba(239,68,68,0.1)",
+                                  color: ok ? theme.main : "#ef4444",
                                 }}
                               >
-                                Ship {idx + 1}: {sz}{" "}
+                                {copy.shipLabel || "Ship"} {brushId}: {sz}{" "}
                                 {copy.cellsLabel || "cells"}
                               </span>
                             );
@@ -5208,6 +5329,7 @@ function Game() {
         showModal={showModal}
         winner={winner}
         gameOverReason={gameOverReason}
+        subMessage={gameOverSubMessage}
         copy={copy}
         difficulty={difficulty}
         isPvpMode={isPvpMode}

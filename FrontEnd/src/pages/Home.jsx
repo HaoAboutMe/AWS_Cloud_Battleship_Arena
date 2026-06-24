@@ -7,6 +7,34 @@ import { findMatch, getRoom, leaveRoom } from "../services/matchService";
 import { getUserProfile } from "../services/userService";
 import "./HomeHeader.css";
 import "./Home.css";
+import bronzeBadge from '../assets/badge/bronze.png';
+import silverBadge from '../assets/badge/silver.png';
+import goldBadge from '../assets/badge/gold.png';
+import platinumBadge from '../assets/badge/platinum.png';
+import diamondBadge from '../assets/badge/diamond.png';
+import masterBadge from '../assets/badge/master.png';
+import admiralBadge from '../assets/badge/admiral.png';
+
+const getRankInfo = (rank, t) => {
+  const rankStr = (rank || "Unranked").toLowerCase();
+  const iconMap = {
+    "bronze": bronzeBadge,
+    "silver": silverBadge,
+    "gold": goldBadge,
+    "platinum": platinumBadge,
+    "diamond": diamondBadge,
+    "master": masterBadge,
+    "admiral": admiralBadge,
+    "unranked": bronzeBadge,
+  };
+  
+  const translatedLabel = t ? t(`common.${rankStr}`) : rankStr;
+
+  return {
+    label: (translatedLabel || rankStr).toUpperCase(),
+    iconUrl: iconMap[rankStr] || bronzeBadge
+  };
+};
 
 function Home() {
   const navigate = useNavigate();
@@ -52,7 +80,13 @@ function Home() {
     totalGames: 0,
     wins: 0,
     losses: 0,
+    rankedMatches: 0,
+    rankedWins: 0,
+    rankedLosses: 0,
+    rankPoints: 0,
+    rank: "Unranked",
   });
+  const [recordMode, setRecordMode] = useState("all");
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -64,6 +98,11 @@ function Home() {
             totalGames: userProfile.totalGames || 0,
             wins: userProfile.wins || 0,
             losses: userProfile.losses || 0,
+            rankedMatches: userProfile.rankedMatches || 0,
+            rankedWins: userProfile.rankedWins || 0,
+            rankedLosses: userProfile.rankedLosses || 0,
+            rankPoints: userProfile.rankPoints || 0,
+            rank: userProfile.rank || "Unranked",
           });
         }
       }
@@ -622,61 +661,89 @@ function Home() {
           </div>
           {/*  Player Statistics Widget  */}
           <div className={`flex flex-col gap-6 lg:col-span-7 ${activeStatsTab !== 'record' ? 'hidden lg:flex' : 'flex'}`}>
-            <div className="home-stats-card glass-card rounded-xl h-full border-l-4 border-l-secondary p-4">
-              <div className="flex items-center gap-3 mb-4">
-                <span className="material-symbols-outlined text-secondary">
-                  analytics
-                </span>
-                <h3 className="font-headline-md text-[20px] text-on-surface">
-                  {t("home.serviceRecord")}
-                </h3>
+            <div className="home-stats-card glass-card rounded-xl h-full border-l-4 border-l-secondary p-4 flex flex-col">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <span className="material-symbols-outlined text-secondary">
+                    analytics
+                  </span>
+                  <h3 className="font-headline-md text-[20px] text-on-surface">
+                    {t("home.serviceRecord")}
+                  </h3>
+                </div>
+                <select 
+                  value={recordMode} 
+                  onChange={(e) => setRecordMode(e.target.value)}
+                  className="bg-surface-container/50 text-secondary font-label-md p-2 rounded-sm border border-secondary/20 outline-none focus:border-secondary transition-colors cursor-pointer text-sm"
+                >
+                  <option value="all">Tất cả (All)</option>
+                  <option value="ranked">Xếp hạng (Ranked)</option>
+                </select>
               </div>
-              <div className="space-y-4">
+              <div className="space-y-4 flex-grow">
                 <div className="flex justify-between items-end border-b border-white/5 pb-2">
                   <span className="font-label-md text-label-md text-on-surface-variant uppercase tracking-widest">
                     {t("home.rankTier")}
                   </span>
-                  <span className="font-headline-md text-[18px] text-[#FFD700] glow-text">
-                    Admiral IV
-                  </span>
+                  <div className="flex items-center gap-3">
+                    {(stats?.rank || "Unranked").toLowerCase() !== "unranked" && (
+                      <img 
+                        src={getRankInfo(stats?.rank, t).iconUrl} 
+                        alt={getRankInfo(stats?.rank, t).label} 
+                        className="w-12 h-12 object-contain drop-shadow-[0_0_8px_rgba(255,215,0,0.6)]" 
+                        onError={(e) => { e.target.style.display = 'none'; }}
+                      />
+                    )}
+                    <span className="font-headline-md text-[18px] text-[#FFD700] glow-text">
+                      {getRankInfo(stats?.rank, t).label}
+                    </span>
+                  </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="bg-surface-container/30 p-4 rounded-sm border border-white/5">
                     <p className="text-[10px] text-on-surface-variant uppercase font-bold mb-1">
-                      {t("profile.totalBattles")}
+                      {t("profile.totalBattles") || "Total Battles"}
                     </p>
-                    <p className="text-xl font-black text-on-surface">{stats.totalGames}</p>
+                    <p className="text-xl font-black text-on-surface">
+                      {recordMode === "all" ? (stats?.totalGames || 0) : (stats?.rankedMatches || 0)}
+                    </p>
                   </div>
                   <div className="bg-surface-container/30 p-4 rounded-sm border border-white/5">
                     <p className="text-[10px] text-on-surface-variant uppercase font-bold mb-1">
-                      {t("home.victories")}
-                    </p>
-                    <p className="text-xl font-black text-secondary">{stats.wins}</p>
-                  </div>
-                  <div className="bg-surface-container/30 p-4 rounded-sm border border-white/5">
-                    <p className="text-[10px] text-on-surface-variant uppercase font-bold mb-1">
-                      {t("home.defeats")}
-                    </p>
-                    <p className="text-xl font-black text-error">{stats.losses}</p>
-                  </div>
-                  <div className="bg-surface-container/30 p-4 rounded-sm border border-white/5">
-                    <p className="text-[10px] text-on-surface-variant uppercase font-bold mb-1">
-                      {t("home.winRate")}
+                      {t("home.victories") || "Victories"}
                     </p>
                     <p className="text-xl font-black text-secondary">
-                      {stats.totalGames > 0 ? ((stats.wins / stats.totalGames) * 100).toFixed(1) : 0}%
+                      {recordMode === "all" ? (stats?.wins || 0) : (stats?.rankedWins || 0)}
+                    </p>
+                  </div>
+                  <div className="bg-surface-container/30 p-4 rounded-sm border border-white/5">
+                    <p className="text-[10px] text-on-surface-variant uppercase font-bold mb-1">
+                      {t("home.defeats") || "Defeats"}
+                    </p>
+                    <p className="text-xl font-black text-error">
+                      {recordMode === "all" ? (stats?.losses || 0) : (stats?.rankedLosses || 0)}
+                    </p>
+                  </div>
+                  <div className="bg-surface-container/30 p-4 rounded-sm border border-white/5">
+                    <p className="text-[10px] text-on-surface-variant uppercase font-bold mb-1">
+                      {t("home.winRate") || "Win Rate"}
+                    </p>
+                    <p className="text-xl font-black text-secondary">
+                      {recordMode === "all" 
+                        ? (stats?.totalGames > 0 ? ((stats?.wins / stats?.totalGames) * 100).toFixed(1) : 0)
+                        : (stats?.rankedMatches > 0 ? ((stats?.rankedWins / stats?.rankedMatches) * 100).toFixed(1) : 0)}%
                     </p>
                   </div>
                 </div>
                 <div className="pt-4">
                   <div className="flex justify-between text-[10px] font-bold uppercase text-on-surface-variant mb-2">
-                    <span>{t("home.xp")}</span>
-                    <span>85%</span>
+                    <span>Điểm xếp hạng</span>
+                    <span>{stats?.rankPoints || 0}</span>
                   </div>
                   <div className="w-full h-2 bg-surface-container rounded-full overflow-hidden">
                     <div
                       className="h-full bg-secondary shadow-[0_0_10px_#a5e7ff]"
-                      style={{ width: "85%" }}
+                      style={{ width: `${Math.min(100, (stats?.rankPoints || 0) / 10)}%` }}
                     ></div>
                   </div>
                 </div>

@@ -333,11 +333,11 @@
 
 /* Wide, unframed enemy fleet strip */
 .fleet-image-panel {
-    top: 30px;
+    top: 38px;
     left: 50%;
     right: auto;
     width: 380px;
-    height: 80px;
+    height: 60px;
     padding: 0;
     border: 0;
     background: transparent;
@@ -382,7 +382,7 @@
 
 .fleet-image-panel-placeholder {
     width: 380px;
-    height: 80px;
+    height: 60px;
 }
 
 .game-main {
@@ -599,7 +599,7 @@
 }
 
 .board-heading {
-    height: 118px;
+    height: 100px;
 }
 
 @media (max-width: 720px) {
@@ -616,6 +616,16 @@
 }
 
 @media (max-width: 767px) {
+    .game-main {
+        gap: 12px;
+        padding-top: 6px;
+        padding-bottom: 6px;
+    }
+
+    .game-board-column {
+        gap: 8px;
+    }
+
     .game-status {
         min-height: auto;
         padding: 6px 12px;
@@ -624,7 +634,7 @@
 
     .board-heading {
         height: auto;
-        margin-bottom: 8px;
+        margin-bottom: 2px;
         padding-top: 0;
         flex-direction: column;
         align-items: center;
@@ -1324,11 +1334,24 @@ box-shadow{
     background: radial-gradient(circle at center, rgba(72, 19, 12, 0.3), transparent 66%);
 }
 
-/* Custom Shipyard Painted Cell */
-.ocean-cell.custom-painted-cell {
-    background: radial-gradient(circle at center, rgba(165, 231, 255, 0.8), rgba(65, 180, 220, 0.95)) !important;
-    border: 1px solid rgba(165, 231, 255, 1) !important;
-    box-shadow: 
-        0 0 12px rgba(165, 231, 255, 0.6), 
-        inset 0 0 6px rgba(255, 255, 255, 0.4) !important;
+/* Custom Shipyard Painted Cells */
+.ocean-cell.custom-painted-cell-1 {
+    background: rgba(78, 168, 222, 0.85) !important;
+    border: 1px solid rgba(78, 168, 222, 1) !important;
+    box-shadow: 0 0 10px rgba(78, 168, 222, 0.4), inset 0 0 6px rgba(255, 255, 255, 0.3) !important;
+}
+.ocean-cell.custom-painted-cell-2 {
+    background: rgba(74, 222, 128, 0.85) !important;
+    border: 1px solid rgba(74, 222, 128, 1) !important;
+    box-shadow: 0 0 10px rgba(74, 222, 128, 0.4), inset 0 0 6px rgba(255, 255, 255, 0.3) !important;
+}
+.ocean-cell.custom-painted-cell-3 {
+    background: rgba(251, 191, 36, 0.85) !important;
+    border: 1px solid rgba(251, 191, 36, 1) !important;
+    box-shadow: 0 0 10px rgba(251, 191, 36, 0.4), inset 0 0 6px rgba(255, 255, 255, 0.3) !important;
+}
+.ocean-cell.custom-painted-cell-4 {
+    background: rgba(192, 132, 252, 0.85) !important;
+    border: 1px solid rgba(192, 132, 252, 1) !important;
+    box-shadow: 0 0 10px rgba(192, 132, 252, 0.4), inset 0 0 6px rgba(255, 255, 255, 0.3) !important;
 }
