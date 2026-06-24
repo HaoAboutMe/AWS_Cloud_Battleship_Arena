@@ -6,6 +6,7 @@ function GameResultModal({
     showModal,
     winner,
     gameOverReason,
+    subMessage,
     copy,
     difficulty,
     isPvpMode = false,
@@ -58,20 +59,27 @@ function GameResultModal({
                 </p>
 
                 <div className="result-stats">
+                    {subMessage ? (
+                        <div className="result-stat flex flex-col">
+                            <p>{copy.reason || "Reason"}</p>
+                            <strong className="!text-[16px] md:!text-[18px] !leading-tight !mt-auto">{subMessage}</strong>
+                        </div>
+                    ) : (
+                        <div className="result-stat">
+                            <p>{copy.totalTurns || "Total Turns"}</p>
+                            <strong>{stats.turns}</strong>
+                        </div>
+                    )}
                     <div className="result-stat">
-                        <p>Total Turns</p>
-                        <strong>{stats.turns}</strong>
-                    </div>
-                    <div className="result-stat">
-                        <p>Total Shots</p>
+                        <p>{copy.totalShots || "Total Shots"}</p>
                         <strong>{stats.shots}</strong>
                     </div>
                     <div className="result-stat">
-                        <p>Hits / Misses</p>
+                        <p>{copy.hitsMisses || "Hits / Misses"}</p>
                         <strong className="result-stat__accent">{stats.hits} <span>/ {stats.misses}</span></strong>
                     </div>
                     <div className="result-stat">
-                        <p>Accuracy</p>
+                        <p>{copy.accuracy || "Accuracy"}</p>
                         <strong className="result-stat__accent">{stats.shots > 0 ? Math.round((stats.hits / stats.shots) * 100) : 0}%</strong>
                     </div>
                 </div>

@@ -310,6 +310,7 @@ const GAME_COPY = {
     totalShots: "Total Shots",
     hitsMisses: "Hits / Misses",
     accuracy: "Accuracy",
+    reason: "Reason",
     rankedResult: "Ranked Result",
     victoryLog: "VICTORY! Enemy fleet destroyed!",
     defeatLog: "DEFEAT! Your fleet was destroyed.",
@@ -416,6 +417,7 @@ const GAME_COPY = {
     totalShots: "Tổng phát bắn",
     hitsMisses: "Trúng / Trượt",
     accuracy: "Độ chính xác",
+    reason: "Lý do",
     rankedResult: "Kết quả xếp hạng",
     victoryLog: "CHIẾN THẮNG! Hạm đội đối phương đã bị tiêu diệt!",
     defeatLog: "THẤT BẠI! Hạm đội của bạn đã bị tiêu diệt.",
@@ -779,6 +781,7 @@ function Game() {
   const [exitPromptOpen, setExitPromptOpen] = useState(false);
   const [pendingExitTarget, setPendingExitTarget] = useState("/");
   const [gameOverReason, setGameOverReason] = useState("");
+  const [gameOverSubMessage, setGameOverSubMessage] = useState("");
   const [rematchLoading, setRematchLoading] = useState(false);
   const [chatMessages, setChatMessages] = useState([]);
   const latestPlayerSignal = useMemo(
@@ -1385,8 +1388,18 @@ function Game() {
       addLog(leaveError.message || "Unable to leave room cleanly.", "warning");
     }
     setExitPromptOpen(false);
-    navigate(pendingExitTarget || "/");
-  }, [addLog, leavePvpRoomCleanly, navigate, notifyPvpExit, pendingExitTarget]);
+    
+    // Instead of navigate, we set Game Over state for player A
+    gameStateRef.current = "GAME_OVER";
+    setGameOverReason("player_left");
+    setGameOverSubMessage("Bạn đã rời trận");
+    setGameState("GAME_OVER");
+    setWinner("BOT"); // This triggers a Lose popup (since winner !== "PLAYER")
+    releaseShotLock();
+    playSound("defeat", { minGap: 1000 });
+    addLog("Bạn đã rời trận.", "warning");
+    setShowModal(true);
+  }, [addLog, leavePvpRoomCleanly, notifyPvpExit, releaseShotLock]);
 
   const handlePlayAgain = useCallback(async () => {
     setRankedResult(null);
@@ -2020,6 +2033,7 @@ function Game() {
 
   const endGame = useCallback(
     (isPlayerVictory) => {
+      if (gameStateRef.current === "GAME_OVER") return;
       setGameOverReason("");
       gameStateRef.current = "GAME_OVER";
       setGameState("GAME_OVER");
@@ -2039,9 +2053,9 @@ function Game() {
   );
 
   const handleOpponentLeft = useCallback(() => {
-    if (gameStateRef.current === "GAME_OVER") return;
     gameStateRef.current = "GAME_OVER";
     setGameOverReason("opponent_left");
+    setGameOverSubMessage("Đối phương rời trận");
     setGameState("GAME_OVER");
     setWinner("PLAYER");
     releaseShotLock();
@@ -2540,6 +2554,17 @@ function Game() {
           if (payload.type === "GAME_OVER") {
             const currentPlayerId = getRoomPlayerKey(getCurrentRoomPlayer());
             const isVictory = payload.winnerId === currentPlayerId;
+
+            // If game is over during placement/ready, it means the opponent aborted the match.
+            // (Player A who clicked exit would already have gameState = "GAME_OVER")
+            if (
+              gameStateRef.current === "PLACEMENT" ||
+              gameStateRef.current === "READY"
+            ) {
+              handleOpponentLeftRef.current?.();
+              return;
+            }
+
             if (payload.rankedResult) {
               const result = payload.rankedResult;
               const currentResult = isVictory ? result.winner : result.loser;
@@ -2556,7 +2581,6 @@ function Game() {
           if (payload.type === "PVP_PLAYER_LEFT") {
             const currentPlayerId = getRoomPlayerKey(getCurrentRoomPlayer());
             if (
-              payload.reason === "intentional_exit" &&
               payload.playerId &&
               payload.playerId !== currentPlayerId
             ) {
@@ -5208,6 +5232,7 @@ function Game() {
         showModal={showModal}
         winner={winner}
         gameOverReason={gameOverReason}
+        subMessage={gameOverSubMessage}
         copy={copy}
         difficulty={difficulty}
         isPvpMode={isPvpMode}
