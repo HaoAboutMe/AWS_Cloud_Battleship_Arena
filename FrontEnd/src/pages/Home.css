@@ -333,6 +333,8 @@
   -webkit-text-fill-color: transparent;
   background-clip: text;
   letter-spacing: 0.06em;
+  line-height: 1.3;
+  padding-top: 4px;
 }
 
 /* ----------------------------------------------------------
@@ -783,6 +785,23 @@
   color: rgba(165, 231, 255, 0.55);
   text-transform: uppercase;
   letter-spacing: 0.08em;
+}
+
+@media (max-width: 767px) {
+  .home-winrate-arc {
+    width: 48px;
+    height: 48px;
+  }
+  .home-winrate-arc svg {
+    width: 48px;
+    height: 48px;
+  }
+  .home-winrate-arc .arc-pct {
+    font-size: 10px;
+  }
+  .home-winrate-arc .arc-label {
+    font-size: 6px;
+  }
 }
 
 /* ----------------------------------------------------------

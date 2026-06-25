@@ -583,7 +583,7 @@ function Home() {
               onClick={() => setActiveStatsTab('record')}
               className={`flex-1 py-2 text-xs font-bold uppercase rounded-md transition-all ${activeStatsTab === 'record' ? 'bg-secondary text-on-secondary-fixed shadow-[0_0_10px_rgba(0,210,255,0.2)]' : 'text-on-surface-variant'}`}
             >
-              {t("home.serviceRecord")}
+              {t("home.stats")}
             </button>
             <button 
               onClick={() => setActiveStatsTab('leaderboard')}
@@ -669,17 +669,20 @@ function Home() {
                     analytics
                   </span>
                   <h3 className="font-headline-md text-[20px] text-on-surface">
-                    {t("home.serviceRecord")}
+                    <span className="hidden md:inline">{t("home.serviceRecord")}</span>
+                    <span className="md:hidden">{t("home.stats")}</span>
                   </h3>
                 </div>
-                <HomeSelect
-                  value={recordMode}
-                  onChange={(val) => setRecordMode(val)}
-                  options={[
-                    { value: "all",    label: "Tất cả (All)" },
-                    { value: "ranked", label: "Xếp hạng (Ranked)" },
-                  ]}
-                />
+                <div className="w-36 md:w-44">
+                  <HomeSelect
+                    value={recordMode}
+                    onChange={(val) => setRecordMode(val)}
+                    options={[
+                      { value: "all",    label: t("home.all") },
+                      { value: "ranked", label: t("home.ranked") },
+                    ]}
+                  />
+                </div>
               </div>
               <div className="space-y-4 flex-grow">
                 {/* Rank Tier Banner – taste-skill elevated */}
@@ -728,7 +731,7 @@ function Home() {
                       {recordMode === "all" ? (stats?.losses || 0) : (stats?.rankedLosses || 0)}
                     </p>
                   </div>
-                  <div className="bg-surface-container/30 p-4 rounded-sm border border-white/5 flex items-center gap-3">
+                  <div className="bg-surface-container/30 p-2 md:p-4 rounded-sm border border-white/5 flex items-center gap-2 md:gap-3 overflow-hidden">
                     {/* Circular Win-Rate Arc */}
                     {(() => {
                       const pct = recordMode === "all"
@@ -762,11 +765,11 @@ function Home() {
                         </div>
                       );
                     })()}
-                    <div>
-                      <p className="text-[10px] text-on-surface-variant uppercase font-bold mb-1">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[9px] md:text-[10px] text-on-surface-variant uppercase font-bold mb-0.5 md:mb-1 truncate">
                         {t("home.winRate") || "Win Rate"}
                       </p>
-                      <p className="text-xl font-black text-secondary">
+                      <p className="text-base md:text-xl font-black text-secondary truncate">
                         {recordMode === "all" 
                           ? (stats?.totalGames > 0 ? ((stats?.wins / stats?.totalGames) * 100).toFixed(1) : 0)
                           : (stats?.rankedMatches > 0 ? ((stats?.rankedWins / stats?.rankedMatches) * 100).toFixed(1) : 0)}%
