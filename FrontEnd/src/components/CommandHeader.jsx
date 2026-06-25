@@ -4,6 +4,7 @@ import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { useLanguage } from "../contexts/LanguageContext";
 import { RANKS, getRankMeta } from "../game/rankConfig";
+import logoImg from "../assets/logo/logo.png";
 import LanguageToggle from "./LanguageToggle";
 import SoundSettingsModal from "./SoundSettingsModal";
 
@@ -84,7 +85,20 @@ function CommandHeader({
           aria-label="Cloud Battleship Arena home"
           onClick={(event) => handleNavigation(event, "/")}
         >
-          <span className="command-brand-mark" aria-hidden="true"><i /></span>
+          <img
+            src={logoImg}
+            alt="Cloud Battleship Arena Logo"
+            className="command-brand-logo"
+            width={38}
+            height={38}
+            style={{
+              width: 38,
+              height: 38,
+              objectFit: "contain",
+              flexShrink: 0,
+              filter: "drop-shadow(0 0 8px rgba(71, 214, 255, 0.45))",
+            }}
+          />
           <span className="command-brand-copy">
             <strong>Cloud Battleship</strong>
             <small>Arena Command Network</small>
@@ -193,9 +207,9 @@ function CommandHeader({
                       <span className="material-symbols-outlined">settings</span>
                       {t("common.settings")}
                     </button>
-                    
-                    <button 
-                      type="button" 
+
+                    <button
+                      type="button"
                       onClick={() => {
                         setMenuOpen(false);
                         onLogout();
@@ -204,7 +218,7 @@ function CommandHeader({
                       <span className="material-symbols-outlined">logout</span>
                       {t("common.signOut")}
                     </button>
-                    
+
 
                   </div>
                 </div>

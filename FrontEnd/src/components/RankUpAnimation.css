@@ -1,3 +1,8 @@
+/* ============================================================
+   RankUpAnimation – Cinematic rank promotion overlay
+   ============================================================ */
+
+/* ── Overlay backdrop ── */
 .rank-up-overlay {
   position: fixed;
   inset: 0;
@@ -6,34 +11,146 @@
   place-items: center;
   padding: 24px;
   background:
-    radial-gradient(circle at 50% 45%, rgba(99, 232, 255, 0.16), transparent 38%),
-    rgba(0, 8, 18, 0.78);
-  backdrop-filter: blur(12px);
+    radial-gradient(circle at 50% 42%, rgba(0, 180, 255, 0.12), transparent 42%),
+    rgba(0, 6, 14, 0.84);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  animation: rua-overlay-in 380ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+@keyframes rua-overlay-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ── Main frame card ── */
 .rank-up-frame {
-  width: min(560px, 92vw);
-  height: min(520px, 82vh);
-  border: 1px solid rgba(143, 234, 255, 0.28);
-  border-radius: 24px;
-  background:
-    linear-gradient(180deg, rgba(14, 45, 66, 0.82), rgba(2, 16, 28, 0.88)),
-    repeating-linear-gradient(
-      90deg,
-      rgba(143, 234, 255, 0.08) 0,
-      rgba(143, 234, 255, 0.08) 1px,
-      transparent 1px,
-      transparent 46px
-    );
-  box-shadow:
-    0 24px 80px rgba(0, 0, 0, 0.45),
-    0 0 50px rgba(83, 219, 255, 0.12);
+  position: relative;
+  width:  min(580px, 94vw);
+  height: min(540px, 84vh);
+  border-radius: 26px;
   overflow: hidden;
+
+  /* Default (bronze) glow – overridden per-rank below */
+  --rank-color: #b7794b;
+  --rank-color-2: #ff9c55;
+
+  background:
+    linear-gradient(175deg, rgba(18, 50, 72, 0.88), rgba(2, 12, 22, 0.96));
+
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  box-shadow:
+    0 0  0  1px rgba(255, 255, 255, 0.06) inset,
+    0 28px 90px rgba(0, 0, 0, 0.55),
+    0  0  60px color-mix(in srgb, var(--rank-color) 22%, transparent);
+
+  animation: rua-frame-in 420ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
 
+@keyframes rua-frame-in {
+  from { transform: scale(0.82) translateY(24px); opacity: 0; }
+  to   { transform: scale(1)    translateY(0);    opacity: 1; }
+}
+
+/* ── Per-rank CSS variables ── */
+.rank-up-frame[data-rank="bronze"]   { --rank-color: #d4874a; --rank-color-2: #ff9c55; }
+.rank-up-frame[data-rank="silver"]   { --rank-color: #cfd8e3; --rank-color-2: #aecfdf; }
+.rank-up-frame[data-rank="gold"]     { --rank-color: #ffd84a; --rank-color-2: #ffb830; }
+.rank-up-frame[data-rank="platinum"] { --rank-color: #4fd1c5; --rank-color-2: #00fff0; }
+.rank-up-frame[data-rank="diamond"]  { --rank-color: #7dd3fc; --rank-color-2: #b97cff; }
+.rank-up-frame[data-rank="master"]   { --rank-color: #b57bff; --rank-color-2: #ff5fd8; }
+.rank-up-frame[data-rank="admiral"]  { --rank-color: #ff4d6d; --rank-color-2: #ff9f45; }
+
+/* ── Top edge glow accent ── */
+.rank-up-frame::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 15%;
+  right: 15%;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--rank-color) 90%, transparent),
+    var(--rank-color-2),
+    color-mix(in srgb, var(--rank-color) 90%, transparent),
+    transparent
+  );
+  box-shadow: 0 0 18px var(--rank-color), 0 0 40px color-mix(in srgb, var(--rank-color) 50%, transparent);
+  z-index: 10;
+  animation: rua-top-glow 1.8s ease-in-out infinite alternate;
+}
+
+@keyframes rua-top-glow {
+  from { opacity: 0.6; left: 15%; right: 15%; }
+  to   { opacity: 1.0; left: 8%;  right: 8%; }
+}
+
+/* ── Bottom edge glow accent ── */
+.rank-up-frame::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 25%;
+  right: 25%;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--rank-color) 50%, transparent),
+    transparent
+  );
+  z-index: 10;
+}
+
+/* ── Scanlines overlay ── */
+.rank-up-scanlines {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.06) 0px,
+    rgba(0, 0, 0, 0.06) 1px,
+    transparent 1px,
+    transparent 4px
+  );
+  animation: rua-scan 8s linear infinite;
+}
+
+@keyframes rua-scan {
+  from { background-position-y: 0; }
+  to   { background-position-y: 48px; }
+}
+
+/* ── Canvas ── */
 .rank-up-canvas,
 .rank-up-canvas canvas {
+  position: relative;
+  z-index: 2;
   width: 100%;
   height: 100%;
   display: block;
+}
+
+/* ── Radial vignette ── */
+.rank-up-frame {
+  /* inner radial that shifts color by rank */
+  background-image: radial-gradient(
+    ellipse 65% 55% at 50% 44%,
+    color-mix(in srgb, var(--rank-color) 10%, transparent),
+    transparent 70%
+  );
+}
+
+/* ── Reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+  .rank-up-overlay,
+  .rank-up-frame,
+  .rank-up-frame::before,
+  .rank-up-scanlines {
+    animation: none;
+  }
 }

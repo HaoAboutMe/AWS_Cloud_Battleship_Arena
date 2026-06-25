@@ -1,72 +1,360 @@
+/* ============================================================
+   HOME PAGE  –  Taste-Skill Premium Redesign v2
+   Deep-ocean dark · neon-cyan accents · glassmorphism
+   Entrance animations · shimmer gradient text · circular arc
+   Gold leaderboard · rank progress pulse · micro-animations
+   ============================================================ */
+
+/* ----------------------------------------------------------
+   DESIGN TOKENS
+   ---------------------------------------------------------- */
+:root {
+  --home-cyan:        #75dfff;
+  --home-cyan-bright: #a5e7ff;
+  --home-glow:        rgba(0, 210, 255, 0.18);
+  --home-glow-lg:     rgba(0, 210, 255, 0.10);
+  --home-surface:     rgba(6, 22, 36, 0.82);
+  --home-border:      rgba(117, 223, 255, 0.14);
+  --home-card-bg:     linear-gradient(160deg,
+    rgba(14, 38, 56, 0.88) 0%,
+    rgba(5, 20, 34, 0.92) 100%);
+  --card-radius:      16px;
+  --card-transition:
+    transform  220ms cubic-bezier(0.22,1,0.36,1),
+    box-shadow 220ms cubic-bezier(0.22,1,0.36,1),
+    border-color 220ms ease;
+}
+
+/* ----------------------------------------------------------
+   PAGE BACKGROUND
+   ---------------------------------------------------------- */
 .home-page {
   position: relative;
   background:
-    radial-gradient(circle at 78% 7%, rgba(48, 176, 218, 0.08), transparent 25%),
-    linear-gradient(180deg, #051424, #03111e 72%);
+    radial-gradient(ellipse 60% 45% at 82% 4%, rgba(0, 168, 232, 0.13), transparent 60%),
+    radial-gradient(ellipse 50% 40% at 8% 62%, rgba(0, 95, 180, 0.09), transparent 60%),
+    linear-gradient(180deg, #030e1a 0%, #041624 35%, #031220 72%, #020e1a 100%);
+  isolation: isolate;
 }
 
+/* Scan-line overlay */
+.home-page::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 3px,
+      rgba(0, 200, 255, 0.012) 3px,
+      rgba(0, 200, 255, 0.012) 4px
+    );
+  animation: homeScanlines 12s linear infinite;
+}
+
+@keyframes homeScanlines {
+  to { background-position: 0 400px; }
+}
+
+/* ----------------------------------------------------------
+   LAYOUT
+   ---------------------------------------------------------- */
 .home-main {
-  padding-top: 18px;
+  padding-top: 20px;
 }
 
+/* ----------------------------------------------------------
+   ENTRANCE ANIMATIONS  (taste-skill: stagger on load)
+   ---------------------------------------------------------- */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes fadeUpIn {
+    from {
+      opacity: 0;
+      transform: translateY(22px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  .home-hero {
+    animation: fadeUpIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .home-section-heading {
+    animation: fadeIn 0.5s ease both;
+    animation-delay: 0.15s;
+  }
+
+  /* Mode cards – stagger */
+  .home-mode-card:nth-child(1) {
+    animation: fadeUpIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.10s both;
+  }
+  .home-mode-card:nth-child(2) {
+    animation: fadeUpIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.20s both;
+  }
+  .home-mode-card:nth-child(3) {
+    animation: fadeUpIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.30s both;
+  }
+
+  /* Stats section */
+  .home-stats-card {
+    animation: fadeUpIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.25s both;
+  }
+}
+
+/* ----------------------------------------------------------
+   HERO SECTION
+   ---------------------------------------------------------- */
 .home-hero {
-  min-height: 248px;
-  padding: 26px 26px 28px;
+  position: relative;
+  min-height: 320px;
+  padding: 40px 36px 44px;
   overflow: hidden;
-  border-bottom: 1px solid rgba(117, 223, 255, 0.11);
+  border: 1px solid var(--home-border);
+  border-radius: 22px;
+  background:
+    linear-gradient(125deg, rgba(8, 32, 50, 0.72) 0%, rgba(4, 18, 30, 0.55) 100%);
+  backdrop-filter: blur(12px);
+  box-shadow:
+    0 0 0 1px rgba(117, 223, 255, 0.06) inset,
+    0 32px 64px rgba(0, 0, 0, 0.36),
+    0 0 80px rgba(0, 150, 220, 0.06);
 }
 
+/* Animated top-edge highlight */
 .home-hero::before {
   content: "";
   position: absolute;
-  inset: 12px 0 20px;
-  z-index: -1;
-  border: 1px solid rgba(117, 223, 255, 0.07);
-  border-radius: 6px;
-  background:
-    linear-gradient(105deg, rgba(9, 34, 51, 0.56), rgba(7, 27, 42, 0.12) 62%),
-    rgba(6, 23, 37, 0.24);
+  top: 0;
+  left: 15%;
+  right: 15%;
+  height: 1px;
+  background: linear-gradient(90deg,
+    transparent,
+    rgba(117, 223, 255, 0.55) 30%,
+    rgba(165, 231, 255, 0.90) 50%,
+    rgba(117, 223, 255, 0.55) 70%,
+    transparent
+  );
+  animation: heroTopEdge 4s ease-in-out infinite alternate;
 }
 
+@keyframes heroTopEdge {
+  from { opacity: 0.5; left: 25%; right: 25%; }
+  to   { opacity: 1;   left: 8%;  right: 8%; }
+}
+
+/* Corner grid decoration */
+.home-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    linear-gradient(rgba(117, 223, 255, 0.032) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(117, 223, 255, 0.032) 1px, transparent 1px);
+  background-size: 52px 52px;
+  mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 20%, transparent 80%);
+}
+
+/* ------ Hero headline – shimmer gradient text ------ */
 .home-hero h1 {
-  max-width: 620px;
-  letter-spacing: 0;
+  max-width: 600px;
+  letter-spacing: -0.02em;
+  position: relative;
+}
+
+/* Shimmer sweep on the hero h1 text */
+@media (prefers-reduced-motion: no-preference) {
+  .home-hero h1 {
+    background: linear-gradient(
+      105deg,
+      #c8eeff 0%,
+      #a5e7ff 25%,
+      #ffffff 45%,
+      #75dfff 65%,
+      #a5e7ff 80%,
+      #c8eeff 100%
+    );
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: heroTextShimmer 6s linear infinite;
+  }
+
+  /* Keep the accent span distinctly colored */
+  .home-hero h1 .text-secondary.glow-text {
+    background: linear-gradient(105deg, #47d6ff, #a5e7ff, #47d6ff);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: heroTextShimmer 3.5s linear infinite;
+    filter: drop-shadow(0 0 12px rgba(71, 214, 255, 0.55));
+  }
+
+  @keyframes heroTextShimmer {
+    to { background-position: 200% center; }
+  }
 }
 
 .home-hero img {
-  border: 1px solid rgba(117, 223, 255, 0.18);
-  box-shadow: 0 24px 55px rgba(0, 0, 0, 0.28);
+  border: 1px solid rgba(117, 223, 255, 0.26);
+  box-shadow:
+    0 0 0 1px rgba(117, 223, 255, 0.06) inset,
+    0 28px 60px rgba(0, 0, 0, 0.38),
+    0 0 70px rgba(0, 180, 255, 0.16);
+  border-radius: 18px;
 }
 
+/* Corner brackets on the hero image */
+.home-hero img::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border: 1px solid rgba(117, 223, 255, 0.18);
+  border-radius: 22px;
+  pointer-events: none;
+}
+
+/* ----------------------------------------------------------
+   HERO BUTTON
+   ---------------------------------------------------------- */
 .home-tactics-button {
-  min-height: 44px;
+  position: relative;
+  overflow: hidden;
+  min-height: 50px;
   display: inline-flex;
   align-items: center;
-  border-color: rgba(117, 223, 255, 0.38);
-  background: rgba(117, 223, 255, 0.06);
-  color: #bceeff;
+  gap: 10px;
+  padding: 0 32px;
+  border: 1px solid rgba(117, 223, 255, 0.50);
+  border-radius: 8px;
+  background: rgba(117, 223, 255, 0.09);
+  color: var(--home-cyan-bright);
   font-weight: 900;
+  font-size: 11px;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
-  box-shadow: inset 0 0 18px rgba(71, 214, 255, 0.04);
+  box-shadow:
+    inset 0 0 22px rgba(71, 214, 255, 0.06),
+    0 0 24px rgba(0, 210, 255, 0.10);
+  transition:
+    border-color 200ms ease,
+    background   200ms ease,
+    box-shadow   200ms ease,
+    color        200ms ease,
+    transform    160ms ease;
+}
+
+/* Shimmer sweep */
+.home-tactics-button::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg,
+    transparent 30%,
+    rgba(165, 231, 255, 0.20) 50%,
+    transparent 70%
+  );
+  transform: translateX(-100%);
+  transition: transform 500ms ease;
+}
+
+.home-tactics-button:hover::before {
+  transform: translateX(100%);
+}
+
+/* Arrow icon after button text */
+.home-tactics-button::after {
+  content: "→";
+  font-size: 14px;
+  opacity: 0;
+  transform: translateX(-6px);
+  transition: opacity 200ms ease, transform 200ms ease;
+}
+
+.home-tactics-button:hover::after {
+  opacity: 1;
+  transform: translateX(0);
 }
 
 .home-tactics-button:hover {
-  border-color: #a5e7ff;
-  background: rgba(117, 223, 255, 0.12);
+  border-color: rgba(165, 231, 255, 0.80);
+  background: rgba(117, 223, 255, 0.16);
+  color: #d4f3ff;
+  box-shadow:
+    inset 0 0 28px rgba(71, 214, 255, 0.12),
+    0 0 36px rgba(0, 210, 255, 0.22),
+    0 8px 24px rgba(0, 0, 0, 0.24);
+  transform: translateY(-2px);
 }
 
+.home-tactics-button:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* ----------------------------------------------------------
+   SECTION HEADING
+   ---------------------------------------------------------- */
 .home-section-heading {
-  padding: 5px 0 12px;
-  border-bottom: 1px solid rgba(117, 223, 255, 0.1);
+  padding: 6px 0 14px;
+  border-bottom: 1px solid transparent;
+  background-image: linear-gradient(
+    90deg,
+    rgba(117, 223, 255, 0.14),
+    rgba(117, 223, 255, 0.04) 60%,
+    transparent
+  );
+  background-repeat: no-repeat;
+  background-size: 100% 1px;
+  background-position: bottom;
 }
 
+.home-section-heading .material-symbols-outlined {
+  filter: drop-shadow(0 0 6px rgba(0, 210, 255, 0.55));
+}
+
+.home-section-heading h2 {
+  background: linear-gradient(90deg, #c8eeff 0%, #75dfff 60%, #4ac8f0 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: 0.06em;
+}
+
+/* ----------------------------------------------------------
+   GLASS CARD BASE  (shared)
+   ---------------------------------------------------------- */
 .home-mode-card,
 .home-stats-card {
   position: relative;
   isolation: isolate;
   overflow: hidden;
+  border-radius: var(--card-radius);
+  border: 1px solid var(--home-border);
+  background: var(--home-card-bg);
+  backdrop-filter: blur(16px);
+  box-shadow:
+    0 0 0 1px rgba(117, 223, 255, 0.04) inset,
+    0 20px 48px rgba(0, 0, 0, 0.32),
+    0 1px 0   rgba(117, 223, 255, 0.09) inset;
+  transition: var(--card-transition);
 }
 
+/* Mouse-follow radial highlight */
 .home-mode-card::before,
 .home-stats-card::before {
   content: "";
@@ -75,12 +363,12 @@
   z-index: -1;
   pointer-events: none;
   background: radial-gradient(
-    420px circle at var(--mouse-x, 50%) var(--mouse-y, 30%),
-    rgba(117, 223, 255, 0.08),
-    transparent 46%
+    500px circle at var(--mouse-x, 50%) var(--mouse-y, 30%),
+    rgba(117, 223, 255, 0.10),
+    transparent 48%
   );
   opacity: 0;
-  transition: opacity 180ms ease;
+  transition: opacity 220ms ease;
 }
 
 .home-mode-card:hover::before,
@@ -88,27 +376,457 @@
   opacity: 1;
 }
 
+/* Top shimmer sweep on hover */
+.home-mode-card::after,
+.home-stats-card::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -60%;
+  width: 40%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(165, 231, 255, 0.7), transparent);
+  opacity: 0;
+  transition: opacity 200ms ease;
+  animation: none;
+}
+
+.home-mode-card:hover::after,
+.home-stats-card:hover::after {
+  opacity: 1;
+  animation: cardShimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes cardShimmer {
+  from { left: -60%; }
+  to   { left: 120%;  }
+}
+
+/* ----------------------------------------------------------
+   MODE CARDS (3-column)
+   ---------------------------------------------------------- */
 .home-mode-card {
-  min-height: 364px;
-  border-color: rgba(117, 223, 255, 0.11);
-  background:
-    linear-gradient(180deg, rgba(17, 39, 56, 0.72), rgba(8, 27, 42, 0.72)),
-    rgba(8, 27, 42, 0.7);
+  min-height: 380px;
 }
 
 .home-mode-card:hover {
-  transform: translateY(-2px);
+  transform: translateY(-6px);
+  border-color: rgba(117, 223, 255, 0.30);
+  box-shadow:
+    0 0 0 1px rgba(117, 223, 255, 0.08) inset,
+    0 32px 64px rgba(0, 0, 0, 0.44),
+    0 0 48px rgba(0, 180, 255, 0.12);
 }
 
 .home-mode-card h3 {
-  color: #e8f7ff;
+  color: #e2f4ff;
+  text-shadow: 0 1px 12px rgba(0, 180, 255, 0.18);
 }
 
+/* Icon container spinning ring on hover */
+.home-mode-card > div > div.flex.items-center > div.bg-secondary\/10 {
+  position: relative;
+  transition: transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.home-mode-card:hover > div > div.flex.items-center > div.bg-secondary\/10 {
+  transform: scale(1.12) rotate(8deg);
+}
+
+/* Icon glow */
+.home-mode-card .material-symbols-outlined {
+  filter: drop-shadow(0 0 6px rgba(0, 210, 255, 0.45));
+  transition: filter 220ms ease, transform 220ms ease;
+}
+
+.home-mode-card:hover .material-symbols-outlined {
+  filter: drop-shadow(0 0 12px rgba(0, 210, 255, 0.80));
+}
+
+/* Tag badges */
+.home-mode-card span[class*="px-2"] {
+  backdrop-filter: blur(8px);
+  letter-spacing: 0.06em;
+}
+
+/* Primary CTA buttons inside cards */
+.home-mode-card button.bg-secondary,
+.home-mode-card a button.bg-secondary {
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+  letter-spacing: 0.14em;
+  box-shadow:
+    0 0 22px rgba(0, 210, 255, 0.22),
+    inset 0 1px 0 rgba(255,255,255,0.12);
+  transition:
+    background 200ms ease,
+    box-shadow  200ms ease,
+    transform   160ms ease;
+}
+
+.home-mode-card button.bg-secondary::before,
+.home-mode-card a button.bg-secondary::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg,
+    transparent 30%,
+    rgba(255,255,255,0.14) 50%,
+    transparent 70%
+  );
+  transform: translateX(-100%);
+  transition: transform 500ms ease;
+}
+
+.home-mode-card button.bg-secondary:hover::before,
+.home-mode-card a button.bg-secondary:hover::before {
+  transform: translateX(100%);
+}
+
+.home-mode-card button.bg-secondary:hover,
+.home-mode-card a button.bg-secondary:hover {
+  box-shadow:
+    0 0 40px rgba(0, 210, 255, 0.42),
+    inset 0 1px 0 rgba(255,255,255,0.20);
+  transform: translateY(-2px);
+}
+
+/* Ghost buttons */
+.home-mode-card button.border-secondary {
+  border-radius: 8px;
+  box-shadow: 0 0 16px rgba(0, 210, 255, 0.08);
+  transition:
+    background   200ms ease,
+    border-color 200ms ease,
+    box-shadow   200ms ease,
+    transform    160ms ease;
+}
+
+.home-mode-card button.border-secondary:hover {
+  background: rgba(117, 223, 255, 0.12) !important;
+  border-color: rgba(165, 231, 255, 0.70) !important;
+  box-shadow: 0 0 32px rgba(0, 210, 255, 0.22);
+  transform: translateY(-2px);
+}
+
+/* ----------------------------------------------------------
+   PVP CARD – Animated border gradient  (taste: visual differentiation)
+   ---------------------------------------------------------- */
+.home-mode-card.border-secondary\/20 {
+  border-color: rgba(117, 223, 255, 0.20);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .home-mode-card.border-secondary\/20::before {
+    background: radial-gradient(
+      500px circle at var(--mouse-x, 50%) var(--mouse-y, 30%),
+      rgba(117, 223, 255, 0.14),
+      transparent 48%
+    );
+  }
+}
+
+/* COMPETITIVE badge */
+.home-mode-card .absolute.top-0.right-0 span {
+  border-radius: 0 var(--card-radius) 0 8px;
+  letter-spacing: 0.12em;
+  font-size: 9px;
+  box-shadow: -4px 4px 14px rgba(0, 0, 0, 0.32);
+  animation: competitivePulse 2.5s ease-in-out infinite;
+}
+
+@keyframes competitivePulse {
+  0%, 100% { box-shadow: -4px 4px 14px rgba(0,0,0,0.32), 0 0 0px rgba(117,223,255,0); }
+  50%       { box-shadow: -4px 4px 14px rgba(0,0,0,0.32), 0 0 12px rgba(117,223,255,0.35); }
+}
+
+/* ----------------------------------------------------------
+   STATS CARDS
+   ---------------------------------------------------------- */
 .home-stats-card {
-  border-color: rgba(117, 223, 255, 0.11);
-  background: rgba(8, 27, 42, 0.76);
+  border-color: rgba(117, 223, 255, 0.12);
 }
 
+.home-stats-card:hover {
+  border-color: rgba(117, 223, 255, 0.26);
+  box-shadow:
+    0 0 0 1px rgba(117, 223, 255, 0.07) inset,
+    0 24px 56px rgba(0, 0, 0, 0.36),
+    0 0 40px rgba(0, 180, 255, 0.09);
+}
+
+/* Left accent stripe on Service Record card */
+.home-stats-card.border-l-4 {
+  border-left: 3px solid rgba(0, 210, 255, 0.75) !important;
+  box-shadow:
+    -2px 0 18px rgba(0, 210, 255, 0.14) inset,
+    0 20px 48px rgba(0, 0, 0, 0.32);
+}
+
+/* Stat grid cells */
+.home-stats-card .bg-surface-container\/30 {
+  border-radius: 10px;
+  border: 1px solid rgba(117, 223, 255, 0.08) !important;
+  background: rgba(5, 18, 30, 0.60) !important;
+  transition: border-color 200ms ease, background 200ms ease, transform 180ms ease;
+}
+
+.home-stats-card .bg-surface-container\/30:hover {
+  border-color: rgba(117, 223, 255, 0.22) !important;
+  background: rgba(8, 28, 46, 0.75) !important;
+  transform: translateY(-1px);
+}
+
+/* Stat number typography boost */
+.home-stats-card .bg-surface-container\/30 p.text-xl {
+  font-size: 1.75rem !important;
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Rank progress bar – pulse glow */
+.home-stats-card .bg-secondary.shadow-\[0_0_10px_\#a5e7ff\] {
+  border-radius: 999px;
+  background: linear-gradient(90deg, #47d6ff, #a5e7ff) !important;
+  box-shadow: 0 0 14px rgba(165, 231, 255, 0.55), 0 0 4px rgba(71, 214, 255, 0.80) !important;
+  animation: rankBarPulse 2.8s ease-in-out infinite;
+}
+
+@keyframes rankBarPulse {
+  0%, 100% { box-shadow: 0 0 14px rgba(165, 231, 255, 0.55), 0 0 4px rgba(71, 214, 255, 0.80); }
+  50%       { box-shadow: 0 0 28px rgba(165, 231, 255, 0.85), 0 0 10px rgba(71, 214, 255, 1.0); }
+}
+
+/* Rank track */
+.home-stats-card .bg-surface-container.rounded-full {
+  background: rgba(5, 18, 30, 0.72) !important;
+  box-shadow: inset 0 1px 4px rgba(0,0,0,0.42);
+}
+
+/* ----------------------------------------------------------
+   LEADERBOARD – Rank-colored rows  (taste: visual hierarchy)
+   ---------------------------------------------------------- */
+
+/* Base row */
+.home-stats-card .bg-white\/5 {
+  border-radius: 10px;
+  border: 1px solid rgba(117, 223, 255, 0.06) !important;
+  background: rgba(6, 22, 36, 0.55) !important;
+  transition: background 180ms ease, border-color 180ms ease, transform 180ms ease;
+  padding: 10px 12px !important;
+}
+
+.home-stats-card .bg-white\/5:hover {
+  background: rgba(10, 32, 50, 0.80) !important;
+  border-color: rgba(117, 223, 255, 0.20) !important;
+  transform: translateX(4px);
+}
+
+/* #1 Gold row */
+.home-stats-card [data-rank="1"] {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 215, 0, 0.12) 0%,
+    rgba(255, 180, 0, 0.06) 50%,
+    rgba(6, 22, 36, 0.60) 100%
+  ) !important;
+  border-color: rgba(255, 215, 0, 0.22) !important;
+}
+
+.home-stats-card [data-rank="1"]:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 215, 0, 0.20) 0%,
+    rgba(255, 180, 0, 0.10) 50%,
+    rgba(8, 28, 46, 0.78) 100%
+  ) !important;
+  border-color: rgba(255, 215, 0, 0.38) !important;
+}
+
+/* #2 Silver row */
+.home-stats-card [data-rank="2"] {
+  background: linear-gradient(
+    135deg,
+    rgba(192, 192, 192, 0.09) 0%,
+    rgba(6, 22, 36, 0.58) 100%
+  ) !important;
+  border-color: rgba(192, 192, 192, 0.14) !important;
+}
+
+/* #3 Bronze row */
+.home-stats-card [data-rank="3"] {
+  background: linear-gradient(
+    135deg,
+    rgba(205, 127, 50, 0.09) 0%,
+    rgba(6, 22, 36, 0.58) 100%
+  ) !important;
+  border-color: rgba(205, 127, 50, 0.14) !important;
+}
+
+/* Rank number circles – glow effect */
+.home-stats-card [data-rank="1"] .w-6.h-6.rounded-full {
+  box-shadow: 0 0 16px rgba(255, 215, 0, 0.70) !important;
+}
+.home-stats-card [data-rank="2"] .w-6.h-6.rounded-full {
+  box-shadow: 0 0 12px rgba(192, 192, 192, 0.55) !important;
+}
+.home-stats-card [data-rank="3"] .w-6.h-6.rounded-full {
+  box-shadow: 0 0 10px rgba(205, 127, 50, 0.50) !important;
+}
+
+/* Leaderboard rank circles – base */
+.home-stats-card .w-6.h-6.rounded-full {
+  box-shadow: 0 0 10px currentColor;
+}
+
+/* Leaderboard avatars – larger + colored ring */
+.home-stats-card .bg-white\/5 img {
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 8px !important;
+  border: 1px solid rgba(117, 223, 255, 0.30) !important;
+  box-shadow: 0 0 10px rgba(0, 210, 255, 0.12) !important;
+  flex-shrink: 0;
+}
+
+/* Score text – mono + glow */
+.home-stats-card .bg-white\/5 .ml-auto {
+  font-variant-numeric: tabular-nums;
+  font-size: 0.875rem;
+  font-weight: 900;
+}
+
+/* Full leaderboard button */
+.home-stats-card > button,
+.home-stats-card button.border-secondary\/30 {
+  border-radius: 8px;
+  letter-spacing: 0.14em;
+  transition:
+    border-color 200ms ease,
+    background   200ms ease,
+    box-shadow   200ms ease,
+    transform    160ms ease;
+}
+
+.home-stats-card > button:hover,
+.home-stats-card button.border-secondary\/30:hover {
+  border-color: rgba(117, 223, 255, 0.60) !important;
+  background: rgba(117, 223, 255, 0.10) !important;
+  box-shadow: 0 0 22px rgba(0, 210, 255, 0.16);
+  transform: translateY(-1px);
+}
+
+/* ----------------------------------------------------------
+   WIN-RATE CIRCULAR ARC  (.home-winrate-arc)
+   ---------------------------------------------------------- */
+.home-winrate-arc-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.home-winrate-arc {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  flex-shrink: 0;
+}
+
+.home-winrate-arc svg {
+  width: 80px;
+  height: 80px;
+  transform: rotate(-90deg);
+}
+
+.home-winrate-arc .arc-track {
+  fill: none;
+  stroke: rgba(117, 223, 255, 0.10);
+  stroke-width: 7;
+  stroke-linecap: round;
+}
+
+.home-winrate-arc .arc-fill {
+  fill: none;
+  stroke: url(#winArcGrad);
+  stroke-width: 7;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 6px rgba(71, 214, 255, 0.60));
+  transition: stroke-dashoffset 1s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.home-winrate-arc .arc-center-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.home-winrate-arc .arc-pct {
+  font-size: 16px;
+  font-weight: 900;
+  color: #a5e7ff;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 12px rgba(117, 223, 255, 0.60);
+}
+
+.home-winrate-arc .arc-label {
+  font-size: 8px;
+  font-weight: 800;
+  color: rgba(165, 231, 255, 0.55);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* ----------------------------------------------------------
+   RANK TIER ROW – elevated banner  (taste: hero moments)
+   ---------------------------------------------------------- */
+.home-rank-tier-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 215, 0, 0.08) 0%,
+    rgba(255, 180, 0, 0.04) 40%,
+    rgba(5, 18, 30, 0.60) 100%
+  );
+  border: 1px solid rgba(255, 215, 0, 0.14);
+  margin-bottom: 12px;
+}
+
+.home-rank-tier-banner.is-unranked {
+  background: linear-gradient(
+    135deg,
+    rgba(117, 223, 255, 0.06) 0%,
+    rgba(5, 18, 30, 0.60) 100%
+  );
+  border-color: rgba(117, 223, 255, 0.12);
+}
+
+/* ----------------------------------------------------------
+   MOBILE TAB BARS
+   ---------------------------------------------------------- */
+.home-page .bg-surface-container\/30.rounded-lg {
+  border: 1px solid rgba(117, 223, 255, 0.10);
+  background: rgba(4, 16, 28, 0.62) !important;
+  backdrop-filter: blur(10px);
+  border-radius: 10px !important;
+  padding: 4px !important;
+}
+
+/* ----------------------------------------------------------
+   PVP MODE MODAL  (backdrop)
+   ---------------------------------------------------------- */
 .pvp-mode-modal {
   position: fixed;
   inset: 0;
@@ -117,25 +835,41 @@
   place-items: center;
   padding: 24px;
   background:
-    radial-gradient(circle at 50% 35%, rgba(117, 223, 255, 0.14), transparent 34%),
-    rgba(1, 11, 18, 0.78);
-  backdrop-filter: blur(12px);
+    radial-gradient(circle at 50% 30%, rgba(0, 180, 255, 0.18), transparent 42%),
+    rgba(1, 8, 16, 0.84);
+  backdrop-filter: blur(18px);
+  animation: modalFadeIn 200ms ease-out both;
 }
 
+@keyframes modalFadeIn {
+  from { opacity: 0; }
+}
+
+/* ----------------------------------------------------------
+   PVP MODE PANEL & SEARCH PANEL
+   ---------------------------------------------------------- */
 .pvp-mode-panel,
 .pvp-search-panel {
   position: relative;
   width: min(720px, 100%);
-  padding: 28px;
-  border: 1px solid rgba(117, 223, 255, 0.28);
-  border-radius: 16px;
+  padding: 34px;
+  border: 1px solid rgba(117, 223, 255, 0.30);
+  border-radius: 20px;
   background:
-    linear-gradient(145deg, rgba(15, 42, 61, 0.96), rgba(4, 18, 29, 0.98)),
-    rgba(7, 28, 43, 0.96);
-  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.48), 0 0 44px rgba(0, 210, 255, 0.08);
+    linear-gradient(148deg, rgba(10, 30, 48, 0.98) 0%, rgba(3, 14, 24, 0.99) 100%);
+  box-shadow:
+    0 0 0 1px rgba(117, 223, 255, 0.08) inset,
+    0 40px 100px rgba(0, 0, 0, 0.55),
+    0 0 60px rgba(0, 200, 255, 0.10);
   overflow: hidden;
+  animation: panelSlideUp 240ms cubic-bezier(0.22,1,0.36,1) both;
 }
 
+@keyframes panelSlideUp {
+  from { opacity: 0; transform: translateY(20px) scale(0.97); }
+}
+
+/* Grid overlay */
 .pvp-mode-panel::before,
 .pvp-search-panel::before {
   content: "";
@@ -143,35 +877,55 @@
   inset: 0;
   pointer-events: none;
   background:
-    linear-gradient(rgba(117, 223, 255, 0.045) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(117, 223, 255, 0.045) 1px, transparent 1px);
-  background-size: 42px 42px;
-  mask-image: linear-gradient(180deg, black, transparent 90%);
+    linear-gradient(rgba(117, 223, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(117, 223, 255, 0.04) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: linear-gradient(180deg, rgba(0,0,0,0.6), transparent 88%);
+}
+
+/* Top edge accent */
+.pvp-mode-panel::after,
+.pvp-search-panel::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 20%;
+  right: 20%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(165, 231, 255, 0.75), transparent);
 }
 
 .pvp-mode-close {
   position: absolute;
-  top: 16px;
-  right: 16px;
+  top: 18px;
+  right: 18px;
   z-index: 1;
-  width: 36px;
-  height: 36px;
+  width: 38px;
+  height: 38px;
   display: grid;
   place-items: center;
-  border: 1px solid rgba(117, 223, 255, 0.22);
-  border-radius: 10px;
+  border: 1px solid rgba(117, 223, 255, 0.24);
+  border-radius: 12px;
   color: #bfeeff;
-  background: rgba(6, 24, 37, 0.78);
+  background: rgba(6, 24, 37, 0.82);
+  transition: border-color 180ms ease, background 180ms ease, transform 160ms ease;
+}
+
+.pvp-mode-close:hover {
+  border-color: rgba(117, 223, 255, 0.55);
+  background: rgba(10, 32, 50, 0.90);
+  transform: rotate(90deg) scale(1.05);
 }
 
 .pvp-mode-kicker {
   display: inline-flex;
-  margin-bottom: 10px;
-  color: #75dfff;
-  font-size: 12px;
+  margin-bottom: 12px;
+  color: var(--home-cyan);
+  font-size: 11px;
   font-weight: 900;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.20em;
   text-transform: uppercase;
+  text-shadow: 0 0 12px rgba(117, 223, 255, 0.55);
 }
 
 .pvp-mode-panel h2,
@@ -182,53 +936,88 @@
   line-height: 1;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+  text-shadow: 0 4px 28px rgba(0, 180, 255, 0.22);
 }
 
 .pvp-mode-panel p,
 .pvp-search-panel p {
   max-width: 560px;
-  margin: 14px 0 24px;
-  color: rgba(214, 235, 246, 0.78);
+  margin: 16px 0 28px;
+  color: rgba(214, 235, 246, 0.76);
   font-size: 15px;
-  line-height: 1.6;
+  line-height: 1.65;
 }
 
+/* ----------------------------------------------------------
+   PVP MODE OPTIONS GRID
+   ---------------------------------------------------------- */
 .pvp-mode-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
+  gap: 16px;
 }
 
 .pvp-mode-option {
   position: relative;
-  min-height: 190px;
-  padding: 20px;
+  min-height: 200px;
+  padding: 24px;
   text-align: left;
   border: 1px solid rgba(117, 223, 255, 0.18);
-  border-radius: 14px;
+  border-radius: 16px;
   background:
-    radial-gradient(circle at 80% 0%, rgba(117, 223, 255, 0.14), transparent 32%),
-    rgba(8, 31, 48, 0.82);
+    radial-gradient(circle at 85% 0%, rgba(117, 223, 255, 0.15), transparent 34%),
+    rgba(7, 26, 42, 0.88);
   color: #e8f7ff;
-  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+  transition:
+    transform 200ms cubic-bezier(0.22,1,0.36,1),
+    border-color 200ms ease,
+    box-shadow   200ms ease;
+  overflow: hidden;
+}
+
+.pvp-mode-option::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -60%;
+  width: 40%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(165, 231, 255, 0.65), transparent);
+  opacity: 0;
+  transition: opacity 180ms ease;
+}
+
+.pvp-mode-option:hover::before {
+  opacity: 1;
+  animation: cardShimmer 1.2s ease-in-out infinite;
 }
 
 .pvp-mode-option:hover {
-  transform: translateY(-3px);
-  border-color: rgba(117, 223, 255, 0.52);
-  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.28), 0 0 28px rgba(0, 210, 255, 0.12);
+  transform: translateY(-4px);
+  border-color: rgba(117, 223, 255, 0.55);
+  box-shadow:
+    0 20px 44px rgba(0, 0, 0, 0.34),
+    0 0 36px rgba(0, 210, 255, 0.14);
 }
 
 .pvp-mode-option .material-symbols-outlined {
   display: inline-grid;
   place-items: center;
-  width: 44px;
-  height: 44px;
-  margin-bottom: 18px;
-  border-radius: 12px;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 20px;
+  border-radius: 14px;
   background: rgba(117, 223, 255, 0.12);
+  border: 1px solid rgba(117, 223, 255, 0.16);
   color: #8fe8ff;
   font-size: 28px;
+  filter: drop-shadow(0 0 6px rgba(0, 210, 255, 0.40));
+  transition: filter 200ms ease, transform 200ms ease;
+}
+
+.pvp-mode-option:hover .material-symbols-outlined {
+  filter: drop-shadow(0 0 12px rgba(0, 210, 255, 0.70));
+  transform: scale(1.08);
 }
 
 .pvp-mode-option strong,
@@ -238,39 +1027,63 @@
 }
 
 .pvp-mode-option strong {
-  margin-bottom: 8px;
+  margin-bottom: 10px;
   font-size: 22px;
   font-weight: 900;
+  text-shadow: 0 1px 12px rgba(0, 180, 255, 0.15);
 }
 
 .pvp-mode-option small {
   color: rgba(214, 235, 246, 0.72);
   font-size: 13px;
-  line-height: 1.45;
+  line-height: 1.5;
 }
 
 .pvp-mode-option em {
-  margin-top: 18px;
-  color: #75dfff;
-  font-size: 11px;
+  margin-top: 20px;
+  color: var(--home-cyan);
+  font-size: 10px;
   font-style: normal;
   font-weight: 900;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
+  text-shadow: 0 0 10px rgba(117, 223, 255, 0.50);
 }
 
+/* Ranked variant */
 .pvp-mode-option.ranked {
-  border-color: rgba(255, 209, 102, 0.24);
+  border-color: rgba(255, 209, 102, 0.26);
   background:
-    radial-gradient(circle at 80% 0%, rgba(255, 209, 102, 0.14), transparent 34%),
-    rgba(8, 31, 48, 0.82);
+    radial-gradient(circle at 85% 0%, rgba(255, 209, 102, 0.16), transparent 36%),
+    rgba(7, 26, 42, 0.88);
 }
 
-.pvp-mode-option.ranked .material-symbols-outlined,
+.pvp-mode-option.ranked:hover {
+  border-color: rgba(255, 209, 102, 0.55);
+  box-shadow:
+    0 20px 44px rgba(0, 0, 0, 0.34),
+    0 0 36px rgba(255, 180, 50, 0.12);
+}
+
+.pvp-mode-option.ranked .material-symbols-outlined {
+  background: rgba(255, 209, 102, 0.12);
+  border-color: rgba(255, 209, 102, 0.20);
+  color: #ffd166;
+  filter: drop-shadow(0 0 6px rgba(255, 200, 50, 0.40));
+}
+
+.pvp-mode-option.ranked:hover .material-symbols-outlined {
+  filter: drop-shadow(0 0 14px rgba(255, 200, 50, 0.70));
+}
+
 .pvp-mode-option.ranked em {
   color: #ffd166;
+  text-shadow: 0 0 10px rgba(255, 200, 50, 0.50);
 }
 
+/* ----------------------------------------------------------
+   PVP SEARCH PANEL (radar)
+   ---------------------------------------------------------- */
 .pvp-search-panel {
   width: min(520px, 100%);
   text-align: center;
@@ -278,14 +1091,17 @@
 
 .pvp-search-radar {
   position: relative;
-  width: 148px;
-  height: 148px;
-  margin: 0 auto 22px;
-  border: 1px solid rgba(117, 223, 255, 0.42);
+  width: 156px;
+  height: 156px;
+  margin: 0 auto 26px;
+  border: 1px solid rgba(117, 223, 255, 0.45);
   border-radius: 50%;
   background:
-    repeating-radial-gradient(circle, transparent 0 31px, rgba(117, 223, 255, 0.2) 32px 33px);
-  box-shadow: 0 0 36px rgba(117, 223, 255, 0.12);
+    repeating-radial-gradient(circle, transparent 0 31px, rgba(117, 223, 255, 0.18) 32px 33px);
+  box-shadow:
+    0 0 0 1px rgba(117, 223, 255, 0.10),
+    0 0 50px rgba(117, 223, 255, 0.15),
+    inset 0 0 30px rgba(0, 180, 255, 0.06);
   overflow: hidden;
 }
 
@@ -297,9 +1113,9 @@
   transform-origin: 50% 50%;
   background: conic-gradient(
     from -35deg at 50% 50%,
-    rgba(117, 223, 255, 0.56) 0deg,
-    rgba(117, 223, 255, 0.22) 24deg,
-    transparent 50deg,
+    rgba(117, 223, 255, 0.62) 0deg,
+    rgba(117, 223, 255, 0.25) 26deg,
+    transparent 52deg,
     transparent 360deg
   );
   mask-image: radial-gradient(circle at 50% 50%, transparent 0 5px, #000 6px 66px, transparent 67px);
@@ -309,13 +1125,13 @@
 .pvp-search-radar i {
   position: absolute;
   z-index: 2;
-  width: 11px;
-  height: 11px;
+  width: 12px;
+  height: 12px;
   left: 50%;
   top: 50%;
   border-radius: 50%;
   background: #75dfff;
-  box-shadow: 0 0 18px #75dfff, 0 0 0 6px rgba(117, 223, 255, 0.08);
+  box-shadow: 0 0 20px #75dfff, 0 0 0 6px rgba(117, 223, 255, 0.10);
   transform: translate(-50%, -50%);
   animation: pvpSignalBlink 1.2s ease-in-out infinite;
 }
@@ -324,16 +1140,18 @@
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  margin: 0 auto 22px;
-  padding: 10px 14px;
-  border: 1px solid rgba(117, 223, 255, 0.2);
+  margin: 0 auto 24px;
+  padding: 10px 18px;
+  border: 1px solid rgba(117, 223, 255, 0.22);
   border-radius: 999px;
   color: #bfeeff;
-  background: rgba(8, 31, 48, 0.62);
-  font-size: 12px;
+  background: rgba(6, 22, 36, 0.72);
+  backdrop-filter: blur(8px);
+  font-size: 11px;
   font-weight: 800;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.10em;
   text-transform: uppercase;
+  box-shadow: 0 0 18px rgba(0, 180, 255, 0.08);
 }
 
 .pvp-search-status b {
@@ -341,176 +1159,321 @@
   height: 8px;
   border-radius: 50%;
   background: #54f0a7;
-  box-shadow: 0 0 14px #54f0a7;
+  box-shadow: 0 0 16px #54f0a7;
+  animation: pvpSignalBlink 1.8s ease-in-out infinite;
 }
 
 .pvp-search-cancel {
   display: block;
   width: 100%;
-  padding: 13px 18px;
-  border: 1px solid rgba(117, 223, 255, 0.28);
-  border-radius: 10px;
+  padding: 14px 20px;
+  border: 1px solid rgba(117, 223, 255, 0.30);
+  border-radius: 12px;
   color: #bfeeff;
-  background: rgba(6, 24, 37, 0.68);
+  background: rgba(5, 20, 34, 0.72);
   font-weight: 900;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   transition:
-    transform 160ms ease,
-    border-color 160ms ease,
-    background 160ms ease,
-    color 160ms ease,
-    box-shadow 160ms ease;
+    transform     160ms ease,
+    border-color  160ms ease,
+    background    160ms ease,
+    color         160ms ease,
+    box-shadow    160ms ease;
 }
 
 .pvp-search-cancel:hover {
-  transform: translateY(-1px);
-  border-color: rgba(117, 223, 255, 0.62);
-  color: #03131d;
+  transform: translateY(-2px);
+  border-color: rgba(117, 223, 255, 0.68);
+  color: #031424;
   background: linear-gradient(90deg, #72f0c1, #9be7fb);
-  box-shadow: 0 16px 34px rgba(0, 210, 255, 0.16), 0 0 22px rgba(84, 240, 167, 0.18);
+  box-shadow:
+    0 18px 36px rgba(0, 210, 255, 0.18),
+    0 0 28px rgba(84, 240, 167, 0.22);
 }
 
 .pvp-search-cancel:active {
-  transform: translateY(0) scale(0.99);
+  transform: translateY(0) scale(0.98);
 }
 
-@keyframes pvpRadarSweep {
-  from {
-    transform: rotate(0deg);
-  }
+/* ----------------------------------------------------------
+   BACKGROUND DECORATIVE GLOWS
+   ---------------------------------------------------------- */
+.home-page > .fixed {
+  pointer-events: none;
+}
 
-  to {
-    transform: rotate(360deg);
-  }
+/* ----------------------------------------------------------
+   KEYFRAMES
+   ---------------------------------------------------------- */
+@keyframes pvpRadarSweep {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
 }
 
 @keyframes pvpSignalBlink {
   50% {
-    opacity: 0.35;
-    transform: translate(-50%, -50%) scale(0.72);
+    opacity: 0.32;
+    transform: translate(-50%, -50%) scale(0.70);
   }
 }
 
+/* ----------------------------------------------------------
+   OCEAN WAVE BACKGROUND ON HERO IMAGE
+   ---------------------------------------------------------- */
+.ocean-wave {
+  background:
+    radial-gradient(ellipse 70% 50% at 50% 50%, rgba(0, 180, 255, 0.14), transparent 70%);
+  border-radius: 50%;
+  animation: oceanPulse 4s ease-in-out infinite;
+}
+
+@keyframes oceanPulse {
+  0%, 100% { opacity: 0.55; transform: scale(1.00); }
+  50%       { opacity: 0.90; transform: scale(1.08); }
+}
+
+/* ----------------------------------------------------------
+   GLOW TEXT UTILITY
+   ---------------------------------------------------------- */
+.glow-text {
+  text-shadow: 0 0 18px currentColor;
+}
+
+/* ----------------------------------------------------------
+   LIGHT MODE OVERRIDES
+   ---------------------------------------------------------- */
 .light-mode-active .home-page {
   background:
-    radial-gradient(circle at 79% 5%, rgba(0, 119, 182, 0.13), transparent 27%),
-    linear-gradient(180deg, #dce8ef, #d3e1e9 72%) !important;
+    radial-gradient(ellipse 55% 40% at 82% 4%, rgba(0, 119, 182, 0.14), transparent 55%),
+    radial-gradient(ellipse 45% 38% at 6% 60%, rgba(0, 80, 160, 0.09), transparent 55%),
+    linear-gradient(180deg, #d2e8f2, #c8dde9 100%) !important;
+}
+
+.light-mode-active .home-page::before {
+  display: none;
 }
 
 .light-mode-active .home-hero {
-  border-bottom-color: rgba(25, 78, 104, 0.15);
+  border-color: rgba(25, 78, 104, 0.16);
+  background: linear-gradient(125deg,
+    rgba(245, 251, 255, 0.90) 0%,
+    rgba(225, 240, 250, 0.78) 100%) !important;
+  box-shadow:
+    0 0 0 1px rgba(25, 78, 104, 0.08) inset,
+    0 24px 50px rgba(23, 58, 78, 0.10);
 }
 
 .light-mode-active .home-hero::before {
-  border-color: rgba(25, 78, 104, 0.12);
+  background: linear-gradient(90deg,
+    transparent,
+    rgba(0, 119, 182, 0.50) 30%,
+    rgba(8, 126, 175, 0.70) 50%,
+    rgba(0, 119, 182, 0.50) 70%,
+    transparent);
+}
+
+.light-mode-active .home-hero::after {
   background:
-    linear-gradient(105deg, rgba(247, 252, 254, 0.88), rgba(226, 239, 246, 0.54) 65%),
-    rgba(238, 247, 251, 0.72);
-  box-shadow: 0 16px 38px rgba(23, 58, 78, 0.07);
+    linear-gradient(rgba(0, 119, 182, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 119, 182, 0.04) 1px, transparent 1px);
+}
+
+/* Light mode hero text – reset gradient shimmer */
+.light-mode-active .home-hero h1 {
+  background: linear-gradient(105deg, #0a4a6e 0%, #0070a8 50%, #0a4a6e 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: none;
+}
+
+.light-mode-active .home-hero h1 .text-secondary.glow-text {
+  background: linear-gradient(105deg, #087eaf, #0099cc);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: none;
+  animation: none;
+}
+
+.light-mode-active .home-section-heading h2 {
+  background: linear-gradient(90deg, #0a5070 0%, #0070a8 60%, #0099cc 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .light-mode-active .home-tactics-button {
   border-color: #087eaf !important;
-  background: #087eaf;
+  background: #087eaf !important;
   color: #ffffff !important;
-  box-shadow: 0 8px 20px rgba(8, 126, 175, 0.18);
+  box-shadow: 0 10px 24px rgba(8, 126, 175, 0.22) !important;
 }
 
 .light-mode-active .home-tactics-button:hover {
   border-color: #056b96 !important;
-  background: #056b96;
+  background: #056b96 !important;
+  box-shadow: 0 14px 32px rgba(5, 107, 150, 0.30) !important;
 }
 
 .light-mode-active .home-section-heading {
-  border-bottom-color: rgba(25, 78, 104, 0.15);
+  border-bottom-color: rgba(25, 78, 104, 0.16);
+  background-image: linear-gradient(
+    90deg,
+    rgba(0, 119, 182, 0.16),
+    rgba(0, 119, 182, 0.05) 60%,
+    transparent
+  );
 }
 
 .light-mode-active .home-mode-card,
 .light-mode-active .home-stats-card {
   border-color: rgba(25, 78, 104, 0.16) !important;
-  background:
-    linear-gradient(180deg, rgba(249, 253, 255, 0.98), rgba(238, 246, 250, 0.96)) !important;
-  box-shadow: 0 12px 28px rgba(23, 58, 78, 0.08) !important;
+  background: linear-gradient(160deg,
+    rgba(248, 252, 255, 0.98) 0%,
+    rgba(234, 245, 251, 0.96) 100%) !important;
+  box-shadow:
+    0 0 0 1px rgba(25, 78, 104, 0.06) inset,
+    0 14px 34px rgba(23, 58, 78, 0.10) !important;
 }
 
 .light-mode-active .home-mode-card::before,
 .light-mode-active .home-stats-card::before {
   background: radial-gradient(
-    420px circle at var(--mouse-x, 50%) var(--mouse-y, 30%),
-    rgba(0, 119, 182, 0.1),
-    transparent 48%
+    500px circle at var(--mouse-x, 50%) var(--mouse-y, 30%),
+    rgba(0, 119, 182, 0.10),
+    transparent 50%
   );
 }
 
 .light-mode-active .home-mode-card:hover,
 .light-mode-active .home-stats-card:hover {
-  border-color: rgba(0, 119, 182, 0.42) !important;
-  box-shadow: 0 16px 34px rgba(23, 85, 116, 0.13) !important;
+  border-color: rgba(0, 119, 182, 0.45) !important;
+  box-shadow:
+    0 0 0 1px rgba(0, 119, 182, 0.08) inset,
+    0 20px 42px rgba(23, 85, 116, 0.15) !important;
 }
 
 .light-mode-active .home-mode-card h3 {
-  color: #112b3e !important;
+  color: #0e2e44 !important;
+  text-shadow: none;
+}
+
+.light-mode-active .home-stats-card .bg-white\/5 {
+  background: rgba(220, 238, 248, 0.60) !important;
+  border-color: rgba(25, 78, 104, 0.10) !important;
+}
+
+.light-mode-active .home-stats-card .bg-white\/5:hover {
+  background: rgba(200, 228, 244, 0.80) !important;
+  border-color: rgba(0, 119, 182, 0.24) !important;
+}
+
+.light-mode-active .home-stats-card .bg-surface-container\/30 {
+  background: rgba(220, 238, 248, 0.72) !important;
+  border-color: rgba(25, 78, 104, 0.12) !important;
+}
+
+.light-mode-active .home-rank-tier-banner {
+  background: linear-gradient(135deg,
+    rgba(255, 180, 0, 0.10) 0%,
+    rgba(240, 250, 255, 0.80) 100%
+  );
+  border-color: rgba(200, 140, 0, 0.20);
+}
+
+.light-mode-active .home-rank-tier-banner.is-unranked {
+  background: rgba(220, 240, 252, 0.80);
+  border-color: rgba(8, 126, 175, 0.18);
 }
 
 .light-mode-active .pvp-mode-modal {
   background:
-    radial-gradient(circle at 50% 35%, rgba(8, 126, 175, 0.16), transparent 34%),
-    rgba(218, 233, 242, 0.74);
+    radial-gradient(circle at 50% 30%, rgba(8, 126, 175, 0.18), transparent 40%),
+    rgba(210, 228, 238, 0.80);
 }
 
 .light-mode-active .pvp-mode-panel,
 .light-mode-active .pvp-search-panel {
-  border-color: rgba(8, 126, 175, 0.22);
-  background:
-    linear-gradient(145deg, rgba(252, 254, 255, 0.98), rgba(230, 242, 248, 0.98)),
-    #f2f8fb;
-  box-shadow: 0 28px 70px rgba(23, 58, 78, 0.18);
+  border-color: rgba(8, 126, 175, 0.24);
+  background: linear-gradient(148deg,
+    rgba(250, 254, 255, 0.99) 0%,
+    rgba(228, 243, 250, 0.99) 100%);
+  box-shadow:
+    0 0 0 1px rgba(8, 126, 175, 0.06) inset,
+    0 32px 72px rgba(23, 58, 78, 0.20);
 }
 
 .light-mode-active .pvp-mode-close,
 .light-mode-active .pvp-search-cancel {
   color: #0a6f9c;
-  background: rgba(238, 248, 253, 0.86);
+  background: rgba(234, 247, 253, 0.92);
 }
 
 .light-mode-active .pvp-search-cancel:hover {
-  color: #062033;
+  color: #06203a;
   background: linear-gradient(90deg, #58dba8, #89daf2);
-  box-shadow: 0 16px 34px rgba(8, 126, 175, 0.2);
+  box-shadow: 0 18px 36px rgba(8, 126, 175, 0.22);
 }
 
 .light-mode-active .pvp-mode-panel h2,
 .light-mode-active .pvp-search-panel h2 {
-  color: #10283a;
+  color: #0d2638;
+  text-shadow: none;
 }
 
 .light-mode-active .pvp-mode-panel p,
 .light-mode-active .pvp-search-panel p,
 .light-mode-active .pvp-mode-option small {
-  color: rgba(16, 40, 58, 0.72);
+  color: rgba(14, 38, 58, 0.72);
 }
 
 .light-mode-active .pvp-mode-option {
   border-color: rgba(8, 126, 175, 0.18);
   background:
-    radial-gradient(circle at 80% 0%, rgba(8, 126, 175, 0.13), transparent 32%),
-    rgba(247, 252, 254, 0.88);
-  color: #10283a;
+    radial-gradient(circle at 85% 0%, rgba(8, 126, 175, 0.12), transparent 34%),
+    rgba(245, 251, 255, 0.92);
+  color: #0d2638;
+}
+
+.light-mode-active .pvp-mode-option:hover {
+  border-color: rgba(8, 126, 175, 0.50);
+  box-shadow: 0 20px 44px rgba(23, 58, 78, 0.18), 0 0 28px rgba(8, 126, 175, 0.10);
+}
+
+.light-mode-active .pvp-mode-option .material-symbols-outlined {
+  background: rgba(8, 126, 175, 0.10);
+  border-color: rgba(8, 126, 175, 0.16);
+  color: #087eaf;
+  filter: none;
+}
+
+.light-mode-active .pvp-mode-option.ranked {
+  border-color: rgba(180, 130, 0, 0.20);
+  background:
+    radial-gradient(circle at 85% 0%, rgba(200, 150, 0, 0.12), transparent 36%),
+    rgba(245, 251, 255, 0.92);
 }
 
 .light-mode-active .pvp-search-status {
   color: #0a5478;
-  background: rgba(247, 252, 254, 0.74);
+  background: rgba(244, 251, 255, 0.82);
+  border-color: rgba(8, 126, 175, 0.20);
 }
 
+/* ----------------------------------------------------------
+   RESPONSIVE
+   ---------------------------------------------------------- */
 @media (max-width: 767px) {
   .home-main {
-    padding-top: 8px;
+    padding-top: 10px;
   }
 
   .home-hero {
-    padding: 20px 12px 24px;
+    padding: 24px 18px 30px;
+    border-radius: 16px;
+    min-height: auto;
   }
 
   .home-mode-card {
@@ -523,16 +1486,159 @@
 
   .pvp-mode-panel,
   .pvp-search-panel {
-    padding: 22px;
+    padding: 24px;
+    border-radius: 16px;
+  }
+
+  .home-winrate-arc {
+    width: 68px;
+    height: 68px;
+  }
+
+  .home-winrate-arc svg {
+    width: 68px;
+    height: 68px;
   }
 }
 
+/* ----------------------------------------------------------
+   REDUCED MOTION
+   ---------------------------------------------------------- */
 @media (prefers-reduced-motion: reduce) {
-  .home-mode-card {
-    transition: none;
+  .home-page::before,
+  .home-hero::before,
+  .home-hero h1,
+  .home-hero h1 .text-secondary.glow-text,
+  .home-mode-card::after,
+  .home-stats-card::after,
+  .home-tactics-button::before,
+  .home-mode-card button.bg-secondary::before,
+  .pvp-mode-option::before,
+  .home-mode-card,
+  .home-stats-card,
+  .home-winrate-arc .arc-fill {
+    animation: none !important;
+    transition: none !important;
   }
 
   .home-mode-card:hover {
     transform: none;
+  }
+
+  .home-tactics-button:hover,
+  .home-mode-card button.bg-secondary:hover,
+  .home-mode-card button.border-secondary:hover,
+  .home-stats-card button:hover,
+  .pvp-mode-option:hover {
+    transform: none;
+  }
+
+  .home-mode-card {
+    animation: none !important;
+  }
+}
+
+/* ----------------------------------------------------------
+   PREMIUM SELECT DROPDOWN  (.home-select)
+   ---------------------------------------------------------- */
+.home-select {
+  appearance: none;
+  -webkit-appearance: none;
+  display: block;
+  width: 100%;
+  padding: 10px 40px 10px 14px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #a5e7ff;
+  background-color: rgba(4, 18, 32, 0.78);
+  backdrop-filter: blur(12px);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2375dfff' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px 16px;
+  border: 1px solid rgba(117, 223, 255, 0.24);
+  border-radius: 10px;
+  box-shadow:
+    0 0 0 1px rgba(117, 223, 255, 0.05) inset,
+    0 4px 16px rgba(0, 0, 0, 0.28),
+    0 0 18px rgba(0, 180, 255, 0.06);
+  transition:
+    border-color     200ms ease,
+    box-shadow       200ms ease,
+    background-color 200ms ease,
+    color            200ms ease;
+  outline: none;
+}
+
+.home-select:hover {
+  border-color: rgba(117, 223, 255, 0.50);
+  box-shadow:
+    0 0 0 1px rgba(117, 223, 255, 0.08) inset,
+    0 4px 16px rgba(0, 0, 0, 0.32),
+    0 0 28px rgba(0, 180, 255, 0.14);
+  color: #c8f0ff;
+}
+
+.home-select:focus {
+  border-color: rgba(117, 223, 255, 0.70);
+  box-shadow:
+    0 0 0 2px rgba(117, 223, 255, 0.14),
+    0 4px 16px rgba(0, 0, 0, 0.28),
+    0 0 32px rgba(0, 180, 255, 0.18);
+  color: #d4f3ff;
+  background-color: rgba(6, 24, 40, 0.90);
+}
+
+.home-select option {
+  background-color: #041625;
+  color: #a5e7ff;
+  font-weight: 700;
+  padding: 10px 14px;
+}
+
+.home-select option:checked {
+  background-color: rgba(0, 160, 220, 0.40);
+  color: #d4f3ff;
+}
+
+/* Light mode overrides */
+.light-mode-active .home-select {
+  color: #075e8a;
+  background-color: rgba(230, 244, 252, 0.90);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23087eaf' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  border-color: rgba(8, 126, 175, 0.28);
+  box-shadow:
+    0 0 0 1px rgba(8, 126, 175, 0.06) inset,
+    0 4px 12px rgba(23, 58, 78, 0.10);
+}
+
+.light-mode-active .home-select:hover {
+  border-color: rgba(8, 126, 175, 0.55);
+  box-shadow:
+    0 0 0 1px rgba(8, 126, 175, 0.10) inset,
+    0 4px 14px rgba(23, 58, 78, 0.14);
+  color: #054f76;
+}
+
+.light-mode-active .home-select:focus {
+  border-color: rgba(8, 126, 175, 0.80);
+  box-shadow:
+    0 0 0 2px rgba(8, 126, 175, 0.16),
+    0 4px 12px rgba(23, 58, 78, 0.12);
+  background-color: rgba(218, 240, 252, 0.96);
+  color: #033d5a;
+}
+
+.light-mode-active .home-select option {
+  background-color: #daeef8;
+  color: #054f76;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-select {
+    transition: none;
   }
 }
