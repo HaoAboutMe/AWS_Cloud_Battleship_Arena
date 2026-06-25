@@ -170,7 +170,7 @@ export const getRoomPlayerId = (baseUserId = "guest", roomCode = "global") => {
     return existingId;
   }
 
-  const nextId = `${baseUserId}:${crypto.randomUUID()}`;
+  const nextId = `${baseUserId}:${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 9)}`;
   sessionStorage.setItem(storageKey, nextId);
   return nextId;
 };
