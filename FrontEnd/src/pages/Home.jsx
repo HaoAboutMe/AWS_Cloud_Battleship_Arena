@@ -76,7 +76,7 @@ function Home() {
   const [matchmakingMode, setMatchmakingMode] = useState(null);
   const [matchmakingRoomCode, setMatchmakingRoomCode] = useState("");
   const [matchmakingError, setMatchmakingError] = useState("");
-  const [guestUserId] = useState(() => `guest-${crypto.randomUUID()}`);
+  const [guestUserId] = useState(() => `guest-${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 9)}`);
   const [stats, setStats] = useState({
     totalGames: 0,
     wins: 0,
