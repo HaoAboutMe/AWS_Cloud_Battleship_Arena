@@ -595,13 +595,9 @@ function Lobby() {
                       onClick={handleLobbyReady}
                     >
                       <span className="material-symbols-outlined">
-                        {isOtherPlayerReady ? "rocket_launch" : "task_alt"}
+                        task_alt
                       </span>
-                      {readyLoading
-                        ? copy.syncing
-                        : isOtherPlayerReady
-                          ? copy.startDeployment
-                          : copy.ready}
+                      {readyLoading ? copy.syncing : copy.ready}
                     </button>
                   )}
                 </div>

@@ -30,6 +30,7 @@
   text-decoration: none;
 }
 
+
 .command-brand-mark {
   position: relative;
   width: 34px;
@@ -322,7 +323,7 @@
   }
 }
 
-.command-account-menu > div {
+.command-account-menu>div {
   padding: 8px;
   border: 1px solid rgba(117, 223, 255, 0.14);
   border-radius: 6px;
@@ -423,7 +424,7 @@
   transform: rotate(-45deg);
 }
 
-.command-toast > span:nth-child(2) {
+.command-toast>span:nth-child(2) {
   min-width: 0;
   display: flex;
   flex-direction: column;
@@ -544,7 +545,7 @@
   color: rgba(218, 235, 246, 0.54);
 }
 
-.light-mode-active .command-header .command-account-menu > div {
+.light-mode-active .command-header .command-account-menu>div {
   background: rgba(5, 28, 43, 0.99);
 }
 
@@ -592,8 +593,8 @@
     display: none;
   }
 
-  .user-logged-in .command-actions > .language-toggle,
-  .user-logged-in .command-actions > button.command-icon-button {
+  .user-logged-in .command-actions>.language-toggle,
+  .user-logged-in .command-actions>button.command-icon-button {
     display: none;
   }
 
@@ -734,7 +735,7 @@
   .command-desktop-actions {
     display: none !important;
   }
-  
+
   .command-mobile-settings {
     display: block;
   }
@@ -764,6 +765,7 @@
     opacity: 0;
     transform: translateY(-8px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -834,4 +836,3 @@
   color: rgba(218, 235, 246, 0.72);
   border-color: rgba(165, 231, 255, 0.2);
 }
-

@@ -14,6 +14,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
 import Profile from "./pages/Profile";
+import RankDemo from "./pages/RankDemo";
 
 function App() {
   const { pathname } = useLocation();
@@ -37,6 +38,7 @@ function App() {
           <Route path="/profile" element={<Profile />} />
           <Route path="/lobby" element={<Lobby />} />
           <Route path="/game" element={<Game />} />
+          <Route path="/rank-demo" element={<RankDemo />} />
         </Routes>
       </AuthProvider>
     </LanguageProvider>

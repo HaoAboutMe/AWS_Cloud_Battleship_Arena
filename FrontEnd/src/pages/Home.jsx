@@ -1,19 +1,20 @@
-import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import admiralBadge from '../assets/badge/admiral.png';
+import bronzeBadge from '../assets/badge/bronze.png';
+import diamondBadge from '../assets/badge/diamond.png';
+import goldBadge from '../assets/badge/gold.png';
+import masterBadge from '../assets/badge/master.png';
+import platinumBadge from '../assets/badge/platinum.png';
+import silverBadge from '../assets/badge/silver.png';
 import CommandHeader from "../components/CommandHeader";
+import HomeSelect from "../components/HomeSelect";
 import { useAuth } from "../contexts/AuthContext";
 import { useLanguage } from "../contexts/LanguageContext";
 import { findMatch, getRoom, leaveRoom } from "../services/matchService";
 import { getUserProfile } from "../services/userService";
-import "./HomeHeader.css";
 import "./Home.css";
-import bronzeBadge from '../assets/badge/bronze.png';
-import silverBadge from '../assets/badge/silver.png';
-import goldBadge from '../assets/badge/gold.png';
-import platinumBadge from '../assets/badge/platinum.png';
-import diamondBadge from '../assets/badge/diamond.png';
-import masterBadge from '../assets/badge/master.png';
-import admiralBadge from '../assets/badge/admiral.png';
+import "./HomeHeader.css";
 
 const getRankInfo = (rank, t) => {
   const rankStr = (rank || "Unranked").toLowerCase();
@@ -492,15 +493,15 @@ function Home() {
                 
                 <div className="flex flex-col gap-2 mb-1">
                   <span className="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider">{t("home.difficulty")}</span>
-                  <select 
-                    value={botDifficulty} 
-                    onChange={(e) => setBotDifficulty(e.target.value)}
-                    className="bg-surface-container/50 text-secondary font-label-md p-2 rounded-sm border border-secondary/20 outline-none focus:border-secondary transition-colors cursor-pointer"
-                  >
-                    <option value="easy">{t("home.easy")}</option>
-                    <option value="normal">{t("home.normal")}</option>
-                    <option value="hard">{t("home.hard")}</option>
-                  </select>
+                  <HomeSelect
+                    value={botDifficulty}
+                    onChange={(val) => setBotDifficulty(val)}
+                    options={[
+                      { value: "easy",   label: t("home.easy") },
+                      { value: "normal", label: t("home.normal") },
+                      { value: "hard",   label: t("home.hard") },
+                    ]}
+                  />
                 </div>
 
                 <Link to={`/game?mode=pve&difficulty=${botDifficulty}`} className="w-full block">
@@ -606,51 +607,51 @@ function Home() {
               </div>
             </div>
             <div className="space-y-3">
-              <div className="flex items-center gap-3 p-2 bg-white/5 rounded-sm">
+              <div data-rank="1" className="flex items-center gap-3 p-2 bg-white/5 rounded-sm">
                 <div className="w-6 h-6 rounded-full bg-[#FFD700]/20 flex items-center justify-center font-bold text-[#FFD700] text-xs">
                   1
                 </div>
                 <img
                   alt="Commander Avatar"
-                  className="w-6 h-6 rounded-full"
+                  className="w-8 h-8 rounded-lg"
                   src="https://lh3.googleusercontent.com/aida-public/AB6AXuAS3z6urK3fvR8xGr9Kiy9fDPlYG-F9al9-KmluBpXOzu-QMVa2cJjM8WubGwh014LQ2Ht813nBgJBwedr_YjpSelFZ5zVMxrPdwCgagH5NSUoCwmTVTdH3caaVlXgU6nEZm4VkHM_HDNM93d7ohZjAEuSwzNahcKHym93fnxz9pDvj6tOPU28Az03dcaXYmzdj9tHJIhng4wDDS7eWm7a9lkL7Z_aGua4YtsBpUpuYISfyBDDDYbHiFSaDXGGxGRjpgsqk6AvWlN_x"
                 />
                 <span className="font-body-md text-on-surface text-sm">
                   GhostFleet_X
                 </span>
-                <span className="ml-auto font-body-md text-secondary glow-text text-sm">
+                <span className="ml-auto font-body-md text-secondary glow-text text-sm font-black">
                   92.4%
                 </span>
               </div>
-              <div className="flex items-center gap-3 p-2 bg-white/5 rounded-sm">
+              <div data-rank="2" className="flex items-center gap-3 p-2 bg-white/5 rounded-sm">
                 <div className="w-6 h-6 rounded-full bg-[#C0C0C0]/20 flex items-center justify-center font-bold text-[#C0C0C0] text-xs">
                   2
                 </div>
                 <img
                   alt="Commander Avatar"
-                  className="w-6 h-6 rounded-full"
+                  className="w-8 h-8 rounded-lg"
                   src="https://lh3.googleusercontent.com/aida-public/AB6AXuAl3MZ7oAPAhR9d0pZ8KP_zJxVGTlLWv-ULJ2qGBbedDmG5YVGSY-5k0pha5YmRw3YJvFzipDqT-1IVRVKWV0MxJ7Un4vT1AVjFthxuNR2tn7_nn0aitSeQjb6ZkIaBOQsVF5Td2222jU7rd8Y_LC8red6jLw2vRjmE_4H30q-5NIQ8yMRlQlUaw8fv0hYd8SZsHCZ31iqPjVdJnz4EXv8P4zWIORPSyMeFNzqmBTQM6mBocflueqNpS6VXcn-KuW3V6TCnjU3UzZPu"
                 />
                 <span className="font-body-md text-on-surface text-sm">
                   SteelRain_99
                 </span>
-                <span className="ml-auto font-body-md text-secondary text-sm">
+                <span className="ml-auto font-body-md text-secondary text-sm font-black">
                   88.1%
                 </span>
               </div>
-              <div className="flex items-center gap-3 p-2 bg-white/5 rounded-sm">
+              <div data-rank="3" className="flex items-center gap-3 p-2 bg-white/5 rounded-sm">
                 <div className="w-6 h-6 rounded-full bg-[#CD7F32]/20 flex items-center justify-center font-bold text-[#CD7F32] text-xs">
                   3
                 </div>
                 <img
                   alt="Commander Avatar"
-                  className="w-6 h-6 rounded-full"
+                  className="w-8 h-8 rounded-lg"
                   src="https://lh3.googleusercontent.com/aida-public/AB6AXuDdEhClJgw8xkGUc_fHZz0S_uUO4P1V20OX88TxFYdmo_mbTU_l5qf-8skAV8T588zyx_fPbKMTQsVRjnEXRnxRHCAhBmDradpO63eY7kcGf-eE6BAWyh5Fx-r7C_JeQaRQBjayzaxcfTT9ETv4Gowbg8gvi1p8DOttSMsgNpbKpX3bwDYzVmWnQjY6AL1kfNwGSh8pmgXjGfLTEICFl_9AcqiC985Vy22pybPvtX-0Og_BfqZJjmfT4lZWwl2LapkyCcGZTuFRzwpu"
                 />
                 <span className="font-body-md text-on-surface text-sm">
                   DeepSeaKraken
                 </span>
-                <span className="ml-auto font-body-md text-secondary text-sm">
+                <span className="ml-auto font-body-md text-secondary text-sm font-black">
                   85.6%
                 </span>
               </div>
@@ -671,32 +672,35 @@ function Home() {
                     {t("home.serviceRecord")}
                   </h3>
                 </div>
-                <select 
-                  value={recordMode} 
-                  onChange={(e) => setRecordMode(e.target.value)}
-                  className="bg-surface-container/50 text-secondary font-label-md p-2 rounded-sm border border-secondary/20 outline-none focus:border-secondary transition-colors cursor-pointer text-sm"
-                >
-                  <option value="all">Tất cả (All)</option>
-                  <option value="ranked">Xếp hạng (Ranked)</option>
-                </select>
+                <HomeSelect
+                  value={recordMode}
+                  onChange={(val) => setRecordMode(val)}
+                  options={[
+                    { value: "all",    label: "Tất cả (All)" },
+                    { value: "ranked", label: "Xếp hạng (Ranked)" },
+                  ]}
+                />
               </div>
               <div className="space-y-4 flex-grow">
-                <div className="flex justify-between items-end border-b border-white/5 pb-2">
-                  <span className="font-label-md text-label-md text-on-surface-variant uppercase tracking-widest">
-                    {t("home.rankTier")}
-                  </span>
-                  <div className="flex items-center gap-3">
+                {/* Rank Tier Banner – taste-skill elevated */}
+                <div className={`home-rank-tier-banner ${(stats?.rank || "Unranked").toLowerCase() === "unranked" ? "is-unranked" : ""}`}>
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-[9px] font-black uppercase tracking-widest text-on-surface-variant opacity-60">
+                      {t("home.rankTier")}
+                    </span>
+                    <span className="text-[18px] font-black tracking-tight" style={{ color: (stats?.rank || "Unranked").toLowerCase() === "unranked" ? "#75dfff" : "#FFD700", textShadow: "0 0 16px currentColor" }}>
+                      {getRankInfo(stats?.rank, t).label}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
                     {(stats?.rank || "Unranked").toLowerCase() !== "unranked" && (
                       <img 
                         src={getRankInfo(stats?.rank, t).iconUrl} 
                         alt={getRankInfo(stats?.rank, t).label} 
-                        className="w-12 h-12 object-contain drop-shadow-[0_0_8px_rgba(255,215,0,0.6)]" 
+                        className="w-14 h-14 object-contain drop-shadow-[0_0_12px_rgba(255,215,0,0.70)]" 
                         onError={(e) => { e.target.style.display = 'none'; }}
                       />
                     )}
-                    <span className="font-headline-md text-[18px] text-[#FFD700] glow-text">
-                      {getRankInfo(stats?.rank, t).label}
-                    </span>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
@@ -724,15 +728,50 @@ function Home() {
                       {recordMode === "all" ? (stats?.losses || 0) : (stats?.rankedLosses || 0)}
                     </p>
                   </div>
-                  <div className="bg-surface-container/30 p-4 rounded-sm border border-white/5">
-                    <p className="text-[10px] text-on-surface-variant uppercase font-bold mb-1">
-                      {t("home.winRate") || "Win Rate"}
-                    </p>
-                    <p className="text-xl font-black text-secondary">
-                      {recordMode === "all" 
-                        ? (stats?.totalGames > 0 ? ((stats?.wins / stats?.totalGames) * 100).toFixed(1) : 0)
-                        : (stats?.rankedMatches > 0 ? ((stats?.rankedWins / stats?.rankedMatches) * 100).toFixed(1) : 0)}%
-                    </p>
+                  <div className="bg-surface-container/30 p-4 rounded-sm border border-white/5 flex items-center gap-3">
+                    {/* Circular Win-Rate Arc */}
+                    {(() => {
+                      const pct = recordMode === "all"
+                        ? (stats?.totalGames > 0 ? ((stats?.wins / stats?.totalGames) * 100) : 0)
+                        : (stats?.rankedMatches > 0 ? ((stats?.rankedWins / stats?.rankedMatches) * 100) : 0);
+                      const r = 30;
+                      const circ = 2 * Math.PI * r;
+                      const offset = circ - (pct / 100) * circ;
+                      return (
+                        <div className="home-winrate-arc flex-shrink-0">
+                          <svg viewBox="0 0 80 80" width="80" height="80">
+                            <defs>
+                              <linearGradient id="winArcGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" stopColor="#47d6ff" />
+                                <stop offset="100%" stopColor="#a5e7ff" />
+                              </linearGradient>
+                            </defs>
+                            <circle className="arc-track" cx="40" cy="40" r={r} />
+                            <circle
+                              className="arc-fill"
+                              cx="40" cy="40" r={r}
+                              strokeDasharray={circ}
+                              strokeDashoffset={offset}
+                              style={{ transformOrigin: "40px 40px", transform: "rotate(-90deg)" }}
+                            />
+                          </svg>
+                          <div className="arc-center-text">
+                            <span className="arc-pct">{pct.toFixed(0)}<span style={{fontSize:"9px", opacity:0.7}}>%</span></span>
+                            <span className="arc-label">WIN</span>
+                          </div>
+                        </div>
+                      );
+                    })()}
+                    <div>
+                      <p className="text-[10px] text-on-surface-variant uppercase font-bold mb-1">
+                        {t("home.winRate") || "Win Rate"}
+                      </p>
+                      <p className="text-xl font-black text-secondary">
+                        {recordMode === "all" 
+                          ? (stats?.totalGames > 0 ? ((stats?.wins / stats?.totalGames) * 100).toFixed(1) : 0)
+                          : (stats?.rankedMatches > 0 ? ((stats?.rankedWins / stats?.rankedMatches) * 100).toFixed(1) : 0)}%
+                      </p>
+                    </div>
                   </div>
                 </div>
                 <div className="pt-4">
