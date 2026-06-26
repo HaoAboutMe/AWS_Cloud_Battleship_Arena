@@ -17,6 +17,7 @@
   border-radius: 16px;
   width: 100%;
   max-width: 800px;
+  height: 600px;
   max-height: 90vh;
   display: flex;
   flex-direction: column;
@@ -92,12 +93,6 @@
   grid-template-columns: 1fr 1fr;
   gap: 2rem;
   align-items: center;
-}
-
-@media (max-width: 768px) {
-  .tactics-content-grid {
-    grid-template-columns: 1fr;
-  }
 }
 
 .tactics-text h3 {
@@ -239,4 +234,59 @@
   0% { transform: scale(1); opacity: 0.8; }
   50% { transform: scale(1.05); opacity: 1; }
   100% { transform: scale(1); opacity: 0.8; }
+}
+
+/* MEDIA QUERIES MUST BE AT THE BOTTOM TO OVERRIDE BASE STYLES */
+@media (max-width: 768px) {
+  .tactics-modal {
+    height: 70vh;
+  }
+
+  .tactics-content-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .tactics-header, .tactics-footer {
+    padding: 1rem;
+  }
+
+  .tactics-body {
+    min-height: 250px;
+  }
+
+  .tactics-slide {
+    padding: 1.25rem;
+    gap: 1.5rem;
+  }
+
+  .tactics-visual {
+    padding: 1rem;
+    min-height: auto;
+  }
+
+  .mini-grid {
+    max-width: 180px;
+  }
+
+  .tactics-text h3 {
+    font-size: 1.25rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .tactics-text ul {
+    gap: 0.75rem;
+  }
+
+  .tactics-text li {
+    font-size: 0.875rem;
+    padding-left: 1.25rem;
+  }
+
+  .tactics-nav-btn {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.7rem;
+    letter-spacing: 0;
+    white-space: nowrap;
+  }
 }
