@@ -9,6 +9,7 @@ import platinumBadge from '../assets/badge/platinum.png';
 import silverBadge from '../assets/badge/silver.png';
 import CommandHeader from "../components/CommandHeader";
 import HomeSelect from "../components/HomeSelect";
+import TacticsModal from "../components/TacticsModal";
 import { useAuth } from "../contexts/AuthContext";
 import { useLanguage } from "../contexts/LanguageContext";
 import { findMatch, getRoom, leaveRoom } from "../services/matchService";
@@ -73,6 +74,7 @@ function Home() {
   const [botDifficulty, setBotDifficulty] = useState("easy");
   const [roomCreating, setRoomCreating] = useState(false);
   const [pvpModeOpen, setPvpModeOpen] = useState(false);
+  const [isTacticsOpen, setIsTacticsOpen] = useState(false);
   const [matchmakingMode, setMatchmakingMode] = useState(null);
   const [matchmakingRoomCode, setMatchmakingRoomCode] = useState("");
   const [matchmakingError, setMatchmakingError] = useState("");
@@ -322,6 +324,7 @@ function Home() {
 
   return (
     <div id="top" className="home-page bg-background text-on-background font-body-md min-h-screen selection:bg-secondary/30">
+      <TacticsModal isOpen={isTacticsOpen} onClose={() => setIsTacticsOpen(false)} />
       <CommandHeader
         currentUser={currentUser}
         attributes={attributes}
@@ -428,7 +431,10 @@ function Home() {
           </div>
 
           <div className="z-10 order-3 md:col-start-1 md:row-start-2 self-start flex flex-col sm:flex-row gap-3 md:gap-4 w-full">
-            <button className="home-tactics-button w-full sm:w-auto justify-center border border-secondary/50 text-secondary font-label-md text-label-md px-8 py-3 rounded-sm transition-all active:scale-95">
+            <button 
+              className="home-tactics-button w-full sm:w-auto justify-center border border-secondary/50 text-secondary font-label-md text-label-md px-8 py-3 rounded-sm transition-all active:scale-95"
+              onClick={() => setIsTacticsOpen(true)}
+            >
               {t("home.learn")}
             </button>
           </div>
