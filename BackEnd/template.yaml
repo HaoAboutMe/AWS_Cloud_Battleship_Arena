@@ -389,6 +389,10 @@ Resources:
           AttributeType: S
         - AttributeName: username
           AttributeType: S
+        - AttributeName: rank
+          AttributeType: S
+        - AttributeName: rankPoints
+          AttributeType: N
       KeySchema:
         - AttributeName: userId
           KeyType: HASH
@@ -397,6 +401,14 @@ Resources:
           KeySchema:
             - AttributeName: username
               KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+        - IndexName: RankLeaderboardIndex
+          KeySchema:
+            - AttributeName: rank
+              KeyType: HASH
+            - AttributeName: rankPoints
+              KeyType: RANGE
           Projection:
             ProjectionType: ALL
 
@@ -577,6 +589,26 @@ Resources:
           Properties:
             ApiId: !Ref BattleshipHttpApi
             Path: /users/avatar-upload-url
+            Method: GET
+
+  GetLeaderboardFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: GetLeaderboard
+      CodeUri: .
+      Handler: src/handlers/users/getLeaderboard.handler
+      Environment:
+        Variables:
+          AVATAR_BUCKET_NAME: !Ref AvatarBucket
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref UserTable
+      Events:
+        GetLeaderboard:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref BattleshipHttpApi
+            Path: /users/top-commanders
             Method: GET
 
 Outputs:

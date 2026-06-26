@@ -94,3 +94,26 @@ export const getMatchHistory = async (email, limit = 10) => {
     return [];
   }
 };
+
+export const getLeaderboard = async (rank, limit = 5) => {
+  try {
+    const response = await fetch(
+      `${import.meta.env.VITE_API_BASE_URL}/users/top-commanders?rank=${encodeURIComponent(rank)}&limit=${limit}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`API call failed with status: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Failed to fetch leaderboard:", error);
+    return [];
+  }
+};
