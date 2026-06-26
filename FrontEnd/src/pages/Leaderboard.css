@@ -1,0 +1,455 @@
+.leaderboard-page {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  z-index: 1;
+  
+  /* Ocean Background */
+  background:
+    radial-gradient(ellipse 60% 45% at 82% 4%, rgba(0, 168, 232, 0.13), transparent 60%),
+    radial-gradient(ellipse 50% 40% at 8% 62%, rgba(0, 95, 180, 0.09), transparent 60%),
+    linear-gradient(180deg, #030e1a 0%, #041624 35%, #031220 72%, #020e1a 100%);
+  isolation: isolate;
+}
+
+.leaderboard-page > main {
+  padding-top: 80px;
+}
+
+/* Scan-line overlay */
+.leaderboard-page::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 3px,
+      rgba(0, 200, 255, 0.012) 3px,
+      rgba(0, 200, 255, 0.012) 4px
+    );
+  animation: leaderboardScanlines 12s linear infinite;
+}
+
+@keyframes leaderboardScanlines {
+  to { background-position: 0 400px; }
+}
+
+.leaderboard-header {
+  text-align: center;
+  margin-bottom: 1rem;
+  margin-top: 1rem;
+}
+
+.leaderboard-title {
+  font-family: var(--font-headline);
+  font-size: 3rem;
+  color: #ffffff;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  text-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+  margin-bottom: 0.5rem;
+}
+
+.leaderboard-subtitle {
+  font-family: var(--font-body);
+  color: #a5e7ff;
+  font-size: 1.1rem;
+}
+
+.podium-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 1rem;
+  margin-bottom: 3rem;
+  height: 220px;
+  margin-top: 1rem;
+}
+
+.podium-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  width: 140px;
+  transition: transform 0.3s ease;
+}
+
+.podium-item:hover {
+  transform: translateY(-10px);
+}
+
+.podium-avatar-wrapper {
+  position: relative;
+  margin-bottom: -20px;
+  z-index: 2;
+}
+
+.podium-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 3px solid;
+  object-fit: cover;
+  background-color: var(--surface-container-highest);
+}
+
+.podium-rank-badge {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%) translateY(50%);
+  width: 32px;
+  height: 32px;
+  border-radius: 4px; /* Đổi sang góc cạnh thay vì tròn */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+  font-size: 14px;
+  color: #000;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+}
+
+.podium-step {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: 2rem;
+  padding-bottom: 1rem;
+  border-radius: 8px 8px 0 0;
+  box-shadow: inset 0 2px 10px rgba(255, 255, 255, 0.2);
+}
+
+.podium-1 { z-index: 3; margin-bottom: 10px; }
+.podium-1 .podium-avatar { border: 2px solid #ff4655; padding: 3px; width: 90px; height: 90px; } /* Xóa glow, thêm padding tạo viền kép */
+.podium-1 .podium-rank-badge { background: #ff4655; width: 32px; height: 32px; font-size: 15px; color: #fff; border: 2px solid #111; }
+.podium-1 .podium-step { height: 120px; background: linear-gradient(to bottom, rgba(255, 70, 85, 0.2), transparent); border-top: 2px solid #ff4655; border-bottom: 2px solid #ff4655; } /* Có viền đế vững chắc */
+
+.podium-2 .podium-avatar { border-color: #C0C0C0; box-shadow: 0 0 20px rgba(192, 192, 192, 0.3); }
+.podium-2 .podium-rank-badge { background: linear-gradient(135deg, #FFFFFF, #C0C0C0); }
+.podium-2 .podium-step { height: 100px; background: linear-gradient(to bottom, rgba(192, 192, 192, 0.2), rgba(192, 192, 192, 0.05)); border-top: 2px solid #C0C0C0; }
+
+.podium-3 .podium-avatar { border-color: #CD7F32; box-shadow: 0 0 20px rgba(205, 127, 50, 0.3); }
+.podium-3 .podium-rank-badge { background: linear-gradient(135deg, #FFB470, #CD7F32); color: #fff; }
+.podium-3 .podium-step { height: 85px; background: linear-gradient(to bottom, rgba(205, 127, 50, 0.2), rgba(205, 127, 50, 0.05)); border-top: 2px solid #CD7F32; padding-top: 1.5rem; }
+
+.podium-name {
+  font-family: var(--font-headline);
+  font-size: 1rem;
+  color: #ffffff;
+  margin-bottom: 0.25rem;
+  text-align: center;
+  max-width: 90%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.podium-pts {
+  font-family: var(--font-body);
+  font-weight: bold;
+  font-size: 1.1rem;
+  color: #ffffff;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+}
+
+.leaderboard-controls {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  margin-bottom: 1.5rem;
+  gap: 1rem;
+}
+
+@media (min-width: 768px) {
+  .leaderboard-controls {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 1.5rem;
+  }
+}
+
+.leaderboard-dual-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: rgba(17, 17, 17, 0.85); /* Tone tối chuẩn Riot */
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  overflow: hidden;
+  transition: all 0.2s ease;
+  width: 100%;
+  max-width: none;
+}
+
+@media (min-width: 768px) {
+  .leaderboard-dual-search {
+    max-width: 360px;
+  }
+}
+
+.leaderboard-dual-search:focus-within {
+  border-color: #ff4655;
+  box-shadow: 0 0 12px rgba(255, 70, 85, 0.2);
+}
+
+.leaderboard-dual-search .search-icon {
+  padding-left: 1rem;
+  color: #888;
+  font-size: 1.2rem;
+}
+
+.leaderboard-dual-search input {
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  font-family: var(--font-body);
+  padding: 0.75rem;
+  outline: none;
+}
+
+.search-name-input {
+  flex: 7;
+}
+
+.search-name-input::placeholder {
+  color: #666;
+}
+
+.search-hash {
+  color: #555;
+  font-weight: bold;
+  user-select: none;
+}
+
+.search-tag-input {
+  flex: 3;
+  color: #aaa !important;
+}
+
+.search-tag-input::placeholder {
+  color: #555;
+}
+
+/* Player Name Tag Styles */
+.player-name-main {
+  color: #ffffff;
+  font-weight: bold;
+}
+
+.player-name-tag {
+  color: #888888;
+  font-weight: normal;
+  font-size: 0.9em;
+  margin-left: 4px; /* Khoảng cách với tên chính */
+}
+
+.podium-1 .player-name-main {
+  color: #ff4655;
+}
+
+.leaderboard-table-container {
+  width: 100%;
+  background: rgba(17, 17, 17, 0.95); /* Tone tối chuẩn Riot #111111 */
+  border: 1px solid rgba(255, 255, 255, 0.15); /* Tăng độ nét viền */
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 4rem;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.leaderboard-table {
+  width: 100%;
+  min-width: 650px; /* Ép bảng luôn to để cuộn ngang trên mobile */
+  border-collapse: collapse;
+}
+
+.leaderboard-table th {
+  background: rgba(255, 255, 255, 0.08); /* Sáng hơn body 1 chút */
+  padding: 1.25rem 1rem;
+  text-align: left;
+  font-family: var(--font-label);
+  color: #a5e7ff;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 1px;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.2); /* Phân cách rõ ràng với body */
+}
+
+.leaderboard-table td {
+  padding: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  color: #ffffff;
+  vertical-align: middle;
+}
+
+.table-row-rank-1 td {
+  background: linear-gradient(90deg, rgba(255, 70, 85, 0.1) 0%, transparent 100%);
+  border-top: 1px solid rgba(255, 70, 85, 0.2);
+  border-bottom: 1px solid rgba(255, 70, 85, 0.2) !important;
+}
+.table-row-rank-1 .table-rank {
+  color: #ff4655;
+}
+
+.table-row-rank-2 td {
+  background: linear-gradient(90deg, rgba(192, 192, 192, 0.08) 0%, transparent 100%);
+}
+.table-row-rank-2 .table-rank {
+  color: #C0C0C0;
+}
+
+.table-row-rank-3 td {
+  background: linear-gradient(90deg, rgba(205, 127, 50, 0.08) 0%, transparent 100%);
+}
+.table-row-rank-3 .table-rank {
+  color: #CD7F32;
+}
+
+.leaderboard-table tr:last-child td {
+  border-bottom: none;
+}
+
+.table-rank {
+  font-weight: bold;
+  color: #a5e7ff;
+  width: 60px;
+  text-align: center;
+}
+
+.table-player {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.table-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.table-username {
+  font-family: var(--font-headline);
+  font-size: 1rem;
+}
+
+.table-rank-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-label);
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  color: #a5e7ff;
+}
+
+.table-rank-badge img {
+  height: 40px;
+  width: auto;
+  object-fit: contain;
+}
+
+.table-pts {
+  color: #ffffff;
+  font-weight: bold;
+  font-family: var(--font-body);
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
+}
+
+.table-stat {
+  font-family: var(--font-body);
+  color: #a5e7ff;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .leaderboard-title {
+    font-size: 2rem;
+  }
+  
+  .podium-container {
+    height: 250px;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+  }
+  
+  .podium-item {
+    width: 100px;
+  }
+  
+  .podium-1 .podium-avatar { width: 70px; height: 70px; }
+  .podium-avatar {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .podium-name {
+    font-size: 0.8rem;
+  }
+  .podium-pts {
+    font-size: 0.9rem;
+  }
+  
+  .leaderboard-search {
+    max-width: 100%;
+  }
+
+  /* Sticky Right Column for RP */
+  .leaderboard-table th:last-child,
+  .leaderboard-table td:last-child {
+    position: sticky;
+    right: 0;
+    z-index: 10;
+  }
+  
+  .leaderboard-table th:last-child {
+    background: #1c1c1c;
+    box-shadow: -4px 0 12px rgba(0,0,0,0.8);
+  }
+
+  .leaderboard-table td:last-child {
+    background: #161616;
+    box-shadow: -4px 0 12px rgba(0,0,0,0.5);
+  }
+
+  .table-row-rank-1 td:last-child {
+    background: #251012; /* Tone đỏ tối để khớp với gradient rank 1 */
+  }
+
+  /* Tối giản bảng trên Mobile */
+  .leaderboard-table {
+    min-width: 100%; /* Gỡ bỏ ép cứng cuộn ngang */
+  }
+
+  .leaderboard-table th:nth-child(4),
+  .leaderboard-table td:nth-child(4),
+  .leaderboard-table th:nth-child(5),
+  .leaderboard-table td:nth-child(5) {
+    display: none; /* Ẩn Win Rate và Matches */
+  }
+
+  .table-rank-badge span {
+    display: none; /* Ẩn chữ Rank, chỉ giữ Icon */
+  }
+}
+
+/* Ẩn hoàn toàn cột bên phải (Podium) trên Mobile và Tablet */
+@media (max-width: 1023px) {
+  .leaderboard-right-col {
+    display: none !important;
+  }
+}

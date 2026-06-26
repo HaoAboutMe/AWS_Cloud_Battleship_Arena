@@ -23,12 +23,14 @@ export default function HomeSelect({ options = [], value, onChange, id }) {
   const updatePosition = useCallback(() => {
     if (!triggerRef.current) return;
     const rect = triggerRef.current.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - rect.bottom - 16;
     setPanelStyle({
       position: "fixed",
       top: rect.bottom,
       left: rect.left,
       width: rect.width,
       zIndex: 9999,
+      maxHeight: spaceBelow > 100 ? spaceBelow : 220, // Đảm bảo không quá nhỏ
     });
   }, []);
 

@@ -13,7 +13,7 @@ import TacticsModal from "../components/TacticsModal";
 import { useAuth } from "../contexts/AuthContext";
 import { useLanguage } from "../contexts/LanguageContext";
 import { findMatch, getRoom, leaveRoom } from "../services/matchService";
-import { getUserProfile } from "../services/userService";
+import { getUserProfile, getLeaderboard } from "../services/userService";
 import "./Home.css";
 import "./HomeHeader.css";
 
@@ -116,6 +116,19 @@ function Home() {
   }, [attributes, currentUser, isAuthenticated]);
   const [activeModeTab, setActiveModeTab] = useState('bot');
   const [activeStatsTab, setActiveStatsTab] = useState('record');
+  const [leaderboardRank, setLeaderboardRank] = useState('admiral');
+  const [topCommanders, setTopCommanders] = useState([]);
+  const [loadingLeaderboard, setLoadingLeaderboard] = useState(false);
+
+  useEffect(() => {
+    const fetchLeaderboard = async () => {
+      setLoadingLeaderboard(true);
+      const data = await getLeaderboard(leaderboardRank, 5);
+      setTopCommanders(data);
+      setLoadingLeaderboard(false);
+    };
+    fetchLeaderboard();
+  }, [leaderboardRank]);
 
   const toggleTheme = (e) => {
     // Fallback for browsers that don't support view transitions
@@ -608,61 +621,69 @@ function Home() {
                   emoji_events
                 </span>
                 <h3 className="font-headline-md text-[18px] text-on-surface uppercase tracking-tight">
-                  {t("home.topThree")}
+                  {t("home.topCommanders") || "Top 5 Commanders"}
                 </h3>
+              </div>
+              <div className="w-32 md:w-36">
+                  <HomeSelect
+                    value={leaderboardRank}
+                    onChange={(val) => setLeaderboardRank(val)}
+                    options={[
+                      { value: "bronze", label: t("common.bronze") || "Bronze" },
+                      { value: "silver", label: t("common.silver") || "Silver" },
+                      { value: "gold", label: t("common.gold") || "Gold" },
+                      { value: "platinum", label: t("common.platinum") || "Platinum" },
+                      { value: "diamond", label: t("common.diamond") || "Diamond" },
+                      { value: "master", label: t("common.master") || "Master" },
+                      { value: "admiral", label: t("common.admiral") || "Admiral" },
+                    ]}
+                  />
               </div>
             </div>
             <div className="space-y-3">
-              <div data-rank="1" className="flex items-center gap-3 p-2 bg-white/5 rounded-sm">
-                <div className="w-6 h-6 rounded-full bg-[#FFD700]/20 flex items-center justify-center font-bold text-[#FFD700] text-xs">
-                  1
-                </div>
-                <img
-                  alt="Commander Avatar"
-                  className="w-8 h-8 rounded-lg"
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuAS3z6urK3fvR8xGr9Kiy9fDPlYG-F9al9-KmluBpXOzu-QMVa2cJjM8WubGwh014LQ2Ht813nBgJBwedr_YjpSelFZ5zVMxrPdwCgagH5NSUoCwmTVTdH3caaVlXgU6nEZm4VkHM_HDNM93d7ohZjAEuSwzNahcKHym93fnxz9pDvj6tOPU28Az03dcaXYmzdj9tHJIhng4wDDS7eWm7a9lkL7Z_aGua4YtsBpUpuYISfyBDDDYbHiFSaDXGGxGRjpgsqk6AvWlN_x"
-                />
-                <span className="font-body-md text-on-surface text-sm">
-                  GhostFleet_X
-                </span>
-                <span className="ml-auto font-body-md text-secondary glow-text text-sm font-black">
-                  92.4%
-                </span>
-              </div>
-              <div data-rank="2" className="flex items-center gap-3 p-2 bg-white/5 rounded-sm">
-                <div className="w-6 h-6 rounded-full bg-[#C0C0C0]/20 flex items-center justify-center font-bold text-[#C0C0C0] text-xs">
-                  2
-                </div>
-                <img
-                  alt="Commander Avatar"
-                  className="w-8 h-8 rounded-lg"
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuAl3MZ7oAPAhR9d0pZ8KP_zJxVGTlLWv-ULJ2qGBbedDmG5YVGSY-5k0pha5YmRw3YJvFzipDqT-1IVRVKWV0MxJ7Un4vT1AVjFthxuNR2tn7_nn0aitSeQjb6ZkIaBOQsVF5Td2222jU7rd8Y_LC8red6jLw2vRjmE_4H30q-5NIQ8yMRlQlUaw8fv0hYd8SZsHCZ31iqPjVdJnz4EXv8P4zWIORPSyMeFNzqmBTQM6mBocflueqNpS6VXcn-KuW3V6TCnjU3UzZPu"
-                />
-                <span className="font-body-md text-on-surface text-sm">
-                  SteelRain_99
-                </span>
-                <span className="ml-auto font-body-md text-secondary text-sm font-black">
-                  88.1%
-                </span>
-              </div>
-              <div data-rank="3" className="flex items-center gap-3 p-2 bg-white/5 rounded-sm">
-                <div className="w-6 h-6 rounded-full bg-[#CD7F32]/20 flex items-center justify-center font-bold text-[#CD7F32] text-xs">
-                  3
-                </div>
-                <img
-                  alt="Commander Avatar"
-                  className="w-8 h-8 rounded-lg"
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuDdEhClJgw8xkGUc_fHZz0S_uUO4P1V20OX88TxFYdmo_mbTU_l5qf-8skAV8T588zyx_fPbKMTQsVRjnEXRnxRHCAhBmDradpO63eY7kcGf-eE6BAWyh5Fx-r7C_JeQaRQBjayzaxcfTT9ETv4Gowbg8gvi1p8DOttSMsgNpbKpX3bwDYzVmWnQjY6AL1kfNwGSh8pmgXjGfLTEICFl_9AcqiC985Vy22pybPvtX-0Og_BfqZJjmfT4lZWwl2LapkyCcGZTuFRzwpu"
-                />
-                <span className="font-body-md text-on-surface text-sm">
-                  DeepSeaKraken
-                </span>
-                <span className="ml-auto font-body-md text-secondary text-sm font-black">
-                  85.6%
-                </span>
-              </div>
+              {loadingLeaderboard ? (
+                <div className="text-center text-sm text-on-surface-variant p-4">{t("common.loading") || "Loading..."}</div>
+              ) : topCommanders.length === 0 ? (
+                <div className="text-center text-sm text-on-surface-variant p-4">No commanders found.</div>
+              ) : (
+                topCommanders.map((commander, idx) => {
+                  let badgeColor = "bg-white/5 text-on-surface-variant";
+                  if (idx === 0) badgeColor = "bg-[#FFD700]/20 text-[#FFD700]";
+                  else if (idx === 1) badgeColor = "bg-[#C0C0C0]/20 text-[#C0C0C0]";
+                  else if (idx === 2) badgeColor = "bg-[#CD7F32]/20 text-[#CD7F32]";
+
+                  return (
+                    <div key={commander.userId} data-rank={idx + 1} className="flex items-center gap-3 p-2 bg-white/5 rounded-sm">
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs ${badgeColor}`}>
+                        {idx + 1}
+                      </div>
+                      <img
+                        alt="Commander Avatar"
+                        className="w-8 h-8 rounded-lg object-cover"
+                        src={commander.avatarUrl || "https://lh3.googleusercontent.com/aida-public/AB6AXuAS3z6urK3fvR8xGr9Kiy9fDPlYG-F9al9-KmluBpXOzu-QMVa2cJjM8WubGwh014LQ2Ht813nBgJBwedr_YjpSelFZ5zVMxrPdwCgagH5NSUoCwmTVTdH3caaVlXgU6nEZm4VkHM_HDNM93d7ohZjAEuSwzNahcKHym93fnxz9pDvj6tOPU28Az03dcaXYmzdj9tHJIhng4wDDS7eWm7a9lkL7Z_aGua4YtsBpUpuYISfyBDDDYbHiFSaDXGGxGRjpgsqk6AvWlN_x"}
+                      />
+                      <div className="flex flex-col min-w-0">
+                        <span className="font-body-md text-on-surface text-sm truncate max-w-[120px] md:max-w-[150px]">
+                          {commander.username || "Unknown"}
+                        </span>
+                        {leaderboardRank === "all" && (
+                           <span className="text-[10px] text-on-surface-variant uppercase font-bold leading-none mt-0.5">
+                             {t(`common.${(commander.rank || "unranked").toLowerCase()}`) || commander.rank}
+                           </span>
+                        )}
+                      </div>
+                      <span className="ml-auto font-body-md text-secondary glow-text text-sm font-black">
+                        {commander.rankPoints || 0} pts
+                      </span>
+                    </div>
+                  );
+                })
+              )}
             </div>
-            <button className="w-full mt-4 border border-secondary/30 text-secondary font-label-md text-[10px] py-2 rounded-sm hover:bg-secondary/5 transition-all uppercase tracking-widest">
+            <button
+              onClick={() => navigate('/leaderboard')}
+              className="w-full mt-4 border border-secondary/30 text-secondary font-label-md text-[10px] py-2 rounded-sm hover:bg-secondary/5 transition-all uppercase tracking-widest"
+            >
               {t("home.fullLeaderboard")}
             </button>
           </div>

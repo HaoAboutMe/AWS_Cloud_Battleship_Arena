@@ -114,8 +114,9 @@ function CommandHeader({
             {t("common.home")}
           </Link>
           <Link
-            to="/#leaderboard"
-            onClick={(event) => handleNavigation(event, "/#leaderboard")}
+            className={location.pathname === "/leaderboard" ? "is-active" : ""}
+            to="/leaderboard"
+            onClick={(event) => handleNavigation(event, "/leaderboard")}
           >
             {t("common.leaderboard")}
           </Link>
