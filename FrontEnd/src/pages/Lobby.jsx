@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import CommandHeader from "../components/CommandHeader";
+import { getAvatarCdnUrl } from "../utils/avatar";
 import { useAuth } from "../contexts/AuthContext";
 import { useLanguage } from "../contexts/LanguageContext";
 import {
@@ -444,7 +445,7 @@ function Lobby() {
                       <span className="lobby-player-avatar">
                         {roomPlayer.avatarUrl ? (
                           <img
-                            src={roomPlayer.avatarUrl}
+                            src={getAvatarCdnUrl(roomPlayer.avatarUrl)}
                             alt=""
                             referrerPolicy="no-referrer"
                             onError={(event) => {

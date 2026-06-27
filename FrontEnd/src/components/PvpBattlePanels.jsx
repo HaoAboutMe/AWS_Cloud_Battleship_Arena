@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { getAvatarCdnUrl } from "../utils/avatar";
 import "./PvpBattlePanels.css";
 
 // ─────────────────────────────────────────────
@@ -35,7 +36,7 @@ function MiniAvatar({ player, tone = "cyan" }) {
   return (
     <div className={`pvp-mini-avatar pvp-mini-avatar-${tone}`}>
       {player?.avatarUrl ? (
-        <img src={player.avatarUrl} alt="" />
+        <img src={getAvatarCdnUrl(player.avatarUrl)} alt="" />
       ) : (
         <span>{getInitials(player?.displayName)}</span>
       )}
