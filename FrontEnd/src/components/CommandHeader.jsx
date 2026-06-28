@@ -36,10 +36,10 @@ function CommandHeader({
     attributes.email ||
     currentUser?.signInDetails?.loginId ||
     "Commander";
-  const { customAvatarUrl } = useAuth();
+  const { customAvatarUrl, sessionTimestamp } = useAuth();
   const avatarUrl = getAvatarCdnUrl(
     customAvatarUrl || (typeof attributes.picture === "string"
-      ? attributes.picture
+      ? `${attributes.picture}?t=${sessionTimestamp}`
       : COMMANDER_AVATAR)
   );
   const rankPoints = Number(attributes.rankPoints || 0);

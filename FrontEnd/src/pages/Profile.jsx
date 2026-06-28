@@ -24,7 +24,7 @@ const EMPTY_STATS = {
 function Profile() {
   const navigate = useNavigate();
   const { t, language } = useLanguage();
-  const { user: currentUser, attributes, loading, logout, checkAuth, customAvatarUrl, updateAvatar } = useAuth();
+  const { user: currentUser, attributes, loading, logout, checkAuth, customAvatarUrl, updateAvatar, sessionTimestamp } = useAuth();
   const [isLightMode, setIsLightMode] = useState(() =>
     document.documentElement.classList.contains("light-mode-active"),
   );
@@ -226,7 +226,7 @@ function Profile() {
     t("profile.commander");
   const avatarUrl = getAvatarCdnUrl(
     customAvatarUrl || (typeof attributes.picture === "string"
-      ? attributes.picture
+      ? `${attributes.picture}?t=${sessionTimestamp}`
       : COMMANDER_AVATAR)
   );
   const winRate =
