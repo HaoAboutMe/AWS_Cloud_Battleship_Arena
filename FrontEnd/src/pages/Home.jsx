@@ -14,6 +14,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { useLanguage } from "../contexts/LanguageContext";
 import { findMatch, getRoom, leaveRoom } from "../services/matchService";
 import { getUserProfile, getLeaderboard } from "../services/userService";
+import { getAvatarCdnUrl } from "../utils/avatar";
 import "./Home.css";
 import "./HomeHeader.css";
 
@@ -660,7 +661,7 @@ function Home() {
                       <img
                         alt="Commander Avatar"
                         className="w-8 h-8 rounded-lg object-cover"
-                        src={commander.avatarUrl || "https://lh3.googleusercontent.com/aida-public/AB6AXuAS3z6urK3fvR8xGr9Kiy9fDPlYG-F9al9-KmluBpXOzu-QMVa2cJjM8WubGwh014LQ2Ht813nBgJBwedr_YjpSelFZ5zVMxrPdwCgagH5NSUoCwmTVTdH3caaVlXgU6nEZm4VkHM_HDNM93d7ohZjAEuSwzNahcKHym93fnxz9pDvj6tOPU28Az03dcaXYmzdj9tHJIhng4wDDS7eWm7a9lkL7Z_aGua4YtsBpUpuYISfyBDDDYbHiFSaDXGGxGRjpgsqk6AvWlN_x"}
+                        src={getAvatarCdnUrl(commander.avatarUrl) || "https://lh3.googleusercontent.com/aida-public/AB6AXuAS3z6urK3fvR8xGr9Kiy9fDPlYG-F9al9-KmluBpXOzu-QMVa2cJjM8WubGwh014LQ2Ht813nBgJBwedr_YjpSelFZ5zVMxrPdwCgagH5NSUoCwmTVTdH3caaVlXgU6nEZm4VkHM_HDNM93d7ohZjAEuSwzNahcKHym93fnxz9pDvj6tOPU28Az03dcaXYmzdj9tHJIhng4wDDS7eWm7a9lkL7Z_aGua4YtsBpUpuYISfyBDDDYbHiFSaDXGGxGRjpgsqk6AvWlN_x"}
                       />
                       <div className="flex flex-col min-w-0">
                         <span className="font-body-md text-on-surface text-sm truncate max-w-[120px] md:max-w-[150px]">

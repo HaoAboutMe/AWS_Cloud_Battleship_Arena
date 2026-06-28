@@ -17,6 +17,7 @@ export function AuthProvider({ children }) {
   const [customAvatarUrl, setCustomAvatarUrl] = useState(() => {
     return localStorage.getItem("customAvatarUrl") || null;
   });
+  const [sessionTimestamp, setSessionTimestamp] = useState(() => Date.now());
 
   const updateAvatar = (url) => {
     setCustomAvatarUrl(url);
@@ -80,6 +81,7 @@ export function AuthProvider({ children }) {
       }
 
       setAttributes(mergedAttributes);
+      setSessionTimestamp(Date.now());
     } catch {
       setUser(null);
       setAttributes({});
@@ -151,6 +153,7 @@ export function AuthProvider({ children }) {
         checkAuth,
         customAvatarUrl,
         updateAvatar,
+        sessionTimestamp,
       }}
     >
       {children}

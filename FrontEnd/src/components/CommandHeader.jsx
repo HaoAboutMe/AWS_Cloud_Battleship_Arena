@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { useLanguage } from "../contexts/LanguageContext";
+import { getAvatarCdnUrl } from "../utils/avatar";
 import { RANKS, getRankMeta } from "../game/rankConfig";
 import logoImg from "../assets/logo/logo.png";
 import LanguageToggle from "./LanguageToggle";
@@ -35,10 +36,12 @@ function CommandHeader({
     attributes.email ||
     currentUser?.signInDetails?.loginId ||
     "Commander";
-  const { customAvatarUrl } = useAuth();
-  const avatarUrl = customAvatarUrl || (typeof attributes.picture === "string"
-    ? attributes.picture
-    : COMMANDER_AVATAR);
+  const { customAvatarUrl, sessionTimestamp } = useAuth();
+  const avatarUrl = getAvatarCdnUrl(
+    customAvatarUrl || (typeof attributes.picture === "string"
+      ? `${attributes.picture}?t=${sessionTimestamp}`
+      : COMMANDER_AVATAR)
+  );
   const rankPoints = Number(attributes.rankPoints || 0);
   const rankedMatches = Number(attributes.rankedMatches || 0);
   const hasRank = rankedMatches > 0 && rankPoints >= RANKS[0].minRp;

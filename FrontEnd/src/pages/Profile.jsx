@@ -8,6 +8,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { useLanguage } from "../contexts/LanguageContext";
 import { RANKS, getNextRank, getRankMeta } from "../game/rankConfig";
 import { getMatchHistory, getUserProfile, updateUsername } from "../services/userService";
+import { getAvatarCdnUrl } from "../utils/avatar";
 import "./HomeHeader.css";
 import "./Profile.css";
 
@@ -23,7 +24,7 @@ const EMPTY_STATS = {
 function Profile() {
   const navigate = useNavigate();
   const { t, language } = useLanguage();
-  const { user: currentUser, attributes, loading, logout, checkAuth, customAvatarUrl, updateAvatar } = useAuth();
+  const { user: currentUser, attributes, loading, logout, checkAuth, customAvatarUrl, updateAvatar, sessionTimestamp } = useAuth();
   const [isLightMode, setIsLightMode] = useState(() =>
     document.documentElement.classList.contains("light-mode-active"),
   );
@@ -223,9 +224,11 @@ function Profile() {
     attributes.nickname ||
     (attributes.email ? attributes.email.split("@")[0] : null) ||
     t("profile.commander");
-  const avatarUrl = customAvatarUrl || (typeof attributes.picture === "string"
-      ? attributes.picture
-      : COMMANDER_AVATAR);
+  const avatarUrl = getAvatarCdnUrl(
+    customAvatarUrl || (typeof attributes.picture === "string"
+      ? `${attributes.picture}?t=${sessionTimestamp}`
+      : COMMANDER_AVATAR)
+  );
   const winRate =
     recordMode === "ranked"
       ? stats.rankedMatches > 0
@@ -680,7 +683,7 @@ function Profile() {
                             {/* Player 1 */}
                             <div className="profile-match-player is-p1" style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1 }}>
                               <img 
-                                src={match.player1Avatar ? `${match.player1Avatar}?t=${Date.now()}` : COMMANDER_AVATAR} 
+                                src={match.player1Avatar ? `${getAvatarCdnUrl(match.player1Avatar)}?t=${Date.now()}` : COMMANDER_AVATAR} 
                                 alt="Player 1"
                                 className="profile-match-player-avatar"
                                 style={{ width: '40px', height: '40px', borderRadius: '4px', border: '1px solid var(--border)', objectFit: 'cover' }}
@@ -746,7 +749,7 @@ function Profile() {
                                 </div>
                               </div>
                               <img 
-                                src={match.player2Avatar ? `${match.player2Avatar}?t=${Date.now()}` : COMMANDER_AVATAR} 
+                                src={match.player2Avatar ? `${getAvatarCdnUrl(match.player2Avatar)}?t=${Date.now()}` : COMMANDER_AVATAR} 
                                 alt="Player 2"
                                 className="profile-match-player-avatar"
                                 style={{ width: '40px', height: '40px', borderRadius: '4px', border: '1px solid var(--border)', objectFit: 'cover' }}
