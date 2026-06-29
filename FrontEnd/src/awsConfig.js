@@ -2,8 +2,12 @@ const oauthDomain = import.meta.env.VITE_AWS_COGNITO_DOMAIN
   ?.replace(/^https?:\/\//, "")
   .replace(/\/+$/, "");
 
-const defaultRedirectSignIn = `${window.location.origin}/login`;
-const defaultRedirectSignOut = window.location.origin;
+const frontendAppUrl = import.meta.env.VITE_FRONTEND_APP_URL
+  ?.replace(/\/+$/, "");
+
+const redirectBaseUrl = frontendAppUrl || window.location.origin;
+const defaultRedirectSignIn = `${redirectBaseUrl}/login`;
+const defaultRedirectSignOut = redirectBaseUrl;
 
 const parseRedirectUrls = (value, fallback) =>
   value
