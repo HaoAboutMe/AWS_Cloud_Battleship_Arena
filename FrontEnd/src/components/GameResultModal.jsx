@@ -1,6 +1,5 @@
+import { useEffect, useState } from "react";
 import "./GameResultModal.css";
-import resultVictoryArt from "../assets/results/result-victory-art.png";
-import resultDefeatArt from "../assets/results/result-defeat-art.png";
 
 function GameResultModal({
     showModal,
@@ -17,6 +16,25 @@ function GameResultModal({
     handleReturnHome,
     returnHomeLoading,
 }) {
+    const [resultArt, setResultArt] = useState("");
+
+    useEffect(() => {
+        if (!showModal) return;
+
+        let cancelled = false;
+        const loadResultArt = winner === "PLAYER"
+            ? import("../assets/results/result-victory-art.webp")
+            : import("../assets/results/result-defeat-art.webp");
+
+        loadResultArt.then((module) => {
+            if (!cancelled) setResultArt(module.default);
+        });
+
+        return () => {
+            cancelled = true;
+        };
+    }, [showModal, winner]);
+
     if (!showModal) return null;
 
     const isVictory = winner === "PLAYER";
@@ -31,7 +49,6 @@ function GameResultModal({
                 : copy.pvpDefeatSubtitle || "Your fleet has been shattered in PvP combat.")
             : `${copy.difficultyLabel || "Difficulty"}: ${copy.difficultyNames?.[difficulty] || difficulty}`;
     const posterTitle = isVictory ? (copy.victoryTitle || "VICTORY") : (copy.defeatTitle || "DEFEAT");
-    const resultArt = isVictory ? resultVictoryArt : resultDefeatArt;
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-background/85 backdrop-blur-md animate-fade-in">
@@ -46,7 +63,7 @@ function GameResultModal({
                     className={`result-battle-scene result-battle-scene--art ${isVictory ? "result-battle-scene--victory" : "result-battle-scene--defeat"}`}
                     aria-label={resultTitle}
                 >
-                    <img className="result-scene-art" src={resultArt} alt="" />
+                    {resultArt ? <img className="result-scene-art" src={resultArt} alt="" /> : null}
                     <div className="result-modal__header">
                         <h2 className="result-modal__title">
                             {posterTitle}

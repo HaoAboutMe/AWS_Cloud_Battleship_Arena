@@ -1,6 +1,7 @@
-import { useState, useCallback } from "react";
-import RankUpAnimation from "../components/RankUpAnimation";
+import { Suspense, lazy, useState, useCallback } from "react";
 import "./RankDemo.css";
+
+const RankUpAnimation = lazy(() => import("../components/RankUpAnimation"));
 
 /* ── All rank-up transitions to showcase ─────────────────────────── */
 const TRANSITIONS = [
@@ -84,11 +85,13 @@ export default function RankDemo() {
 
       {/* Animation overlay */}
       {active && (
-        <RankUpAnimation
-          oldRank={active.from}
-          newRank={active.to}
-          onComplete={handleComplete}
-        />
+        <Suspense fallback={null}>
+          <RankUpAnimation
+            oldRank={active.from}
+            newRank={active.to}
+            onComplete={handleComplete}
+          />
+        </Suspense>
       )}
     </div>
   );

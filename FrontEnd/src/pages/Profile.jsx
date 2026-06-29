@@ -1,9 +1,8 @@
-import { useEffect, useState } from "react";
+import { Suspense, lazy, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AvatarUpload from "../components/AvatarUpload";
 import CommandHeader from "../components/CommandHeader";
 import RankProgressionModal from "../components/RankProgressionModal";
-import RankUpAnimation from "../components/RankUpAnimation";
 import { useAuth } from "../contexts/AuthContext";
 import { useLanguage } from "../contexts/LanguageContext";
 import { RANKS, getNextRank, getRankMeta } from "../game/rankConfig";
@@ -11,6 +10,8 @@ import { getMatchHistory, getUserProfile, updateUsername } from "../services/use
 import { getAvatarCdnUrl } from "../utils/avatar";
 import "./HomeHeader.css";
 import "./Profile.css";
+
+const RankUpAnimation = lazy(() => import("../components/RankUpAnimation"));
 
 const COMMANDER_AVATAR =
   "https://lh3.googleusercontent.com/aida-public/AB6AXuBaat_LefR8zmWVQ9CHx0bp9dTekwkF9c9AQAo9FxlAx2bSsRi_lWU3tRBK1vdpC50zM3NdKJAB5hHd5ZusN0HuCxBcpe1IbzSlreCalSVomkgeQwYwz9iKrXYvj55d42PgtFMDfCUosVO6NBFPXtM_vVCTYDxnC7xz1DxkbcIvRSfpehGpD-kbu7XuQbuktassmbGVExYQy0GTNC_jJHX3hmbFNDIdyfqO5-uwHYbgPtFdacF4kVhq0AnscPv4dWSz-e_6DYUDMSxe";
@@ -788,11 +789,13 @@ function Profile() {
       />
 
       {rankAnimation && (
-        <RankUpAnimation
-          oldRank={rankAnimation.oldRank}
-          newRank={rankAnimation.newRank}
-          onComplete={() => setRankAnimation(null)}
-        />
+        <Suspense fallback={null}>
+          <RankUpAnimation
+            oldRank={rankAnimation.oldRank}
+            newRank={rankAnimation.newRank}
+            onComplete={() => setRankAnimation(null)}
+          />
+        </Suspense>
       )}
     </div>
   );

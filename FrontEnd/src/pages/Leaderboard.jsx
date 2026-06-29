@@ -6,13 +6,13 @@ import { getLeaderboard } from "../services/userService";
 import { getAvatarCdnUrl } from "../utils/avatar";
 import CommandHeader from "../components/CommandHeader";
 import HomeSelect from "../components/HomeSelect";
-import bronzeBadge from "../assets/badge/bronze.png";
-import silverBadge from "../assets/badge/silver.png";
-import goldBadge from "../assets/badge/gold.png";
-import platinumBadge from "../assets/badge/platinum.png";
-import diamondBadge from "../assets/badge/diamond.png";
-import masterBadge from "../assets/badge/master.png";
-import admiralBadge from "../assets/badge/admiral.png";
+import bronzeBadge from "../assets/badge/bronze.webp";
+import silverBadge from "../assets/badge/silver.webp";
+import goldBadge from "../assets/badge/gold.webp";
+import platinumBadge from "../assets/badge/platinum.webp";
+import diamondBadge from "../assets/badge/diamond.webp";
+import masterBadge from "../assets/badge/master.webp";
+import admiralBadge from "../assets/badge/admiral.webp";
 import "./Leaderboard.css";
 
 const getRankIcon = (rank) => {
