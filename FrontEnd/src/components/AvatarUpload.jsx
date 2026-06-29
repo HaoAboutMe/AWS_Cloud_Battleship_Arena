@@ -3,6 +3,7 @@ import Cropper from 'react-easy-crop';
 import { getCroppedImgBlob } from '../utils/cropImage';
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
+import { getAvatarUploadUrl } from '../services/userService';
 
 const AvatarUpload = ({ currentAvatarUrl, onAvatarUpdate }) => {
   const { attributes, user } = useAuth();
@@ -33,11 +34,7 @@ const AvatarUpload = ({ currentAvatarUrl, onAvatarUpdate }) => {
       const croppedBlob = await getCroppedImgBlob(imageSrc, croppedAreaPixels);
 
       // Step 1: Get presigned URL
-      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/users/avatar-upload-url`, {
-        params: { email }
-      });
-      
-      const { uploadUrl, publicUrl } = response.data;
+      const { uploadUrl, publicUrl } = await getAvatarUploadUrl(email);
 
       // Step 2: Upload to S3
       await axios.put(uploadUrl, croppedBlob, {

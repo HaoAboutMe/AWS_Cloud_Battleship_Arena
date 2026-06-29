@@ -25,6 +25,12 @@ Parameters:
     Type: String
     Default: "http://localhost:5173"
     Description: Local frontend origin allowed during development.
+  CognitoUserPoolId:
+    Type: String
+    Description: Cognito User Pool ID
+  CognitoUserPoolClientId:
+    Type: String
+    Description: Cognito User Pool Client ID
 
 Resources:
   RoomsTable:
@@ -101,6 +107,14 @@ Resources:
         AllowHeaders:
           - content-type
           - authorization
+      Auth:
+        Authorizers:
+          CognitoAuthorizer:
+            IdentitySource: "$request.header.Authorization"
+            JwtConfiguration:
+              Audience:
+                - !Ref CognitoUserPoolClientId
+              Issuer: !Sub "https://cognito-idp.${AWS::Region}.amazonaws.com/${CognitoUserPoolId}"
 
   BattleshipWebSocketApi:
     Type: AWS::ApiGatewayV2::Api
@@ -462,10 +476,10 @@ Resources:
               - !Ref LocalCorsOrigin
             MaxAge: 3600
       PublicAccessBlockConfiguration:
-        BlockPublicAcls: false
-        IgnorePublicAcls: false
-        BlockPublicPolicy: false
-        RestrictPublicBuckets: false
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
 
   AvatarBucketPolicy:
     Type: AWS::S3::BucketPolicy
@@ -474,10 +488,15 @@ Resources:
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
-          - Effect: Allow
-            Principal: "*"
-            Action: "s3:GetObject"
+          - Sid: AllowCloudFrontReadAvatars
+            Effect: Allow
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Action: s3:GetObject
             Resource: !Sub "arn:aws:s3:::${AvatarBucket}/*"
+            Condition:
+              StringLike:
+                AWS:SourceArn: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/*"
 
   # ==========================================
   # LAMBDA FUNCTIONS (Phân hệ User & History)
@@ -515,6 +534,8 @@ Resources:
             ApiId: !Ref BattleshipHttpApi
             Path: /user
             Method: GET
+            Auth:
+              Authorizer: CognitoAuthorizer
 
   CheckUsernameFunction:
     Type: AWS::Serverless::Function
@@ -555,6 +576,8 @@ Resources:
             ApiId: !Ref BattleshipHttpApi
             Path: /matches
             Method: GET
+            Auth:
+              Authorizer: CognitoAuthorizer
 
   UpdateUsernameFunction:
     Type: AWS::Serverless::Function
@@ -574,6 +597,8 @@ Resources:
             ApiId: !Ref BattleshipHttpApi
             Path: /user/username
             Method: PUT
+            Auth:
+              Authorizer: CognitoAuthorizer
 
   GetAvatarUploadUrlFunction:
     Type: AWS::Serverless::Function
@@ -596,6 +621,8 @@ Resources:
             ApiId: !Ref BattleshipHttpApi
             Path: /users/avatar-upload-url
             Method: GET
+            Auth:
+              Authorizer: CognitoAuthorizer
 
   GetLeaderboardFunction:
     Type: AWS::Serverless::Function

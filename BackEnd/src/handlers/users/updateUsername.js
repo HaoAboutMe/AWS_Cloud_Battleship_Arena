@@ -7,7 +7,8 @@ const docClient = DynamoDBDocumentClient.from(client);
 exports.handler = async (event) => {
     try {
         const body = JSON.parse(event.body || "{}");
-        const { email, newUsername, newTag } = body;
+        const { newUsername, newTag } = body;
+        const email = event.requestContext?.authorizer?.jwt?.claims?.email || body.email;
 
         if (!email || !newUsername || !newTag) {
             return {

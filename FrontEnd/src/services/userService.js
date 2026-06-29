@@ -1,11 +1,26 @@
+import { fetchAuthSession } from "aws-amplify/auth";
+
+const getAuthHeaders = async () => {
+  try {
+    const session = await fetchAuthSession();
+    const token = session.tokens?.idToken?.toString();
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  } catch (error) {
+    console.error("Failed to get auth headers:", error);
+    return {};
+  }
+};
+
 export const createUser = async (userData) => {
   try {
+    const authHeaders = await getAuthHeaders();
     const response = await fetch(
       `${import.meta.env.VITE_API_BASE_URL}/user`,
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          ...authHeaders,
         },
         body: JSON.stringify(userData),
       },
@@ -22,14 +37,17 @@ export const createUser = async (userData) => {
     return null;
   }
 };
+
 export const updateUsername = async (email, newUsername, newTag) => {
   try {
+    const authHeaders = await getAuthHeaders();
     const response = await fetch(
       `${import.meta.env.VITE_API_BASE_URL}/user/username`,
       {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
+          ...authHeaders,
         },
         body: JSON.stringify({ email, newUsername, newTag }),
       }
@@ -49,12 +67,14 @@ export const updateUsername = async (email, newUsername, newTag) => {
 
 export const getUserProfile = async (email) => {
   try {
+    const authHeaders = await getAuthHeaders();
     const response = await fetch(
       `${import.meta.env.VITE_API_BASE_URL}/user?email=${encodeURIComponent(email)}`,
       {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
+          ...authHeaders,
         },
       }
     );
@@ -73,12 +93,14 @@ export const getUserProfile = async (email) => {
 
 export const getMatchHistory = async (email, limit = 10) => {
   try {
+    const authHeaders = await getAuthHeaders();
     const response = await fetch(
       `${import.meta.env.VITE_API_BASE_URL}/matches?email=${encodeURIComponent(email)}&limit=${limit}`,
       {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
+          ...authHeaders,
         },
       }
     );
@@ -92,6 +114,31 @@ export const getMatchHistory = async (email, limit = 10) => {
   } catch (error) {
     console.error("Failed to get match history:", error);
     return [];
+  }
+};
+
+export const getAvatarUploadUrl = async (email) => {
+  try {
+    const authHeaders = await getAuthHeaders();
+    const response = await fetch(
+      `${import.meta.env.VITE_API_BASE_URL}/users/avatar-upload-url?email=${encodeURIComponent(email)}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          ...authHeaders,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`API call failed with status: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Failed to get avatar upload URL:", error);
+    throw error;
   }
 };
 
