@@ -9,7 +9,7 @@ const docClient = DynamoDBDocumentClient.from(ddbClient);
 
 exports.handler = async (event) => {
     try {
-        const email = event.queryStringParameters?.email;
+        const email = event.requestContext?.authorizer?.jwt?.claims?.email || event.queryStringParameters?.email;
         if (!email) {
             return {
                 statusCode: 400,

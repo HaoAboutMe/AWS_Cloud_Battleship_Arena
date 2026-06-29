@@ -6,6 +6,7 @@ import {
   getLoggedInIdentityClaims,
   logoutUser,
 } from "../services/authService";
+import { getUserProfile } from "../services/userService";
 
 const AuthContext = createContext();
 
@@ -49,16 +50,15 @@ export function AuthProvider({ children }) {
       const email = mergedAttributes.email;
       if (email) {
         try {
-          const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/user?email=${encodeURIComponent(email)}`);
-          if (res.ok) {
-            const dbData = await res.json();
-            if (dbData && dbData.username) {
+          const dbData = await getUserProfile(email);
+          if (dbData) {
+            if (dbData.username) {
               mergedAttributes.preferred_username = dbData.username;
             }
-            if (dbData && dbData.lastUsernameChange) {
+            if (dbData.lastUsernameChange) {
               mergedAttributes.lastUsernameChange = dbData.lastUsernameChange;
             }
-            if (dbData && dbData.avatarUrl) {
+            if (dbData.avatarUrl) {
               mergedAttributes.picture = dbData.avatarUrl;
             }
             [
@@ -70,7 +70,7 @@ export function AuthProvider({ children }) {
               "rankedMatches",
               "winStreak",
             ].forEach((field) => {
-              if (dbData && dbData[field] !== undefined) {
+              if (dbData[field] !== undefined) {
                 mergedAttributes[field] = dbData[field];
               }
             });
