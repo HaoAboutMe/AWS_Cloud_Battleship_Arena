@@ -5,7 +5,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { useLanguage } from "../contexts/LanguageContext";
 import { getAvatarCdnUrl } from "../utils/avatar";
 import { RANKS, getRankMeta } from "../game/rankConfig";
-import logoImg from "../assets/logo/logo.png";
+import logoImg from "../assets/logo/logo.webp";
 import LanguageToggle from "./LanguageToggle";
 import SoundSettingsModal from "./SoundSettingsModal";
 

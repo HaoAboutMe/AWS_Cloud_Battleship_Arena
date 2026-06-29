@@ -2,14 +2,14 @@
   min-height: 100dvh;
   background:
     linear-gradient(rgba(3, 17, 29, 0.92), rgba(3, 17, 29, 0.98)),
-    url("../assets/ocean/deep-ocean-texture.jpg") center / cover fixed;
+    url("../assets/ocean/deep-ocean-texture.webp") center / cover fixed;
   color: #d4e4fa;
 }
 
 .light-mode-active .profile-page {
   background:
     linear-gradient(rgba(226, 237, 244, 0.9), rgba(211, 227, 237, 0.96)),
-    url("../assets/ocean/deep-ocean-texture.jpg") center / cover fixed;
+    url("../assets/ocean/deep-ocean-texture.webp") center / cover fixed;
   color: #173247;
 }
 

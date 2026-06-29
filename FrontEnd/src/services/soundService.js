@@ -233,7 +233,7 @@ const sequence = (notes, volume = 0.45) => {
 const createSound = (src, options = {}) =>
   new Howl({
     src: [src],
-    preload: true,
+    preload: options.preload ?? true,
     html5: options.html5 ?? false,
     loop: options.loop ?? false,
     volume: options.volume ?? 0.6,
@@ -351,7 +351,7 @@ const startRequestedMusic = () => {
 
 export const syncBackgroundMusic = (pathname) => {
   requestedMusic = pathname.startsWith("/game") ? "battleMusic" : "menuMusic";
-  startRequestedMusic();
+  if (initialized) startRequestedMusic();
 };
 
 export const playSound = (name, options = {}) => {

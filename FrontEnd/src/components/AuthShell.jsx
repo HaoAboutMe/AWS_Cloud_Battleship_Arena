@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import shipOne from "../assets/ships/image/ship-1.png";
+import shipOne from "../assets/ships/image/ship-1.webp";
 import { useLanguage } from "../contexts/LanguageContext";
 import LanguageToggle from "./LanguageToggle";
 import "./AuthShell.css";

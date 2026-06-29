@@ -21,6 +21,10 @@ Parameters:
     Type: String
     Default: "http://localhost:5173"
     Description: Frontend origin allowed to call the HTTP API.
+  LocalCorsOrigin:
+    Type: String
+    Default: "http://localhost:5173"
+    Description: Local frontend origin allowed during development.
 
 Resources:
   RoomsTable:
@@ -87,6 +91,7 @@ Resources:
       CorsConfiguration:
         AllowOrigins:
           - !Ref CorsOrigin
+          - !Ref LocalCorsOrigin
         AllowMethods:
           - GET
           - POST
@@ -454,6 +459,7 @@ Resources:
               - HEAD
             AllowedOrigins:
               - !Ref CorsOrigin
+              - !Ref LocalCorsOrigin
             MaxAge: 3600
       PublicAccessBlockConfiguration:
         BlockPublicAcls: false

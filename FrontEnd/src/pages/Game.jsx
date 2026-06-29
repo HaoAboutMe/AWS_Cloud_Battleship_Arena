@@ -1,18 +1,17 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import ship1 from "../assets/ships/image/ship-1.png";
-import ship10 from "../assets/ships/image/ship-10.png";
-import ship2 from "../assets/ships/image/ship-2.png";
-import ship3 from "../assets/ships/image/ship-3.png";
-import ship4 from "../assets/ships/image/ship-4.png";
-import ship5 from "../assets/ships/image/ship-5.png";
-import ship6 from "../assets/ships/image/ship-6.png";
-import ship7 from "../assets/ships/image/ship-7.png";
-import ship8 from "../assets/ships/image/ship-8.png";
-import ship9 from "../assets/ships/image/ship-9.png";
+import ship1 from "../assets/ships/image/ship-1.webp";
+import ship10 from "../assets/ships/image/ship-10.webp";
+import ship2 from "../assets/ships/image/ship-2.webp";
+import ship3 from "../assets/ships/image/ship-3.webp";
+import ship4 from "../assets/ships/image/ship-4.webp";
+import ship5 from "../assets/ships/image/ship-5.webp";
+import ship6 from "../assets/ships/image/ship-6.webp";
+import ship7 from "../assets/ships/image/ship-7.webp";
+import ship8 from "../assets/ships/image/ship-8.webp";
+import ship9 from "../assets/ships/image/ship-9.webp";
 import GameResultModal from "../components/GameResultModal";
 import { PvpCommandStrip, PvpCommsPanel } from "../components/PvpBattlePanels";
-import RankUpAnimation from "../components/RankUpAnimation";
 import { useAuth } from "../contexts/AuthContext";
 import { useLanguage } from "../contexts/LanguageContext";
 import BattleEffectsLayer from "../game/BattleEffectsLayer";
@@ -41,6 +40,8 @@ import {
 } from "../services/matchService";
 import { playSound } from "../services/soundService";
 import "./GameEffects.css";
+
+const RankUpAnimation = lazy(() => import("../components/RankUpAnimation"));
 
 const BOARD_SIZE = 10;
 const CELL_SIZE = 40;
@@ -5327,11 +5328,13 @@ function Game() {
         returnHomeLoading={returnHomeLoading}
       />
       {showRankUpAnimation && rankedResult?.promoted && (
-        <RankUpAnimation
-          oldRank={rankedResult.oldRank}
-          newRank={rankedResult.newRank}
-          onComplete={() => setShowRankUpAnimation(false)}
-        />
+        <Suspense fallback={null}>
+          <RankUpAnimation
+            oldRank={rankedResult.oldRank}
+            newRank={rankedResult.newRank}
+            onComplete={() => setShowRankUpAnimation(false)}
+          />
+        </Suspense>
       )}
     </div>
   );
