@@ -6,7 +6,7 @@ resolve_s3 = true
 s3_prefix = "cloud-battleship-backend-dev"
 confirm_changeset = true
 capabilities = "CAPABILITY_IAM"
-parameter_overrides = "CorsOrigin=\"http://localhost:5173\""
+parameter_overrides = "CorsOrigin=\"https://d12bu86qwnw1gk.cloudfront.net\""
 image_repositories = []
 
 [default.global.parameters]
