@@ -29,6 +29,13 @@ function Profile() {
   const [isLightMode, setIsLightMode] = useState(() =>
     document.documentElement.classList.contains("light-mode-active"),
   );
+  const [toast, setToast] = useState(null);
+
+  useEffect(() => {
+    if (!toast) return undefined;
+    const timer = window.setTimeout(() => setToast(null), 4200);
+    return () => window.clearTimeout(timer);
+  }, [toast]);
   const [stats, setStats] = useState(EMPTY_STATS);
   const [rankLadderOpen, setRankLadderOpen] = useState(false);
   const [rankAnimation, setRankAnimation] = useState(null);
@@ -332,7 +339,13 @@ function Profile() {
                     event.currentTarget.src = COMMANDER_AVATAR;
                   }}
                 />
-                <AvatarUpload currentAvatarUrl={avatarUrl} onAvatarUpdate={updateAvatar} />
+                <AvatarUpload
+                  currentAvatarUrl={avatarUrl}
+                  onAvatarUpdate={updateAvatar}
+                  showToast={(title, message, type = "success") => {
+                    setToast({ title, message, type });
+                  }}
+                />
               </div>
               <div className="profile-identity-copy">
                 <span className="profile-eyebrow">{t("profile.dossier")}</span>
@@ -796,6 +809,24 @@ function Profile() {
             onComplete={() => setRankAnimation(null)}
           />
         </Suspense>
+      )}
+
+      {toast && (
+        <div
+          className={`command-toast ${toast.type === "error" ? "is-error" : ""}`}
+          role="alert"
+        >
+          <span className="command-toast-icon" aria-hidden="true">
+            <i />
+          </span>
+          <div>
+            <strong>{toast.title}</strong>
+            <small>{toast.message}</small>
+          </div>
+          <button type="button" onClick={() => setToast(null)} aria-label={t("common.dismiss")}>
+            <span className="material-symbols-outlined">close</span>
+          </button>
+        </div>
       )}
     </div>
   );
