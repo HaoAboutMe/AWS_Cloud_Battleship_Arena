@@ -851,6 +851,8 @@
   width: 100%;
   box-sizing: border-box;
   transition: border-color 0.2s;
+  appearance: none;
+  -webkit-appearance: none;
 }
 
 .profile-riot-id-input:focus {
@@ -888,6 +890,20 @@
   outline: none;
   box-sizing: border-box;
   box-shadow: none;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.profile-riot-id-input:disabled,
+.profile-riot-id-tag-input:disabled {
+  background: transparent;
+  color: rgba(242, 251, 255, 0.82);
+  opacity: 1;
+  -webkit-text-fill-color: rgba(242, 251, 255, 0.82);
+}
+
+.profile-riot-id-input:disabled {
+  background: rgba(0, 0, 0, 0.2);
 }
 
 .profile-riot-id-footer {
@@ -927,13 +943,33 @@
 
 .light-mode-active .profile-riot-id-input,
 .light-mode-active .profile-riot-id-tag-container {
-  border-color: rgba(25, 78, 104, 0.18);
-  background: rgba(245, 251, 253, 0.72);
-  color: #173247;
+  border-color: rgba(117, 223, 255, 0.28);
+  background: rgba(2, 16, 28, 0.58);
+  color: #f2fbff;
 }
 
 .light-mode-active .profile-riot-id-tag-input {
-  color: #173247;
+  color: #f2fbff;
+}
+
+.light-mode-active .profile-riot-id-input:disabled,
+.light-mode-active .profile-riot-id-tag-input:disabled {
+  background: transparent;
+  color: rgba(242, 251, 255, 0.82);
+  -webkit-text-fill-color: rgba(242, 251, 255, 0.82);
+}
+
+.light-mode-active .profile-riot-id-input:disabled {
+  background: rgba(2, 16, 28, 0.58);
+}
+
+.light-mode-active .profile-riot-id-input::placeholder,
+.light-mode-active .profile-riot-id-tag-input::placeholder {
+  color: rgba(224, 244, 255, 0.56);
+}
+
+.light-mode-active .profile-riot-id-tag-prefix {
+  color: rgba(224, 244, 255, 0.72);
 }
 
 /* Profile Match Card styles */
