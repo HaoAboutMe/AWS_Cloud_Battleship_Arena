@@ -446,7 +446,7 @@ function Home() {
 
           <div className="z-10 order-3 md:col-start-1 md:row-start-2 self-start flex flex-col sm:flex-row gap-3 md:gap-4 w-full">
             <button 
-              className="home-tactics-button w-full sm:w-auto justify-center border border-secondary/50 text-secondary font-label-md text-label-md px-8 py-3 rounded-sm transition-all active:scale-95"
+              className="home-tactics-button w-full sm:w-auto justify-center border font-label-md text-label-md px-8 py-3 rounded-sm transition-all active:scale-95"
               onClick={() => setIsTacticsOpen(true)}
             >
               {t("home.learn")}

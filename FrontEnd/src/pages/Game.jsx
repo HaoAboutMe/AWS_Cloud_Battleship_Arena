@@ -4732,7 +4732,7 @@ function Game() {
                             <button
                               key={brushId}
                               onClick={(e) => { e.stopPropagation(); setActiveShipBrush(brushId); }}
-                              className={`flex-1 flex flex-col items-center justify-center py-[2px] rounded-sm transition-all`}
+                              className={`flex-1 flex flex-col items-center justify-center py-[2px] rounded-sm transition-all brush-${brushId} ${isActive ? 'is-active-brush' : ''}`}
                               style={{
                                 background: isActive ? `${brushColor}30` : "rgba(255,255,255,0.03)",
                                 border: `1px solid ${isInvalid ? "#ef4444" : isActive ? brushColor : "rgba(255,255,255,0.1)"}`,

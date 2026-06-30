@@ -243,7 +243,7 @@
   border: 1px solid rgba(117, 223, 255, 0.50);
   border-radius: 8px;
   background: rgba(117, 223, 255, 0.09);
-  color: var(--home-cyan-bright);
+  color: #75dfff;
   font-weight: 900;
   font-size: 11px;
   letter-spacing: 0.18em;
@@ -1697,18 +1697,18 @@
 }
 
 .light-mode-active .home-tactics-button {
-  background: #aae0fc;
-  color: #0b3d4f;
-  border-color: #8acdf3;
-  box-shadow: none;
+  background: #087eaf !important;
+  color: #ffffff !important;
+  border-color: #087eaf !important;
+  box-shadow: 0 10px 24px rgba(8, 126, 175, 0.22);
   font-weight: 800;
 }
 
 .light-mode-active .home-tactics-button:hover {
-  background: #95d6f8;
-  border-color: #7abdec;
-  box-shadow: 0 4px 16px rgba(0, 143, 179, 0.15);
-  color: #082d3b;
+  background: #056b96 !important;
+  border-color: #056b96 !important;
+  box-shadow: 0 14px 32px rgba(5, 107, 150, 0.30);
+  color: #ffffff !important;
 }
 
 .light-mode-active .home-tactics-button::before {
