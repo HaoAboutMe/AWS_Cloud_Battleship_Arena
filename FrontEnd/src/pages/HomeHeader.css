@@ -498,59 +498,125 @@
   scroll-margin-top: 80px;
 }
 
+.light-mode-active .command-header {
+  background: #ffffff !important;
+  border-bottom: 1px solid rgba(0, 143, 179, 0.15) !important;
+  box-shadow: 0 8px 28px rgba(0, 30, 50, 0.05) !important;
+}
+
+.light-mode-active .command-header-inner {
+  background: transparent !important;
+}
+
 .light-mode-active .command-header .command-brand-copy strong {
-  color: #d9f4ff;
+  color: #005c73;
 }
 
 .light-mode-active .command-header .command-brand-copy small {
-  color: rgba(165, 231, 255, 0.58);
+  color: rgba(0, 143, 179, 0.7);
 }
 
 .light-mode-active .command-header .command-brand-mark {
-  border-color: rgba(165, 231, 255, 0.58);
+  border-color: rgba(0, 143, 179, 0.4);
+}
+
+.light-mode-active .command-brand-mark::after {
+  background: #008fb3;
+  box-shadow: 0 0 8px #006b85;
+}
+
+.light-mode-active .command-brand-mark i {
+  border-top-color: #008fb3;
 }
 
 .light-mode-active .command-header .command-nav {
-  border-color: rgba(165, 231, 255, 0.14);
-  background: rgba(0, 12, 22, 0.42);
+  border-color: rgba(0, 143, 179, 0.2);
+  background: rgba(240, 248, 255, 0.8);
 }
 
 .light-mode-active .command-header .command-nav a {
-  color: rgba(218, 235, 246, 0.68);
+  color: #4a6773;
 }
 
 .light-mode-active .command-header .command-nav a:hover,
 .light-mode-active .command-header .command-nav a.is-active {
-  color: #d9f4ff;
-  background: rgba(117, 223, 255, 0.12);
+  color: #005c73;
+  background: rgba(0, 143, 179, 0.1);
+}
+
+.light-mode-active .command-header .command-nav a.is-active {
+  box-shadow: inset 0 -2px 0 #008fb3;
 }
 
 .light-mode-active .command-header .command-icon-button {
-  color: rgba(218, 235, 246, 0.72);
+  color: #4a6773;
 }
 
 .light-mode-active .command-header .command-icon-button:hover {
-  color: #d9f4ff;
+  color: #005c73;
+  background: rgba(0, 143, 179, 0.1);
+  border-color: rgba(0, 143, 179, 0.2);
 }
 
 .light-mode-active .command-header .command-account {
-  border-left-color: rgba(165, 231, 255, 0.16);
+  border-left-color: rgba(0, 143, 179, 0.2);
 }
 
 .light-mode-active .command-header .command-account-copy strong {
-  color: #e7f6ff;
+  color: #005c73;
+}
+
+.light-mode-active .command-header .command-account-copy small {
+  color: rgba(0, 143, 179, 0.8);
 }
 
 .light-mode-active .command-header .command-account-chevron {
-  color: rgba(218, 235, 246, 0.54);
+  color: #4a6773;
 }
 
 .light-mode-active .command-header .command-account-menu>div {
-  background: rgba(5, 28, 43, 0.99);
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid rgba(0, 143, 179, 0.2);
+  box-shadow: 0 14px 34px rgba(0, 30, 50, 0.15);
+}
+
+.light-mode-active .command-header .command-menu-label {
+  color: rgba(0, 143, 179, 0.7);
+}
+
+.light-mode-active .command-header .command-account-menu button,
+.light-mode-active .command-header .command-account-menu a {
+  color: #005c73;
+}
+
+.light-mode-active .command-header .command-account-menu button:hover,
+.light-mode-active .command-header .command-account-menu a:hover {
+  background: rgba(0, 143, 179, 0.08);
+}
+
+.light-mode-active .command-header .command-account-menu button[class*="logout"] {
+  color: #cc2900;
+}
+
+.light-mode-active .command-header .command-account-menu button[class*="logout"]:hover {
+  background: rgba(204, 41, 0, 0.08);
 }
 
 .light-mode-active .command-header .command-signin {
-  color: #d9f4ff;
+  color: #008fb3;
+  border-color: rgba(0, 143, 179, 0.3);
+}
+
+.light-mode-active .command-header .command-enlist {
+  background: #aae0fc;
+  color: #0b3d4f;
+  border-color: #8acdf3;
+}
+
+.light-mode-active .command-avatar {
+  border-color: rgba(0, 143, 179, 0.4);
+  background: linear-gradient(145deg, rgba(0, 143, 179, 0.1), rgba(255, 255, 255, 0.9));
+  box-shadow: inset 0 0 12px rgba(0, 143, 179, 0.08);
 }
 
 @keyframes command-toast-enter {
@@ -650,7 +716,7 @@
   }
 
   .light-mode-active .command-mobile-menu-actions {
-    border-top-color: rgba(25, 78, 104, 0.15);
+    border-top-color: rgba(0, 143, 179, 0.2);
   }
 
   .command-mobile-menu-actions .language-toggle {
@@ -679,9 +745,15 @@
   }
 
   .light-mode-active .command-mobile-menu-actions button.command-icon-button {
-    border-color: rgba(165, 231, 255, 0.2);
-    background: rgba(0, 12, 22, 0.46);
-    color: rgba(218, 235, 246, 0.72);
+    border-color: rgba(0, 143, 179, 0.2);
+    background: rgba(240, 248, 255, 0.8);
+    color: #4a6773;
+  }
+
+  .light-mode-active .command-mobile-menu-actions button.command-icon-button:hover {
+    border-color: rgba(0, 143, 179, 0.4);
+    background: rgba(0, 143, 179, 0.1);
+    color: #005c73;
   }
 
   .command-account-menu {

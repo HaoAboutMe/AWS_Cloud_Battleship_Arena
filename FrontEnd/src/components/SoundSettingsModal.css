@@ -367,10 +367,148 @@
   border-color: rgba(117, 223, 255, 0.4);
 }
 
+/* Light Mode Overrides for Sound Settings Modal */
+.light-mode-active .sound-settings-backdrop {
+  background: rgba(255, 255, 255, 0.76);
+}
+
+.light-mode-active .sound-settings-dialog {
+  background: #ffffff;
+  border-color: rgba(0, 119, 182, 0.2);
+  color: #173247;
+  box-shadow: 0 20px 60px rgba(0, 50, 80, 0.12);
+}
+
+.light-mode-active .sound-settings-header {
+  background: rgba(235, 245, 250, 0.95) !important;
+  border-bottom-color: rgba(0, 119, 182, 0.15) !important;
+}
+
+.light-mode-active .sound-settings-header h2 {
+  color: #00354a !important;
+}
+
+.light-mode-active .sound-settings-header > div > span {
+  color: #0077b6 !important;
+}
+
+.light-mode-active .sound-settings-close {
+  background: #ffffff !important;
+  border-color: rgba(0, 119, 182, 0.2) !important;
+  color: #0077b6 !important;
+}
+
+.light-mode-active .sound-settings-close:hover {
+  background: rgba(0, 119, 182, 0.1) !important;
+  border-color: rgba(0, 119, 182, 0.4) !important;
+}
+
+.light-mode-active .sound-settings-nav {
+  background: #f4f9fb !important;
+  border-right-color: rgba(0, 119, 182, 0.15) !important;
+}
+
+.light-mode-active .sound-settings-nav button {
+  color: #4a6773 !important;
+}
+
+.light-mode-active .sound-settings-nav button.is-active {
+  background: rgba(0, 119, 182, 0.08) !important;
+  border-color: rgba(0, 119, 182, 0.2) !important;
+  color: #0077b6 !important;
+  box-shadow: inset 3px 0 0 #0077b6 !important;
+}
+
+.light-mode-active .sound-settings-intro {
+  border-bottom-color: rgba(0, 119, 182, 0.15) !important;
+}
+
+.light-mode-active .sound-settings-intro > .material-symbols-outlined {
+  background: rgba(0, 119, 182, 0.06) !important;
+  border-color: rgba(0, 119, 182, 0.2) !important;
+  color: #0077b6 !important;
+}
+
+.light-mode-active .sound-settings-intro h3 {
+  color: #00354a !important;
+}
+
+.light-mode-active .sound-settings-intro p {
+  color: #4a6773 !important;
+}
+
+.light-mode-active .sound-settings-mute {
+  background: #ffffff !important;
+  border-color: rgba(0, 119, 182, 0.3) !important;
+  color: #0077b6 !important;
+}
+
+.light-mode-active .sound-settings-mute.is-muted {
+  border-color: rgba(244, 67, 54, 0.4) !important;
+  color: #d32f2f !important;
+  background: rgba(244, 67, 54, 0.05) !important;
+}
+
+.light-mode-active .sound-volume-row {
+  border-bottom-color: rgba(0, 119, 182, 0.1) !important;
+}
+
+.light-mode-active .sound-volume-row label {
+  color: #00354a !important;
+}
+
+.light-mode-active .sound-volume-row label .material-symbols-outlined {
+  color: #0077b6 !important;
+}
+
+.light-mode-active .sound-volume-row output {
+  color: #0077b6 !important;
+}
+
+.light-mode-active .sound-volume-row input[type="range"] {
+  background: linear-gradient(
+    90deg,
+    #0077b6 0 var(--sound-level),
+    rgba(0, 119, 182, 0.15) var(--sound-level) 100%
+  ) !important;
+}
+
+.light-mode-active .sound-volume-row input[type="range"]::-webkit-slider-thumb {
+  border-color: #ffffff !important;
+  background: #0077b6 !important;
+  box-shadow: 0 0 0 4px rgba(0, 119, 182, 0.12) !important;
+}
+
+.light-mode-active .sound-volume-row input[type="range"]::-moz-range-thumb {
+  border-color: #ffffff !important;
+  background: #0077b6 !important;
+}
+
+.light-mode-active .sound-settings-note {
+  color: rgba(74, 103, 115, 0.8) !important;
+}
+
+.light-mode-active .sound-settings-mobile-extras {
+  border-top-color: rgba(0, 119, 182, 0.15) !important;
+}
+
+.light-mode-active .sound-settings-mobile-extras .sound-volume-row {
+  border-bottom-color: rgba(0, 119, 182, 0.1) !important;
+}
+
+.light-mode-active .sound-settings-mobile-extras .sound-volume-row label {
+  color: #00354a !important;
+}
+
 .light-mode-active .sound-settings-theme-btn {
-  background: rgba(0, 12, 22, 0.42);
-  color: rgba(218, 235, 246, 0.72);
-  border-color: rgba(165, 231, 255, 0.2);
+  background: #ffffff !important;
+  color: #0077b6 !important;
+  border-color: rgba(0, 119, 182, 0.3) !important;
+}
+
+.light-mode-active .sound-settings-theme-btn:hover {
+  background: rgba(0, 119, 182, 0.08) !important;
+  border-color: rgba(0, 119, 182, 0.5) !important;
 }
 
 .settings-language-control {

@@ -425,19 +425,10 @@ function Profile() {
                     <select
                       value={recordMode}
                       onChange={(e) => setRecordMode(e.target.value)}
-                      style={{
-                        padding: '8px 16px',
-                        background: 'rgba(255, 255, 255, 0.1)',
-                        border: '1px solid rgba(255, 255, 255, 0.2)',
-                        borderRadius: '8px',
-                        color: 'var(--text-main)',
-                        outline: 'none',
-                        cursor: 'pointer',
-                        fontSize: '14px',
-                      }}
+                      className="profile-record-select"
                     >
-                      <option value="all" style={{ background: '#0a1929' }}>{language === 'vi' ? 'Tất cả (All)' : 'All Mode'}</option>
-                      <option value="ranked" style={{ background: '#0a1929' }}>{language === 'vi' ? 'Xếp hạng (Ranked)' : 'Ranked'}</option>
+                      <option value="all">{language === 'vi' ? 'Tất cả (All)' : 'All Mode'}</option>
+                      <option value="ranked">{language === 'vi' ? 'Xếp hạng (Ranked)' : 'Ranked'}</option>
                     </select>
                   </div>
                   <div style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '12px', marginBottom: '12px' }}>
