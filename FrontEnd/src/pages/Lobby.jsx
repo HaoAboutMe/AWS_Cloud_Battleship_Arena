@@ -139,6 +139,48 @@ function Lobby() {
     navigate("/", { replace: true, state: { authEvent: "signed-out" } });
   };
 
+  const [isLightMode, setIsLightMode] = useState(() => 
+    document.documentElement.classList.contains('light-mode-active')
+  );
+
+  const handleToggleTheme = (event) => {
+    const isDark = document.documentElement.classList.contains('light-mode-active');
+    
+    if (!document.startViewTransition) {
+      document.documentElement.classList.toggle('light-mode-active');
+      setIsLightMode(isDark);
+      return;
+    }
+
+    const x = event.clientX;
+    const y = event.clientY;
+    const endRadius = Math.hypot(
+      Math.max(x, innerWidth - x),
+      Math.max(y, innerHeight - y)
+    );
+
+    const transition = document.startViewTransition(() => {
+      document.documentElement.classList.toggle('light-mode-active');
+      setIsLightMode(isDark);
+    });
+
+    transition.ready.then(() => {
+      document.documentElement.animate(
+        {
+          clipPath: [
+            `circle(0px at ${x}px ${y}px)`,
+            `circle(${endRadius}px at ${x}px ${y}px)`
+          ],
+        },
+        {
+          duration: 700,
+          easing: 'ease-in-out',
+          pseudoElement: '::view-transition-new(root)',
+        }
+      );
+    });
+  };
+
   const player = useMemo(() => {
     const identity =
       attributes?.preferred_username ||
@@ -361,6 +403,8 @@ function Lobby() {
         authLoading={authLoading}
         onLogout={handleLogout}
         onNavigateRequest={handleHeaderNavigate}
+        isLightMode={isLightMode}
+        onToggleTheme={handleToggleTheme}
       />
 
       <main className="lobby-shell">
