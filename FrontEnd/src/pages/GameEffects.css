@@ -1982,4 +1982,36 @@ box-shadow {
     box-shadow: inset 0 0 8px rgba(0, 53, 74, 0.2) !important;
 }
 
+/* LIGHT MODE FIXES FOR CUSTOM SHIPYARD TEXT */
+.light-mode-active {
+    --shipyard-text-muted: #3a5c6d;
+    --shipyard-text-faded: #5a7d8f;
+    --shipyard-highlight: #0077b6;
+    --shipyard-bar-bg: rgba(0, 119, 182, 0.15);
+    
+    /* Variables for "5 cells", "3 cells" text */
+    --shipyard-sunk-text: #cc0000;
+    --shipyard-active-text: #087eaf;
+    --shipyard-sunk-glow: none;
+    --shipyard-active-glow: none;
+}
+
+/* LIGHT MODE FIXES FOR FLEET SHAPE CELLS */
+.light-mode-active .fleet-shape-cell {
+    border: 1px solid rgba(0, 100, 150, 0.95);
+    background: rgba(0, 140, 200, 0.72);
+    box-shadow: none;
+}
+
+.light-mode-active .fleet-shape-item.is-sunk .fleet-shape-cell {
+    border-color: rgba(200, 40, 30, 0.9);
+    background: rgba(220, 60, 50, 0.85);
+    box-shadow: none;
+}
+
+.light-mode-active .fleet-shape-item.is-sunk::after {
+    color: #cc0000;
+    text-shadow: none;
+}
+
 
