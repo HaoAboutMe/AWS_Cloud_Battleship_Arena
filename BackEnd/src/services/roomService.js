@@ -7,6 +7,7 @@ const {
 } = require("@aws-sdk/lib-dynamodb");
 const { documentClient } = require("../lib/dynamodb");
 const { SHIP_DEFS, getShipOffsets } = require("../config/shipDefs");
+const { getRankForRp, getRankIndex } = require("./rankService");
 
 const ROOMS_TABLE = process.env.ROOMS_TABLE;
 const ROOM_CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -16,6 +17,7 @@ const BOARD_SIZE = 10;
 const FLEET_CELL_LIMIT = 15;
 const FLEET_MIN_SHIPS = 2;
 const FLEET_MAX_SHIPS = 4;
+const RANKED_MAX_RANK_GAP = 1;
 
 const nowIso = () => new Date().toISOString();
 
@@ -111,10 +113,80 @@ const normalizePlayer = (input = {}) => ({
   displayName: String(input.displayName || input.email || "Commander"),
   email: input.email ? String(input.email) : undefined,
   avatarUrl: input.avatarUrl || input.picture ? String(input.avatarUrl || input.picture) : undefined,
+  rank: input.rank ? String(input.rank).toLowerCase() : undefined,
+  rankPoints: Number.isFinite(Number(input.rankPoints))
+    ? Math.max(0, Math.round(Number(input.rankPoints)))
+    : undefined,
   joinedAt: nowIso(),
   lobbyReady: false,
   fleetReady: false,
 });
+
+const getUserByEmail = async (email) => {
+  if (!email) return null;
+
+  const emailResponse = await documentClient.send(
+    new GetCommand({
+      TableName: "EmailIndex",
+      Key: { email },
+    }),
+  );
+
+  if (!emailResponse.Item?.userId) return null;
+
+  const userResponse = await documentClient.send(
+    new GetCommand({
+      TableName: "User",
+      Key: { userId: emailResponse.Item.userId },
+    }),
+  );
+
+  return userResponse.Item || null;
+};
+
+const withRankSnapshot = async (player) => {
+  const user = await getUserByEmail(player.email).catch((error) => {
+    console.error("Unable to load ranked matchmaking profile", error);
+    return null;
+  });
+  const rankPoints = Number.isFinite(Number(user?.rankPoints))
+    ? Math.max(0, Math.round(Number(user.rankPoints)))
+    : Number.isFinite(Number(player.rankPoints))
+      ? Math.max(0, Math.round(Number(player.rankPoints)))
+      : 0;
+  const rank = String(user?.rank || player.rank || getRankForRp(rankPoints).id)
+    .toLowerCase();
+
+  return {
+    ...player,
+    rank,
+    rankPoints,
+  };
+};
+
+const getMatchmakingRankIndex = (player = {}) => {
+  const rank = String(player.rank || getRankForRp(player.rankPoints || 0).id)
+    .toLowerCase();
+  return getRankIndex(rank);
+};
+
+const isRankedCompatible = (room, player) => {
+  const opponent = (room.players || [])[0];
+  if (!opponent) return true;
+
+  const rankGap = Math.abs(
+    getMatchmakingRankIndex(opponent) - getMatchmakingRankIndex(player),
+  );
+
+  return rankGap <= RANKED_MAX_RANK_GAP;
+};
+
+const getMatchmakingScore = (room, player, mode) => {
+  if (mode !== "ranked") return 0;
+
+  const opponent = (room.players || [])[0] || {};
+  return Math.abs(Number(opponent.rankPoints || 0) - Number(player.rankPoints || 0));
+};
 
 const isSamePlayer = (candidate, player) => {
   if (candidate.userId === player.userId) return true;
@@ -195,10 +267,13 @@ const findMatchmakingRoom = async ({
   difficulty = "easy",
   mode = "casual",
 }) => {
-  const nextPlayer = normalizePlayer(player);
   const normalizedMode = String(mode || "casual")
     .trim()
     .toLowerCase();
+  const normalizedPlayer = normalizePlayer(player);
+  const nextPlayer = normalizedMode === "ranked"
+    ? await withRankSnapshot(normalizedPlayer)
+    : normalizedPlayer;
   const response = await documentClient.send(
     new ScanCommand({
       TableName: ROOMS_TABLE,
@@ -221,14 +296,19 @@ const findMatchmakingRoom = async ({
         players.length < MAX_PLAYERS &&
         !players.some((candidatePlayer) =>
           isSamePlayer(candidatePlayer, nextPlayer),
-        )
+        ) &&
+        (normalizedMode !== "ranked" || isRankedCompatible(room, nextPlayer))
       );
     })
-    .sort((first, second) =>
-      String(first.createdAt || "").localeCompare(
+    .sort((first, second) => {
+      const scoreGap = getMatchmakingScore(first, nextPlayer, normalizedMode) -
+        getMatchmakingScore(second, nextPlayer, normalizedMode);
+      if (scoreGap !== 0) return scoreGap;
+
+      return String(first.createdAt || "").localeCompare(
         String(second.createdAt || ""),
-      ),
-    )[0];
+      );
+    })[0];
 
   if (candidate) {
     return joinRoom({ roomCode: candidate.roomCode, player: nextPlayer });

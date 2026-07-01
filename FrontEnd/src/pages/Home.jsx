@@ -244,6 +244,8 @@ function Home() {
       displayName,
       email: attributes?.email,
       avatarUrl: attributes?.picture || attributes?.avatarUrl,
+      rank: attributes?.rank || "unranked",
+      rankPoints: Number(attributes?.rankPoints || 0),
     };
   };
 

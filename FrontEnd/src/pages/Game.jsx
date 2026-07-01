@@ -307,6 +307,39 @@ const GAME_COPY = {
     opponentLeftLog: "Opponent left the battle. Victory secured.",
     waitingFleetLog: "Fleet deployed. Waiting for the opponent fleet.",
     bothReadyLog: "Both commanders are ready. Battle channel is active.",
+    unableRefreshReadiness: "Unable to refresh room readiness.",
+    unableLeaveCleanly: "Unable to leave room cleanly.",
+    unableResetRematch: "Unable to reset room for rematch.",
+    youLeftMatch: "You left the match.",
+    timeUp: "Time is up! Turn passes to enemy.",
+    yourTurnStarted: "Your turn started.",
+    waitingOpponentMove: "Waiting for opponent move through the room channel.",
+    enemyThinking: "Enemy is thinking...",
+    enemyDestroyedYourShip: "Enemy destroyed your ship (size {size}) at {cell}!",
+    enemyHitYourShip: "Enemy hit your ship at {cell}!",
+    enemyMissedAt: "Enemy missed at {cell}.",
+    youDestroyedEnemyShip: "You destroyed an enemy ship (size {size}) at {cell}!",
+    directHitAt: "Direct hit at {cell}!",
+    missedAt: "Missed at {cell}.",
+    roomStillConnecting: "Room channel is still connecting. Wait a moment.",
+    opponentUnavailable: "Opponent is not available in this room.",
+    waitingOpponentTurn: "Waiting for opponent turn.",
+    roomReconnecting: "Room channel is reconnecting. Try that shot again.",
+    waitingShotResult: "Waiting for opponent shot result...",
+    shotTimedOut: "Shot result timed out. Try firing again.",
+    roomConnected: "Room channel connected.",
+    roomConnectionFailed: "Room channel connection failed.",
+    roomNotConfigured: "Room channel is not configured.",
+    enemyWatersSynced: "Enemy waters synced. Shot results will be verified by opponent fleet.",
+    returnedShipStaging: "Returned ship to staging dock.",
+    cannotRotateHere: "Cannot rotate here. Area blocked.",
+    invalidPlacementReturned: "Invalid placement. Ship returned to original position.",
+    fleetDeployedReview: "Fleet deployed. Review the formation or press Ready.",
+    invalidPlacementPosition: "Invalid placement position.",
+    autoArrangedLog:
+      "Fleet auto-arranged. Press again for another formation or press Ready.",
+    battleInitiated: "Battle initiated!",
+    unableMarkReady: "Unable to mark fleet ready.",
     totalTurns: "Total Turns",
     totalShots: "Total Shots",
     hitsMisses: "Hits / Misses",
@@ -371,11 +404,11 @@ const GAME_COPY = {
     fleetValid: "Fleet formation is valid.",
     commanderPanel: "Commander",
     opponentPanel: "Opponent",
-    emotionsTab: "Biểu cảm",
+    emotionsTab: "Emotes",
     shipsTab: "Fleet signals",
     chatEventLog: "Chat & event log",
     battleChat: "Chat",
-    eventLog: "Nhật Ký",
+    eventLog: "Log",
     chatPlaceholder: "Send a tactical message...",
     sendChat: "Send message",
     awaitingSignal: "Awaiting battle signals...",
@@ -388,6 +421,8 @@ const GAME_COPY = {
     shipsAfloat: "{count} ships afloat",
     unrankedLabel: "UNRANKED",
     shipLabel: "Ship",
+    enemyShipSunkAnnouncement: "Enemy {ship} sunk!",
+    yourShipSunkAnnouncement: "Your {ship} sunk!",
   },
   vi: {
     ready: "Sẵn sàng",
@@ -415,6 +450,39 @@ const GAME_COPY = {
     opponentLeftLog: "Đối thủ đã rời trận. Bạn giành chiến thắng.",
     waitingFleetLog: "Đã triển khai hạm đội. Đang chờ đối thủ xếp tàu.",
     bothReadyLog: "Cả hai chỉ huy đã sẵn sàng. Kênh chiến đấu đã hoạt động.",
+    unableRefreshReadiness: "Không thể cập nhật trạng thái sẵn sàng của phòng.",
+    unableLeaveCleanly: "Không thể rời phòng gọn gàng.",
+    unableResetRematch: "Không thể đặt lại phòng để tái đấu.",
+    youLeftMatch: "Bạn đã rời trận.",
+    timeUp: "Hết giờ! Lượt chuyển sang đối thủ.",
+    yourTurnStarted: "Bắt đầu lượt của bạn.",
+    waitingOpponentMove: "Đang chờ đối thủ đi qua kênh phòng.",
+    enemyThinking: "Đối thủ đang suy nghĩ...",
+    enemyDestroyedYourShip: "Đối thủ đã phá hủy tàu của bạn (cỡ {size}) tại {cell}!",
+    enemyHitYourShip: "Đối thủ bắn trúng tàu của bạn tại {cell}!",
+    enemyMissedAt: "Đối thủ bắn trượt tại {cell}.",
+    youDestroyedEnemyShip: "Bạn đã phá hủy tàu địch (cỡ {size}) tại {cell}!",
+    directHitAt: "Bắn trúng tại {cell}!",
+    missedAt: "Bắn trượt tại {cell}.",
+    roomStillConnecting: "Kênh phòng vẫn đang kết nối. Chờ một chút.",
+    opponentUnavailable: "Không tìm thấy đối thủ trong phòng này.",
+    waitingOpponentTurn: "Đang chờ lượt đối thủ.",
+    roomReconnecting: "Kênh phòng đang kết nối lại. Hãy bắn lại.",
+    waitingShotResult: "Đang chờ kết quả phát bắn từ đối thủ...",
+    shotTimedOut: "Quá thời gian nhận kết quả. Hãy bắn lại.",
+    roomConnected: "Đã kết nối kênh phòng.",
+    roomConnectionFailed: "Kết nối kênh phòng thất bại.",
+    roomNotConfigured: "Kênh phòng chưa được cấu hình.",
+    enemyWatersSynced: "Đã đồng bộ vùng biển địch. Kết quả bắn sẽ được xác minh bởi hạm đội đối thủ.",
+    returnedShipStaging: "Đã đưa tàu về bến chờ.",
+    cannotRotateHere: "Không thể xoay tại đây. Khu vực bị chặn.",
+    invalidPlacementReturned: "Vị trí không hợp lệ. Tàu đã trở lại vị trí cũ.",
+    fleetDeployedReview: "Đã triển khai hạm đội. Kiểm tra đội hình hoặc nhấn Sẵn sàng.",
+    invalidPlacementPosition: "Vị trí đặt tàu không hợp lệ.",
+    autoArrangedLog:
+      "Đã tự sắp xếp hạm đội. Nhấn lần nữa để đổi đội hình hoặc nhấn Sẵn sàng.",
+    battleInitiated: "Trận chiến bắt đầu!",
+    unableMarkReady: "Không thể đánh dấu hạm đội sẵn sàng.",
     totalTurns: "Tổng lượt",
     totalShots: "Tổng phát bắn",
     hitsMisses: "Trúng / Trượt",
@@ -496,6 +564,8 @@ const GAME_COPY = {
     shipsAfloat: "Còn {count} tàu",
     unrankedLabel: "Chưa xếp hạng",
     shipLabel: "Tàu",
+    enemyShipSunkAnnouncement: "Tàu {ship} địch chìm!",
+    yourShipSunkAnnouncement: "Tàu {ship} của bạn chìm!",
   },
 };
 
@@ -603,6 +673,16 @@ function Game() {
   const { user, attributes, checkAuth, customAvatarUrl } = useAuth();
   const { language } = useLanguage();
   const copy = GAME_COPY[language] || GAME_COPY.en;
+  const formatCopy = useCallback(
+    (key, fallback, values = {}) => {
+      let text = copy[key] || fallback || "";
+      Object.entries(values).forEach(([name, value]) => {
+        text = text.replaceAll(`{${name}}`, String(value));
+      });
+      return text;
+    },
+    [copy],
+  );
 
   // Force re-render of transient visual states when returning to tab
   const [visibilityTrigger, setVisibilityTrigger] = useState(0);
@@ -1088,7 +1168,7 @@ function Game() {
         }
       } catch {
         if (!cancelled) {
-          addLog("Unable to refresh room readiness.", "warning");
+          addLog(copy.unableRefreshReadiness, "warning");
         }
       }
     };
@@ -1392,7 +1472,7 @@ function Game() {
     try {
       await leavePvpRoomCleanly();
     } catch (leaveError) {
-      addLog(leaveError.message || "Unable to leave room cleanly.", "warning");
+      addLog(leaveError.message || copy.unableLeaveCleanly, "warning");
     }
     setExitPromptOpen(false);
 
@@ -1404,7 +1484,7 @@ function Game() {
     setWinner("BOT"); // This triggers a Lose popup (since winner !== "PLAYER")
     releaseShotLock();
     playSound("defeat", { minGap: 1000 });
-    addLog("Bạn đã rời trận.", "warning");
+    addLog(copy.youLeftMatch, "warning");
     setShowModal(true);
   }, [addLog, leavePvpRoomCleanly, notifyPvpExit, releaseShotLock]);
 
@@ -1435,7 +1515,7 @@ function Game() {
     } catch (rematchError) {
       setShowModal(true);
       addLog(
-        rematchError.message || "Unable to reset room for rematch.",
+        rematchError.message || copy.unableResetRematch,
         "warning",
       );
     } finally {
@@ -1646,7 +1726,7 @@ function Game() {
         setDragPointer(null);
         setHoverCell(null);
       }
-      addLog(`Returned ship to staging dock.`, "info");
+      addLog(copy.returnedShipStaging, "info");
     },
     [isPlacementLocked, gameState, selectedShip, draggedShip, addLog],
   );
@@ -1849,7 +1929,7 @@ function Game() {
         );
 
         if (!canRotate) {
-          addLog("Cannot rotate here. Area blocked.", "warning");
+          addLog(copy.cannotRotateHere, "warning");
           setDraggedShip(null);
           setDragPointer(null);
           setHoverCell(null);
@@ -2001,7 +2081,7 @@ function Game() {
         setTurnTimer((prev) => {
           if (prev <= 1) {
             clearInterval(timerRef.current);
-            addLog("Time is up! Turn passes to enemy.", "warning");
+            addLog(copy.timeUp, "warning");
             startBotTurn();
             return 0;
           }
@@ -2081,19 +2161,19 @@ function Game() {
     setIsShotResolving(false);
     setGameState("PLAYER_TURN");
     setTurnTimer(30);
-    addLog("Your turn started.", "info");
+    addLog(copy.yourTurnStarted, "info");
     setStats((prev) => ({ ...prev, turns: prev.turns + 1 }));
   };
 
   const startBotTurn = () => {
     if (isPvpMode) {
       setGameState("PLAYER_TURN");
-      addLog("Waiting for opponent move through the room channel.", "info");
+      addLog(copy.waitingOpponentMove, "info");
       return;
     }
 
     setGameState("BOT_TURN");
-    addLog("Enemy is thinking...", "info");
+    addLog(copy.enemyThinking, "info");
 
     // Random delay for bot thinking 700ms - 1200ms
     const delay = Math.floor(Math.random() * 500) + 700;
@@ -2139,7 +2219,10 @@ function Game() {
             );
           });
           addLog(
-            `Enemy DESTROYED your ship (size ${botShot.result.shipLength}) at ${cellName}!`,
+            formatCopy("enemyDestroyedYourShip", "Enemy destroyed your ship (size {size}) at {cell}!", {
+              size: botShot.result.shipLength,
+              cell: cellName,
+            }),
             "defeat",
           );
         } else {
@@ -2147,7 +2230,7 @@ function Game() {
             playSound("hit", { minGap: 90 });
             playerEffectsRef.current?.playHit(botShot.row, botShot.col);
           });
-          addLog(`Enemy hit your ship at ${cellName}!`, "enemy_hit");
+          addLog(formatCopy("enemyHitYourShip", "Enemy hit your ship at {cell}!", { cell: cellName }), "enemy_hit");
         }
 
         if (checkVictory(newPlayerBoard)) {
@@ -2162,7 +2245,7 @@ function Game() {
           playSound("miss", { minGap: 90 });
           playerEffectsRef.current?.playMiss(botShot.row, botShot.col);
         });
-        addLog(`Enemy missed at ${cellName}.`, "enemy_miss");
+        addLog(formatCopy("enemyMissedAt", "Enemy missed at {cell}.", { cell: cellName }), "enemy_miss");
         setTimeout(() => startPlayerTurn(), 800);
       }
 
@@ -2214,7 +2297,10 @@ function Game() {
               : [...prev, shotResult.shipId],
           );
           addLog(
-            `You destroyed an enemy ship (size ${shotResult.shipLength}) at ${cellName}!`,
+            formatCopy("youDestroyedEnemyShip", "You destroyed an enemy ship (size {size}) at {cell}!", {
+              size: shotResult.shipLength,
+              cell: cellName,
+            }),
             "destroy",
           );
         } else {
@@ -2224,7 +2310,10 @@ function Game() {
               : [...prev, shotResult.shipId],
           );
           addLog(
-            `Enemy DESTROYED your ship (size ${shotResult.shipLength}) at ${cellName}!`,
+            formatCopy("enemyDestroyedYourShip", "Enemy destroyed your ship (size {size}) at {cell}!", {
+              size: shotResult.shipLength,
+              cell: cellName,
+            }),
             "defeat",
           );
         }
@@ -2245,8 +2334,8 @@ function Game() {
         });
         addLog(
           isOutgoing
-            ? `Direct hit at ${cellName}!`
-            : `Enemy hit your ship at ${cellName}!`,
+            ? formatCopy("directHitAt", "Direct hit at {cell}!", { cell: cellName })
+            : formatCopy("enemyHitYourShip", "Enemy hit your ship at {cell}!", { cell: cellName }),
           isOutgoing ? "player_hit" : "enemy_hit",
         );
       }
@@ -2256,7 +2345,9 @@ function Game() {
         effectsRef.current?.playMiss(row, col);
       });
       addLog(
-        isOutgoing ? `Missed at ${cellName}.` : `Enemy missed at ${cellName}.`,
+        isOutgoing
+          ? formatCopy("missedAt", "Missed at {cell}.", { cell: cellName })
+          : formatCopy("enemyMissedAt", "Enemy missed at {cell}.", { cell: cellName }),
         isOutgoing ? "player_miss" : "enemy_miss",
       );
     }
@@ -2341,7 +2432,10 @@ function Game() {
             );
           });
           addLog(
-            `You destroyed an enemy ship (size ${shotResult.shipLength}) at ${cellName}!`,
+            formatCopy("youDestroyedEnemyShip", "You destroyed an enemy ship (size {size}) at {cell}!", {
+              size: shotResult.shipLength,
+              cell: cellName,
+            }),
             "destroy",
           );
         } else {
@@ -2349,7 +2443,7 @@ function Game() {
             playSound("hit", { minGap: 90 });
             enemyEffectsRef.current?.playHit(row, col);
           });
-          addLog(`Direct hit at ${cellName}!`, "player_hit");
+          addLog(formatCopy("directHitAt", "Direct hit at {cell}!", { cell: cellName }), "player_hit");
         }
       } else {
         setStats((prev) => {
@@ -2361,7 +2455,7 @@ function Game() {
           playSound("miss", { minGap: 90 });
           enemyEffectsRef.current?.playMiss(row, col);
         });
-        addLog(`Missed at ${cellName}.`, "player_miss");
+        addLog(formatCopy("missedAt", "Missed at {cell}.", { cell: cellName }), "player_miss");
       }
     } else {
       // Target player: opponent shot us
@@ -2400,7 +2494,10 @@ function Game() {
             );
           });
           addLog(
-            `Enemy DESTROYED your ship (size ${shotResult.shipLength}) at ${cellName}!`,
+            formatCopy("enemyDestroyedYourShip", "Enemy destroyed your ship (size {size}) at {cell}!", {
+              size: shotResult.shipLength,
+              cell: cellName,
+            }),
             "defeat",
           );
         } else {
@@ -2408,14 +2505,14 @@ function Game() {
             playSound("hit", { minGap: 90 });
             playerEffectsRef.current?.playHit(row, col);
           });
-          addLog(`Enemy hit your ship at ${cellName}!`, "enemy_hit");
+          addLog(formatCopy("enemyHitYourShip", "Enemy hit your ship at {cell}!", { cell: cellName }), "enemy_hit");
         }
       } else {
         window.requestAnimationFrame(() => {
           playSound("miss", { minGap: 90 });
           playerEffectsRef.current?.playMiss(row, col);
         });
-        addLog(`Enemy missed at ${cellName}.`, "enemy_miss");
+        addLog(formatCopy("enemyMissedAt", "Enemy missed at {cell}.", { cell: cellName }), "enemy_miss");
       }
     }
 
@@ -2435,17 +2532,17 @@ function Game() {
     const opponentPlayerId = getRoomPlayerKey(opponentPlayer);
 
     if (!pvpSocketReady || currentRoom?.status !== "IN_PROGRESS") {
-      addLog("Room channel is still connecting. Wait a moment.", "warning");
+      addLog(copy.roomStillConnecting, "warning");
       return;
     }
 
     if (!opponentPlayerId) {
-      addLog("Opponent is not available in this room.", "warning");
+      addLog(copy.opponentUnavailable, "warning");
       return;
     }
 
     if (pvpTurnUserId && pvpTurnUserId !== currentPlayerId) {
-      addLog("Waiting for opponent turn.", "warning");
+      addLog(copy.waitingOpponentTurn, "warning");
       return;
     }
 
@@ -2480,19 +2577,19 @@ function Game() {
         return next;
       });
       releaseShotLock(shotId);
-      addLog("Room channel is reconnecting. Try that shot again.", "warning");
+      addLog(copy.roomReconnecting, "warning");
       return;
     }
 
     window.setTimeout(() => {
       if (!shotLockRef.current || activePvpShotIdRef.current !== shotId) return;
-      addLog("Waiting for opponent shot result...", "info");
+      addLog(copy.waitingShotResult, "info");
     }, 800);
 
     pvpShotTimeoutRef.current = window.setTimeout(() => {
       if (!shotLockRef.current || activePvpShotIdRef.current !== shotId) return;
       releaseShotLock(shotId);
-      addLog("Shot result timed out. Try firing again.", "warning");
+      addLog(copy.shotTimedOut, "warning");
     }, 12000);
   };
 
@@ -2514,7 +2611,7 @@ function Game() {
             action: "SUBSCRIBE_ROOM",
             roomCode,
           });
-          addLog("Room channel connected.", "info");
+          addLog(copy.roomConnected, "info");
         },
         onMessage: async (message) => {
           if (message.type === "ROOM_SUBSCRIBED") {
@@ -2603,14 +2700,14 @@ function Game() {
         },
         onError: () => {
           setPvpSocketReady(false);
-          addLog("Room channel connection failed.", "warning");
+          addLog(copy.roomConnectionFailed, "warning");
         },
       });
       pvpSocketRef.current = socket;
     } catch (socketError) {
       setPvpSocketReady(false);
       addLog(
-        socketError.message || "Room channel is not configured.",
+        socketError.message || copy.roomNotConfigured,
         "warning",
       );
     }
@@ -2634,7 +2731,7 @@ function Game() {
       setEnemyBoard(createBoard());
       matchStartedAtRef.current = new Date().toISOString();
       addLog(
-        "Enemy waters synced. Shot results will be verified by opponent fleet.",
+        copy.enemyWatersSynced,
         "info",
       );
     }
@@ -2711,7 +2808,10 @@ function Game() {
             );
           });
           addLog(
-            `You destroyed an enemy ship (size ${shotResult.shipLength}) at ${cellName}!`,
+            formatCopy("youDestroyedEnemyShip", "You destroyed an enemy ship (size {size}) at {cell}!", {
+              size: shotResult.shipLength,
+              cell: cellName,
+            }),
             "destroy",
           );
         } else {
@@ -2719,7 +2819,7 @@ function Game() {
             playSound("hit", { minGap: 90 });
             enemyEffectsRef.current?.playHit(r, c);
           });
-          addLog(`Direct hit at ${cellName}!`, "player_hit");
+          addLog(formatCopy("directHitAt", "Direct hit at {cell}!", { cell: cellName }), "player_hit");
         }
 
         if (checkVictory(newEnemyBoard)) {
@@ -2734,7 +2834,7 @@ function Game() {
           enemyEffectsRef.current?.playMiss(r, c);
         });
         setStats((prev) => ({ ...prev, misses: prev.misses + 1 }));
-        addLog(`Missed at ${cellName}.`, "player_miss");
+        addLog(formatCopy("missedAt", "Missed at {cell}.", { cell: cellName }), "player_miss");
         setTimeout(() => startBotTurn(), 800);
       }
 
@@ -2852,7 +2952,7 @@ function Game() {
               originalPlacement.rotation,
             );
             addLog(
-              "Invalid placement. Ship returned to original position.",
+              copy.invalidPlacementReturned,
               "warning",
             );
           }
@@ -2934,7 +3034,7 @@ function Game() {
           ) {
             setFleetRuleMessage(copy.fleetValid);
             addLog(
-              "Fleet deployed. Review the formation or press Ready.",
+              copy.fleetDeployedReview,
               "info",
             );
           } else {
@@ -2945,7 +3045,7 @@ function Game() {
           setHoverCell(null);
         } else {
           // Invalid placement, do nothing
-          addLog("Invalid placement position.", "warning");
+          addLog(copy.invalidPlacementPosition, "warning");
         }
       } else {
         const success = movePlacedShipTo(
@@ -2958,7 +3058,7 @@ function Game() {
           setDraggedShip(null);
           setDragPointer(null);
         } else {
-          addLog("Invalid placement position.", "warning");
+          addLog(copy.invalidPlacementPosition, "warning");
         }
       }
       return;
@@ -3402,7 +3502,7 @@ function Game() {
     setInvalidRotationPreview(null);
     setFleetRuleMessage(copy.fleetValid);
     addLog(
-      "Fleet auto-arranged. Press again for another formation or press Ready.",
+      copy.autoArrangedLog,
       "info",
     );
   };
@@ -3484,7 +3584,7 @@ function Game() {
           );
         } catch (readyError) {
           addLog(
-            readyError.message || "Unable to mark fleet ready.",
+            readyError.message || copy.unableMarkReady,
             "warning",
           );
         } finally {
@@ -3555,8 +3655,8 @@ function Game() {
       setEnemyBoard(newEnemyBoard);
       setGameState("PLAYER_TURN");
       setTurnTimer(30);
-      addLog("Battle initiated!", "info");
-      addLog("Your turn started.", "info");
+      addLog(copy.battleInitiated, "info");
+      addLog(copy.yourTurnStarted, "info");
       setStats((prev) => ({ ...prev, turns: 1 }));
       return;
     }
@@ -3634,7 +3734,7 @@ function Game() {
           "info",
         );
       } catch (readyError) {
-        addLog(readyError.message || "Unable to mark fleet ready.", "warning");
+        addLog(readyError.message || copy.unableMarkReady, "warning");
       } finally {
         setPvpReadyLoading(false);
       }
@@ -3650,8 +3750,8 @@ function Game() {
     setHoverCell(null);
     setGameState("PLAYER_TURN");
     setTurnTimer(30);
-    addLog("Battle initiated!", "info");
-    addLog("Your turn started.", "info");
+    addLog(copy.battleInitiated, "info");
+    addLog(copy.yourTurnStarted, "info");
     setStats((prev) => ({ ...prev, turns: 1 }));
   };
 
@@ -5208,8 +5308,15 @@ function Game() {
               >
                 <span className="sunk-announcement-line" />
                 <strong>
-                  {sunkEffect.boardSide === "enemy" ? "ENEMY" : "YOUR"}{" "}
-                  {sunkEffect.shipLabel.toUpperCase()} SUNK!
+                  {formatCopy(
+                    sunkEffect.boardSide === "enemy"
+                      ? "enemyShipSunkAnnouncement"
+                      : "yourShipSunkAnnouncement",
+                    sunkEffect.boardSide === "enemy"
+                      ? "Enemy {ship} sunk!"
+                      : "Your {ship} sunk!",
+                    { ship: sunkEffect.shipLabel },
+                  ).toUpperCase()}
                 </strong>
                 <span className="sunk-announcement-line" />
               </div>
