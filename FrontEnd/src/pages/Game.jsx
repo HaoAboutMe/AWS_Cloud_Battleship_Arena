@@ -3702,31 +3702,10 @@ function Game() {
         selectedFleet =
           legalSelections[Math.floor(Math.random() * legalSelections.length)];
       } else {
-        // Hard bot: allowed to use shipyard! Choose between copying player or predefined custom layouts
-        const usePlayerShapes = Math.random() < 0.5;
-        if (usePlayerShapes) {
-          selectedFleet = components.map((cells, idx) => {
-            const minRow = Math.min(...cells.map((c) => c.row));
-            const minCol = Math.min(...cells.map((c) => c.col));
-            const baseOffsets = cells.map((c) => [
-              c.row - minRow,
-              c.col - minCol,
-            ]);
-            return {
-              id: `custom-enemy-${idx}`,
-              label: `Ship ${cells.length}`,
-              size: cells.length,
-              baseOffsets,
-              rotations: [0, 90, 180, 270],
-            };
-          });
-        } else {
-          // Predefined bot shipyard layouts
-          const botFleetIndex = Math.floor(
-            Math.random() * BOT_CUSTOM_FLEETS.length,
-          );
-          selectedFleet = BOT_CUSTOM_FLEETS[botFleetIndex];
-        }
+        const botFleetIndex = Math.floor(
+          Math.random() * BOT_CUSTOM_FLEETS.length,
+        );
+        selectedFleet = BOT_CUSTOM_FLEETS[botFleetIndex];
       }
 
       const newEnemyBoard = createBoard();
@@ -3823,7 +3802,10 @@ function Game() {
     const newEnemyBoard = [
       ...enemyBoard.map((row) => [...row.map((c) => ({ ...c }))]),
     ];
-    placeShipsRandomly(newEnemyBoard, placedFleetDefs);
+    const botFleetSelections = getLegalFleetSelections(SHIP_DEFS);
+    const botFleet =
+      botFleetSelections[Math.floor(Math.random() * botFleetSelections.length)];
+    placeShipsRandomly(newEnemyBoard, botFleet);
     setEnemyBoard(newEnemyBoard);
     setSelectedShip(null);
     setHoverCell(null);

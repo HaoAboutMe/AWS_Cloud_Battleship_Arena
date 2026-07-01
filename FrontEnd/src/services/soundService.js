@@ -233,7 +233,7 @@ const sequence = (notes, volume = 0.45) => {
 const createSound = (src, options = {}) =>
   new Howl({
     src: [src],
-    preload: options.preload ?? true,
+    preload: options.preload ?? false,
     html5: options.html5 ?? false,
     loop: options.loop ?? false,
     volume: options.volume ?? 0.6,
@@ -250,11 +250,11 @@ const ensureSounds = () => {
 
   sounds.set(
     "click",
-    createSound(digitalClickSound, { volume: 0.5, pool: 10 }),
+    createSound(digitalClickSound, { volume: 0.5, pool: 10, preload: true }),
   );
   sounds.set(
     "ready",
-    createSound(digitalClickSound, { volume: 0.62, pool: 6 }),
+    createSound(digitalClickSound, { volume: 0.62, pool: 6, preload: true }),
   );
   sounds.set("miss", createSound(waterSplashSound, { volume: 0.72, pool: 8 }));
   sounds.set("hit", createSound(explosionSound, { volume: 0.72, pool: 8 }));

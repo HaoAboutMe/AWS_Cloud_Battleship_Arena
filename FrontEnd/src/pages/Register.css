@@ -11,8 +11,56 @@
   gap: 13px;
 }
 
+.register-page .auth-password-rules {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px 10px;
+  margin-top: 2px;
+}
+
+.register-page .auth-password-rules span {
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.register-page .auth-password-rules i {
+  width: 12px;
+  height: 12px;
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  font-style: normal;
+  font-size: 9px;
+}
+
+.register-page .auth-password-rules .is-met {
+  color: #58e6a9;
+}
+
+.register-page .auth-password-rules .is-met i {
+  background: rgba(88, 230, 169, 0.14);
+}
+
+.register-page .auth-password-rules .is-missing {
+  color: #ffaaa3;
+}
+
+.register-page .auth-password-rules .is-missing i {
+  background: rgba(255, 119, 112, 0.12);
+}
+
 @media (max-width: 520px) {
   .register-page .auth-layout {
     padding-top: 24px;
+  }
+
+  .register-page .auth-password-rules {
+    grid-template-columns: 1fr;
   }
 }

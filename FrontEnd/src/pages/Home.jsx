@@ -172,13 +172,28 @@ function Home() {
   useEffect(() => {
     // Track the pointer for the card highlight without overriding theme colors.
     const cards = document.querySelectorAll(".glass-card");
+    let frameId = 0;
+    let pendingPointer = null;
     const handleMouseMove = (e) => {
-      const card = e.currentTarget;
-      const rect = card.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      card.style.setProperty("--mouse-x", `${x}px`);
-      card.style.setProperty("--mouse-y", `${y}px`);
+      pendingPointer = {
+        card: e.currentTarget,
+        clientX: e.clientX,
+        clientY: e.clientY,
+      };
+      if (frameId) return;
+
+      frameId = window.requestAnimationFrame(() => {
+        frameId = 0;
+        if (!pendingPointer) return;
+
+        const { card, clientX, clientY } = pendingPointer;
+        const rect = card.getBoundingClientRect();
+        const x = clientX - rect.left;
+        const y = clientY - rect.top;
+        card.style.setProperty("--mouse-x", `${x}px`);
+        card.style.setProperty("--mouse-y", `${y}px`);
+        pendingPointer = null;
+      });
     };
 
     cards.forEach((card) => {
@@ -186,6 +201,7 @@ function Home() {
     });
 
     return () => {
+      if (frameId) window.cancelAnimationFrame(frameId);
       cards.forEach((card) => {
         card.removeEventListener("mousemove", handleMouseMove);
       });

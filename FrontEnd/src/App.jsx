@@ -2,10 +2,6 @@ import { Routes, Route, useLocation } from "react-router-dom";
 import { Suspense, lazy, useEffect } from "react";
 import { AuthProvider } from "./contexts/AuthContext";
 import { LanguageProvider } from "./contexts/LanguageContext";
-import {
-  installUIClickSounds,
-  syncBackgroundMusic,
-} from "./services/soundService";
 
 const Home = lazy(() => import("./pages/Home"));
 const Lobby = lazy(() => import("./pages/Lobby"));
@@ -17,6 +13,18 @@ const Profile = lazy(() => import("./pages/Profile"));
 const RankDemo = lazy(() => import("./pages/RankDemo"));
 const Leaderboard = lazy(() => import("./pages/Leaderboard"));
 
+const loadSoundService = () => import("./services/soundService");
+
+const runWhenIdle = (task) => {
+  if (typeof window === "undefined") return undefined;
+  if ("requestIdleCallback" in window) {
+    const id = window.requestIdleCallback(task, { timeout: 1500 });
+    return () => window.cancelIdleCallback(id);
+  }
+  const id = window.setTimeout(task, 250);
+  return () => window.clearTimeout(id);
+};
+
 function RouteFallback() {
   return <div className="min-h-screen bg-background" />;
 }
@@ -25,11 +33,19 @@ function App() {
   const { pathname } = useLocation();
 
   useEffect(() => {
-    installUIClickSounds();
+    return runWhenIdle(() => {
+      loadSoundService().then(({ installUIClickSounds }) => {
+        installUIClickSounds();
+      });
+    });
   }, []);
 
   useEffect(() => {
-    syncBackgroundMusic(pathname);
+    return runWhenIdle(() => {
+      loadSoundService().then(({ syncBackgroundMusic }) => {
+        syncBackgroundMusic(pathname);
+      });
+    });
   }, [pathname]);
 
   return (
