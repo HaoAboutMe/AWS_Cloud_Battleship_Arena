@@ -627,40 +627,40 @@ function Profile() {
                 {loadingHistory ? (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                     {[1, 2, 3].map((i) => (
-                      <div key={i} className="profile-match-card skeleton-card" style={{ opacity: 0.7, pointerEvents: 'none' }}>
-                        <div className="profile-match-header" style={{ opacity: 0.5 }}>
-                          <div style={{ flex: 1, display: 'flex' }}><div className="skeleton-pulse" style={{ width: '60px', height: '14px', background: 'rgba(255,255,255,0.1)', borderRadius: '4px' }} /></div>
-                          <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}><div className="skeleton-pulse" style={{ width: '80px', height: '14px', background: 'rgba(255,255,255,0.1)', borderRadius: '4px' }} /></div>
+                      <div key={i} className="profile-match-card skeleton-card" style={{ opacity: 0.9, pointerEvents: 'none' }}>
+                        <div className="profile-match-header" style={{ opacity: 0.7 }}>
+                          <div style={{ flex: 1, display: 'flex' }}><div className="skeleton-pulse" style={{ width: '60px', height: '14px', borderRadius: '4px' }} /></div>
+                          <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}><div className="skeleton-pulse" style={{ width: '80px', height: '14px', borderRadius: '4px' }} /></div>
                           <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-                            <div className="skeleton-pulse" style={{ width: '70px', height: '14px', background: 'rgba(255,255,255,0.1)', borderRadius: '4px' }} />
-                            <div className="skeleton-pulse" style={{ width: '100px', height: '14px', background: 'rgba(255,255,255,0.1)', borderRadius: '4px' }} />
+                            <div className="skeleton-pulse" style={{ width: '70px', height: '14px', borderRadius: '4px' }} />
+                            <div className="skeleton-pulse" style={{ width: '100px', height: '14px', borderRadius: '4px' }} />
                           </div>
                         </div>
                         <div className="profile-match-players">
                           <div className="profile-match-player is-p1" style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1 }}>
-                            <div className="skeleton-pulse" style={{ width: '40px', height: '40px', background: 'rgba(255,255,255,0.1)', borderRadius: '4px' }} />
+                            <div className="skeleton-pulse" style={{ width: '40px', height: '40px', borderRadius: '4px' }} />
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                              <div className="skeleton-pulse" style={{ width: '90px', height: '15px', background: 'rgba(255,255,255,0.1)', borderRadius: '4px' }} />
+                              <div className="skeleton-pulse" style={{ width: '120px', height: '15px', borderRadius: '4px' }} />
                               <div style={{ display: 'flex', gap: '6px' }}>
-                                <div className="skeleton-pulse" style={{ width: '65px', height: '16px', background: 'rgba(255,255,255,0.1)', borderRadius: '12px' }} />
-                                <div className="skeleton-pulse" style={{ width: '65px', height: '16px', background: 'rgba(255,255,255,0.1)', borderRadius: '12px' }} />
-                                <div className="skeleton-pulse" style={{ width: '65px', height: '16px', background: 'rgba(255,255,255,0.1)', borderRadius: '12px' }} />
+                                <div className="skeleton-pulse" style={{ width: '65px', height: '16px', borderRadius: '12px' }} />
+                                <div className="skeleton-pulse" style={{ width: '65px', height: '16px', borderRadius: '12px' }} />
+                                <div className="skeleton-pulse" style={{ width: '65px', height: '16px', borderRadius: '12px' }} />
                               </div>
                             </div>
                           </div>
                           <div className="profile-match-vs" style={{ width: '30px', display: 'flex', justifyContent: 'center' }}>
-                            <div className="skeleton-pulse" style={{ width: '20px', height: '14px', background: 'rgba(255,255,255,0.1)', borderRadius: '4px', opacity: 0.3 }} />
+                            <div className="skeleton-pulse" style={{ width: '20px', height: '14px', borderRadius: '4px', opacity: 0.5 }} />
                           </div>
                           <div className="profile-match-player is-p2" style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, justifyContent: 'flex-end' }}>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end' }}>
-                              <div className="skeleton-pulse" style={{ width: '90px', height: '15px', background: 'rgba(255,255,255,0.1)', borderRadius: '4px' }} />
+                              <div className="skeleton-pulse" style={{ width: '120px', height: '15px', borderRadius: '4px' }} />
                               <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
-                                <div className="skeleton-pulse" style={{ width: '65px', height: '16px', background: 'rgba(255,255,255,0.1)', borderRadius: '12px' }} />
-                                <div className="skeleton-pulse" style={{ width: '65px', height: '16px', background: 'rgba(255,255,255,0.1)', borderRadius: '12px' }} />
-                                <div className="skeleton-pulse" style={{ width: '65px', height: '16px', background: 'rgba(255,255,255,0.1)', borderRadius: '12px' }} />
+                                <div className="skeleton-pulse" style={{ width: '65px', height: '16px', borderRadius: '12px' }} />
+                                <div className="skeleton-pulse" style={{ width: '65px', height: '16px', borderRadius: '12px' }} />
+                                <div className="skeleton-pulse" style={{ width: '65px', height: '16px', borderRadius: '12px' }} />
                               </div>
                             </div>
-                            <div className="skeleton-pulse" style={{ width: '40px', height: '40px', background: 'rgba(255,255,255,0.1)', borderRadius: '4px' }} />
+                            <div className="skeleton-pulse" style={{ width: '40px', height: '40px', borderRadius: '4px' }} />
                           </div>
                         </div>
                       </div>
