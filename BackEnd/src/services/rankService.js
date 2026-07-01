@@ -32,6 +32,9 @@ const getRankIndex = (rankId) => {
   return index === -1 ? -1 : index;
 };
 
+const getRankGap = (opponentRank, playerRank) =>
+  getRankIndex(opponentRank) - getRankIndex(playerRank);
+
 const calculateRankDelta = ({
   isWinner,
   playerStats = {},
@@ -43,10 +46,10 @@ const calculateRankDelta = ({
   const turns = Number(playerStats.turns || 0);
   const shipsDestroyed = Number(playerStats.shipsDestroyed || 0);
   const accuracy = shots > 0 ? hits / shots : 0;
-  const rankGap = getRankIndex(opponentRank) - getRankIndex(playerRank);
+  const rankGap = getRankGap(opponentRank, playerRank);
 
   if (isWinner) {
-    let delta = 40;
+    let delta = 35;
 
     if (accuracy >= 0.6) delta += 10;
     else if (accuracy >= 0.45) delta += 6;
@@ -55,21 +58,21 @@ const calculateRankDelta = ({
     if (turns > 0 && turns <= 25) delta += 10;
     else if (turns > 0 && turns <= 35) delta += 5;
 
-    if (rankGap > 0) delta += clamp(rankGap * 5, 5, 15);
-    if (rankGap < 0) delta -= clamp(Math.abs(rankGap) * 3, 0, 10);
+    if (rankGap > 0) delta += clamp(rankGap * 10, 10, 25);
+    if (rankGap < 0) delta -= clamp(Math.abs(rankGap) * 7, 7, 18);
 
-    return clamp(delta, 25, 70);
+    return clamp(delta, 18, 75);
   }
 
-  let delta = -15;
+  let delta = -20;
 
   if (shipsDestroyed >= 3) delta += 5;
   if (accuracy >= 0.45) delta += 4;
-  if (rankGap > 0) delta += 5;
+  if (rankGap > 0) delta += clamp(rankGap * 6, 6, 18);
   if (shipsDestroyed === 0) delta -= 5;
-  if (rankGap < -1) delta -= 5;
+  if (rankGap < 0) delta -= clamp(Math.abs(rankGap) * 8, 8, 22);
 
-  return clamp(delta, -30, -5);
+  return clamp(delta, -40, -4);
 };
 
 const buildRankUpdate = ({ currentUser = {}, delta = 0, isWinner }) => {
@@ -101,4 +104,6 @@ module.exports = {
   calculateRankDelta,
   buildRankUpdate,
   getRankForRp,
+  getRankGap,
+  getRankIndex,
 };

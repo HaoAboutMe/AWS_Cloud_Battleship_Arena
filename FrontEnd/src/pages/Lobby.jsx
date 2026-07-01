@@ -30,6 +30,10 @@ const LOBBY_COPY = {
     joinBody: "Paste a received room code to connect.",
     joinButton: "Join room",
     placeholder: "ENTER ROOM CODE",
+    or: "OR",
+    commanders: "Commanders",
+    roomCode: "Room Code",
+    awaitingConnection: "Awaiting Connection",
     processing: "Processing...",
     copy: "Copy",
     copied: "Copied!",
@@ -65,6 +69,10 @@ const LOBBY_COPY = {
     joinBody: "Nhập mã phòng đã nhận để kết nối.",
     joinButton: "Vào phòng",
     placeholder: "NHẬP MÃ PHÒNG",
+    or: "HOẶC",
+    commanders: "Chỉ huy",
+    roomCode: "Mã phòng",
+    awaitingConnection: "Đang chờ kết nối",
     processing: "Đang xử lý...",
     copy: "Sao chép",
     copied: "Đã sao chép!",
@@ -432,7 +440,7 @@ function Lobby() {
                   </button>
                 </div>
 
-                <div className="lobby-divider">OR</div>
+                <div className="lobby-divider">{copy.or}</div>
 
                 <div className="lobby-action-section">
                   <h3>{copy.joinTitle}</h3>
@@ -477,7 +485,7 @@ function Lobby() {
             {/* Left Column: Player Info */}
             <div className="lobby-panel">
               <h2 className="lobby-panel-title">
-                Commanders ({playerCount}/2)
+                {copy.commanders} ({playerCount}/2)
               </h2>
               <div className="lobby-player-list">
                 {playerSlots.map((roomPlayer) => (
@@ -555,7 +563,7 @@ function Lobby() {
                 </div>
               ) : (
                 <div className="lobby-room-code-display">
-                  <small>Room Code</small>
+                  <small>{copy.roomCode}</small>
                   <strong>{room.roomCode}</strong>
                   <div
                     style={{
@@ -611,7 +619,7 @@ function Lobby() {
                 // State 3: Waiting for second player
                 <div className="lobby-waiting-state">
                   <span className="material-symbols-outlined">radar</span>
-                  <h3>Awaiting Connection</h3>
+                  <h3>{copy.awaitingConnection}</h3>
                   <p>{copy.waitingSecond}</p>
                 </div>
               ) : (

@@ -128,8 +128,9 @@
     z-index: 90;
     display: flex;
     align-items: center;
-    gap: 18px;
-    width: min(720px, 88vw);
+    justify-content: center;
+    gap: clamp(8px, 1.4vw, 18px);
+    width: min(680px, calc(100% - 32px));
     pointer-events: none;
     transform: translate(-50%, -50%);
     opacity: 0;
@@ -138,15 +139,22 @@
 }
 
 .sunk-announcement strong {
-    flex: 0 0 auto;
-    font-size: clamp(22px, 3vw, 42px);
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: 100%;
+    text-align: center;
+    font-size: clamp(18px, 2.35vw, 36px);
+    line-height: 1.08;
     letter-spacing: 0;
+    text-wrap: balance;
+    overflow-wrap: anywhere;
     text-shadow: 0 0 8px currentColor, 0 0 24px currentColor;
 }
 
 .sunk-announcement-line {
     height: 2px;
-    flex: 1;
+    flex: 0 1 86px;
+    min-width: 28px;
     background: currentColor;
     box-shadow: 0 0 12px currentColor;
 }
@@ -1274,12 +1282,12 @@
 @media (max-width: 720px) {
     .sunk-announcement {
         top: calc(76px + 221px);
-        width: min(520px, 92vw);
-        gap: 10px;
+        width: min(520px, calc(100% - 24px));
+        gap: 8px;
     }
 
     .sunk-announcement strong {
-        font-size: 18px;
+        font-size: clamp(15px, 4.4vw, 18px);
     }
 
     .deployment-dock {
