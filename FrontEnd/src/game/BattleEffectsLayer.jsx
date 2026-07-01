@@ -606,19 +606,19 @@ const BattleEffectsLayer = forwardRef(function BattleEffectsLayer(
                 transparent: true,
                 banner: false,
                 audio: { noAudio: true },
-                antialias: true,
+                antialias: false,
                 pixelArt: false,
-                roundPixels: false,
+                roundPixels: true,
                 fps: {
-                    target: 90,
-                    min: 45,
+                    target: 60,
+                    min: 30,
                     forceSetTimeOut: false,
                     smoothStep: true,
                 },
                 render: {
-                    antialias: true,
-                    antialiasGL: true,
-                    roundPixels: false,
+                    antialias: false,
+                    antialiasGL: false,
+                    roundPixels: true,
                 },
                 scene: {
                     create() {

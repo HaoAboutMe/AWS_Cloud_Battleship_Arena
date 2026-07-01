@@ -7,6 +7,16 @@ import { confirmRegister, registerUser, resendConfirmCode } from "../services/au
 import "./Register.css";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PASSWORD_POLICY_PATTERN =
+  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
+
+const getPasswordChecks = (value) => ({
+  length: value.length >= 8,
+  upper: /[A-Z]/.test(value),
+  lower: /[a-z]/.test(value),
+  number: /\d/.test(value),
+  symbol: /[^A-Za-z0-9]/.test(value),
+});
 
 function Register() {
   const navigate = useNavigate();
@@ -40,6 +50,16 @@ function Register() {
   const errorText = error?.key ? t(error.key) : error?.message;
 
   const fullUsername = `${username}#${tag}`;
+  const passwordChecks = useMemo(() => getPasswordChecks(password), [password]);
+  const shouldShowPasswordChecklist =
+    !isConfirmStep && (password.length > 0 || touched.password);
+  const passwordRules = [
+    { key: "length", label: t("auth.passwordRuleLength") },
+    { key: "upper", label: t("auth.passwordRuleUpper") },
+    { key: "lower", label: t("auth.passwordRuleLower") },
+    { key: "number", label: t("auth.passwordRuleNumber") },
+    { key: "symbol", label: t("auth.passwordRuleSymbol") },
+  ];
 
   useEffect(() => {
     if (isConfirmStep || username.length < 3) {
@@ -73,7 +93,9 @@ function Register() {
     if (isConfirmStep) {
       if (!confirmationCode.trim()) nextErrors.confirmationCode = t("auth.codeRequired");
     } else {
-      if (password.length < 8) nextErrors.password = t("auth.passwordInvalid");
+      if (!PASSWORD_POLICY_PATTERN.test(password)) {
+        nextErrors.password = t("auth.passwordInvalid");
+      }
       if (confirmPassword !== password) nextErrors.confirmPassword = t("auth.passwordsMismatch");
       if (!terms) nextErrors.terms = t("register.termsRequired");
     }
@@ -293,6 +315,22 @@ function Register() {
                   <span className="auth-glyph" aria-hidden="true">{showPassword ? "◌" : "◉"}</span>
                 </button>
               </div>
+              {shouldShowPasswordChecklist && (
+                <div className="auth-password-rules" aria-live="polite">
+                  {passwordRules.map((rule) => {
+                    const isMet = passwordChecks[rule.key];
+                    return (
+                      <span
+                        key={rule.key}
+                        className={isMet ? "is-met" : "is-missing"}
+                      >
+                        <i aria-hidden="true">{isMet ? "✓" : "•"}</i>
+                        {rule.label}
+                      </span>
+                    );
+                  })}
+                </div>
+              )}
               {renderError("password")}
             </label>
 

@@ -10,6 +10,7 @@ import { getMatchHistory, getUserProfile, updateUsername } from "../services/use
 import { getAvatarCdnUrl } from "../utils/avatar";
 import "./HomeHeader.css";
 import "./Profile.css";
+import HomeSelect from "../components/HomeSelect";
 
 const RankUpAnimation = lazy(() => import("../components/RankUpAnimation"));
 
@@ -422,14 +423,16 @@ function Profile() {
                         <p>{t("profile.serviceBody")}</p>
                       </div>
                     </div>
-                    <select
-                      value={recordMode}
-                      onChange={(e) => setRecordMode(e.target.value)}
-                      className="profile-record-select"
-                    >
-                      <option value="all">{language === 'vi' ? 'Tất cả (All)' : 'All Mode'}</option>
-                      <option value="ranked">{language === 'vi' ? 'Xếp hạng (Ranked)' : 'Ranked'}</option>
-                    </select>
+                    <div className="w-44 flex-shrink-0">
+                      <HomeSelect
+                        value={recordMode}
+                        onChange={(val) => setRecordMode(val)}
+                        options={[
+                          { value: "all", label: language === 'vi' ? 'Tất cả' : 'All Modes' },
+                          { value: "ranked", label: language === 'vi' ? 'Xếp hạng' : 'Ranked' }
+                        ]}
+                      />
+                    </div>
                   </div>
                   <div style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '12px', marginBottom: '12px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: hasRank ? '12px' : '0' }}>

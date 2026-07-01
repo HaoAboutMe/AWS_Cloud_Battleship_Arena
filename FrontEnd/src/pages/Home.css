@@ -30,6 +30,7 @@
    ---------------------------------------------------------- */
 .home-page {
   position: relative;
+  overflow-x: hidden;
   background:
     radial-gradient(ellipse 60% 45% at 82% 4%, rgba(0, 168, 232, 0.13), transparent 60%),
     radial-gradient(ellipse 50% 40% at 8% 62%, rgba(0, 95, 180, 0.09), transparent 60%),
@@ -40,7 +41,7 @@
 /* Scan-line overlay */
 .home-page::before {
   content: "";
-  position: fixed;
+  position: absolute;
   inset: 0;
   z-index: -1;
   pointer-events: none;
@@ -52,7 +53,7 @@
       rgba(0, 200, 255, 0.012) 3px,
       rgba(0, 200, 255, 0.012) 4px
     );
-  animation: homeScanlines 12s linear infinite;
+  background-attachment: local;
 }
 
 @keyframes homeScanlines {
