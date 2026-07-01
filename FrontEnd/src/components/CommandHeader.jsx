@@ -157,10 +157,6 @@ function CommandHeader({
             </div>
           ) : currentUser ? (
             <>
-              <button type="button" className="command-icon-button command-desktop-action" aria-label={t("common.notifications")}>
-                <span className="material-symbols-outlined">notifications</span>
-                <span className="command-alert-dot" />
-              </button>
               <div className={`command-account ${menuOpen ? "is-open" : ""}`} ref={menuRef}>
                 <button
                   type="button"

@@ -1,4 +1,12 @@
-import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  Suspense,
+  lazy,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import ship1 from "../assets/ships/image/ship-1.webp";
 import ship10 from "../assets/ships/image/ship-10.webp";
@@ -694,7 +702,8 @@ function Game() {
       }
     };
     document.addEventListener("visibilitychange", handleVisibilityChange);
-    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+    return () =>
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
   }, []);
   const isMobile = useIsMobile();
   const searchParams = new URLSearchParams(location.search);
@@ -763,7 +772,10 @@ function Game() {
     .flat()
     .filter((c) => c.hasShip).length;
   const customBrushCounts = [1, 2, 3, 4].map(
-    (brushId) => customDrawBoard.flat().filter((c) => c.hasShip && c.shipBrushId === brushId).length
+    (brushId) =>
+      customDrawBoard
+        .flat()
+        .filter((c) => c.hasShip && c.shipBrushId === brushId).length,
   );
   const customComponents = isCustomShipyardActive
     ? getConnectedComponents(customDrawBoard)
@@ -1094,10 +1106,10 @@ function Game() {
                 style={{
                   fontSize: "13px",
                   fontWeight: "bold",
-                  color: ship.isSunk ? "#ff6a42" : "#91ebff",
+                  color: ship.isSunk ? "var(--shipyard-sunk-text, #ff6a42)" : "var(--shipyard-active-text, #91ebff)",
                   textShadow: ship.isSunk
-                    ? "0 0 4px #ff3c1f"
-                    : "0 0 4px rgba(81, 224, 255, 0.9)",
+                    ? "var(--shipyard-sunk-glow, 0 0 4px #ff3c1f)"
+                    : "var(--shipyard-active-glow, 0 0 4px rgba(81, 224, 255, 0.9))",
                   textDecoration: ship.isSunk ? "line-through" : "none",
                   textAlign: "center",
                   whiteSpace: "nowrap",
@@ -1121,8 +1133,6 @@ function Game() {
     setDifficulty(diff);
     resetBotAI();
   }, [location]);
-
-
 
   useEffect(() => {
     if (gameState === "PLAYER_TURN") {
@@ -1445,7 +1455,7 @@ function Game() {
           headers: { "content-type": "application/json" },
           body: JSON.stringify({ player: currentPlayer }),
           keepalive: true,
-        }).catch(() => { });
+        }).catch(() => {});
         return;
       }
 
@@ -1653,13 +1663,13 @@ function Game() {
       ).replace("{roomCode}", roomCode);
     return pvpTurnUserId === currentPlayerId
       ? (copy.yourTurnPvp || "Room {roomCode}: your turn.").replace(
-        "{roomCode}",
-        roomCode,
-      )
+          "{roomCode}",
+          roomCode,
+        )
       : (copy.opponentTurnPvp || "Room {roomCode}: opponent turn.").replace(
-        "{roomCode}",
-        roomCode,
-      );
+          "{roomCode}",
+          roomCode,
+        );
   };
 
   const clearShipFromBoard = (board, shipId) => {
@@ -2684,10 +2694,7 @@ function Game() {
           }
           if (payload.type === "PVP_PLAYER_LEFT") {
             const currentPlayerId = getRoomPlayerKey(getCurrentRoomPlayer());
-            if (
-              payload.playerId &&
-              payload.playerId !== currentPlayerId
-            ) {
+            if (payload.playerId && payload.playerId !== currentPlayerId) {
               handleOpponentLeftRef.current?.();
             }
           }
@@ -3245,10 +3252,14 @@ function Game() {
 
       setTrayRotations((prev) => {
         const currentRot = prev[shipDef.id] ?? shipDef.rotations[0];
-        const nextRot = shipDef.rotations[(shipDef.rotations.indexOf(currentRot) + 1) % shipDef.rotations.length];
+        const nextRot =
+          shipDef.rotations[
+            (shipDef.rotations.indexOf(currentRot) + 1) %
+              shipDef.rotations.length
+          ];
         return {
           ...prev,
-          [shipDef.id]: nextRot
+          [shipDef.id]: nextRot,
         };
       });
 
@@ -3315,17 +3326,33 @@ function Game() {
       const isTryingToPaint = customPaintValueRef.current;
 
       if (isTryingToPaint) {
-        if (currentCell.hasShip && currentCell.shipBrushId === activeShipBrush) return prev;
-        const currentBrushCellsList = prev.flat().filter(cell => cell.hasShip && cell.shipBrushId === activeShipBrush);
-        if (currentBrushCellsList.length > 0 && currentCell.shipBrushId !== activeShipBrush) {
-          const isAdjacent = currentBrushCellsList.some(cell => Math.abs(cell.row - r) + Math.abs(cell.col - c) === 1);
+        if (currentCell.hasShip && currentCell.shipBrushId === activeShipBrush)
+          return prev;
+        const currentBrushCellsList = prev
+          .flat()
+          .filter(
+            (cell) => cell.hasShip && cell.shipBrushId === activeShipBrush,
+          );
+        if (
+          currentBrushCellsList.length > 0 &&
+          currentCell.shipBrushId !== activeShipBrush
+        ) {
+          const isAdjacent = currentBrushCellsList.some(
+            (cell) => Math.abs(cell.row - r) + Math.abs(cell.col - c) === 1,
+          );
           if (!isAdjacent) return prev;
         }
-        const totalPaintedCells = prev.flat().filter(cell => cell.hasShip).length;
+        const totalPaintedCells = prev
+          .flat()
+          .filter((cell) => cell.hasShip).length;
         const currentBrushCells = currentBrushCellsList.length;
         const isNewCell = !currentCell.hasShip;
         if (isNewCell && totalPaintedCells >= 15) return prev;
-        if (currentBrushCells >= 13 && currentCell.shipBrushId !== activeShipBrush) return prev;
+        if (
+          currentBrushCells >= 13 &&
+          currentCell.shipBrushId !== activeShipBrush
+        )
+          return prev;
       }
 
       const next = prev.map((row) => row.map((cell) => ({ ...cell })));
@@ -3340,20 +3367,36 @@ function Game() {
     if (gameState !== "PLACEMENT" && gameState !== "READY") return;
     setCustomDrawBoard((prev) => {
       const currentCell = prev[r][c];
-      const isSameBrush = currentCell.hasShip && currentCell.shipBrushId === activeShipBrush;
+      const isSameBrush =
+        currentCell.hasShip && currentCell.shipBrushId === activeShipBrush;
       const isTryingToPaint = !isSameBrush;
 
       if (isTryingToPaint) {
-        const currentBrushCellsList = prev.flat().filter(cell => cell.hasShip && cell.shipBrushId === activeShipBrush);
-        if (currentBrushCellsList.length > 0 && currentCell.shipBrushId !== activeShipBrush) {
-          const isAdjacent = currentBrushCellsList.some(cell => Math.abs(cell.row - r) + Math.abs(cell.col - c) === 1);
+        const currentBrushCellsList = prev
+          .flat()
+          .filter(
+            (cell) => cell.hasShip && cell.shipBrushId === activeShipBrush,
+          );
+        if (
+          currentBrushCellsList.length > 0 &&
+          currentCell.shipBrushId !== activeShipBrush
+        ) {
+          const isAdjacent = currentBrushCellsList.some(
+            (cell) => Math.abs(cell.row - r) + Math.abs(cell.col - c) === 1,
+          );
           if (!isAdjacent) return prev;
         }
-        const totalPaintedCells = prev.flat().filter(cell => cell.hasShip).length;
+        const totalPaintedCells = prev
+          .flat()
+          .filter((cell) => cell.hasShip).length;
         const currentBrushCells = currentBrushCellsList.length;
         const isNewCell = !currentCell.hasShip;
         if (isNewCell && totalPaintedCells >= 15) return prev;
-        if (currentBrushCells >= 13 && currentCell.shipBrushId !== activeShipBrush) return prev;
+        if (
+          currentBrushCells >= 13 &&
+          currentCell.shipBrushId !== activeShipBrush
+        )
+          return prev;
       }
 
       const next = prev.map((row) => row.map((cell) => ({ ...cell })));
@@ -3369,25 +3412,43 @@ function Game() {
     e.preventDefault();
     setCustomDrawBoard((prev) => {
       const currentCell = prev[r][c];
-      const isSameBrush = currentCell.hasShip && currentCell.shipBrushId === activeShipBrush;
+      const isSameBrush =
+        currentCell.hasShip && currentCell.shipBrushId === activeShipBrush;
       customPaintValueRef.current = !isSameBrush;
 
       if (customPaintValueRef.current) {
-        const currentBrushCellsList = prev.flat().filter(cell => cell.hasShip && cell.shipBrushId === activeShipBrush);
-        if (currentBrushCellsList.length > 0 && currentCell.shipBrushId !== activeShipBrush) {
-          const isAdjacent = currentBrushCellsList.some(cell => Math.abs(cell.row - r) + Math.abs(cell.col - c) === 1);
+        const currentBrushCellsList = prev
+          .flat()
+          .filter(
+            (cell) => cell.hasShip && cell.shipBrushId === activeShipBrush,
+          );
+        if (
+          currentBrushCellsList.length > 0 &&
+          currentCell.shipBrushId !== activeShipBrush
+        ) {
+          const isAdjacent = currentBrushCellsList.some(
+            (cell) => Math.abs(cell.row - r) + Math.abs(cell.col - c) === 1,
+          );
           if (!isAdjacent) return prev;
         }
-        const totalPaintedCells = prev.flat().filter(cell => cell.hasShip).length;
+        const totalPaintedCells = prev
+          .flat()
+          .filter((cell) => cell.hasShip).length;
         const currentBrushCells = currentBrushCellsList.length;
         const isNewCell = !currentCell.hasShip;
         if (isNewCell && totalPaintedCells >= 15) return prev;
-        if (currentBrushCells >= 13 && currentCell.shipBrushId !== activeShipBrush) return prev;
+        if (
+          currentBrushCells >= 13 &&
+          currentCell.shipBrushId !== activeShipBrush
+        )
+          return prev;
       }
 
       const next = prev.map((row) => row.map((cell) => ({ ...cell })));
       next[r][c].hasShip = customPaintValueRef.current;
-      next[r][c].shipBrushId = customPaintValueRef.current ? activeShipBrush : null;
+      next[r][c].shipBrushId = customPaintValueRef.current
+        ? activeShipBrush
+        : null;
       return next;
     });
     isCustomPaintingRef.current = true;
@@ -3405,25 +3466,43 @@ function Game() {
     e.preventDefault();
     setCustomDrawBoard((prev) => {
       const currentCell = prev[r][c];
-      const isSameBrush = currentCell.hasShip && currentCell.shipBrushId === activeShipBrush;
+      const isSameBrush =
+        currentCell.hasShip && currentCell.shipBrushId === activeShipBrush;
       customPaintValueRef.current = !isSameBrush;
 
       if (customPaintValueRef.current) {
-        const currentBrushCellsList = prev.flat().filter(cell => cell.hasShip && cell.shipBrushId === activeShipBrush);
-        if (currentBrushCellsList.length > 0 && currentCell.shipBrushId !== activeShipBrush) {
-          const isAdjacent = currentBrushCellsList.some(cell => Math.abs(cell.row - r) + Math.abs(cell.col - c) === 1);
+        const currentBrushCellsList = prev
+          .flat()
+          .filter(
+            (cell) => cell.hasShip && cell.shipBrushId === activeShipBrush,
+          );
+        if (
+          currentBrushCellsList.length > 0 &&
+          currentCell.shipBrushId !== activeShipBrush
+        ) {
+          const isAdjacent = currentBrushCellsList.some(
+            (cell) => Math.abs(cell.row - r) + Math.abs(cell.col - c) === 1,
+          );
           if (!isAdjacent) return prev;
         }
-        const totalPaintedCells = prev.flat().filter(cell => cell.hasShip).length;
+        const totalPaintedCells = prev
+          .flat()
+          .filter((cell) => cell.hasShip).length;
         const currentBrushCells = currentBrushCellsList.length;
         const isNewCell = !currentCell.hasShip;
         if (isNewCell && totalPaintedCells >= 15) return prev;
-        if (currentBrushCells >= 13 && currentCell.shipBrushId !== activeShipBrush) return prev;
+        if (
+          currentBrushCells >= 13 &&
+          currentCell.shipBrushId !== activeShipBrush
+        )
+          return prev;
       }
 
       const next = prev.map((row) => row.map((cell) => ({ ...cell })));
       next[r][c].hasShip = customPaintValueRef.current;
-      next[r][c].shipBrushId = customPaintValueRef.current ? activeShipBrush : null;
+      next[r][c].shipBrushId = customPaintValueRef.current
+        ? activeShipBrush
+        : null;
       return next;
     });
     isCustomPaintingRef.current = true;
@@ -4016,12 +4095,15 @@ function Game() {
               key={`ship-${cell.shipId}`}
               data-board-side={boardSide}
               data-ship-id={cell.shipId}
-              className={`pointer-events-none ship-overlay ${isShipSunk ? "ship-sunk-silhouette" : ""
-                } ${!isShipSunk ? "ship-afloat" : ""} ${draggedShip?.shipId === cell.shipId ? "ship-drag-source" : ""
-                } ${invalidRotationPreview?.shipId === cell.shipId
+              className={`pointer-events-none ship-overlay ${
+                isShipSunk ? "ship-sunk-silhouette" : ""
+              } ${!isShipSunk ? "ship-afloat" : ""} ${
+                draggedShip?.shipId === cell.shipId ? "ship-drag-source" : ""
+              } ${
+                invalidRotationPreview?.shipId === cell.shipId
                   ? "ship-invalid-source"
                   : ""
-                }`}
+              }`}
               style={overlayStyle}
             >
               {spriteUrl ? (
@@ -4068,7 +4150,7 @@ function Game() {
       };
       const invalidSpriteUrl = resolveSpriteUrl(
         SHIP_SPRITES[invalidRotationPreview.shipDef.id]?.[
-        invalidRotationPreview.rotation
+          invalidRotationPreview.rotation
         ],
       );
 
@@ -4288,7 +4370,8 @@ function Game() {
                       onTouchEnd={stopCustomPainting}
                       className={`ocean-cell relative overflow-visible ${isPlacementLocked ? "cursor-default" : "cursor-crosshair"} ${!isPainted ? "bg-surface-container/50" : `custom-painted-cell-${cell.shipBrushId}`}`}
                       style={{
-                        transition: "background 0.1s, border 0.1s, box-shadow 0.1s",
+                        transition:
+                          "background 0.1s, border 0.1s, box-shadow 0.1s",
                         userSelect: "none",
                         touchAction: "none",
                       }}
@@ -4347,21 +4430,25 @@ function Game() {
                     onTouchEnd={(event) =>
                       !isEnemy && handleTouchEnd(event, r, c)
                     }
-                    className={`ocean-cell relative ${cursorClass} overflow-visible transition-all duration-300 ${baseCellBg} ${!isEnemy && cell.hasShip ? "player-ship-cell" : ""
-                      } ${isHovered && draggedShip
+                    className={`ocean-cell relative ${cursorClass} overflow-visible transition-all duration-300 ${baseCellBg} ${
+                      !isEnemy && cell.hasShip ? "player-ship-cell" : ""
+                    } ${
+                      isHovered && draggedShip
                         ? canPlace
                           ? "drag-target-cell-valid"
                           : "drag-target-cell-invalid"
                         : ""
-                      } ${isHovered && invalidRotationPreview && !draggedShip
+                    } ${
+                      isHovered && invalidRotationPreview && !draggedShip
                         ? "drag-target-cell-invalid"
                         : ""
-                      } ${isHovered
+                    } ${
+                      isHovered
                         ? canPlace
                           ? "bg-secondary/50 shadow-[0_0_15px_#a5e7ff]"
                           : "bg-error/50"
                         : ""
-                      }`}
+                    }`}
                   >
                     {/* Miss dots are now rendered as overlays at z-40 (hitOverlays) to appear above ship overlays at z-20 */}
                   </div>
@@ -4439,8 +4526,14 @@ function Game() {
               <PvpCommandStrip
                 myPlayer={currentBattlePlayer || roomPlayer}
                 myRankLabel={
-                  (currentBattlePlayer?.rank && currentBattlePlayer.rank.toLowerCase() !== "unranked" ? currentBattlePlayer.rank : null) ||
-                  (attributes?.rank && attributes.rank.toLowerCase() !== "unranked" ? attributes.rank : null) ||
+                  (currentBattlePlayer?.rank &&
+                  currentBattlePlayer.rank.toLowerCase() !== "unranked"
+                    ? currentBattlePlayer.rank
+                    : null) ||
+                  (attributes?.rank &&
+                  attributes.rank.toLowerCase() !== "unranked"
+                    ? attributes.rank
+                    : null) ||
                   copy.unrankedLabel
                 }
                 myIsConnected={pvpSocketReady}
@@ -4448,7 +4541,9 @@ function Game() {
                   pvpTurnUserId ===
                   getRoomPlayerKey(currentBattlePlayer || roomPlayer)
                 }
-                myIsDeploying={gameState === "PLACEMENT" || gameState === "READY"}
+                myIsDeploying={
+                  gameState === "PLACEMENT" || gameState === "READY"
+                }
                 myIsReady={
                   (gameState === "PLACEMENT" || gameState === "READY") &&
                   Boolean(currentBattlePlayer?.fleetReady)
@@ -4459,8 +4554,10 @@ function Game() {
                 )}
                 oppPlayer={opponentBattlePlayer}
                 oppRankLabel={
-                  (opponentBattlePlayer?.rank && opponentBattlePlayer.rank.toLowerCase() !== "unranked" ? opponentBattlePlayer.rank : null) ||
-                  copy.unrankedLabel
+                  (opponentBattlePlayer?.rank &&
+                  opponentBattlePlayer.rank.toLowerCase() !== "unranked"
+                    ? opponentBattlePlayer.rank
+                    : null) || copy.unrankedLabel
                 }
                 oppIsConnected={Boolean(opponentBattlePlayer) && pvpSocketReady}
                 oppIsTheirTurn={
@@ -4486,15 +4583,15 @@ function Game() {
                         ? copy.waitingFleetLog
                         : !isFleetValid
                           ? copy.dragShipsInstructions ||
-                          "Drag ships from staging onto your map. Right-click to rotate."
+                            "Drag ships from staging onto your map. Right-click to rotate."
                           : copy.formationCompleteInstructions ||
-                          "Formation complete. Adjust ships, auto-arrange again, or press Ready.")}
+                            "Formation complete. Adjust ships, auto-arrange again, or press Ready.")}
                     {gameState === "READY" &&
                       (selectedShip
                         ? copy.moveSelectedShipInstructions ||
-                        "Move the selected ship or right-click to rotate it, then press Ready."
+                          "Move the selected ship or right-click to rotate it, then press Ready."
                         : copy.selectShipInstructions ||
-                        "Select any ship to move or rotate it, then press Ready.")}
+                          "Select any ship to move or rotate it, then press Ready.")}
                     {gameState === "PLAYER_TURN" && (
                       <span className="text-secondary glow-text">
                         {getPvpStatusText()}
@@ -4502,7 +4599,8 @@ function Game() {
                     )}
                     {gameState === "BOT_TURN" && (
                       <span className="text-error">
-                        {copy.enemyFiring || "Enemy is firing! Brace for impact!"}
+                        {copy.enemyFiring ||
+                          "Enemy is firing! Brace for impact!"}
                       </span>
                     )}
                     {gameState === "GAME_OVER" &&
@@ -4525,21 +4623,22 @@ function Game() {
                         (isCustomShipyardActive
                           ? !isCustomFleetValid
                           : !isFleetValid ||
-                          Boolean(invalidRotationPreview) ||
-                          Boolean(draggedShip)) ||
+                            Boolean(invalidRotationPreview) ||
+                            Boolean(draggedShip)) ||
                         pvpReadyLoading ||
                         isWaitingForOpponentFleet
                       }
-                      className={`font-bold px-4 py-1.5 md:px-8 md:py-2 text-sm md:text-base rounded-sm transition-all tracking-widest ${(isCustomShipyardActive
+                      className={`font-bold px-4 py-1.5 md:px-8 md:py-2 text-sm md:text-base rounded-sm transition-all tracking-widest ${
+                        (isCustomShipyardActive
                           ? !isCustomFleetValid
                           : !isFleetValid ||
-                          invalidRotationPreview ||
-                          draggedShip) ||
-                          pvpReadyLoading ||
-                          isWaitingForOpponentFleet
+                            invalidRotationPreview ||
+                            draggedShip) ||
+                        pvpReadyLoading ||
+                        isWaitingForOpponentFleet
                           ? "bg-surface-container text-on-surface-variant/40 cursor-not-allowed opacity-50"
                           : "bg-secondary text-on-secondary-fixed hover:bg-secondary-container active:scale-95"
-                        }`}
+                      }`}
                     >
                       {pvpReadyLoading
                         ? copy.syncing
@@ -4566,15 +4665,15 @@ function Game() {
                   {gameState === "PLACEMENT" &&
                     (!isFleetValid
                       ? copy.dragShipsInstructions ||
-                      "Drag ships from staging onto your map. Right-click to rotate."
+                        "Drag ships from staging onto your map. Right-click to rotate."
                       : copy.formationCompleteInstructions ||
-                      "Formation complete. Adjust ships, auto-arrange again, or press Ready.")}
+                        "Formation complete. Adjust ships, auto-arrange again, or press Ready.")}
                   {gameState === "READY" &&
                     (selectedShip
                       ? copy.moveSelectedShipInstructions ||
-                      "Move the selected ship or right-click to rotate it, then press Ready."
+                        "Move the selected ship or right-click to rotate it, then press Ready."
                       : copy.selectShipInstructions ||
-                      "Select any ship to move or rotate it, then press Ready.")}
+                        "Select any ship to move or rotate it, then press Ready.")}
                   {gameState === "PLAYER_TURN" && (
                     <span className="text-secondary glow-text">
                       {copy.yourTurn || "Your turn! Target enemy waters."}
@@ -4604,15 +4703,16 @@ function Game() {
                     isCustomShipyardActive
                       ? !isCustomFleetValid
                       : !isFleetValid ||
-                      Boolean(invalidRotationPreview) ||
-                      Boolean(draggedShip)
+                        Boolean(invalidRotationPreview) ||
+                        Boolean(draggedShip)
                   }
-                  className={`font-bold px-4 py-1.5 md:px-8 md:py-2 text-sm md:text-base rounded-sm transition-all tracking-widest ${isCustomShipyardActive
+                  className={`font-bold px-4 py-1.5 md:px-8 md:py-2 text-sm md:text-base rounded-sm transition-all tracking-widest ${
+                    isCustomShipyardActive
                       ? !isCustomFleetValid
                       : !isFleetValid || invalidRotationPreview || draggedShip
                         ? "bg-surface-container text-on-surface-variant/40 cursor-not-allowed opacity-50"
                         : "bg-secondary text-on-secondary-fixed hover:bg-secondary-container active:scale-95"
-                    }`}
+                  }`}
                 >
                   {copy.ready}
                 </button>
@@ -4637,122 +4737,199 @@ function Game() {
             <div className="flex w-full justify-center gap-2 mb-2 px-4">
               <button
                 onClick={() => setActiveBattleTab("enemy")}
-                className={`flex-1 py-2 px-4 rounded-lg font-bold tracking-widest text-sm transition-all border ${activeBattleTab === "enemy"
+                className={`flex-1 py-2 px-4 rounded-lg font-bold tracking-widest text-sm transition-all border ${
+                  activeBattleTab === "enemy"
                     ? "bg-error/20 text-error border-error shadow-[0_0_15px_rgba(255,0,0,0.2)]"
                     : "bg-surface-container border-white/10 text-on-surface-variant"
-                  }`}
+                }`}
               >
                 {(isPvpMode ? copy.enemyFleet : copy.enemyWaters) ||
                   "ENEMY FLEET"}
               </button>
               <button
                 onClick={() => setActiveBattleTab("fleet")}
-                className={`flex-1 py-2 px-4 rounded-lg font-bold tracking-widest text-sm transition-all border ${activeBattleTab === "fleet"
+                className={`flex-1 py-2 px-4 rounded-lg font-bold tracking-widest text-sm transition-all border ${
+                  activeBattleTab === "fleet"
                     ? "bg-secondary/20 text-secondary border-secondary shadow-[0_0_15px_rgba(0,210,255,0.2)]"
                     : "bg-surface-container border-white/10 text-on-surface-variant"
-                  }`}
+                }`}
               >
                 {copy.yourFleet || "YOUR FLEET"}
               </button>
             </div>
           )}
 
-          <div className={`game-boards flex ${isMobile && isCustomShipyardActive && gameState === "PLACEMENT" ? "flex-col-reverse" : "flex-col"} lg:flex-row justify-center items-center lg:items-start w-full relative`}>
+          <div
+            className={`game-boards flex ${isMobile && isCustomShipyardActive && gameState === "PLACEMENT" ? "flex-col-reverse" : "flex-col"} lg:flex-row justify-center items-center lg:items-start w-full relative`}
+          >
             {/* Player Board */}
             <div
               className={`battle-board-section flex flex-col items-center ${isMobile && gameState !== "PLACEMENT" && gameState !== "READY" && activeBattleTab !== "fleet" ? "hidden lg:flex" : ""}`}
             >
-              {isMobile && !isCustomShipyardActive && (gameState === "PLACEMENT" || gameState === "READY") && (
-                <div className="flex flex-col w-full max-w-[430px] mb-2 lg:hidden">
-                  <div
-                    className="mobile-fleet-tray flex overflow-x-auto overflow-y-hidden py-1 gap-2 w-full snap-x"
-                    style={{
-                      "--cell-size": "16px",
-                      "--cell-gap": "1px",
-                    }}
-                  >
-                    {filteredDockShips.map((shipDef) => {
-                      const isPlaced = !unplacedShipIds.includes(shipDef.id);
-                      const trayRotation = trayRotations[shipDef.id] ?? shipDef.rotations[0];
-                      const trayOffsets = getShipOffsets(shipDef, trayRotation);
-                      const trayBounds = getShipBounds(trayOffsets);
-                      const trayCell = {
-                        row: 0,
-                        col: 0,
-                        shipTypeId: shipDef.id,
-                        shipRotation: trayRotation,
-                        shipBounds: trayBounds,
-                      };
-                      const mCellSize = 16;
-                      const mCellGap = 1;
-                      const trayWidth = trayBounds.cols * mCellSize + (trayBounds.cols - 1) * mCellGap;
-                      const trayHeight = trayBounds.rows * mCellSize + (trayBounds.rows - 1) * mCellGap;
-                      const spriteUrl = resolveSpriteUrl(SHIP_SPRITES[shipDef.id]?.[trayRotation]);
-                      const activeShipTypeId = draggedShip?.shipDef?.id || selectedShip?.shipDef?.id;
-                      const isActive = activeShipTypeId === shipDef.id;
+              {isMobile &&
+                !isCustomShipyardActive &&
+                (gameState === "PLACEMENT" || gameState === "READY") && (
+                  <div className="flex flex-col w-full max-w-[430px] mb-2 lg:hidden">
+                    <div
+                      className="mobile-fleet-tray flex overflow-x-auto overflow-y-hidden py-1 gap-2 w-full snap-x"
+                      style={{
+                        "--cell-size": "16px",
+                        "--cell-gap": "1px",
+                      }}
+                    >
+                      {filteredDockShips.map((shipDef) => {
+                        const isPlaced = !unplacedShipIds.includes(shipDef.id);
+                        const trayRotation =
+                          trayRotations[shipDef.id] ?? shipDef.rotations[0];
+                        const trayOffsets = getShipOffsets(
+                          shipDef,
+                          trayRotation,
+                        );
+                        const trayBounds = getShipBounds(trayOffsets);
+                        const trayCell = {
+                          row: 0,
+                          col: 0,
+                          shipTypeId: shipDef.id,
+                          shipRotation: trayRotation,
+                          shipBounds: trayBounds,
+                        };
+                        const mCellSize = 16;
+                        const mCellGap = 1;
+                        const trayWidth =
+                          trayBounds.cols * mCellSize +
+                          (trayBounds.cols - 1) * mCellGap;
+                        const trayHeight =
+                          trayBounds.rows * mCellSize +
+                          (trayBounds.rows - 1) * mCellGap;
+                        const spriteUrl = resolveSpriteUrl(
+                          SHIP_SPRITES[shipDef.id]?.[trayRotation],
+                        );
+                        const activeShipTypeId =
+                          draggedShip?.shipDef?.id || selectedShip?.shipDef?.id;
+                        const isActive = activeShipTypeId === shipDef.id;
 
-                      return (
-                        <div
-                          key={shipDef.id}
-                          className={`deployment-ship-card deployment-${shipDef.id} flex-shrink-0 w-[120px] snap-center p-2 ${isPlaced ? "is-placed" : ""} ${isPlacementLocked ? "is-locked" : ""}`}
-                          style={{
-                            opacity: isActive ? 1 : 0.85,
-                            transform: isActive ? "translateY(-2px)" : "none",
-                            boxShadow: isActive ? "0 4px 12px rgba(142, 235, 255, 0.4)" : "none",
-                            borderColor: isActive ? "rgba(142, 235, 255, 0.8)" : "",
-                            transition: "all 0.2s ease"
-                          }}
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            if (!isPlaced) {
-                              handleTrayShipClick(event, shipDef);
-                            } else {
-                              const placedShip = getPlacedShipSelectionByTypeId(shipDef.id);
-                              if (placedShip) {
-                                returnShipToStaging(placedShip.shipId, shipDef.id);
+                        return (
+                          <div
+                            key={shipDef.id}
+                            className={`deployment-ship-card deployment-${shipDef.id} flex-shrink-0 w-[120px] snap-center p-2 ${isPlaced ? "is-placed" : ""} ${isPlacementLocked ? "is-locked" : ""}`}
+                            style={{
+                              opacity: isActive ? 1 : 0.85,
+                              transform: isActive ? "translateY(-2px)" : "none",
+                              boxShadow: isActive
+                                ? "0 4px 12px rgba(142, 235, 255, 0.4)"
+                                : "none",
+                              borderColor: isActive
+                                ? "rgba(142, 235, 255, 0.8)"
+                                : "",
+                              transition: "all 0.2s ease",
+                            }}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              if (!isPlaced) {
+                                handleTrayShipClick(event, shipDef);
+                              } else {
+                                const placedShip =
+                                  getPlacedShipSelectionByTypeId(shipDef.id);
+                                if (placedShip) {
+                                  returnShipToStaging(
+                                    placedShip.shipId,
+                                    shipDef.id,
+                                  );
+                                }
                               }
-                            }
-                          }}
+                            }}
+                          >
+                            <div
+                              className="deployment-ship-meta"
+                              style={{ marginBottom: "6px" }}
+                            >
+                              <span className="deployment-ship-label text-[11px] font-bold text-[#a5e7ff]">
+                                {shipDef.label}
+                              </span>
+                              <span className="deployment-ship-size text-[10px] text-white/50">
+                                {shipDef.size} {copy.cellsLabel || "cells"}
+                              </span>
+                            </div>
+                            <div className="deployment-ship-stage flex items-center justify-center min-h-[24px]">
+                              {!isPlaced && spriteUrl ? (
+                                <div
+                                  className="deployment-ship-preview pointer-events-none"
+                                  style={{
+                                    width: `${trayWidth}px`,
+                                    height: `${trayHeight}px`,
+                                  }}
+                                >
+                                  <img
+                                    src={spriteUrl}
+                                    alt={shipDef.label}
+                                    style={getShipImageStyle(trayCell)}
+                                  />
+                                </div>
+                              ) : (
+                                <span className="deployment-placed-mark text-[10px] font-bold text-[#22c55e] uppercase tracking-wider">
+                                  {copy.deployed || "Deployed"}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    <div className="flex justify-between items-center px-3 mt-1 mb-2">
+                      <div className="text-[11px] text-white/50 tracking-wide">
+                        <span
+                          className={`font-bold mr-1 ${placedFleetCellCount > FLEET_CELL_LIMIT ? "text-red-500" : "text-white/90"}`}
                         >
-                          <div className="deployment-ship-meta" style={{ marginBottom: "6px" }}>
-                            <span className="deployment-ship-label text-[11px] font-bold text-[#a5e7ff]">{shipDef.label}</span>
-                            <span className="deployment-ship-size text-[10px] text-white/50">{shipDef.size} {copy.cellsLabel || "cells"}</span>
-                          </div>
-                          <div className="deployment-ship-stage flex items-center justify-center min-h-[24px]">
-                            {!isPlaced && spriteUrl ? (
-                              <div className="deployment-ship-preview pointer-events-none" style={{ width: `${trayWidth}px`, height: `${trayHeight}px` }}>
-                                <img src={spriteUrl} alt={shipDef.label} style={getShipImageStyle(trayCell)} />
-                              </div>
-                            ) : (
-                              <span className="deployment-placed-mark text-[10px] font-bold text-[#22c55e] uppercase tracking-wider">{copy.deployed || "Deployed"}</span>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  <div className="flex justify-between items-center px-3 mt-1 mb-2">
-                    <div className="text-[11px] text-white/50 tracking-wide">
-                      <span className={`font-bold mr-1 ${placedFleetCellCount > FLEET_CELL_LIMIT ? 'text-red-500' : 'text-white/90'}`}>{placedFleetCellCount}</span>
-                      / {FLEET_CELL_LIMIT} {copy.cellsLabel || "ô"}
+                          {placedFleetCellCount}
+                        </span>
+                        / {FLEET_CELL_LIMIT} {copy.cellsLabel || "ô"}
+                      </div>
+                      <div className="text-[11px] text-white/50 tracking-wide">
+                        <span
+                          className={`font-bold mr-1 ${placedFleetShipCount > FLEET_MAX_SHIPS ? "text-red-500" : "text-white/90"}`}
+                        >
+                          {placedFleetShipCount}
+                        </span>
+                        / {FLEET_MAX_SHIPS}{" "}
+                        {copy.fleetShipsUsed
+                          ? copy.fleetShipsUsed.split(" ")[1]
+                          : "tàu"}
+                      </div>
                     </div>
-                    <div className="text-[11px] text-white/50 tracking-wide">
-                      <span className={`font-bold mr-1 ${placedFleetShipCount > FLEET_MAX_SHIPS ? 'text-red-500' : 'text-white/90'}`}>{placedFleetShipCount}</span>
-                      / {FLEET_MAX_SHIPS} {copy.fleetShipsUsed ? copy.fleetShipsUsed.split(' ')[1] : "tàu"}
+
+                    <div className="flex gap-2 w-full px-2">
+                      <button
+                        onClick={autoArrangeFleet}
+                        className="flex-1 auto-arrange-button m-0 min-h-[32px] text-[11px] p-1.5"
+                        disabled={isPlacementLocked}
+                      >
+                        <span className="material-symbols-outlined text-[15px]">
+                          auto_fix_high
+                        </span>{" "}
+                        {copy.autoArrange || "TỰ SẮP XẾP"}
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleCustomShipyard();
+                        }}
+                        className="flex-1 auto-arrange-button m-0 min-h-[32px] text-[11px] p-1.5"
+                        style={{
+                          background: "rgba(165,231,255,0.08)",
+                          color: "#a5e7ff",
+                          border: "1px solid rgba(165,231,255,0.3)",
+                        }}
+                        disabled={isPlacementLocked}
+                      >
+                        <span className="material-symbols-outlined text-[15px]">
+                          brush
+                        </span>{" "}
+                        {copy.customShipyardToggle || "Xưởng Đóng Tàu"}
+                      </button>
                     </div>
                   </div>
-
-                  <div className="flex gap-2 w-full px-2">
-                    <button onClick={autoArrangeFleet} className="flex-1 auto-arrange-button m-0 min-h-[32px] text-[11px] p-1.5" disabled={isPlacementLocked}>
-                      <span className="material-symbols-outlined text-[15px]">auto_fix_high</span> {copy.autoArrange || "TỰ SẮP XẾP"}
-                    </button>
-                    <button onClick={(e) => { e.stopPropagation(); toggleCustomShipyard(); }} className="flex-1 auto-arrange-button m-0 min-h-[32px] text-[11px] p-1.5" style={{ background: "rgba(165,231,255,0.08)", color: "#a5e7ff", border: "1px solid rgba(165,231,255,0.3)" }} disabled={isPlacementLocked}>
-                      <span className="material-symbols-outlined text-[15px]">brush</span> {copy.customShipyardToggle || "Xưởng Đóng Tàu"}
-                    </button>
-                  </div>
-                </div>
-              )}
+                )}
 
               <div className="board-heading">
                 {!isMobile && (
@@ -4775,8 +4952,6 @@ function Game() {
                   />
                 )}
               </div>
-
-
 
               {renderBoard(playerBoard, false, "player")}
             </div>
@@ -4822,27 +4997,57 @@ function Game() {
                     >
                       {/* Brush Toolbar */}
                       <div className="flex gap-[4px] w-full">
-                        {[1, 2, 3, 4].map(brushId => {
+                        {[1, 2, 3, 4].map((brushId) => {
                           const count = customBrushCounts[brushId - 1];
                           const isActive = activeShipBrush === brushId;
-                          const isInvalid = count > 0 && (count < CUSTOM_SHIPYARD_MIN_SHIP_SIZE || count > CUSTOM_SHIPYARD_MAX_SHIP_SIZE);
-                          const colors = ["#4ea8de", "#4ade80", "#fbbf24", "#c084fc"];
+                          const isInvalid =
+                            count > 0 &&
+                            (count < CUSTOM_SHIPYARD_MIN_SHIP_SIZE ||
+                              count > CUSTOM_SHIPYARD_MAX_SHIP_SIZE);
+                          const colors = [
+                            "#4ea8de",
+                            "#4ade80",
+                            "#fbbf24",
+                            "#c084fc",
+                          ];
                           const brushColor = colors[brushId - 1];
                           return (
                             <button
                               key={brushId}
-                              onClick={(e) => { e.stopPropagation(); setActiveShipBrush(brushId); }}
-                              className={`flex-1 flex flex-col items-center justify-center py-[2px] rounded-sm transition-all`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setActiveShipBrush(brushId);
+                              }}
+                              className={`flex-1 flex flex-col items-center justify-center py-[2px] rounded-sm transition-all brush-${brushId} ${isActive ? "is-active-brush" : ""}`}
                               style={{
-                                background: isActive ? `${brushColor}30` : "rgba(255,255,255,0.03)",
+                                background: isActive
+                                  ? `${brushColor}30`
+                                  : "rgba(255,255,255,0.03)",
                                 border: `1px solid ${isInvalid ? "#ef4444" : isActive ? brushColor : "rgba(255,255,255,0.1)"}`,
-                                borderTopWidth: isActive ? "3px" : "1px"
+                                borderTopWidth: isActive ? "3px" : "1px",
                               }}
                             >
-                              <span style={{ fontSize: "10px", fontWeight: "bold", color: isInvalid ? "#ef4444" : isActive ? brushColor : "rgba(255,255,255,0.7)" }}>
+                              <span
+                                style={{
+                                  fontSize: "10px",
+                                  fontWeight: "bold",
+                                  color: isInvalid
+                                    ? "#ef4444"
+                                    : isActive
+                                      ? brushColor
+                                      : "rgba(255,255,255,0.7)",
+                                }}
+                              >
                                 Tàu {brushId}
                               </span>
-                              <span style={{ fontSize: "9px", color: isInvalid ? "#ef4444" : "rgba(255,255,255,0.5)" }}>
+                              <span
+                                style={{
+                                  fontSize: "9px",
+                                  color: isInvalid
+                                    ? "#ef4444"
+                                    : "rgba(255,255,255,0.5)",
+                                }}
+                              >
                                 {count} {copy.cellsLabel || "ô"}
                               </span>
                             </button>
@@ -4863,25 +5068,46 @@ function Game() {
                           {/* Cells Detected */}
                           <div className="order-1 md:order-1 flex flex-col items-start gap-0">
                             <div className="flex items-baseline gap-[6px]">
-                              <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)" }}>
-                                {copy.customShipyardCellsDetected || "Cells detected"}:
+                              <span
+                                style={{
+                                  fontSize: "11px",
+                                  color: "rgba(255,255,255,0.4)",
+                                }}
+                              >
+                                {copy.customShipyardCellsDetected ||
+                                  "Cells detected"}
+                                :
                               </span>
                               <span
                                 style={{
                                   fontSize: "13px",
                                   fontWeight: "bold",
-                                  color: customDrawCellCount > CUSTOM_SHIPYARD_CELL_BUDGET
-                                    ? "#ef4444"
-                                    : customDrawCellCount === CUSTOM_SHIPYARD_CELL_BUDGET
-                                      ? "#22c55e"
-                                      : "#a5e7ff",
+                                  color:
+                                    customDrawCellCount >
+                                    CUSTOM_SHIPYARD_CELL_BUDGET
+                                      ? "#ef4444"
+                                      : customDrawCellCount ===
+                                          CUSTOM_SHIPYARD_CELL_BUDGET
+                                        ? "#22c55e"
+                                        : "#a5e7ff",
                                 }}
                               >
-                                {customDrawCellCount}/{CUSTOM_SHIPYARD_CELL_BUDGET}
+                                {customDrawCellCount}/
+                                {CUSTOM_SHIPYARD_CELL_BUDGET}
                               </span>
                             </div>
-                            <span style={{ fontSize: "9px", color: "rgba(255,255,255,0.3)", fontStyle: "italic", marginTop: "2px" }}>
-                              ({copy.customShipyardRuleExact || "Paint exactly 15 cells total."})
+                            <span
+                              style={{
+                                fontSize: "9px",
+                                color: "rgba(255,255,255,0.3)",
+                                fontStyle: "italic",
+                                marginTop: "2px",
+                              }}
+                            >
+                              (
+                              {copy.customShipyardRuleExact ||
+                                "Paint exactly 15 cells total."}
+                              )
                             </span>
                           </div>
 
@@ -4893,11 +5119,15 @@ function Game() {
                                 height: "100%",
                                 borderRadius: "2px",
                                 width: `${Math.min(100, (customDrawCellCount / CUSTOM_SHIPYARD_CELL_BUDGET) * 100)}%`,
-                                background: customDrawCellCount > CUSTOM_SHIPYARD_CELL_BUDGET
-                                  ? "#ef4444"
-                                  : customDrawCellCount === CUSTOM_SHIPYARD_CELL_BUDGET && isCustomFleetValid
-                                    ? "#22c55e"
-                                    : "#a5e7ff",
+                                background:
+                                  customDrawCellCount >
+                                  CUSTOM_SHIPYARD_CELL_BUDGET
+                                    ? "#ef4444"
+                                    : customDrawCellCount ===
+                                          CUSTOM_SHIPYARD_CELL_BUDGET &&
+                                        isCustomFleetValid
+                                      ? "#22c55e"
+                                      : "#a5e7ff",
                                 transition: "width 0.2s, background 0.2s",
                               }}
                             />
@@ -4905,21 +5135,33 @@ function Game() {
 
                           {/* Ships Detected */}
                           <div className="order-2 md:order-3 flex items-baseline gap-[6px] justify-end md:justify-start">
-                            <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)" }}>
-                              {copy.customShipyardShipsDetected || "Ships detected"}:
+                            <span
+                              style={{
+                                fontSize: "11px",
+                                color: "rgba(255,255,255,0.4)",
+                              }}
+                            >
+                              {copy.customShipyardShipsDetected ||
+                                "Ships detected"}
+                              :
                             </span>
                             <span
                               style={{
                                 fontSize: "13px",
                                 fontWeight: "bold",
-                                color: customComponents.length >= CUSTOM_SHIPYARD_MIN_SHIPS && customComponents.length <= CUSTOM_SHIPYARD_MAX_SHIPS
-                                  ? "#22c55e"
-                                  : customComponents.length > 0
-                                    ? "#ef4444"
-                                    : "#a5e7ff",
+                                color:
+                                  customComponents.length >=
+                                    CUSTOM_SHIPYARD_MIN_SHIPS &&
+                                  customComponents.length <=
+                                    CUSTOM_SHIPYARD_MAX_SHIPS
+                                    ? "#22c55e"
+                                    : customComponents.length > 0
+                                      ? "#ef4444"
+                                      : "#a5e7ff",
                               }}
                             >
-                              {customComponents.length}/{CUSTOM_SHIPYARD_MAX_SHIPS}
+                              {customComponents.length}/
+                              {CUSTOM_SHIPYARD_MAX_SHIPS}
                             </span>
                           </div>
                         </div>
@@ -4948,12 +5190,30 @@ function Game() {
                             const ok =
                               sz >= CUSTOM_SHIPYARD_MIN_SHIP_SIZE &&
                               sz <= CUSTOM_SHIPYARD_MAX_SHIP_SIZE;
-                            const brushId = customDrawBoard[comp[0].row][comp[0].col].shipBrushId;
+                            const brushId =
+                              customDrawBoard[comp[0].row][comp[0].col]
+                                .shipBrushId;
                             const colors = {
-                              1: { main: "#4ea8de", bg: "rgba(78,168,222,0.1)", border: "rgba(78,168,222,0.3)" },
-                              2: { main: "#4ade80", bg: "rgba(74,222,128,0.1)", border: "rgba(74,222,128,0.3)" },
-                              3: { main: "#fbbf24", bg: "rgba(251,191,36,0.1)", border: "rgba(251,191,36,0.3)" },
-                              4: { main: "#c084fc", bg: "rgba(192,132,252,0.1)", border: "rgba(192,132,252,0.3)" }
+                              1: {
+                                main: "#4ea8de",
+                                bg: "rgba(78,168,222,0.1)",
+                                border: "rgba(78,168,222,0.3)",
+                              },
+                              2: {
+                                main: "#4ade80",
+                                bg: "rgba(74,222,128,0.1)",
+                                border: "rgba(74,222,128,0.3)",
+                              },
+                              3: {
+                                main: "#fbbf24",
+                                bg: "rgba(251,191,36,0.1)",
+                                border: "rgba(251,191,36,0.3)",
+                              },
+                              4: {
+                                main: "#c084fc",
+                                bg: "rgba(192,132,252,0.1)",
+                                border: "rgba(192,132,252,0.3)",
+                              },
                             };
                             const theme = colors[brushId] || colors[1];
                             return (
@@ -4965,7 +5225,9 @@ function Game() {
                                   padding: "3px 8px",
                                   borderRadius: "4px",
                                   border: `1px solid ${ok ? theme.border : "rgba(239,68,68,0.5)"}`,
-                                  background: ok ? theme.bg : "rgba(239,68,68,0.1)",
+                                  background: ok
+                                    ? theme.bg
+                                    : "rgba(239,68,68,0.1)",
                                   color: ok ? theme.main : "#ef4444",
                                 }}
                               >
@@ -5148,8 +5410,9 @@ function Game() {
                         return (
                           <div
                             key={shipDef.id}
-                            className={`deployment-ship-card deployment-${shipDef.id} ${isPlaced ? "is-placed" : ""
-                              } ${isPlacementLocked ? "is-locked" : ""}`}
+                            className={`deployment-ship-card deployment-${shipDef.id} ${
+                              isPlaced ? "is-placed" : ""
+                            } ${isPlacementLocked ? "is-locked" : ""}`}
                             onClick={(event) => {
                               event.stopPropagation();
                               if (!isPlaced) {
@@ -5269,17 +5532,17 @@ function Game() {
                     {(!isMobile ||
                       gameState === "PLACEMENT" ||
                       gameState === "READY") && (
-                        <h3 className="font-bold text-error tracking-widest uppercase mb-1">
-                          {gameState === "READY"
-                            ? isPvpMode
-                              ? copy.enemyFleetScan || "Enemy Fleet (Scanning...)"
-                              : copy.enemyWatersScan ||
+                      <h3 className="font-bold text-error tracking-widest uppercase mb-1">
+                        {gameState === "READY"
+                          ? isPvpMode
+                            ? copy.enemyFleetScan || "Enemy Fleet (Scanning...)"
+                            : copy.enemyWatersScan ||
                               "Enemy Waters (Scanning...)"
-                            : isPvpMode
-                              ? copy.enemyFleet || "Enemy Fleet"
-                              : copy.enemyWaters || "Enemy Waters"}
-                        </h3>
-                      )}
+                          : isPvpMode
+                            ? copy.enemyFleet || "Enemy Fleet"
+                            : copy.enemyWaters || "Enemy Waters"}
+                      </h3>
+                    )}
 
                     {renderFleetStatus(
                       isPvpMode ? opponentFleetStatusDefs : enemyFleetDefs,
@@ -5301,10 +5564,11 @@ function Game() {
 
             {sunkEffect && (
               <div
-                className={`sunk-announcement ${sunkEffect.boardSide === "enemy"
+                className={`sunk-announcement ${
+                  sunkEffect.boardSide === "enemy"
                     ? "sunk-announcement-victory"
                     : "sunk-announcement-danger"
-                  }`}
+                }`}
               >
                 <span className="sunk-announcement-line" />
                 <strong>
@@ -5327,12 +5591,13 @@ function Game() {
           {isMobile && gameState !== "PLACEMENT" && gameState !== "READY" && (
             <div className="mobile-mini-battle-log mx-4">
               <div
-                className={`mini-turn-status text-center ${gameState === "PLAYER_TURN"
+                className={`mini-turn-status text-center ${
+                  gameState === "PLAYER_TURN"
                     ? "text-secondary shadow-secondary/50 drop-shadow-md"
                     : gameState === "BOT_TURN"
                       ? "text-error shadow-error/50 drop-shadow-md"
                       : "text-yellow-400"
-                  }`}
+                }`}
               >
                 {gameState === "PLAYER_TURN"
                   ? "YOUR TURN"

@@ -290,3 +290,119 @@
     white-space: nowrap;
   }
 }
+
+/* =========================================
+   LIGHT MODE OVERRIDES FOR TACTICS MODAL
+   ========================================= */
+.light-mode-active .tactics-overlay {
+    background: rgba(255, 255, 255, 0.7) !important;
+}
+
+.light-mode-active .tactics-modal {
+    background: rgba(244, 249, 253, 0.95) !important;
+    border: 1px solid rgba(0, 119, 182, 0.3) !important;
+    box-shadow: 0 0 40px rgba(0, 119, 182, 0.15) !important;
+}
+
+.light-mode-active .tactics-header,
+.light-mode-active .tactics-footer {
+    border-color: rgba(0, 119, 182, 0.15) !important;
+}
+
+.light-mode-active .tactics-footer {
+    background: rgba(255, 255, 255, 0.6) !important;
+}
+
+.light-mode-active .tactics-title {
+    color: #0b4969 !important;
+}
+
+.light-mode-active .tactics-close {
+    color: #5a7d8f !important;
+}
+
+.light-mode-active .tactics-close:hover {
+    background: rgba(0, 119, 182, 0.1) !important;
+    color: #0077b6 !important;
+}
+
+.light-mode-active .tactics-text h3 {
+    color: #0077b6 !important;
+}
+
+.light-mode-active .tactics-text li {
+    color: #3a5c6d !important;
+}
+
+.light-mode-active .tactics-text li::before {
+    color: #0077b6 !important;
+}
+
+.light-mode-active .tactics-visual {
+    background: rgba(255, 255, 255, 0.7) !important;
+    border: 1px solid rgba(0, 119, 182, 0.2) !important;
+}
+
+.light-mode-active .tactics-dot {
+    background: rgba(0, 119, 182, 0.2) !important;
+}
+
+.light-mode-active .tactics-dot.active {
+    background: #0077b6 !important;
+    box-shadow: 0 0 10px rgba(0, 119, 182, 0.4) !important;
+}
+
+.light-mode-active .tactics-nav-btn.secondary {
+    border-color: rgba(0, 119, 182, 0.4) !important;
+    color: #0077b6 !important;
+}
+
+.light-mode-active .tactics-nav-btn.secondary:hover {
+    background: rgba(0, 119, 182, 0.1) !important;
+}
+
+.light-mode-active .tactics-nav-btn.primary {
+    background: #0077b6 !important;
+    border-color: #0077b6 !important;
+    color: #ffffff !important;
+}
+
+.light-mode-active .tactics-nav-btn.primary:hover {
+    box-shadow: 0 0 15px rgba(0, 119, 182, 0.3) !important;
+}
+
+/* Mini Grid LightMode */
+.light-mode-active .mini-cell {
+    background: rgba(0, 119, 182, 0.05) !important;
+    border: 1px solid rgba(0, 119, 182, 0.2) !important;
+}
+
+.light-mode-active .mini-cell.ship {
+    background: #5a7d8f !important;
+    border-color: #3a5c6d !important;
+}
+
+.light-mode-active .mini-cell.checker {
+    background: #0077b6 !important;
+    border-color: #005f92 !important;
+}
+
+.light-mode-active .mini-cell.red-zone {
+    background: rgba(204, 34, 0, 0.2) !important;
+    border-color: rgba(204, 34, 0, 0.5) !important;
+}
+
+.light-mode-active .mini-cell.green-zone {
+    background: rgba(10, 138, 37, 0.2) !important;
+    border-color: rgba(10, 138, 37, 0.5) !important;
+}
+
+.light-mode-active .mini-cell.hit {
+    background: #cc2200 !important;
+    border-color: #991a00 !important;
+}
+
+.light-mode-active .mini-cell.target {
+    border: 2px solid #0077b6 !important;
+    background: rgba(0, 119, 182, 0.2) !important;
+}
