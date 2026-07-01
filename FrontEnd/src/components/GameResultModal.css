@@ -1174,3 +1174,119 @@
     height: 250px;
   }
 }
+
+/* =========================================
+   LIGHT MODE OVERRIDES FOR RESULT MODAL
+   ========================================= */
+.light-mode-active .result-modal {
+    background: #f0f7fa !important;
+    border-color: #0077b6 !important;
+    box-shadow: 0 20px 50px rgba(0, 119, 182, 0.15) !important;
+}
+
+/* 1. Make Title transparent, keep original colors (or add shadow for readability) */
+.light-mode-active .result-modal__title {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    /* Remove my previous color overrides so it falls back to DarkMode's gold/steel */
+    color: var(--result-accent) !important;
+    text-shadow:
+        0 4px 0 rgba(0, 0, 0, 0.4),
+        0 12px 28px rgba(0, 0, 0, 0.4),
+        0 0 28px var(--result-accent-strong) !important;
+}
+
+/* 2. Fix subtitle color so it's readable on light background */
+.light-mode-active .result-modal__subtitle {
+    color: #0b4969 !important;
+    font-weight: 900 !important;
+}
+
+/* 3. Prettier Stats with Fixed Corners */
+.light-mode-active .result-stats {
+    background: #ffffff !important;
+    border: 1px solid #7abdec !important;
+    border-radius: 14px !important;
+    box-shadow: 0 6px 16px rgba(0, 119, 182, 0.08) !important;
+    overflow: hidden !important; /* Force children to respect border radius */
+    padding: 0 !important; /* Remove padding to make it look like a unified table */
+    gap: 0 !important; /* Remove gap */
+}
+
+.light-mode-active .result-stat {
+    background: transparent !important;
+    border: none !important;
+    border-right: 1px solid #cce4f0 !important;
+    border-bottom: 1px solid #cce4f0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+}
+
+.light-mode-active .result-stat:last-child {
+    border-right: none !important;
+}
+
+.light-mode-active .result-stat p {
+    color: #3a5c6d !important;
+    font-weight: 800 !important;
+}
+
+.light-mode-active .result-stat strong {
+    color: #0077b6 !important;
+    text-shadow: none !important;
+}
+
+.light-mode-active .result-stat__accent span {
+    color: #6a95a8 !important;
+}
+
+.light-mode-active .ranked-result-card {
+    background: linear-gradient(135deg, #ffffff, #f0f7fa) !important;
+    border: 1px solid #0077b6 !important;
+    box-shadow: 0 10px 30px rgba(0, 119, 182, 0.1) !important;
+}
+
+.light-mode-active .ranked-result-card__top p {
+    color: #3a5c6d !important;
+    font-weight: 800 !important;
+}
+
+.light-mode-active .ranked-result-card__top strong {
+    color: #0077b6 !important;
+    text-shadow: none !important;
+}
+
+.light-mode-active .ranked-result-card__rank {
+    color: #0077b6 !important;
+}
+
+.light-mode-active .ranked-result-card__rp {
+    color: #3a5c6d !important;
+}
+
+.light-mode-active .result-action--primary {
+    background: #0077b6 !important;
+    color: #ffffff !important;
+    border: 1px solid #005f92 !important;
+    box-shadow: 0 8px 24px rgba(0, 119, 182, 0.25) !important;
+}
+
+.light-mode-active .result-action--primary:hover {
+    background: #005f92 !important;
+}
+
+.light-mode-active .result-action--ghost {
+    background: #ffffff !important;
+    color: #0077b6 !important;
+    border-color: #0077b6 !important;
+}
+
+.light-mode-active .result-action--ghost:hover {
+    background: #e6f3fa !important;
+}
+
+.light-mode-active .result-battle-scene--art {
+    border: 3px solid #ffffff !important;
+    box-shadow: 0 8px 24px rgba(0, 119, 182, 0.15) !important;
+}
