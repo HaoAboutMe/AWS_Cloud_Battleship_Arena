@@ -644,6 +644,33 @@ Resources:
             Path: /users/top-commanders
             Method: GET
 
+  WarmUpControllerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: WarmUpController
+      CodeUri: src/handlers/
+      Handler: warmupController.handler
+      Timeout: 10
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - lambda:InvokeFunction
+              Resource: 
+                - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:WebSocketConnect"
+                - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:CreateRoom"
+                - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:JoinRoom"
+                - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:MatchmakeRoom"
+                - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:RematchRoom"
+      Events:
+        WarmUpSchedule:
+          Type: Schedule
+          Properties:
+            Schedule: rate(5 minutes)
+            Name: BattleshipWarmUpSchedule
+            Description: Ping functions to keep them warm
+            Enabled: true
+
 Outputs:
   HttpApiUrl:
     Description: HTTP API base URL.
