@@ -1300,3 +1300,34 @@
 .light-mode-active .profile-eyebrow {
   color: #0077b6;
 }
+
+/* Skeleton Loading Animation */
+.skeleton-pulse {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(255, 255, 255, 0.15) 50%,
+    rgba(255, 255, 255, 0.05) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite linear;
+}
+
+.light-mode-active .skeleton-pulse {
+  background: linear-gradient(
+    90deg,
+    rgba(0, 119, 182, 0.05) 0%,
+    rgba(0, 119, 182, 0.15) 50%,
+    rgba(0, 119, 182, 0.05) 100%
+  );
+  background-size: 200% 100%;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
