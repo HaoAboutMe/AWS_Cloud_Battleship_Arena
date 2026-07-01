@@ -78,8 +78,49 @@ const Leaderboard = () => {
   const [searchTag, setSearchTag] = useState("");
   const [commanders, setCommanders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isLightMode, setIsLightMode] = useState(() =>
+    document.documentElement.classList.contains("light-mode-active")
+  );
 
   const navigate = useNavigate();
+
+  const toggleTheme = (event) => {
+    const nextLightMode = !isLightMode;
+
+    if (!document.startViewTransition) {
+      document.documentElement.classList.toggle("light-mode-active", nextLightMode);
+      setIsLightMode(nextLightMode);
+      return;
+    }
+
+    const x = event?.clientX || window.innerWidth / 2;
+    const y = event?.clientY || 32;
+    const endRadius = Math.hypot(
+      Math.max(x, window.innerWidth - x),
+      Math.max(y, window.innerHeight - y)
+    );
+
+    const transition = document.startViewTransition(() => {
+      document.documentElement.classList.toggle("light-mode-active", nextLightMode);
+      setIsLightMode(nextLightMode);
+    });
+
+    transition.ready.then(() => {
+      document.documentElement.animate(
+        {
+          clipPath: [
+            `circle(0px at ${x}px ${y}px)`,
+            `circle(${endRadius}px at ${x}px ${y}px)`,
+          ],
+        },
+        {
+          duration: 700,
+          easing: "ease-in-out",
+          pseudoElement: "::view-transition-new(root)",
+        }
+      );
+    });
+  };
 
   // Helper for navigation
   const handleNavigateRequest = (targetPath) => {
@@ -130,6 +171,8 @@ const Leaderboard = () => {
         currentUser={currentUser}
         attributes={attributes}
         authLoading={authLoading}
+        isLightMode={isLightMode}
+        onToggleTheme={toggleTheme}
         onLogout={logout}
         onNavigateRequest={handleNavigateRequest}
       />
