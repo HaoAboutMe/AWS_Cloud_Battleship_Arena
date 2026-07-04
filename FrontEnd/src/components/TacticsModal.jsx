@@ -34,7 +34,6 @@ const TacticsModal = ({ isOpen, onClose }) => {
               <div 
                 key={i} 
                 className={`mini-cell ${isShip ? 'ship' : ''}`} 
-                style={isShip ? {boxShadow: '0 0 10px rgba(0,210,255,0.5)', background: 'var(--color-secondary, #00d2ff)', borderColor: '#fff'} : {}}
               />
             );
           })}
@@ -63,7 +62,6 @@ const TacticsModal = ({ isOpen, onClose }) => {
               <div 
                 key={i} 
                 className={`mini-cell ${isShip ? 'ship' : ''}`} 
-                style={isShip ? {boxShadow: '0 0 10px rgba(0,210,255,0.5)', background: 'var(--color-secondary, #00d2ff)', borderColor: '#fff'} : {}}
               />
             );
           })}
