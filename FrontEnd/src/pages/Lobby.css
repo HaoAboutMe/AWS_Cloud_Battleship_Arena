@@ -48,7 +48,7 @@
   opacity: 0.82;
 }
 
-.lobby-centered-card > * {
+.lobby-centered-card>* {
   position: relative;
   z-index: 1;
 }
@@ -161,7 +161,7 @@
   opacity: 0.82;
 }
 
-.lobby-panel > * {
+.lobby-panel>* {
   position: relative;
   z-index: 1;
 }
@@ -466,6 +466,7 @@
   from {
     rotate: 0deg;
   }
+
   to {
     rotate: 360deg;
   }
@@ -583,9 +584,20 @@
 }
 
 @keyframes pulse {
-  0% { opacity: 0.6; transform: scale(0.95); }
-  50% { opacity: 1; transform: scale(1.05); }
-  100% { opacity: 0.6; transform: scale(0.95); }
+  0% {
+    opacity: 0.6;
+    transform: scale(0.95);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+
+  100% {
+    opacity: 0.6;
+    transform: scale(0.95);
+  }
 }
 
 .lobby-error {
@@ -682,7 +694,7 @@
     backdrop-filter: none;
     border-top: none;
   }
-  
+
   .lobby-room-container {
     padding-bottom: 20px;
   }
@@ -692,7 +704,7 @@
    LIGHT MODE OVERRIDES FOR LOBBY
    ========================================= */
 .light-mode-active .lobby-page {
-  background: 
+  background:
     radial-gradient(circle at 76% 12%, rgba(0, 119, 182, 0.08), transparent 30%),
     radial-gradient(circle at 18% 72%, rgba(0, 168, 232, 0.06), transparent 35%),
     linear-gradient(180deg, #f4f9fb, #e8f4f8 72%) !important;

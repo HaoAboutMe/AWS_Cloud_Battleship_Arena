@@ -13,6 +13,7 @@ import platinumBadge from "../assets/badge/platinum.webp";
 import diamondBadge from "../assets/badge/diamond.webp";
 import masterBadge from "../assets/badge/master.webp";
 import admiralBadge from "../assets/badge/admiral.webp";
+import "./HomeHeader.css";
 import "./Leaderboard.css";
 
 const getRankIcon = (rank) => {

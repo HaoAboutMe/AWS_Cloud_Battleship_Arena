@@ -62,7 +62,7 @@
 
 /* Title: solid bright white — avoids webkit-text-fill stripping Vietnamese diacritics */
 .leaderboard-title {
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-body);
   font-size: 2.5rem;
   font-weight: 800;
   letter-spacing: 0.04em;
@@ -83,7 +83,7 @@
 }
 
 .leaderboard-subtitle {
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-body);
   font-size: 0.72rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -169,7 +169,7 @@
   background: transparent;
   border: none;
   color: #d4e8ff;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-body);
   font-size: 0.875rem;
   padding: 0.75rem 0.65rem;
   outline: none;
@@ -246,7 +246,7 @@
 .leaderboard-table th {
   padding: 0.9rem 1rem;
   text-align: left;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-body);
   color: rgba(117, 223, 255, 0.55);
   text-transform: uppercase;
   font-size: 0.68rem;
@@ -272,7 +272,7 @@
   padding: 0.85rem 1rem;
   color: #c0d8f0;
   vertical-align: middle;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-body);
 }
 
 /* ----------------------------------------------------------
@@ -367,7 +367,7 @@
 }
 
 .table-username {
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-body);
   font-size: 0.88rem;
   text-align: center;
   line-height: 1.3;
@@ -377,7 +377,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-body);
   text-transform: uppercase;
   font-size: 0.72rem;
   color: rgba(165, 231, 255, 0.65);
@@ -431,7 +431,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-body);
   font-size: 0.72rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -787,7 +787,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-body);
   font-weight: 800;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6);
   z-index: 6;
@@ -835,7 +835,7 @@
 }
 
 .badge-name {
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-body);
   font-size: 0.9rem;
   font-weight: 800;
   color: #e8f4ff;
@@ -858,7 +858,7 @@
 }
 
 .badge-pts {
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-body);
   font-weight: 700;
   font-size: 0.9rem;
   color: rgba(165, 231, 255, 0.8);
@@ -1203,4 +1203,565 @@
   .light-mode-active .table-row-rank-1 td:last-child {
     background: #fffdf0;
   }
+}
+
+/* ============================================================
+   Arcade naval leaderboard refresh
+   ============================================================ */
+.leaderboard-page {
+  --lb-bg: #020914;
+  --lb-panel: #071827;
+  --lb-panel-2: #0b2234;
+  --lb-ink: #e7f8ff;
+  --lb-muted: #92aebe;
+  --lb-line: rgba(125, 223, 255, 0.24);
+  --lb-accent: #7ddfff;
+  --lb-mint: #42d6a4;
+  --lb-coral: #ff785f;
+  --lb-gold: #ffd166;
+  --lb-shadow: 8px 8px 0 #020b14, 0 26px 80px rgba(0, 0, 0, 0.32);
+  background:
+    linear-gradient(90deg, rgba(125, 223, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(rgba(125, 223, 255, 0.04) 1px, transparent 1px),
+    radial-gradient(circle at 80% 8%, rgba(125, 223, 255, 0.14), transparent 28rem),
+    radial-gradient(circle at 12% 68%, rgba(255, 120, 95, 0.1), transparent 26rem),
+    linear-gradient(135deg, #020914 0%, #061827 52%, #020b14 100%);
+  background-size: 42px 42px, 42px 42px, auto, auto, auto;
+}
+
+.leaderboard-page .command-header {
+  border-bottom: 0 !important;
+  background: rgba(5, 18, 31, 0.9) !important;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.36) !important;
+  backdrop-filter: blur(22px);
+}
+
+.leaderboard-page .command-header-inner {
+  height: 76px;
+}
+
+.leaderboard-page .command-brand-copy strong,
+.leaderboard-page .command-account-copy strong {
+  color: #e7f8ff !important;
+}
+
+.leaderboard-page .command-brand-copy small,
+.leaderboard-page .command-account-copy small,
+.leaderboard-page .command-account-chevron {
+  color: rgba(157, 220, 240, 0.72) !important;
+}
+
+.leaderboard-page .command-nav,
+.leaderboard-page .language-toggle,
+.leaderboard-page .command-icon-button,
+.leaderboard-page .command-signin {
+  border: 2px solid #7ddfff !important;
+  border-radius: 999px !important;
+  background: #071a2a !important;
+  color: #e7f8ff !important;
+  box-shadow: 3px 3px 0 #020b14 !important;
+}
+
+.leaderboard-page .command-nav {
+  box-shadow: 5px 5px 0 #020b14 !important;
+}
+
+.leaderboard-page .command-nav a {
+  border-radius: 999px;
+  color: rgba(231, 248, 255, 0.68) !important;
+}
+
+.leaderboard-page .command-nav a:hover,
+.leaderboard-page .command-nav a.is-active {
+  color: #061827 !important;
+  background: #7ddfff !important;
+  box-shadow: none !important;
+}
+
+.leaderboard-page .language-toggle {
+  height: 38px;
+  grid-template-columns: 28px 38px 38px;
+  gap: 3px;
+  padding: 4px;
+}
+
+.leaderboard-page .language-toggle::before {
+  top: 4px;
+  left: 35px;
+  width: 38px;
+  height: 26px;
+  border-radius: 999px;
+  background: #42d6a4;
+  box-shadow: none;
+}
+
+.leaderboard-page .language-toggle[data-language="vi"]::before {
+  transform: translateX(41px);
+}
+
+.leaderboard-page .language-toggle button {
+  height: 26px;
+  border-radius: 999px;
+  color: rgba(231, 248, 255, 0.68) !important;
+}
+
+.leaderboard-page .language-toggle button.is-active,
+.leaderboard-page .language-toggle-icon {
+  color: #061827 !important;
+}
+
+.leaderboard-page .command-enlist {
+  border: 2px solid #7ddfff !important;
+  border-radius: 999px !important;
+  background: #ff785f !important;
+  color: #061827 !important;
+  box-shadow: 3px 3px 0 #020b14 !important;
+}
+
+.light-mode-active .leaderboard-page {
+  --lb-bg: #f6f2e9;
+  --lb-panel: #fffdf7;
+  --lb-panel-2: #e8f8ff;
+  --lb-ink: #10283a;
+  --lb-muted: #617484;
+  --lb-line: rgba(16, 40, 58, 0.18);
+  --lb-accent: #1167d8;
+  --lb-mint: #42d6a4;
+  --lb-coral: #ff6b4a;
+  --lb-gold: #ffc400;
+  --lb-shadow: 8px 8px 0 #10283a, 0 24px 60px rgba(21, 53, 79, 0.14);
+  background:
+    linear-gradient(90deg, rgba(17, 103, 216, 0.04) 1px, transparent 1px),
+    linear-gradient(rgba(17, 103, 216, 0.04) 1px, transparent 1px),
+    radial-gradient(circle at 82% 6%, rgba(255, 107, 74, 0.18), transparent 28rem),
+    radial-gradient(circle at 15% 68%, rgba(66, 214, 164, 0.16), transparent 26rem),
+    linear-gradient(135deg, #fffaf0 0%, #eef8ff 48%, #f8efe4 100%);
+  background-size: 42px 42px, 42px 42px, auto, auto, auto;
+}
+
+.light-mode-active .leaderboard-page .command-header {
+  background: rgba(255, 252, 244, 0.9) !important;
+  box-shadow: 0 12px 34px rgba(21, 53, 79, 0.12) !important;
+}
+
+.light-mode-active .leaderboard-page .command-brand-copy strong,
+.light-mode-active .leaderboard-page .command-account-copy strong {
+  color: #10283a !important;
+}
+
+.light-mode-active .leaderboard-page .command-brand-copy small,
+.light-mode-active .leaderboard-page .command-account-copy small,
+.light-mode-active .leaderboard-page .command-account-chevron {
+  color: #3f6f88 !important;
+}
+
+.light-mode-active .leaderboard-page .command-nav,
+.light-mode-active .leaderboard-page .language-toggle,
+.light-mode-active .leaderboard-page .command-icon-button,
+.light-mode-active .leaderboard-page .command-signin {
+  border-color: #10283a !important;
+  background: #ffffff !important;
+  color: #10283a !important;
+  box-shadow: 3px 3px 0 #10283a !important;
+}
+
+.light-mode-active .leaderboard-page .command-nav {
+  box-shadow: 5px 5px 0 #10283a !important;
+}
+
+.light-mode-active .leaderboard-page .command-nav a {
+  color: #52687a !important;
+}
+
+.light-mode-active .leaderboard-page .command-nav a:hover,
+.light-mode-active .leaderboard-page .command-nav a.is-active {
+  color: #ffffff !important;
+  background: #1167d8 !important;
+}
+
+.light-mode-active .leaderboard-page .language-toggle button {
+  color: #5d7180 !important;
+}
+
+.light-mode-active .leaderboard-page .language-toggle button.is-active {
+  color: #10283a !important;
+}
+
+.light-mode-active .leaderboard-page .command-enlist {
+  border-color: #10283a !important;
+  background: #ff6b4a !important;
+  color: #ffffff !important;
+  box-shadow: 3px 3px 0 #10283a !important;
+}
+
+.leaderboard-page > main {
+  padding-top: 34px;
+}
+
+.leaderboard-page-header {
+  position: relative;
+  padding: 30px;
+  border: 3px solid var(--lb-accent);
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 82% 20%, rgba(125, 223, 255, 0.13), transparent 28rem),
+    linear-gradient(135deg, rgba(7, 24, 39, 0.96), rgba(4, 14, 26, 0.94));
+  box-shadow: var(--lb-shadow);
+  overflow: hidden;
+}
+
+.light-mode-active .leaderboard-page-header {
+  border-color: var(--lb-ink);
+  background:
+    radial-gradient(circle at 82% 20%, rgba(17, 103, 216, 0.1), transparent 28rem),
+    linear-gradient(135deg, rgba(255, 253, 247, 0.98), rgba(232, 248, 255, 0.92));
+}
+
+.leaderboard-page-header::after {
+  content: "RANK BOARD";
+  position: absolute;
+  right: 22px;
+  bottom: 12px;
+  color: rgba(223, 248, 255, 0.08);
+  font-family: var(--font-mono);
+  font-size: clamp(24px, 5vw, 62px);
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  transform: rotate(-6deg);
+  pointer-events: none;
+}
+
+.light-mode-active .leaderboard-page-header::after {
+  color: rgba(16, 40, 58, 0.1);
+}
+
+.leaderboard-title {
+  color: var(--lb-ink);
+  font-family: var(--font-display);
+  font-size: clamp(42px, 5vw, 72px);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.leaderboard-title-icon {
+  width: 58px;
+  height: 58px;
+  display: grid !important;
+  place-items: center;
+  border: 2px solid var(--lb-gold);
+  border-radius: 16px;
+  background: rgba(255, 209, 102, 0.12);
+  color: var(--lb-gold) !important;
+  filter: none;
+  box-shadow: 4px 4px 0 #020b14;
+}
+
+.light-mode-active .leaderboard-title-icon {
+  border-color: var(--lb-ink);
+  background: #fff3c4;
+  box-shadow: 4px 4px 0 var(--lb-ink);
+}
+
+.leaderboard-subtitle,
+.podium-header-label {
+  color: var(--lb-muted);
+  font-family: var(--font-mono);
+  letter-spacing: 0.14em;
+}
+
+.leaderboard-title-divider {
+  background: var(--lb-line);
+}
+
+.leaderboard-content-wrapper {
+  align-items: flex-start;
+}
+
+.leaderboard-controls {
+  margin-bottom: 26px;
+}
+
+.leaderboard-dual-search {
+  min-height: 58px;
+  border: 3px solid var(--lb-accent);
+  border-radius: 18px;
+  background: rgba(7, 24, 39, 0.92);
+  box-shadow: 5px 5px 0 #020b14;
+}
+
+.light-mode-active .leaderboard-dual-search {
+  border-color: var(--lb-ink);
+  background: #ffffff;
+  box-shadow: 5px 5px 0 var(--lb-ink);
+}
+
+.leaderboard-dual-search input {
+  color: var(--lb-ink);
+  font-weight: 800;
+}
+
+.leaderboard-dual-search input::placeholder,
+.leaderboard-dual-search .search-icon,
+.search-hash {
+  color: var(--lb-muted);
+}
+
+.leaderboard-table-container {
+  border: 3px solid var(--lb-accent);
+  border-radius: 22px;
+  background: linear-gradient(160deg, rgba(7, 24, 39, 0.96), rgba(4, 14, 26, 0.94));
+  box-shadow: var(--lb-shadow);
+}
+
+.light-mode-active .leaderboard-table-container {
+  border-color: var(--lb-ink);
+  background: rgba(255, 253, 247, 0.96);
+}
+
+.leaderboard-table {
+  min-width: 640px;
+}
+
+.leaderboard-table thead,
+.light-mode-active .leaderboard-table thead {
+  background: rgba(125, 223, 255, 0.08);
+  border-bottom: 2px solid var(--lb-line);
+}
+
+.leaderboard-table th {
+  color: var(--lb-muted);
+  font-family: var(--font-mono);
+}
+
+.leaderboard-table td {
+  color: var(--lb-ink);
+  border-bottom-color: var(--lb-line);
+}
+
+.leaderboard-table tbody tr {
+  border-bottom-color: var(--lb-line);
+}
+
+.leaderboard-table tbody tr:hover {
+  background: rgba(125, 223, 255, 0.08);
+}
+
+.player-name-main,
+.table-pts {
+  color: var(--lb-ink);
+}
+
+.player-name-tag,
+.table-stat,
+.table-rank-badge,
+.table-rank {
+  color: var(--lb-muted);
+}
+
+.table-avatar {
+  border: 2px solid var(--lb-line);
+  border-radius: 14px;
+  background: var(--lb-panel);
+}
+
+.table-row-rank-1,
+.light-mode-active .table-row-rank-1 {
+  background: rgba(255, 209, 102, 0.1);
+}
+
+.table-row-rank-2,
+.light-mode-active .table-row-rank-2 {
+  background: rgba(125, 223, 255, 0.08);
+}
+
+.table-row-rank-3,
+.light-mode-active .table-row-rank-3 {
+  background: rgba(255, 120, 95, 0.08);
+}
+
+.table-row-rank-1 .table-rank,
+.table-row-rank-1 .table-pts,
+.table-row-rank-1 .player-name-main {
+  color: var(--lb-gold);
+}
+
+.table-row-rank-2 .table-rank {
+  color: var(--lb-accent);
+}
+
+.table-row-rank-3 .table-rank {
+  color: var(--lb-coral);
+}
+
+.leaderboard-empty-state {
+  min-height: 220px;
+  color: var(--lb-muted);
+}
+
+.leaderboard-right-col {
+  padding: 26px;
+  border: 3px solid var(--lb-accent);
+  border-radius: 22px;
+  background: linear-gradient(160deg, rgba(7, 24, 39, 0.9), rgba(4, 14, 26, 0.88));
+  box-shadow: var(--lb-shadow);
+}
+
+.light-mode-active .leaderboard-right-col {
+  border-color: var(--lb-ink);
+  background: rgba(255, 253, 247, 0.9);
+}
+
+.badge-podium {
+  max-width: 100%;
+}
+
+.badge-name,
+.badge-pts {
+  color: var(--lb-ink);
+  text-shadow: none;
+}
+
+.badge-rank-empty .badge-pts,
+.badge-empty-label {
+  color: var(--lb-muted);
+}
+
+@media (max-width: 1023px) {
+  .leaderboard-right-col {
+    display: none !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .leaderboard-page > main {
+    padding-top: 18px;
+  }
+
+  .leaderboard-page-header {
+    padding: 22px;
+    border-radius: 18px;
+  }
+
+  .leaderboard-title {
+    font-size: clamp(34px, 10vw, 46px);
+    align-items: flex-start;
+  }
+
+  .leaderboard-title-icon {
+    width: 48px;
+    height: 48px;
+    font-size: 28px !important;
+  }
+
+  .leaderboard-controls {
+    gap: 14px;
+  }
+
+  .leaderboard-dual-search {
+    flex-wrap: wrap;
+    min-height: auto;
+    padding: 8px;
+  }
+
+  .leaderboard-dual-search input {
+    min-width: 0;
+    padding: 10px 8px;
+  }
+
+  .leaderboard-table-container {
+    border-radius: 18px;
+  }
+
+  .leaderboard-table th:last-child,
+  .leaderboard-table td:last-child,
+  .light-mode-active .leaderboard-table th:last-child,
+  .light-mode-active .leaderboard-table td:last-child {
+    background: var(--lb-panel);
+    box-shadow: -6px 0 14px rgba(0, 0, 0, 0.24);
+  }
+
+  .light-mode-active .leaderboard-table th:last-child,
+  .light-mode-active .leaderboard-table td:last-child {
+    background: #fffdf7;
+    box-shadow: -6px 0 14px rgba(21, 53, 79, 0.12);
+  }
+
+  .table-row-rank-1 td:last-child,
+  .light-mode-active .table-row-rank-1 td:last-child {
+    background: rgba(255, 209, 102, 0.16);
+  }
+
+  .leaderboard-table td,
+  .leaderboard-table th {
+    padding: 12px 10px;
+  }
+}
+
+/* Targeted light-mode readability polish */
+.light-mode-active .leaderboard-subtitle,
+.light-mode-active .podium-header-label,
+.light-mode-active .leaderboard-table th,
+.light-mode-active .leaderboard-dual-search input::placeholder,
+.light-mode-active .leaderboard-dual-search .search-icon,
+.light-mode-active .search-hash {
+  color: #2f718d !important;
+  opacity: 1;
+}
+
+.light-mode-active .leaderboard-empty-state,
+.light-mode-active .leaderboard-empty-state .material-symbols-outlined {
+  color: #337f9e !important;
+  opacity: 1;
+}
+
+.light-mode-active .player-name-main,
+.light-mode-active .table-pts,
+.light-mode-active .leaderboard-table td {
+  color: #10283a !important;
+}
+
+.light-mode-active .player-name-tag,
+.light-mode-active .table-stat,
+.light-mode-active .table-rank-badge,
+.light-mode-active .table-rank {
+  color: #456b7f !important;
+}
+
+.light-mode-active .leaderboard-right-col {
+  background:
+    radial-gradient(circle at 50% 32%, rgba(17, 103, 216, 0.1), transparent 18rem),
+    rgba(255, 253, 247, 0.98);
+}
+
+.light-mode-active .badge-rank-empty .badge-crown,
+.light-mode-active .badge-rank-empty .laurel-wreath {
+  opacity: 0.5;
+  filter: grayscale(45%) contrast(1.08);
+}
+
+.light-mode-active .badge-rank-empty.badge-rank-1 .badge-avatar-ring,
+.light-mode-active .badge-rank-empty.badge-rank-2 .badge-avatar-ring,
+.light-mode-active .badge-rank-empty.badge-rank-3 .badge-avatar-ring {
+  background: #e8f8ff;
+  box-shadow: 0 0 0 3px rgba(16, 40, 58, 0.08);
+}
+
+.light-mode-active .badge-avatar-placeholder .material-symbols-outlined {
+  color: #7dbbd1 !important;
+  opacity: 1;
+}
+
+.light-mode-active .badge-rank-empty .badge-name {
+  opacity: 1;
+}
+
+.light-mode-active .badge-empty-label {
+  color: #79b4cc !important;
+  font-style: normal;
+  font-weight: 700;
+}
+
+.light-mode-active .badge-rank-empty .badge-pts {
+  color: #6ca7bf !important;
+  font-weight: 700;
 }
