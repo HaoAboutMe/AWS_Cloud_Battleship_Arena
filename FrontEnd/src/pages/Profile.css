@@ -2068,6 +2068,22 @@
   text-transform: none;
 }
 
+.avatar-upload-icon {
+  width: 32px;
+  height: 32px;
+  transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.2s ease;
+  color: currentColor;
+}
+
+.profile-avatar-frame:hover .avatar-upload-icon {
+  transform: scale(1.18) rotate(-5deg);
+  filter: drop-shadow(0 0 8px rgba(117, 223, 255, 0.85));
+}
+
+.light-mode-active .profile-avatar-frame:hover .avatar-upload-icon {
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.95));
+}
+
 /* Profile Rank Panel - Cyber-Navy / Sand Brutalist style matching Home page */
 .profile-service-rank-panel {
   display: flex;
@@ -2225,4 +2241,52 @@
 .light-mode-active .profile-service-rank-max-label {
   color: #10283a;
   text-shadow: none;
+}
+
+/* Mobile responsive avatar upload badge */
+@media (max-width: 620px) {
+  .profile-avatar-frame .avatar-upload-overlay {
+    inset: auto !important;
+    bottom: -2px !important;
+    right: -2px !important;
+    left: auto !important;
+    top: auto !important;
+    width: 34px !important;
+    height: 34px !important;
+    border-radius: 50% !important;
+    border: 2px solid #75dfff !important;
+    background: #020b14 !important;
+    color: #75dfff !important;
+    box-shadow: 2px 2px 0px #020b14 !important;
+    opacity: 1 !important; /* Always visible on mobile */
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    z-index: 20 !important;
+    backdrop-filter: none !important;
+    transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+  }
+
+  .light-mode-active .profile-avatar-frame .avatar-upload-overlay {
+    border-color: #10283a !important;
+    background: #f6f2e9 !important;
+    color: #10283a !important;
+    box-shadow: 2px 2px 0px #10283a !important;
+  }
+
+  .profile-avatar-frame .avatar-upload-overlay .avatar-upload-icon {
+    width: 18px !important;
+    height: 18px !important;
+    transform: none !important;
+    filter: none !important;
+  }
+
+  .profile-avatar-frame .avatar-upload-overlay:active {
+    transform: translate(1px, 1px) !important;
+    box-shadow: 1px 1px 0px #020b14 !important;
+  }
+
+  .light-mode-active .profile-avatar-frame .avatar-upload-overlay:active {
+    box-shadow: 1px 1px 0px #10283a !important;
+  }
 }
