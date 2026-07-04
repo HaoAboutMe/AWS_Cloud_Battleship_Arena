@@ -1417,9 +1417,12 @@
   background: var(--home-mint);
 }
 
-.home-page .language-toggle-icon,
 .home-page .language-toggle button.is-active {
   color: #061827 !important;
+}
+
+.home-page .language-toggle-icon {
+  color: var(--home-cobalt) !important;
 }
 
 .home-page .language-toggle button {

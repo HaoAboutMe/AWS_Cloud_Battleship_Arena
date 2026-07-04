@@ -1305,9 +1305,12 @@
   color: rgba(231, 248, 255, 0.68) !important;
 }
 
-.leaderboard-page .language-toggle button.is-active,
-.leaderboard-page .language-toggle-icon {
+.leaderboard-page .language-toggle button.is-active {
   color: #061827 !important;
+}
+
+.leaderboard-page .language-toggle-icon {
+  color: var(--lb-accent) !important;
 }
 
 .leaderboard-page .command-enlist {

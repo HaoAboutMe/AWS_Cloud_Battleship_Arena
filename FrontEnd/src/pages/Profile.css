@@ -1432,9 +1432,12 @@
   color: rgba(231, 248, 255, 0.68) !important;
 }
 
-.profile-page .language-toggle button.is-active,
-.profile-page .language-toggle-icon {
+.profile-page .language-toggle button.is-active {
   color: #061827 !important;
+}
+
+.profile-page .language-toggle-icon {
+  color: var(--profile-accent) !important;
 }
 
 .profile-page .command-enlist {
