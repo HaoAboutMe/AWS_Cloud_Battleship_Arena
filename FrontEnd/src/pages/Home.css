@@ -203,7 +203,31 @@
   color: #3f6f88 !important;
 }
 
-.home-page .command-account-menu>div,
+/* Header Account Dropdown Menu styling */
+/* Dark Mode (Default) */
+.home-page .command-account-menu>div {
+  border: 2px solid #7ddfff !important;
+  border-radius: 16px !important;
+  background: #071827 !important;
+  box-shadow: 5px 5px 0 #020b14, 0 18px 44px rgba(0, 0, 0, 0.35) !important;
+}
+
+.home-page .command-account-menu a,
+.home-page .command-account-menu button {
+  color: #e7f8ff !important;
+}
+
+.home-page .command-account-menu a:hover,
+.home-page .command-account-menu button:hover {
+  background: rgba(125, 223, 255, 0.08) !important;
+  color: #7ddfff !important;
+}
+
+.home-page .command-menu-label {
+  color: rgba(147, 173, 190, 0.6) !important;
+}
+
+/* Light Mode */
 .light-mode-active .home-page .command-account-menu>div {
   border: 2px solid var(--home-ink) !important;
   border-radius: 16px !important;
@@ -211,11 +235,19 @@
   box-shadow: 5px 5px 0 var(--home-ink), 0 18px 44px rgba(21, 53, 79, 0.14) !important;
 }
 
-.home-page .command-account-menu a,
-.home-page .command-account-menu button,
 .light-mode-active .home-page .command-account-menu a,
 .light-mode-active .home-page .command-account-menu button {
   color: var(--home-ink) !important;
+}
+
+.light-mode-active .home-page .command-account-menu a:hover,
+.light-mode-active .home-page .command-account-menu button:hover {
+  background: rgba(16, 40, 58, 0.05) !important;
+  color: var(--home-ink) !important;
+}
+
+.light-mode-active .home-page .command-menu-label {
+  color: rgba(16, 40, 58, 0.5) !important;
 }
 
 .home-main {
