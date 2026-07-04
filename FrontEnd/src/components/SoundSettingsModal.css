@@ -13,6 +13,8 @@
 .sound-settings-dialog {
   width: min(820px, 100%);
   overflow: hidden;
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
   border: 1px solid rgba(117, 223, 255, 0.3);
   border-radius: 8px;
   color: #dcecf8;
@@ -21,6 +23,10 @@
     #061b2a;
   box-shadow: 0 28px 80px rgba(0, 8, 15, 0.62), inset 0 1px 0 rgba(202, 241, 255, 0.08);
   animation: sound-settings-dialog-in 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.sound-settings-dialog::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari and Opera */
 }
 
 .sound-settings-header {

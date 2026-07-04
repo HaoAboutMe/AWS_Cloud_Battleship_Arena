@@ -164,7 +164,7 @@ function SoundSettingsModal({ open, onClose }) {
                     <span>{t("common.language")}</span>
                   </label>
                   <div id="settings-language" className="settings-language-control">
-                    <LanguageToggle compact={true} />
+                    <LanguageToggle />
                   </div>
                 </div>
                 <div className="sound-volume-row settings-theme-row">
