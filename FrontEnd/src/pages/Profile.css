@@ -962,36 +962,7 @@
   box-shadow: 0 12px 30px rgba(23, 58, 78, 0.08);
 }
 
-.light-mode-active .profile-riot-id-input,
-.light-mode-active .profile-riot-id-tag-container {
-  border-color: rgba(117, 223, 255, 0.28);
-  background: rgba(2, 16, 28, 0.58);
-  color: #f2fbff;
-}
-
-.light-mode-active .profile-riot-id-tag-input {
-  color: #f2fbff;
-}
-
-.light-mode-active .profile-riot-id-input:disabled,
-.light-mode-active .profile-riot-id-tag-input:disabled {
-  background: transparent;
-  color: rgba(242, 251, 255, 0.82);
-  -webkit-text-fill-color: rgba(242, 251, 255, 0.82);
-}
-
-.light-mode-active .profile-riot-id-input:disabled {
-  background: rgba(2, 16, 28, 0.58);
-}
-
-.light-mode-active .profile-riot-id-input::placeholder,
-.light-mode-active .profile-riot-id-tag-input::placeholder {
-  color: rgba(224, 244, 255, 0.56);
-}
-
-.light-mode-active .profile-riot-id-tag-prefix {
-  color: rgba(224, 244, 255, 0.72);
-}
+/* Old light mode Riot ID overrides removed in favor of modern theme block below */
 
 /* Profile Match Card styles */
 .profile-match-card {
@@ -1594,6 +1565,7 @@
   color: var(--profile-mint) !important;
   font-family: var(--font-mono);
   letter-spacing: 0.08em;
+  font-weight: 900 !important;
 }
 
 .profile-identity-copy {
@@ -1616,6 +1588,14 @@
 .profile-section-heading p,
 .profile-empty p {
   color: var(--profile-muted) !important;
+}
+
+.profile-section-heading h2 {
+  font-weight: 800 !important;
+}
+
+.profile-section-heading p {
+  font-weight: 600 !important;
 }
 
 .profile-badges span,
@@ -1840,23 +1820,59 @@
 .light-mode-active .profile-riot-id-input,
 .light-mode-active .profile-riot-id-tag-container {
   min-height: 48px;
-  border: 2px solid var(--profile-line);
-  border-radius: 14px;
-  background: rgba(223, 248, 255, 0.06);
-  color: var(--profile-ink);
-  box-shadow: none;
+  border: 2px solid var(--profile-line) !important;
+  border-radius: 14px !important;
+  background: rgba(223, 248, 255, 0.06) !important;
+  color: var(--profile-ink) !important;
+  box-shadow: none !important;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
 }
 
 .light-mode-active .profile-riot-id-input,
 .light-mode-active .profile-riot-id-tag-container {
-  background: #ffffff;
+  background: #ffffff !important;
+  border-color: var(--profile-line) !important;
+  color: var(--profile-ink) !important;
 }
 
 .profile-riot-id-tag-input,
-.light-mode-active .profile-riot-id-tag-input,
+.light-mode-active .profile-riot-id-tag-input {
+  background: transparent !important;
+  color: var(--profile-ink) !important;
+}
+
 .profile-riot-id-tag-prefix,
 .light-mode-active .profile-riot-id-tag-prefix {
-  color: var(--profile-ink);
+  color: var(--profile-muted) !important;
+}
+
+.profile-riot-id-input:focus,
+.profile-riot-id-tag-container:focus-within {
+  border-color: var(--profile-accent) !important;
+}
+
+.profile-riot-id-input:disabled,
+.profile-riot-id-tag-input:disabled {
+  color: var(--profile-muted) !important;
+  -webkit-text-fill-color: var(--profile-muted) !important;
+  background: transparent !important;
+}
+
+/* Ensure both container and input have identical backgrounds when disabled */
+.profile-riot-id-input.is-disabled,
+.profile-riot-id-tag-container.is-disabled {
+  background: rgba(223, 248, 255, 0.03) !important;
+}
+
+.light-mode-active .profile-riot-id-input.is-disabled,
+.light-mode-active .profile-riot-id-tag-container.is-disabled {
+  background: rgba(16, 40, 58, 0.04) !important;
+}
+
+.profile-riot-id-input::placeholder,
+.profile-riot-id-tag-input::placeholder {
+  color: var(--profile-muted) !important;
+  opacity: 0.6;
 }
 
 .profile-match-card,
@@ -1864,12 +1880,19 @@
   border: 2px solid var(--profile-coral);
   border-radius: 18px;
   background: rgba(255, 120, 95, 0.08);
+  box-shadow: 6px 6px 0 #020b14;
 }
 
 .profile-match-card.is-win,
 .light-mode-active .profile-match-card.is-win {
   border-color: var(--profile-mint);
   background: rgba(66, 214, 164, 0.08);
+  box-shadow: 6px 6px 0 #020b14;
+}
+
+.light-mode-active .profile-match-card,
+.light-mode-active .profile-match-card.is-win {
+  box-shadow: 6px 6px 0 var(--profile-ink) !important;
 }
 
 .profile-match-header,

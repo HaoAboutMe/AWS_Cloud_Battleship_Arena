@@ -763,7 +763,7 @@ function Profile() {
                             setUpdateSuccess("");
                           }}
                           disabled={!!cooldownMessage}
-                          className="profile-riot-id-input"
+                          className={`profile-riot-id-input ${cooldownMessage ? "is-disabled" : ""}`}
                           style={{
                             opacity: cooldownMessage ? 0.5 : 1,
                             cursor: cooldownMessage ? "not-allowed" : "text",
@@ -775,7 +775,7 @@ function Profile() {
                           {t("profile.tagline")}
                         </label>
                         <div
-                          className="profile-riot-id-tag-container"
+                          className={`profile-riot-id-tag-container ${cooldownMessage ? "is-disabled" : ""}`}
                           style={{ opacity: cooldownMessage ? 0.5 : 1 }}
                         >
                           <span className="profile-riot-id-tag-prefix">#</span>
