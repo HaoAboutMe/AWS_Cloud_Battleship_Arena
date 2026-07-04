@@ -451,7 +451,7 @@ function Home() {
           <div className="home-hero-copy">
             <span className="home-hero-kicker">
               <span className="material-symbols-outlined" aria-hidden="true">casino</span>
-              Tactical board arena
+              {t("home.heroKicker")}
             </span>
             <h1>
               {t("home.heroOne")} <span>{t("home.heroFleet")}</span>
@@ -459,7 +459,7 @@ function Home() {
               {t("home.heroTwo")}
             </h1>
             <p>
-              Deploy strange ship shapes, read the ocean grid, and win the duel before the enemy finds your fleet.
+              {t("home.heroBody")}
             </p>
             <div className="home-hero-actions">
               <Link to={`/game?mode=pve&difficulty=${botDifficulty}`} className="home-primary-cta">
@@ -483,9 +483,9 @@ function Home() {
             <img className="home-ship home-ship-destroyer" src={shipDestroyer} alt="" />
             <img className="home-ship home-ship-scout" src={shipScout} alt="" />
             <div className="home-telemetry-panel">
-              <small>Custom fleet</small>
-              <strong>15 blocks</strong>
-              <span>2-4 ships on deck</span>
+              <small>{t("home.customFleet")}</small>
+              <strong>{t("home.blocksCount", { count: 15 })}</strong>
+              <span>{t("home.shipsOnDeck")}</span>
             </div>
           </div>
         </section>
@@ -571,11 +571,11 @@ function Home() {
               </div>
               <div className="home-mode-tags">
                 <span>{t("home.customMatch")}</span>
-                <span>Room code</span>
+                <span>{t("home.roomCode")}</span>
               </div>
               <button type="button" onClick={handleCreatePrivateRoom} disabled={roomCreating} className="home-card-cta is-ghost">
                 <span className="material-symbols-outlined" aria-hidden="true">add_circle</span>
-                {roomCreating ? "Creating..." : t("home.createRoom")}
+                {roomCreating ? t("home.creatingRoom") : t("home.createRoom")}
               </button>
             </article>
           </div>
@@ -719,8 +719,8 @@ function Home() {
                       )}
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-surface-container/30 p-4 rounded-sm border border-white/5">
+                  <div className="grid grid-cols-2 gap-4" style={{ gridAutoRows: "1fr" }}>
+                    <div className="bg-surface-container/30 p-4 rounded-sm border border-white/5 flex flex-col justify-center">
                       <p className="text-[10px] text-on-surface-variant uppercase font-bold mb-1">
                         {t("profile.totalBattles") || "Total Battles"}
                       </p>
@@ -728,7 +728,7 @@ function Home() {
                         {recordMode === "all" ? (stats?.totalGames || 0) : (stats?.rankedMatches || 0)}
                       </p>
                     </div>
-                    <div className="bg-surface-container/30 p-4 rounded-sm border border-white/5">
+                    <div className="bg-surface-container/30 p-4 rounded-sm border border-white/5 flex flex-col justify-center">
                       <p className="text-[10px] text-on-surface-variant uppercase font-bold mb-1">
                         {t("home.victories") || "Victories"}
                       </p>
@@ -736,7 +736,7 @@ function Home() {
                         {recordMode === "all" ? (stats?.wins || 0) : (stats?.rankedWins || 0)}
                       </p>
                     </div>
-                    <div className="bg-surface-container/30 p-4 rounded-sm border border-white/5">
+                    <div className="bg-surface-container/30 p-4 rounded-sm border border-white/5 flex flex-col justify-center">
                       <p className="text-[10px] text-on-surface-variant uppercase font-bold mb-1">
                         {t("home.defeats") || "Defeats"}
                       </p>

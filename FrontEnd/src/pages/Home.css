@@ -1213,8 +1213,8 @@
   }
 
   .home-hero {
-    padding: 24px 18px;
-    border-radius: 16px;
+    padding: 20px 16px;
+    border-radius: 12px;
     box-shadow: 5px 5px 0 var(--home-ink), var(--home-shadow);
   }
 
@@ -1223,16 +1223,20 @@
   }
 
   .home-hero h1 {
-    font-size: clamp(42px, 11vw, 58px);
-    line-height: 0.98;
+    font-size: clamp(28px, 8vw, 36px);
+    margin: 16px 0 12px;
+    line-height: 1.05;
   }
 
   .home-hero-copy p {
-    font-size: 15px;
+    font-size: 14px;
+    margin-bottom: 20px;
+    line-height: 1.4;
   }
 
   .home-hero-actions {
     flex-direction: column;
+    gap: 8px;
   }
 
   .home-primary-cta,
@@ -1259,7 +1263,7 @@
   }
 
   .home-war-room {
-    min-height: 320px;
+    display: none;
   }
 
   .home-map-board {
