@@ -302,7 +302,7 @@
   display: grid;
   grid-template-columns: minmax(0, 1.6fr) minmax(300px, 0.8fr);
   gap: 28px;
-  padding-top: 34px;
+  padding-top: 0 !important;
 }
 
 .profile-record,
@@ -812,6 +812,7 @@
   background: var(--surface);
   border-radius: 8px;
   border: 1px solid var(--border);
+  margin-top: 0 !important;
 }
 
 .profile-riot-id-col-left {
@@ -1051,7 +1052,7 @@
 }
 
 .profile-history-section {
-  margin-top: 32px;
+  margin-top: 0 !important;
   padding: 32px;
   background: var(--surface);
   border-radius: 8px;
@@ -1672,7 +1673,7 @@
   gap: 8px;
   width: fit-content;
   max-width: 100%;
-  margin: 28px 0 34px;
+  margin: 28px 0 28px;
   padding: 7px;
   border: 3px solid var(--profile-accent);
   border-radius: 999px;
@@ -1898,23 +1899,56 @@
 
 @media (max-width: 820px) {
   .profile-identity {
-    grid-template-columns: 112px minmax(0, 1fr);
-    padding: 22px;
+    grid-template-columns: 1fr;
+    padding: 24px;
+    text-align: center;
+    gap: 20px;
+  }
+
+  .profile-identity::after {
+    display: none !important;
   }
 
   .profile-avatar-frame {
     width: 104px;
     height: 104px;
+    margin: 0 auto;
+  }
+
+  .profile-identity-copy {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .profile-badges {
+    justify-content: center;
   }
 
   .profile-tabs-nav {
     width: 100%;
+    margin: 20px 0 20px !important;
   }
 
   .profile-tab-btn {
     flex: 1;
     justify-content: center;
   }
+
+  .profile-content {
+    grid-template-columns: 1fr !important;
+    padding-top: 0px !important;
+  }
+
+  .profile-stat-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  .profile-stat-grid article:nth-child(1) { order: 1; }
+  .profile-stat-grid article:nth-child(4) { order: 2; }
+  .profile-stat-grid article:nth-child(2) { order: 3; }
+  .profile-stat-grid article:nth-child(3) { order: 4; }
 }
 
 @media (max-width: 620px) {
@@ -1926,11 +1960,18 @@
   .profile-identity {
     grid-template-columns: 1fr;
     padding: 20px;
-    text-align: left;
+    text-align: center;
   }
 
   .profile-avatar-frame {
-    margin: 0;
+    margin: 0 auto;
+  }
+
+  .profile-identity-copy {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
   }
 
   .profile-identity-copy h1 {
@@ -1939,7 +1980,7 @@
   }
 
   .profile-badges {
-    justify-content: flex-start;
+    justify-content: center;
   }
 
   .profile-tabs-nav {
@@ -1962,7 +2003,7 @@
   }
 
   .profile-stat-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr !important;
   }
 
   .profile-stat-grid article {

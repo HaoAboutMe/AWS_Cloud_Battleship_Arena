@@ -515,7 +515,9 @@ function Profile() {
                     </div>
                     <div>
                       <dt>{t("profile.accountId")}</dt>
-                      <dd title={currentUser.userId}>{currentUser.userId}</dd>
+                      <dd title={currentUser.userId}>
+                        {currentUser.userId ? `••••${currentUser.userId.slice(-6)}` : ""}
+                      </dd>
                     </div>
                   </dl>
                   <Link to="/forgot-password" className="profile-security-link">
