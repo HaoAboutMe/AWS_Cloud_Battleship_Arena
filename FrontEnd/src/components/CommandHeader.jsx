@@ -20,6 +20,7 @@ function CommandHeader({
   onToggleTheme,
   onLogout,
   onNavigateRequest,
+  showReturnHome = false,
 }) {
   const location = useLocation();
   const { t } = useLanguage();
@@ -80,7 +81,7 @@ function CommandHeader({
   };
 
   return (
-    <header className={`command-header ${currentUser ? "user-logged-in" : ""}`}>
+    <header className={`command-header ${currentUser ? "user-logged-in" : ""} ${showReturnHome ? "auth-header-mode" : ""}`}>
       <div className="command-header-inner">
         <Link
           to="/"
@@ -108,29 +109,33 @@ function CommandHeader({
           </span>
         </Link>
 
-        <nav className="command-nav" aria-label="Primary navigation">
-          <Link
-            className={location.pathname === "/" ? "is-active" : ""}
-            to="/"
-            onClick={(event) => handleNavigation(event, "/")}
-          >
-            {t("common.home")}
-          </Link>
-          <Link
-            className={location.pathname === "/leaderboard" ? "is-active" : ""}
-            to="/leaderboard"
-            onClick={(event) => handleNavigation(event, "/leaderboard")}
-          >
-            {t("common.leaderboard")}
-          </Link>
-          <Link
-            className={location.pathname === "/profile" ? "is-active" : ""}
-            to="/profile"
-            onClick={(event) => handleNavigation(event, "/profile")}
-          >
-            {t("common.profile")}
-          </Link>
-        </nav>
+        {!showReturnHome && (
+          <nav className="command-nav" aria-label="Primary navigation">
+            <Link
+              className={location.pathname === "/" ? "is-active" : ""}
+              to="/"
+              onClick={(event) => handleNavigation(event, "/")}
+            >
+              {t("common.home")}
+            </Link>
+            <Link
+              className={location.pathname === "/leaderboard" ? "is-active" : ""}
+              to="/leaderboard"
+              onClick={(event) => handleNavigation(event, "/leaderboard")}
+            >
+              {t("common.leaderboard")}
+            </Link>
+            <Link
+              className={location.pathname === "/profile" ? "is-active" : ""}
+              to="/profile"
+              onClick={(event) => handleNavigation(event, "/profile")}
+            >
+              {t("common.profile")}
+            </Link>
+          </nav>
+        )}
+
+        {showReturnHome && <div className="command-nav-spacer" />}
 
         <div className="command-actions">
           <div className="command-desktop-actions">
@@ -147,84 +152,93 @@ function CommandHeader({
             </button>
           </div>
 
-          {!authLoading && !currentUser ? (
-            <div className="command-guest-actions">
-              <Link to="/login" className="command-signin">{t("common.signIn")}</Link>
-              <Link to="/register" className="command-enlist">
-                <span className="command-enlist-desktop">{t("common.enlist")}</span>
-                <span className="command-enlist-mobile">{t("common.getStarted")}</span>
-              </Link>
-            </div>
-          ) : currentUser ? (
+          {showReturnHome ? (
+            <Link to="/" className="command-signin" style={{ gap: "6px" }}>
+              <span className="material-symbols-outlined" style={{ fontSize: "18px" }}>arrow_back</span>
+              <span>{t("auth.returnBase") || "Return Home"}</span>
+            </Link>
+          ) : (
             <>
-              <div className={`command-account ${menuOpen ? "is-open" : ""}`} ref={menuRef}>
-                <button
-                  type="button"
-                  className="command-account-trigger"
-                  aria-label={t("common.openAccount")}
-                  onClick={() => setMenuOpen(!menuOpen)}
-                >
-                  <img
-                    className="command-avatar"
-                    src={avatarUrl}
-                    alt=""
-                    referrerPolicy="no-referrer"
-                    onError={(event) => {
-                      event.currentTarget.src = COMMANDER_AVATAR;
-                    }}
-                  />
-                  <span className="command-account-copy">
-                    <strong title={identity}>{identity}</strong>
-                    <small className="command-account-rank">
-                      {hasRank ? (
-                        <img src={rankMeta.badge} alt="" className="command-rank-badge" />
-                      ) : (
-                        <i className="command-empty-rank-badge" />
-                      )}
-                      {hasRank ? `${rankMeta.label} - ${rankPoints} RP` : t("profile.unranked")}
-                    </small>
-                  </span>
-                  <span className="material-symbols-outlined command-account-chevron">expand_more</span>
-                </button>
-                <div className="command-account-menu">
-                  <div>
-                    <span className="command-menu-label">{t("common.accountControls")}</span>
-                    <Link
-                      to="/profile"
-                      onClick={(event) => {
-                        setMenuOpen(false);
-                        handleNavigation(event, "/profile");
-                      }}
-                    >
-                      <span className="material-symbols-outlined">person</span>
-                      {t("common.viewProfile")}
-                    </Link>
-                    <button
-                      type="button"
-                      className="command-menu-settings"
-                      onClick={() => setSettingsOpen(true)}
-                    >
-                      <span className="material-symbols-outlined">settings</span>
-                      {t("common.settings")}
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setMenuOpen(false);
-                        onLogout();
-                      }}
-                    >
-                      <span className="material-symbols-outlined">logout</span>
-                      {t("common.signOut")}
-                    </button>
-
-
-                  </div>
+              {!authLoading && !currentUser ? (
+                <div className="command-guest-actions">
+                  <Link to="/login" className="command-signin">{t("common.signIn")}</Link>
+                  <Link to="/register" className="command-enlist">
+                    <span className="command-enlist-desktop">{t("common.enlist")}</span>
+                    <span className="command-enlist-mobile">{t("common.getStarted")}</span>
+                  </Link>
                 </div>
-              </div>
+              ) : currentUser ? (
+                <>
+                  <div className={`command-account ${menuOpen ? "is-open" : ""}`} ref={menuRef}>
+                    <button
+                      type="button"
+                      className="command-account-trigger"
+                      aria-label={t("common.openAccount")}
+                      onClick={() => setMenuOpen(!menuOpen)}
+                    >
+                      <img
+                        className="command-avatar"
+                        src={avatarUrl}
+                        alt=""
+                        referrerPolicy="no-referrer"
+                        onError={(event) => {
+                          event.currentTarget.src = COMMANDER_AVATAR;
+                        }}
+                      />
+                      <span className="command-account-copy">
+                        <strong title={identity}>{identity}</strong>
+                        <small className="command-account-rank">
+                          {hasRank ? (
+                            <img src={rankMeta.badge} alt="" className="command-rank-badge" />
+                          ) : (
+                            <i className="command-empty-rank-badge" />
+                          )}
+                          {hasRank ? `${rankMeta.label} - ${rankPoints} RP` : t("profile.unranked")}
+                        </small>
+                      </span>
+                      <span className="material-symbols-outlined command-account-chevron">expand_more</span>
+                    </button>
+                    <div className="command-account-menu">
+                      <div>
+                        <span className="command-menu-label">{t("common.accountControls")}</span>
+                        <Link
+                          to="/profile"
+                          onClick={(event) => {
+                            setMenuOpen(false);
+                            handleNavigation(event, "/profile");
+                          }}
+                        >
+                          <span className="material-symbols-outlined">person</span>
+                          {t("common.viewProfile")}
+                        </Link>
+                        <button
+                          type="button"
+                          className="command-menu-settings"
+                          onClick={() => setSettingsOpen(true)}
+                        >
+                          <span className="material-symbols-outlined">settings</span>
+                          {t("common.settings")}
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setMenuOpen(false);
+                            onLogout();
+                          }}
+                        >
+                          <span className="material-symbols-outlined">logout</span>
+                          {t("common.signOut")}
+                        </button>
+
+
+                      </div>
+                    </div>
+                  </div>
+                </>
+              ) : null}
             </>
-          ) : null}
+          )}
         </div>
       </div>
       <SoundSettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />

@@ -409,7 +409,7 @@ const translations = {
     },
     auth: {
       brandSub: "Mạng lưới chỉ huy đấu trường",
-      returnBase: "Về căn cứ",
+      returnBase: "Về căn cứ thôi",
       backSignIn: "Quay lại đăng nhập",
       radarLabel: "Trạng thái mạng lưới hạm đội",
       emailInvalid: "Vui lòng nhập địa chỉ email hợp lệ.",
@@ -452,7 +452,7 @@ const translations = {
     register: {
       kicker: "Kênh đăng ký bảo mật",
       confirmKicker: "Kênh xác minh đang hoạt động",
-      title: "Đăng ký làm chỉ huy",
+      title: "Đăng ký",
       confirmTitle: "Xác minh email",
       subtitle: "Tạo danh tính hạm đội và bước vào đấu trường.",
       confirmSubtitle: "Nhập mã bảo mật đã gửi đến {email}.",

@@ -133,7 +133,7 @@ function Login() {
   };
 
   return (
-    <AuthShell pageClass="login-page">
+    <AuthShell pageClass="login-page" useCommandHeader={true}>
       <div className="auth-form-heading">
         <span className="auth-kicker">
           <span className="auth-live-dot" />
