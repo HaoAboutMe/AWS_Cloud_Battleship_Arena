@@ -4938,7 +4938,7 @@ function Game() {
                     <div className="flex gap-2 w-full px-2">
                       <button
                         onClick={autoArrangeFleet}
-                        className="flex-1 auto-arrange-button m-0 min-h-[32px] text-[11px] p-1.5"
+                        className="flex-1 auto-arrange-button is-orange"
                         disabled={isPlacementLocked}
                       >
                         <span className="material-symbols-outlined text-[15px]">
@@ -4951,12 +4951,7 @@ function Game() {
                           e.stopPropagation();
                           toggleCustomShipyard();
                         }}
-                        className="flex-1 auto-arrange-button m-0 min-h-[32px] text-[11px] p-1.5"
-                        style={{
-                          background: "rgba(165,231,255,0.08)",
-                          color: "#a5e7ff",
-                          border: "1px solid rgba(165,231,255,0.3)",
-                        }}
+                        className="flex-1 auto-arrange-button"
                         disabled={isPlacementLocked}
                       >
                         <span className="material-symbols-outlined text-[15px]">
@@ -5001,7 +4996,7 @@ function Game() {
                 isCustomShipyardActive ? (
                   /* === Custom Shipyard Validation Panel === */
                   <div
-                    className="deployment-dock"
+                    className="deployment-dock is-custom-shipyard"
                     style={{
                       "--cell-size": `${CELL_SIZE}px`,
                       "--cell-gap": `${CELL_GAP}px`,
@@ -5521,7 +5516,7 @@ function Game() {
                     </div>
                     <button
                       type="button"
-                      className="auto-arrange-button"
+                      className="auto-arrange-button is-orange"
                       onClick={autoArrangeFleet}
                       disabled={isPlacementLocked}
                     >

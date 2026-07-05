@@ -1254,25 +1254,60 @@
     align-items: center;
     justify-content: center;
     gap: 8px;
-    border: 1px solid rgba(117, 216, 243, 0.42);
-    border-radius: 4px;
-    background: rgba(49, 147, 178, 0.16);
-    color: #9ee6fb;
+    text-transform: uppercase;
+    border: 2px solid #020b14;
+    border-radius: 8px;
+    background: #1877f2;
+    color: #ffffff;
     font-size: 11px;
     font-weight: 900;
     letter-spacing: 0;
     cursor: pointer;
-    transition: background-color 140ms ease, border-color 140ms ease;
+    box-shadow: 3px 3px 0 var(--game-shadow, #020b14);
+    transition: transform 140ms ease, box-shadow 140ms ease, border-color 140ms ease, background-color 140ms ease;
 }
 
-.auto-arrange-button:hover {
-    border-color: rgba(154, 232, 252, 0.72);
-    background: rgba(56, 168, 201, 0.27);
+.auto-arrange-button:hover:not(:disabled) {
+    transform: translate(-2px, -2px);
+    box-shadow: 5px 5px 0 var(--game-shadow, #020b14);
+    background: #166ae0;
+}
+
+.auto-arrange-button:active:not(:disabled) {
+    transform: translate(1px, 1px);
+    box-shadow: 2px 2px 0 var(--game-shadow, #020b14);
+}
+
+.auto-arrange-button.is-orange {
+    background: #ff6b4a;
+}
+
+.auto-arrange-button.is-orange:hover:not(:disabled) {
+    background: #fa5d3a;
 }
 
 .auto-arrange-button:disabled {
     cursor: not-allowed;
     opacity: 0.45;
+    transform: none !important;
+    box-shadow: 3px 3px 0 var(--game-shadow, #020b14) !important;
+}
+
+html:not(.light-mode-active) .auto-arrange-button {
+    border-color: #ffffff;
+    box-shadow: 3px 3px 0 #ffffff;
+}
+
+html:not(.light-mode-active) .auto-arrange-button:hover:not(:disabled) {
+    box-shadow: 5px 5px 0 #ffffff;
+}
+
+html:not(.light-mode-active) .auto-arrange-button:active:not(:disabled) {
+    box-shadow: 2px 2px 0 #ffffff;
+}
+
+html:not(.light-mode-active) .auto-arrange-button:disabled {
+    box-shadow: 3px 3px 0 #ffffff !important;
 }
 
 .auto-arrange-button .material-symbols-outlined {
@@ -1414,24 +1449,7 @@ box-shadow {
     text-shadow: none !important;
 }
 
-.light-mode-active .auto-arrange-button {
-    background: linear-gradient(135deg, #0077b6, #005a8c) !important;
-    color: #ffffff !important;
-    border-color: transparent !important;
-    font-weight: 900 !important;
-    box-shadow: 0 8px 25px rgba(0, 119, 182, 0.35) !important;
-}
 
-.light-mode-active .auto-arrange-button:hover:not(:disabled) {
-    background: linear-gradient(135deg, #0088cc, #006093) !important;
-    box-shadow: 0 12px 30px rgba(0, 119, 182, 0.45) !important;
-}
-
-.light-mode-active .auto-arrange-button:disabled {
-    background: rgba(0, 119, 182, 0.2) !important;
-    color: rgba(255, 255, 255, 0.8) !important;
-    box-shadow: none !important;
-}
 
 .light-mode-active .deployment-ship-card {
     background: #ffffff !important;
@@ -2184,8 +2202,16 @@ box-shadow {
     border-radius: 16px !important;
     padding: 18px !important;
     max-width: 440px !important;
-    height: 540px !important;
+    height: auto !important;
     max-height: min(540px, calc(100vh - 200px)) !important;
+}
+
+/* Fix height for custom shipyard on mobile to prevent layout jitter when drawing */
+@media (max-width: 1023px) {
+    .deployment-dock.is-custom-shipyard {
+        height: 290px !important;
+        min-height: 290px !important;
+    }
 }
 
 .light-mode-active .deployment-dock {
@@ -2250,9 +2276,11 @@ box-shadow {
 }
 
 /* Sidebar sizing during placement */
-.pvp-sidebar-column {
-    height: 540px !important;
-    max-height: min(540px, calc(100vh - 200px)) !important;
+@media (min-width: 1024px) {
+    .pvp-sidebar-column {
+        height: 540px !important;
+        max-height: min(540px, calc(100vh - 200px)) !important;
+    }
 }
 
 /* Ready Button default fallback */
@@ -2267,48 +2295,7 @@ button.bg-secondary:not(:disabled) {
 }
 
 /* Auto-arrange / shipyard buttons inside Staging */
-.deployment-dock button.auto-arrange-button {
-    border: 2px solid #75dfff !important;
-    border-radius: 8px !important;
-    background: rgba(117, 223, 255, 0.08) !important;
-    color: #75dfff !important;
-    font-weight: 850 !important;
-    box-shadow: 4px 4px 0 var(--game-shadow) !important;
-    transition: transform 0.12s ease, box-shadow 0.12s ease, background-color 0.12s ease, border-color 0.12s ease, color 0.12s ease !important;
-    text-transform: uppercase !important;
-    letter-spacing: 0.05em !important;
-}
 
-.deployment-dock button.auto-arrange-button:hover:not(:disabled) {
-    transform: translate(-2px, -2px) !important;
-    box-shadow: 6px 6px 0 var(--game-shadow) !important;
-    background: rgba(117, 223, 255, 0.15) !important;
-    color: #ffffff !important;
-}
-
-.deployment-dock button.auto-arrange-button:active:not(:disabled) {
-    transform: translate(1px, 1px) scale(0.99) !important;
-    box-shadow: 2px 2px 0 var(--game-shadow) !important;
-}
-
-.light-mode-active .deployment-dock button.auto-arrange-button {
-    border: 2px solid var(--deploy-ink) !important;
-    background: #f0f7fa !important;
-    color: #10283a !important;
-    box-shadow: 4px 4px 0 var(--deploy-ink) !important;
-}
-
-.light-mode-active .deployment-dock button.auto-arrange-button:hover:not(:disabled) {
-    transform: translate(-2px, -2px) !important;
-    box-shadow: 6px 6px 0 var(--deploy-ink) !important;
-    background: #0077b6 !important;
-    color: #ffffff !important;
-}
-
-.light-mode-active .deployment-dock button.auto-arrange-button:active:not(:disabled) {
-    transform: translate(1px, 1px) scale(0.99) !important;
-    box-shadow: 2px 2px 0 var(--deploy-ink) !important;
-}
 
 /* Custom Ready Button */
 button.game-ready-btn {
@@ -2480,23 +2467,23 @@ html:not(.light-mode-active) .game-main.is-deploying .ocean-board-surface .ocean
     border-color: rgba(117, 223, 255, 0.18) !important;
 }
 
-/* High-specificity overrides for custom shipyard painted cells during deployment */
-.game-main.is-deploying .ocean-board-surface .ocean-cell.custom-painted-cell-1 {
+/* High-specificity overrides for custom shipyard painted cells during deployment in Dark Mode */
+html:not(.light-mode-active) .game-main.is-deploying .ocean-board-surface .ocean-cell.custom-painted-cell-1 {
     background: rgba(78, 168, 222, 0.85) !important;
     border: 1px solid rgba(78, 168, 222, 1) !important;
     box-shadow: 0 0 10px rgba(78, 168, 222, 0.4), inset 0 0 6px rgba(255, 255, 255, 0.3) !important;
 }
-.game-main.is-deploying .ocean-board-surface .ocean-cell.custom-painted-cell-2 {
+html:not(.light-mode-active) .game-main.is-deploying .ocean-board-surface .ocean-cell.custom-painted-cell-2 {
     background: rgba(74, 222, 128, 0.85) !important;
     border: 1px solid rgba(74, 222, 128, 1) !important;
     box-shadow: 0 0 10px rgba(74, 222, 128, 0.4), inset 0 0 6px rgba(255, 255, 255, 0.3) !important;
 }
-.game-main.is-deploying .ocean-board-surface .ocean-cell.custom-painted-cell-3 {
+html:not(.light-mode-active) .game-main.is-deploying .ocean-board-surface .ocean-cell.custom-painted-cell-3 {
     background: rgba(251, 191, 36, 0.85) !important;
     border: 1px solid rgba(251, 191, 36, 1) !important;
     box-shadow: 0 0 10px rgba(251, 191, 36, 0.4), inset 0 0 6px rgba(255, 255, 255, 0.3) !important;
 }
-.game-main.is-deploying .ocean-board-surface .ocean-cell.custom-painted-cell-4 {
+html:not(.light-mode-active) .game-main.is-deploying .ocean-board-surface .ocean-cell.custom-painted-cell-4 {
     background: rgba(192, 132, 252, 0.85) !important;
     border: 1px solid rgba(192, 132, 252, 1) !important;
     box-shadow: 0 0 10px rgba(192, 132, 252, 0.4), inset 0 0 6px rgba(255, 255, 255, 0.3) !important;
@@ -3286,12 +3273,12 @@ html:not(.light-mode-active) .game-header-difficulty:hover {
     .game-main.is-deploying {
         --deploy-side-panel-height: min(520px, calc(100dvh - 204px));
     }
-}
 
-.game-main.is-deploying .deployment-dock {
-    height: var(--deploy-side-panel-height, 520px) !important;
-    min-height: 0 !important;
-    max-height: var(--deploy-side-panel-height, 520px) !important;
+    .game-main.is-deploying .deployment-dock {
+        height: var(--deploy-side-panel-height, 520px) !important;
+        min-height: 0 !important;
+        max-height: var(--deploy-side-panel-height, 520px) !important;
+    }
 }
 
 .game-main.is-deploying .deployment-ship-grid {

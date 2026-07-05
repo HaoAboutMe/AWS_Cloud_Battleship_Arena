@@ -294,7 +294,7 @@
   display: flex;
   flex-direction: column;
   width: 100%;
-  height: 100%;
+  height: auto; /* Shrink to fit content on mobile */
   border: 1px solid rgba(96, 211, 244, 0.2);
   border-radius: 14px;
   background: rgba(3, 16, 28, 0.95);
@@ -302,6 +302,12 @@
   backdrop-filter: blur(12px);
   overflow: hidden;
   transition: border-color 200ms ease;
+}
+
+@media (min-width: 1024px) {
+  .pvp-comms-panel {
+    height: 100%; /* Fill sidebar on desktop */
+  }
 }
 
 .pvp-comms-panel.is-expanded {
