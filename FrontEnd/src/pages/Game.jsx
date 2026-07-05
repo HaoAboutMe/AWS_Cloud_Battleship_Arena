@@ -8,6 +8,8 @@ import {
   useState,
 } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import CommandHeader from "../components/CommandHeader";
+import { setPreferredLightMode } from "../utils/themePreference";
 import ship1 from "../assets/ships/image/ship-1.webp";
 import ship10 from "../assets/ships/image/ship-10.webp";
 import ship2 from "../assets/ships/image/ship-2.webp";
@@ -679,7 +681,7 @@ const useIsMobile = () => {
 function Game() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, attributes, checkAuth, customAvatarUrl } = useAuth();
+  const { user, attributes, checkAuth, customAvatarUrl, logout, loading: authLoading } = useAuth();
   const { language } = useLanguage();
   const copy = GAME_COPY[language] || GAME_COPY.en;
   const formatCopy = useCallback(
@@ -711,6 +713,48 @@ function Game() {
   const isPvpMode = searchParams.get("mode") === "pvp";
   const roomCode = searchParams.get("roomCode") || "";
   const [difficulty, setDifficulty] = useState("easy");
+
+  const [isLightMode, setIsLightMode] = useState(() =>
+    document.documentElement.classList.contains("light-mode-active"),
+  );
+
+  const toggleTheme = useCallback((e) => {
+    const nextLightMode = !isLightMode;
+
+    if (!document.startViewTransition) {
+      setPreferredLightMode(nextLightMode);
+      setIsLightMode(nextLightMode);
+      return;
+    }
+
+    const x = e.clientX;
+    const y = e.clientY;
+    const endRadius = Math.hypot(
+      Math.max(x, window.innerWidth - x),
+      Math.max(y, window.innerHeight - y)
+    );
+
+    const transition = document.startViewTransition(() => {
+      setPreferredLightMode(nextLightMode);
+      setIsLightMode(nextLightMode);
+    });
+
+    transition.ready.then(() => {
+      document.documentElement.animate(
+        {
+          clipPath: [
+            `circle(0px at ${x}px ${y}px)`,
+            `circle(${endRadius}px at ${x}px ${y}px)`
+          ],
+        },
+        {
+          duration: 700,
+          easing: "ease-in-out",
+          pseudoElement: "::view-transition-new(root)",
+        }
+      );
+    });
+  }, [isLightMode]);
 
   const [gameState, setGameState] = useState("PLACEMENT"); // PLACEMENT, READY, PLAYER_TURN, BOT_TURN, GAME_OVER
   const [isCustomShipyardActive, setIsCustomShipyardActive] = useState(false);
@@ -1477,6 +1521,30 @@ function Game() {
     },
     [navigate, shouldConfirmPvpExit],
   );
+
+  const handleLogout = useCallback(async () => {
+    try {
+      localStorage.removeItem("battleshipSession");
+      if (isPvpMode) {
+        await leaveRoom({
+          roomCode: searchParams.get("room"),
+          player: currentBattlePlayer || roomPlayer,
+        });
+      }
+      navigate("/", { replace: true, state: { authEvent: "signed-out" } });
+      await logout();
+    } catch (err) {
+      console.error("Logout failed:", err);
+    }
+  }, [isPvpMode, searchParams, currentBattlePlayer, roomPlayer, navigate, logout]);
+
+  const handleHeaderNavigation = useCallback((targetPath) => {
+    if (!shouldConfirmPvpExit()) {
+      navigate(targetPath);
+      return;
+    }
+    requestGameExit(targetPath);
+  }, [shouldConfirmPvpExit, navigate, requestGameExit]);
 
   const confirmGameExit = useCallback(async () => {
     notifyPvpExit();
@@ -4439,24 +4507,17 @@ function Game() {
 
   return (
     <div className="game-shell bg-background text-on-background font-body-md min-h-screen selection:bg-secondary/30 flex flex-col">
-      <header className="game-topbar w-full top-0 sticky z-50 border-b border-white/5 bg-surface/40 backdrop-blur-xl shadow-[0_0_20px_rgba(0,210,255,0.1)]">
-        <div className="flex justify-between items-center w-full px-gutter max-w-[1440px] mx-auto h-12">
-          <Link
-            to="/"
-            onClick={(event) => {
-              if (!shouldConfirmPvpExit()) return;
-              event.preventDefault();
-              requestGameExit("/");
-            }}
-            className="game-brand-lockup"
-          >
-            <img src={logoImg} alt="" className="game-brand-logo" />
-            <span className="game-brand-copy">
-              <strong>{isMobile ? "BATTLESHIP" : "Cloud Battleship"}</strong>
-              <small>{isMobile ? "ARENA" : "Arena Command Network"}</small>
-            </span>
-          </Link>
-          <div className="flex items-center gap-4">
+      <CommandHeader
+        currentUser={user}
+        attributes={attributes}
+        authLoading={authLoading}
+        isLightMode={isLightMode}
+        onToggleTheme={toggleTheme}
+        onLogout={handleLogout}
+        onNavigateRequest={handleHeaderNavigation}
+        hideNav={true}
+        customActions={
+          <div className="game-header-actions" style={{ display: "flex", alignItems: "center", gap: "12px", marginRight: "12px" }}>
             {isPvpMode ? (
               <button
                 onClick={(event) => {
@@ -4480,20 +4541,9 @@ function Game() {
                 {copy.difficultyNames?.[difficulty] || difficulty}
               </span>
             )}
-            <Link
-              to="/"
-              onClick={(event) => {
-                if (!shouldConfirmPvpExit()) return;
-                event.preventDefault();
-                requestGameExit("/");
-              }}
-              className="game-header-home-btn material-symbols-outlined"
-            >
-              home
-            </Link>
           </div>
-        </div>
-      </header>
+        }
+      />
 
       <main
         className={`game-main flex-1 w-full max-w-[1440px] mx-auto px-gutter flex flex-col lg:flex-row gap-4 pb-20 lg:pb-0 ${isPvpMode ? "pvp-game-main" : ""} ${gameState === "PLACEMENT" || gameState === "READY" ? "is-deploying" : ""}`}
@@ -4502,7 +4552,7 @@ function Game() {
         <div className="game-board-column flex-1 flex flex-col lg:w-[70%] lg:flex-none transition-all">
           {/* PvP Command Strip — replaces two side panels and game-status */}
           {isPvpMode && (
-            <div className="sticky top-12 z-40 lg:static bg-background/95 lg:bg-transparent pb-2 lg:pb-0 pt-2 lg:pt-0 backdrop-blur-md lg:backdrop-blur-none -mx-gutter px-gutter lg:mx-0 lg:px-0">
+            <div className="sticky z-40 lg:static bg-background/95 lg:bg-transparent pb-2 lg:pb-0 pt-2 lg:pt-0 backdrop-blur-md lg:backdrop-blur-none -mx-gutter px-gutter lg:mx-0 lg:px-0" style={{ top: "76px" }}>
               <PvpCommandStrip
                 myPlayer={currentBattlePlayer || roomPlayer}
                 myRankLabel={

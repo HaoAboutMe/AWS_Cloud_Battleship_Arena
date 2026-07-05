@@ -1033,13 +1033,13 @@
   border-radius: 999px !important;
   background: #071a2a !important;
   color: #e7f8ff !important;
-  box-shadow: 3px 3px 0 #020b14 !important;
+  box-shadow: 3px 3px 0 var(--game-shadow) !important;
   transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease !important;
 }
 
 .command-nav {
   border-radius: 999px !important;
-  box-shadow: 5px 5px 0 #020b14 !important;
+  box-shadow: 5px 5px 0 var(--game-shadow) !important;
 }
 
 .command-nav a {
@@ -1060,7 +1060,7 @@
   border-radius: 999px !important;
   background: #7ddfff !important;
   color: #061827 !important;
-  box-shadow: 3px 3px 0 #020b14 !important;
+  box-shadow: 3px 3px 0 var(--game-shadow) !important;
   transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease !important;
 }
 

@@ -23,6 +23,7 @@
   --radius-lg: 12px;
   --shadow-panel: 0 24px 80px rgba(0, 0, 0, 0.36);
   --shadow-glow: 0 0 36px rgba(64, 215, 255, 0.18);
+  --game-shadow: #e7f8ff;
 
   font-family: var(--font-body);
   color: var(--color-text);
@@ -127,6 +128,7 @@ img {
   --color-success: #107c52;
   --color-warning: #a06300;
   --color-danger: #ba2b24;
+  --game-shadow: #10283a;
   color: var(--color-text);
   background: #edf7fb;
 }

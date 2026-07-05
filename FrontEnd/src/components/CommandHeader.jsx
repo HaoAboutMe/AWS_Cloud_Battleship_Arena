@@ -24,6 +24,8 @@ function CommandHeader({
   showReturnHome = false,
   backTo = "/",
   backLabel,
+  customActions = null,
+  hideNav = false,
 }) {
   const location = useLocation();
   const { t } = useLanguage();
@@ -144,7 +146,7 @@ function CommandHeader({
           </span>
         </Link>
 
-        {!showReturnHome && (
+        {!showReturnHome && !hideNav && (
           <nav className="command-nav" aria-label="Primary navigation">
             <Link
               className={location.pathname === "/" ? "is-active" : ""}
@@ -170,9 +172,10 @@ function CommandHeader({
           </nav>
         )}
 
-        {showReturnHome && <div className="command-nav-spacer" />}
+        {(showReturnHome || hideNav) && <div className="command-nav-spacer" />}
 
         <div className="command-actions">
+          {customActions}
           <div className="command-desktop-actions">
             <LanguageToggle />
             <button
