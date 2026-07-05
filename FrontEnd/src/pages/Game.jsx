@@ -5028,7 +5028,7 @@ function Game() {
                       }}
                     >
                       {/* Brush Toolbar */}
-                      <div className="flex gap-[4px] w-full">
+                      <div className="flex gap-2 w-full px-2">
                         {[1, 2, 3, 4].map((brushId) => {
                           const count = customBrushCounts[brushId - 1];
                           const isActive = activeShipBrush === brushId;
@@ -5050,34 +5050,24 @@ function Game() {
                                 e.stopPropagation();
                                 setActiveShipBrush(brushId);
                               }}
-                              className={`flex-1 flex flex-col items-center justify-center py-[2px] rounded-sm transition-all brush-${brushId} ${isActive ? "is-active-brush" : ""}`}
+                              className={`custom-shipyard-brush-btn flex-1 flex flex-col items-center justify-center py-1 transition-all brush-${brushId} ${isActive ? "is-active-brush" : ""} ${isInvalid ? "is-invalid-brush" : ""}`}
                               style={{
-                                background: isActive
-                                  ? `${brushColor}30`
-                                  : "rgba(255,255,255,0.03)",
-                                border: `1px solid ${isInvalid ? "#ef4444" : isActive ? brushColor : "rgba(255,255,255,0.1)"}`,
-                                borderTopWidth: isActive ? "3px" : "1px",
+                                "--brush-color": brushColor
                               }}
                             >
                               <span
+                                className="custom-shipyard-brush-label"
                                 style={{
                                   fontSize: "10px",
                                   fontWeight: "bold",
-                                  color: isInvalid
-                                    ? "#ef4444"
-                                    : isActive
-                                      ? brushColor
-                                      : "rgba(255,255,255,0.7)",
                                 }}
                               >
                                 Tàu {brushId}
                               </span>
                               <span
+                                className="custom-shipyard-brush-count"
                                 style={{
                                   fontSize: "9px",
-                                  color: isInvalid
-                                    ? "#ef4444"
-                                    : "rgba(255,255,255,0.5)",
                                 }}
                               >
                                 {count} {copy.cellsLabel || "ô"}

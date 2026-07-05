@@ -1293,6 +1293,92 @@
     box-shadow: 3px 3px 0 var(--game-shadow, #020b14) !important;
 }
 
+html:not(.light-mode-active) .auto-arrange-button:disabled {
+    background: #10283a;
+    color: rgba(255, 255, 255, 0.4);
+    border-color: #10283a;
+    box-shadow: none;
+    transform: none;
+}
+
+/* Custom Shipyard Brush Buttons */
+.custom-shipyard-brush-btn {
+    border: 2px solid #020b14;
+    border-radius: 8px;
+    background: rgba(4, 25, 39, 0.65);
+    color: #ffffff;
+    cursor: pointer;
+    box-shadow: 2px 2px 0 var(--game-shadow, #020b14);
+    transition: transform 140ms ease, box-shadow 140ms ease, border-color 140ms ease, background-color 140ms ease;
+    overflow: hidden;
+    outline: none;
+    -webkit-appearance: none;
+    background-clip: padding-box;
+}
+
+.custom-shipyard-brush-btn:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 3px 3px 0 var(--game-shadow, #020b14);
+    background: rgba(12, 45, 65, 0.85);
+}
+
+.custom-shipyard-brush-btn:active {
+    transform: translate(1px, 1px);
+    box-shadow: 1px 1px 0 var(--game-shadow, #020b14);
+}
+
+.custom-shipyard-brush-btn.is-active-brush {
+    background: color-mix(in srgb, var(--brush-color, #75dfff) 25%, rgba(4, 25, 39, 0.65));
+    box-shadow: 3px 3px 0 var(--brush-color, #75dfff);
+    transform: translate(-2px, -2px);
+}
+
+.custom-shipyard-brush-btn.is-active-brush:active {
+    transform: translate(1px, 1px);
+    box-shadow: 1px 1px 0 var(--brush-color, #75dfff);
+}
+
+.custom-shipyard-brush-btn.is-invalid-brush {
+    border-color: #ef4444;
+}
+
+.custom-shipyard-brush-label {
+    color: rgba(255, 255, 255, 0.7);
+    transition: color 140ms ease;
+}
+
+.custom-shipyard-brush-count {
+    color: rgba(255, 255, 255, 0.5);
+    transition: color 140ms ease;
+}
+
+.custom-shipyard-brush-btn.is-active-brush .custom-shipyard-brush-label {
+    color: var(--brush-color, #75dfff);
+}
+
+.custom-shipyard-brush-btn.is-invalid-brush .custom-shipyard-brush-label,
+.custom-shipyard-brush-btn.is-invalid-brush .custom-shipyard-brush-count {
+    color: #ef4444;
+}
+
+.light-mode-active .custom-shipyard-brush-btn {
+    background: #ffffff;
+    border-color: #10283a;
+    color: #10283a;
+}
+
+.light-mode-active .custom-shipyard-brush-btn.is-active-brush {
+    background: color-mix(in srgb, var(--brush-color, #1167d8) 15%, #ffffff);
+}
+
+.light-mode-active .custom-shipyard-brush-label {
+    color: rgba(16, 40, 58, 0.7);
+}
+
+.light-mode-active .custom-shipyard-brush-count {
+    color: rgba(16, 40, 58, 0.5);
+}
+
 html:not(.light-mode-active) .auto-arrange-button {
     border-color: #ffffff;
     box-shadow: 3px 3px 0 #ffffff;
