@@ -22,6 +22,7 @@ import GameResultModal from "../components/GameResultModal";
 import { PvpCommandStrip, PvpCommsPanel } from "../components/PvpBattlePanels";
 import { useAuth } from "../contexts/AuthContext";
 import { useLanguage } from "../contexts/LanguageContext";
+import logoImg from "../assets/logo/logo.webp";
 import BattleEffectsLayer from "../game/BattleEffectsLayer";
 import {
   canPlaceShip,
@@ -4438,7 +4439,7 @@ function Game() {
 
   return (
     <div className="game-shell bg-background text-on-background font-body-md min-h-screen selection:bg-secondary/30 flex flex-col">
-      <header className="w-full top-0 sticky z-50 border-b border-white/5 bg-surface/40 backdrop-blur-xl shadow-[0_0_20px_rgba(0,210,255,0.1)]">
+      <header className="game-topbar w-full top-0 sticky z-50 border-b border-white/5 bg-surface/40 backdrop-blur-xl shadow-[0_0_20px_rgba(0,210,255,0.1)]">
         <div className="flex justify-between items-center w-full px-gutter max-w-[1440px] mx-auto h-12">
           <Link
             to="/"
@@ -4447,9 +4448,13 @@ function Game() {
               event.preventDefault();
               requestGameExit("/");
             }}
-            className="font-display-lg text-[20px] font-black text-secondary tracking-tighter uppercase hover:text-white transition-colors truncate"
+            className="game-brand-lockup"
           >
-            {isMobile ? "BATTLESHIP" : "Cloud Battleship Arena"}
+            <img src={logoImg} alt="" className="game-brand-logo" />
+            <span className="game-brand-copy">
+              <strong>{isMobile ? "BATTLESHIP" : "Cloud Battleship"}</strong>
+              <small>{isMobile ? "ARENA" : "Arena Command Network"}</small>
+            </span>
           </Link>
           <div className="flex items-center gap-4">
             {isPvpMode ? (
@@ -4470,7 +4475,7 @@ function Game() {
                 <span>{copy.leave || "Leave Match"}</span>
               </button>
             ) : (
-              <span className="text-[10px] uppercase font-bold text-secondary bg-secondary/10 px-2 py-1 rounded-sm border border-secondary/20">
+              <span className="game-header-difficulty">
                 {copy.difficultyLabel}:{" "}
                 {copy.difficultyNames?.[difficulty] || difficulty}
               </span>
@@ -4482,7 +4487,7 @@ function Game() {
                 event.preventDefault();
                 requestGameExit("/");
               }}
-              className="material-symbols-outlined text-on-surface-variant hover:text-secondary active:scale-95 transition-all p-2 rounded-full hover:bg-white/5"
+              className="game-header-home-btn material-symbols-outlined"
             >
               home
             </Link>
@@ -4603,7 +4608,7 @@ function Game() {
                         pvpReadyLoading ||
                         isWaitingForOpponentFleet
                       }
-                      className={`font-bold px-4 py-1.5 md:px-8 md:py-2 text-sm md:text-base rounded-sm transition-all tracking-widest ${(isCustomShipyardActive
+                      className={`game-ready-btn font-bold px-4 py-1.5 md:px-8 md:py-2 text-sm md:text-base rounded-sm transition-all tracking-widest ${(isCustomShipyardActive
                           ? !isCustomFleetValid
                           : !isFleetValid ||
                           invalidRotationPreview ||
@@ -4611,7 +4616,7 @@ function Game() {
                           pvpReadyLoading ||
                           isWaitingForOpponentFleet
                           ? "bg-surface-container text-on-surface-variant/40 cursor-not-allowed opacity-50"
-                          : "bg-secondary text-on-secondary-fixed hover:bg-secondary-container active:scale-95"
+                          : "is-valid-ready bg-secondary text-on-secondary-fixed hover:bg-secondary-container active:scale-95"
                         }`}
                     >
                       {pvpReadyLoading
@@ -4680,11 +4685,11 @@ function Game() {
                       Boolean(invalidRotationPreview) ||
                       Boolean(draggedShip)
                   }
-                  className={`font-bold px-4 py-1.5 md:px-8 md:py-2 text-sm md:text-base rounded-sm transition-all tracking-widest ${isCustomShipyardActive
+                  className={`game-ready-btn font-bold px-4 py-1.5 md:px-8 md:py-2 text-sm md:text-base rounded-sm transition-all tracking-widest ${isCustomShipyardActive
                       ? !isCustomFleetValid
                       : !isFleetValid || invalidRotationPreview || draggedShip
                         ? "bg-surface-container text-on-surface-variant/40 cursor-not-allowed opacity-50"
-                        : "bg-secondary text-on-secondary-fixed hover:bg-secondary-container active:scale-95"
+                        : "is-valid-ready bg-secondary text-on-secondary-fixed hover:bg-secondary-container active:scale-95"
                     }`}
                 >
                   {copy.ready}
