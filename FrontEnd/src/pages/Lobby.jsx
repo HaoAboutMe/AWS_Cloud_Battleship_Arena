@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import CommandHeader from "../components/CommandHeader";
 import { getAvatarCdnUrl } from "../utils/avatar";
+import { setPreferredLightMode } from "../utils/themePreference";
 import { useAuth } from "../contexts/AuthContext";
 import { useLanguage } from "../contexts/LanguageContext";
 import {
@@ -152,11 +153,11 @@ function Lobby() {
   );
 
   const handleToggleTheme = (event) => {
-    const isDark = document.documentElement.classList.contains('light-mode-active');
+    const nextLightMode = !isLightMode;
     
     if (!document.startViewTransition) {
-      document.documentElement.classList.toggle('light-mode-active');
-      setIsLightMode(isDark);
+      setPreferredLightMode(nextLightMode);
+      setIsLightMode(nextLightMode);
       return;
     }
 
@@ -168,8 +169,8 @@ function Lobby() {
     );
 
     const transition = document.startViewTransition(() => {
-      document.documentElement.classList.toggle('light-mode-active');
-      setIsLightMode(isDark);
+      setPreferredLightMode(nextLightMode);
+      setIsLightMode(nextLightMode);
     });
 
     transition.ready.then(() => {

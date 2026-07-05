@@ -4,6 +4,7 @@ import { useLanguage } from "../contexts/LanguageContext";
 import { useAuth } from "../contexts/AuthContext";
 import { getLeaderboard } from "../services/userService";
 import { getAvatarCdnUrl } from "../utils/avatar";
+import { setPreferredLightMode } from "../utils/themePreference";
 import CommandHeader from "../components/CommandHeader";
 import HomeSelect from "../components/HomeSelect";
 import bronzeBadge from "../assets/badge/bronze.webp";
@@ -89,7 +90,7 @@ const Leaderboard = () => {
     const nextLightMode = !isLightMode;
 
     if (!document.startViewTransition) {
-      document.documentElement.classList.toggle("light-mode-active", nextLightMode);
+      setPreferredLightMode(nextLightMode);
       setIsLightMode(nextLightMode);
       return;
     }
@@ -102,7 +103,7 @@ const Leaderboard = () => {
     );
 
     const transition = document.startViewTransition(() => {
-      document.documentElement.classList.toggle("light-mode-active", nextLightMode);
+      setPreferredLightMode(nextLightMode);
       setIsLightMode(nextLightMode);
     });
 
@@ -182,10 +183,10 @@ const Leaderboard = () => {
         <div className="leaderboard-page-header">
           <h1 className="leaderboard-title">
             <span className="leaderboard-title-icon material-symbols-outlined">emoji_events</span>
-            {t("common.leaderboard") || "BẢNG XẾP HẠNG"}
+            {t("common.leaderboard") || "Leaderboard"}
           </h1>
           <p className="leaderboard-subtitle">
-            {t("home.topCommanders") || "Chỉ huy hàng đầu"}
+            {t("home.topCommanders") || "Top commanders"}
           </p>
           <div className="leaderboard-title-divider" />
         </div>
@@ -235,12 +236,12 @@ const Leaderboard = () => {
               {loading ? (
                 <div className="leaderboard-empty-state">
                   <span className="material-symbols-outlined">radar</span>
-                  {t("common.loading") || "Đang tải dữ liệu..."}
+                  {t("common.loading") || "Loading..."}
                 </div>
               ) : filteredCommanders.length === 0 ? (
                 <div className="leaderboard-empty-state">
                   <span className="material-symbols-outlined">search_off</span>
-                  Không tìm thấy chỉ huy.
+                  {t("home.noCommandersFound") || "No commanders found."}
                 </div>
               ) : (
                 <div className="w-full overflow-x-auto">
@@ -336,9 +337,9 @@ const Leaderboard = () => {
                   </div>
                   <div className="badge-details">
                     <div className="badge-name">
-                      {topThree[1] ? renderUsernameWithTag(topThree[1].username) : <span className="badge-empty-label">Trống</span>}
+                      {topThree[1] ? renderUsernameWithTag(topThree[1].username) : <span className="badge-empty-label">{t("home.emptySlot") || "Empty"}</span>}
                     </div>
-                    <div className="badge-pts">{topThree[1] ? `${topThree[1].rankPoints || 0} RP` : '— RP'}</div>
+                    <div className="badge-pts">{topThree[1] ? `${topThree[1].rankPoints || 0} RP` : '0 RP'}</div>
                   </div>
                 </div>
 
@@ -366,9 +367,9 @@ const Leaderboard = () => {
                   </div>
                   <div className="badge-details">
                     <div className="badge-name">
-                      {topThree[0] ? renderUsernameWithTag(topThree[0].username) : <span className="badge-empty-label">Trống</span>}
+                      {topThree[0] ? renderUsernameWithTag(topThree[0].username) : <span className="badge-empty-label">{t("home.emptySlot") || "Empty"}</span>}
                     </div>
-                    <div className="badge-pts">{topThree[0] ? `${topThree[0].rankPoints || 0} RP` : '— RP'}</div>
+                    <div className="badge-pts">{topThree[0] ? `${topThree[0].rankPoints || 0} RP` : '0 RP'}</div>
                   </div>
                 </div>
 
@@ -396,9 +397,9 @@ const Leaderboard = () => {
                   </div>
                   <div className="badge-details">
                     <div className="badge-name">
-                      {topThree[2] ? renderUsernameWithTag(topThree[2].username) : <span className="badge-empty-label">Trống</span>}
+                      {topThree[2] ? renderUsernameWithTag(topThree[2].username) : <span className="badge-empty-label">{t("home.emptySlot") || "Empty"}</span>}
                     </div>
-                    <div className="badge-pts">{topThree[2] ? `${topThree[2].rankPoints || 0} RP` : '— RP'}</div>
+                    <div className="badge-pts">{topThree[2] ? `${topThree[2].rankPoints || 0} RP` : '0 RP'}</div>
                   </div>
                 </div>
 

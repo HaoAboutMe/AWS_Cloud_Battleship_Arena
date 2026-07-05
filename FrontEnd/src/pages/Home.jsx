@@ -19,6 +19,7 @@ import { useLanguage } from "../contexts/LanguageContext";
 import { findMatch, getRoom, leaveRoom } from "../services/matchService";
 import { getUserProfile, getLeaderboard } from "../services/userService";
 import { getAvatarCdnUrl } from "../utils/avatar";
+import { setPreferredLightMode } from "../utils/themePreference";
 import "./Home.css";
 import "./HomeHeader.css";
 
@@ -136,10 +137,12 @@ function Home() {
   }, [leaderboardRank]);
 
   const toggleTheme = (e) => {
+    const nextLightMode = !isLightMode;
+
     // Fallback for browsers that don't support view transitions
     if (!document.startViewTransition) {
-      document.documentElement.classList.toggle('light-mode-active');
-      setIsLightMode(!isLightMode);
+      setPreferredLightMode(nextLightMode);
+      setIsLightMode(nextLightMode);
       return;
     }
 
@@ -149,11 +152,10 @@ function Home() {
       Math.max(x, window.innerWidth - x),
       Math.max(y, window.innerHeight - y)
     );
-    const isDark = !isLightMode;
 
     const transition = document.startViewTransition(() => {
-      document.documentElement.classList.toggle('light-mode-active');
-      setIsLightMode(isDark);
+      setPreferredLightMode(nextLightMode);
+      setIsLightMode(nextLightMode);
     });
 
     transition.ready.then(() => {
@@ -630,7 +632,7 @@ function Home() {
                 {loadingLeaderboard ? (
                   <div className="text-center text-sm text-on-surface-variant p-4">{t("common.loading") || "Loading..."}</div>
                 ) : topCommanders.length === 0 ? (
-                  <div className="text-center text-sm text-on-surface-variant p-4">No commanders found.</div>
+                  <div className="text-center text-sm text-on-surface-variant p-4">{t("home.noCommandersFound") || "No commanders found."}</div>
                 ) : (
                   topCommanders.map((commander, idx) => {
                     let badgeColor = "bg-white/5 text-on-surface-variant";

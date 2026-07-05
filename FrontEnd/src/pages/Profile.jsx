@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AvatarUpload from "../components/AvatarUpload";
 import CommandHeader from "../components/CommandHeader";
@@ -12,11 +12,10 @@ import {
   updateUsername,
 } from "../services/userService";
 import { getAvatarCdnUrl } from "../utils/avatar";
+import { setPreferredLightMode } from "../utils/themePreference";
 import "./HomeHeader.css";
 import "./Profile.css";
 import HomeSelect from "../components/HomeSelect";
-
-const RankUpAnimation = lazy(() => import("../components/RankUpAnimation"));
 
 const COMMANDER_AVATAR =
   "https://lh3.googleusercontent.com/aida-public/AB6AXuBaat_LefR8zmWVQ9CHx0bp9dTekwkF9c9AQAo9FxlAx2bSsRi_lWU3tRBK1vdpC50zM3NdKJAB5hHd5ZusN0HuCxBcpe1IbzSlreCalSVomkgeQwYwz9iKrXYvj55d42PgtFMDfCUosVO6NBFPXtM_vVCTYDxnC7xz1DxkbcIvRSfpehGpD-kbu7XuQbuktassmbGVExYQy0GTNC_jJHX3hmbFNDIdyfqO5-uwHYbgPtFdacF4kVhq0AnscPv4dWSz-e_6DYUDMSxe";
@@ -52,7 +51,6 @@ function Profile() {
   }, [toast]);
   const [stats, setStats] = useState(EMPTY_STATS);
   const [rankLadderOpen, setRankLadderOpen] = useState(false);
-  const [rankAnimation, setRankAnimation] = useState(null);
   const [selectedRankId, setSelectedRankId] = useState("unranked");
   const [matchHistory, setMatchHistory] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(true);
@@ -211,10 +209,7 @@ function Profile() {
     const nextLightMode = !isLightMode;
 
     if (!document.startViewTransition) {
-      document.documentElement.classList.toggle(
-        "light-mode-active",
-        nextLightMode,
-      );
+      setPreferredLightMode(nextLightMode);
       setIsLightMode(nextLightMode);
       return;
     }
@@ -227,10 +222,7 @@ function Profile() {
     );
 
     const transition = document.startViewTransition(() => {
-      document.documentElement.classList.toggle(
-        "light-mode-active",
-        nextLightMode,
-      );
+      setPreferredLightMode(nextLightMode);
       setIsLightMode(nextLightMode);
     });
 
@@ -382,12 +374,6 @@ function Profile() {
     t("profile.rankRewardEarnRp"),
     t("profile.rankRewardBeginLadder"),
   ];
-  const testRankUp = () => {
-    const currentRank = hasRank ? rankMeta.id : "bronze";
-    const targetRank = getNextRank(currentRank)?.id || RANKS[0].id;
-    setRankAnimation({ oldRank: currentRank, newRank: targetRank });
-  };
-
   return (
     <div className="profile-page">
       <CommandHeader
@@ -458,13 +444,6 @@ function Profile() {
                       <i className="profile-empty-rank-badge" />
                     )}
                     {rankLabel}
-                  </button>
-                  <button
-                    type="button"
-                    className="profile-rank-test"
-                    onClick={testRankUp}
-                  >
-                    Test rank up
                   </button>
                   <span>{t("profile.cloudFleet")}</span>
                 </div>
@@ -1516,16 +1495,6 @@ function Profile() {
         setSelectedRankId={setSelectedRankId}
         t={t}
       />
-
-      {rankAnimation && (
-        <Suspense fallback={null}>
-          <RankUpAnimation
-            oldRank={rankAnimation.oldRank}
-            newRank={rankAnimation.newRank}
-            onComplete={() => setRankAnimation(null)}
-          />
-        </Suspense>
-      )}
 
       {toast && (
         <div

@@ -794,3 +794,30 @@
     font-size: clamp(32px, 10vw, 44px);
   }
 }
+
+/* Final close-button shape guard for settings modal */
+.sound-settings-close,
+.light-mode-active .sound-settings-close {
+  width: 52px !important;
+  height: 52px !important;
+  min-width: 52px !important;
+  min-height: 52px !important;
+  max-width: 52px !important;
+  max-height: 52px !important;
+  flex: 0 0 52px !important;
+  aspect-ratio: 1 / 1 !important;
+  padding: 0 !important;
+  border-radius: 50% !important;
+  display: grid !important;
+  place-items: center !important;
+  line-height: 1 !important;
+}
+
+.sound-settings-close .material-symbols-outlined,
+.light-mode-active .sound-settings-close .material-symbols-outlined {
+  display: block !important;
+  width: 1em !important;
+  height: 1em !important;
+  font-size: 30px !important;
+  line-height: 1 !important;
+}

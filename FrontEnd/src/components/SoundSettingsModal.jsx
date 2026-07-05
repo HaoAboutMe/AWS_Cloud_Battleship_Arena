@@ -7,6 +7,7 @@ import {
   setSoundSettings,
   subscribeSoundSettings,
 } from "../services/soundService";
+import { setPreferredLightMode } from "../utils/themePreference";
 import "./SoundSettingsModal.css";
 
 const VOLUME_CONTROLS = [
@@ -42,7 +43,7 @@ function SoundSettingsModal({ open, onClose }) {
 
   const handleThemeToggle = () => {
     const nextLightMode = !localLightMode;
-    document.documentElement.classList.toggle("light-mode-active", nextLightMode);
+    setPreferredLightMode(nextLightMode);
     setLocalLightMode(nextLightMode);
   };
 

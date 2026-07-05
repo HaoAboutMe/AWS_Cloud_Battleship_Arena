@@ -11,8 +11,10 @@ import "@fontsource/space-grotesk/700.css";
 import "@fontsource/ibm-plex-mono/400.css";
 import "@fontsource/ibm-plex-mono/600.css";
 import "./index.css";
+import { applyPreferredTheme } from "./utils/themePreference";
 
 Amplify.configure(awsConfig);
+applyPreferredTheme();
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <BrowserRouter>

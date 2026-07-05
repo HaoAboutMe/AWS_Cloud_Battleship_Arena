@@ -273,11 +273,6 @@
   height: 68px;
 }
 
-.profile-rank-test {
-  border-color: rgba(88, 230, 169, 0.32) !important;
-  color: #8fffd0 !important;
-}
-
 .profile-deploy-button {
   height: 44px;
   padding: 0 17px;
@@ -1222,12 +1217,6 @@
   filter: drop-shadow(0 0 5px rgba(0, 119, 182, 0.4)) !important;
 }
 
-.light-mode-active .profile-badges .profile-rank-test {
-  border-color: rgba(14, 121, 75, 0.35) !important;
-  background: rgba(14, 121, 75, 0.08) !important;
-  color: #0e794b !important;
-}
-
 /* Service Record Dropdown Styles */
 .profile-record-select {
   padding: 8px 16px;
@@ -1614,12 +1603,6 @@
 .light-mode-active .profile-badges span,
 .light-mode-active .profile-badges button {
   background: rgba(255, 255, 255, 0.72) !important;
-}
-
-.profile-rank-test,
-.light-mode-active .profile-rank-test {
-  border-color: var(--profile-mint) !important;
-  color: var(--profile-mint) !important;
 }
 
 .profile-deploy-button,
@@ -2166,13 +2149,17 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  min-width: 92px;
+  min-height: 74px;
 }
 
 .profile-service-rank-badge {
-  width: 52px;
-  height: 52px;
+  width: 78px;
+  height: 78px;
   object-fit: contain;
-  filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.7));
+  filter:
+    drop-shadow(0 8px 12px rgba(16, 40, 58, 0.2))
+    drop-shadow(0 0 14px rgba(255, 215, 0, 0.58));
 }
 
 .profile-service-rank-progress-group {
@@ -2244,7 +2231,9 @@
 }
 
 .light-mode-active .profile-service-rank-badge {
-  filter: drop-shadow(0 2px 8px rgba(16, 40, 58, 0.15));
+  filter:
+    drop-shadow(0 8px 12px rgba(16, 40, 58, 0.18))
+    drop-shadow(0 0 12px rgba(255, 215, 0, 0.28));
 }
 
 .light-mode-active .profile-service-rank-progress-labels {
@@ -2268,6 +2257,16 @@
 
 /* Mobile responsive avatar upload badge */
 @media (max-width: 620px) {
+  .profile-service-rank-badge-wrap {
+    min-width: 72px;
+    min-height: 62px;
+  }
+
+  .profile-service-rank-badge {
+    width: 62px;
+    height: 62px;
+  }
+
   .profile-avatar-frame .avatar-upload-overlay {
     inset: auto !important;
     bottom: -2px !important;
@@ -2312,4 +2311,138 @@
   .light-mode-active .profile-avatar-frame .avatar-upload-overlay:active {
     box-shadow: 1px 1px 0px #10283a !important;
   }
+}
+
+/* Final avatar upload guard: keep the upload trigger as an icon button, never a text badge. */
+.profile-avatar-frame .avatar-upload-overlay,
+.profile-avatar-frame:hover .avatar-upload-overlay {
+  display: grid !important;
+  place-items: center !important;
+  text-indent: 0 !important;
+  white-space: normal !important;
+  overflow: hidden !important;
+}
+
+.profile-avatar-frame .avatar-upload-overlay .avatar-upload-icon {
+  display: block !important;
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: none !important;
+  box-shadow: none !important;
+  color: currentColor !important;
+}
+
+/* Final command-card badge polish */
+.profile-badges {
+  align-items: center;
+  gap: 10px !important;
+}
+
+.profile-badges > span,
+.profile-badges > button {
+  min-height: 38px !important;
+  padding: 0 14px !important;
+  border: 2px solid var(--profile-accent) !important;
+  border-radius: 999px !important;
+  background: rgba(223, 248, 255, 0.08) !important;
+  color: var(--profile-ink) !important;
+  box-shadow: 3px 3px 0 #020b14 !important;
+  font-family: var(--font-mono) !important;
+  font-size: 10px !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.06em !important;
+  line-height: 1 !important;
+  text-transform: uppercase !important;
+}
+
+.light-mode-active .profile-badges > span,
+.light-mode-active .profile-badges > button {
+  border-color: #10283a !important;
+  background: #ffffff !important;
+  color: #10283a !important;
+  box-shadow: 3px 3px 0 #10283a !important;
+}
+
+.profile-badges .profile-rank-pill {
+  min-height: 42px !important;
+  padding-left: 10px !important;
+  padding-right: 16px !important;
+  background:
+    linear-gradient(135deg, rgba(125, 223, 255, 0.16), rgba(66, 214, 164, 0.08)) !important;
+  color: #e7f8ff !important;
+}
+
+.light-mode-active .profile-badges .profile-rank-pill {
+  background: #dff8ff !important;
+  color: #10283a !important;
+}
+
+.profile-rank-pill img,
+.profile-rank-pill .profile-empty-rank-badge {
+  width: 28px !important;
+  height: 28px !important;
+  flex: 0 0 28px !important;
+}
+
+.profile-rank-pill img {
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.3)) !important;
+}
+
+.profile-badges > span {
+  border-color: rgba(66, 214, 164, 0.72) !important;
+  color: var(--profile-mint) !important;
+}
+
+.light-mode-active .profile-badges > span {
+  border-color: #10283a !important;
+  background: #eafff7 !important;
+  color: #107c52 !important;
+}
+
+.profile-badges > button:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0 #020b14 !important;
+}
+
+.light-mode-active .profile-badges > button:hover {
+  box-shadow: 4px 4px 0 #10283a !important;
+}
+
+@media (max-width: 620px) {
+  .profile-badges > span,
+  .profile-badges > button {
+    min-height: 36px !important;
+    max-width: 100%;
+    font-size: 9px !important;
+  }
+}
+
+/* Unranked is a rank state, not an online/status dot. */
+.profile-rank-pill .profile-empty-rank-badge,
+.light-mode-active .profile-rank-pill .profile-empty-rank-badge {
+  position: relative !important;
+  display: inline-grid !important;
+  place-items: center !important;
+  width: 30px !important;
+  height: 30px !important;
+  flex: 0 0 30px !important;
+  border: 2px dashed currentColor !important;
+  border-radius: 50% !important;
+  background:
+    repeating-linear-gradient(135deg, currentColor 0 1px, transparent 1px 7px),
+    rgba(125, 223, 255, 0.1) !important;
+  box-shadow: inset 0 0 0 5px rgba(223, 248, 255, 0.08) !important;
+  opacity: 0.86;
+}
+
+.profile-rank-pill.is-unranked {
+  color: #7ddfff !important;
+}
+
+.light-mode-active .profile-rank-pill.is-unranked {
+  color: #1167d8 !important;
 }

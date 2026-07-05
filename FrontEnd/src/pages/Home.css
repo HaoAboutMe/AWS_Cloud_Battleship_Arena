@@ -48,11 +48,18 @@
 
 .home-page .command-brand-copy strong {
   color: var(--home-ink);
+  font-size: 19px;
+  font-weight: 950;
   letter-spacing: 0;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.72);
 }
 
 .home-page .command-brand-copy small {
-  color: rgba(16, 40, 58, 0.5);
+  color: #0c6f8f;
+  font-size: 8.75px;
+  font-weight: 950;
+  letter-spacing: 0.035em;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.75);
 }
 
 .home-page .command-nav {
@@ -891,6 +898,10 @@
   background: #ffffff !important;
   color: var(--home-cobalt) !important;
   font-weight: 900 !important;
+}
+
+.home-stats-card button.border-secondary\/30:hover {
+  background: rgba(17, 103, 216, 0.08) !important;
 }
 
 .home-winrate-arc {
@@ -1893,4 +1904,25 @@
 
 .light-mode-active .home-stats-card .arc-pct {
   color: #10283a !important;
+}
+
+/* Top commanders CTA should read as the same arcade command button as the page. */
+.home-stats-card button.border-secondary\/30.w-full {
+  min-height: 42px;
+  border-color: var(--home-ink) !important;
+  background: var(--home-coral) !important;
+  color: #ffffff !important;
+  box-shadow: 4px 4px 0 var(--home-ink) !important;
+  letter-spacing: 0.08em !important;
+}
+
+.home-stats-card button.border-secondary\/30.w-full:hover {
+  transform: translate(-1px, -1px);
+  background: #ff5f43 !important;
+  box-shadow: 5px 5px 0 var(--home-ink) !important;
+}
+
+.home-stats-card button.border-secondary\/30.w-full:active {
+  transform: translate(1px, 1px);
+  box-shadow: 2px 2px 0 var(--home-ink) !important;
 }

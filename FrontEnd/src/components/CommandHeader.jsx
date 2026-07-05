@@ -6,6 +6,7 @@ import { useLanguage } from "../contexts/LanguageContext";
 import { getAvatarCdnUrl } from "../utils/avatar";
 import { RANKS, getRankMeta } from "../game/rankConfig";
 import logoImg from "../assets/logo/logo.webp";
+import { setPreferredLightMode } from "../utils/themePreference";
 import LanguageToggle from "./LanguageToggle";
 import SoundSettingsModal from "./SoundSettingsModal";
 
@@ -76,7 +77,7 @@ function CommandHeader({
     }
 
     const nextLightMode = !localLightMode;
-    document.documentElement.classList.toggle("light-mode-active", nextLightMode);
+    setPreferredLightMode(nextLightMode);
     setLocalLightMode(nextLightMode);
   };
 
