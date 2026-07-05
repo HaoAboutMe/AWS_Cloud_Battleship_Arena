@@ -730,22 +730,20 @@
 }
 
 .ocean-cell {
-    background:
-        radial-gradient(ellipse at 65% 18%, rgba(62, 143, 164, 0.15), transparent 48%),
-        linear-gradient(150deg, rgba(20, 60, 80, 0.65), rgba(10, 35, 50, 0.75)) !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    backdrop-filter: blur(1px);
+    -webkit-backdrop-filter: blur(1px);
     box-shadow:
-        inset 0 0 10px rgba(0, 0, 0, 0.2),
-        inset 0 1px 0 rgba(94, 169, 190, 0.2) !important;
+        inset 0 0 10px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
     transition: all 0.2s ease-out;
 }
 
 .ocean-cell:hover {
-    background:
-        radial-gradient(ellipse at 65% 18%, rgba(100, 200, 255, 0.25), transparent 48%),
-        linear-gradient(150deg, rgba(30, 80, 100, 0.75), rgba(15, 50, 70, 0.85)) !important;
+    background: rgba(255, 255, 255, 0.15) !important;
     box-shadow:
-        inset 0 0 15px rgba(0, 200, 255, 0.2),
-        inset 0 1px 0 rgba(100, 200, 255, 0.4) !important;
+        inset 0 0 15px rgba(255, 255, 255, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
 }
 
 .ocean-board-surface {
@@ -807,15 +805,11 @@
 }
 
 .ocean-board-surface .ocean-cell {
-    background:
-        radial-gradient(ellipse at 65% 18%, rgba(62, 143, 164, 0.12), transparent 48%),
-        linear-gradient(150deg, rgba(15, 55, 75, 0.56), rgba(5, 25, 40, 0.68)) !important;
+    background: rgba(255, 255, 255, 0.03) !important;
 }
 
 .ocean-board-surface .ocean-cell:hover {
-    background:
-        radial-gradient(ellipse at 65% 18%, rgba(100, 200, 255, 0.25), transparent 48%),
-        linear-gradient(150deg, rgba(30, 80, 100, 0.75), rgba(15, 50, 70, 0.85)) !important;
+    background: rgba(255, 255, 255, 0.15) !important;
 }
 
 @keyframes ocean-texture-drift {
@@ -1566,37 +1560,41 @@ box-shadow {
 }
 
 .light-mode-active .ocean-board-surface {
-    background: #e1eff5 !important;
+    background: transparent !important;
     border: 1px solid rgba(0, 119, 182, 0.25) !important;
-    border-radius: 8px;
+    border-radius: 0 !important;
     box-shadow: inset 0 0 25px rgba(0, 119, 182, 0.08), 0 15px 40px rgba(0, 53, 74, 0.12) !important;
 }
 
 .light-mode-active .ocean-board-surface::before {
     background:
-        linear-gradient(rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.7)),
-        url("../assets/ocean/deep-ocean-texture.webp") !important;
+        linear-gradient(rgba(190, 225, 245, 0.2), rgba(160, 210, 240, 0.3)),
+        url("../assets/ocean/light-ocean-texture.png") !important;
     background-size: 100% 100%, 620px 620px !important;
-    filter: saturate(1.2) brightness(1.1) contrast(0.9) !important;
+    filter: saturate(1.15) brightness(1.05) contrast(1.05) !important;
 }
 
 .light-mode-active .ocean-board-surface::after {
-    display: none !important;
+    display: block !important;
+    background:
+        url("../assets/ocean/light-ocean-texture.png") !important;
+    background-size: 540px 540px !important;
+    background-position: 80px 45px !important;
+    mix-blend-mode: overlay !important;
+    filter: saturate(1.1) brightness(1.1) blur(0.5px) !important;
 }
 
 .light-mode-active .ocean-cell {
-    background:
-        radial-gradient(ellipse at 65% 18%, rgba(255, 255, 255, 0.6), transparent 48%),
-        linear-gradient(150deg, rgba(200, 230, 245, 0.7), rgba(160, 210, 235, 0.8)) !important;
+    background: rgba(255, 255, 255, 0.25) !important;
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
     box-shadow:
         inset 0 0 10px rgba(0, 119, 182, 0.05),
         inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
 }
 
 .light-mode-active .ocean-cell:hover {
-    background:
-        radial-gradient(ellipse at 65% 18%, rgba(255, 255, 255, 0.8), transparent 48%),
-        linear-gradient(150deg, rgba(220, 240, 250, 0.9), rgba(180, 220, 245, 0.9)) !important;
+    background: rgba(255, 255, 255, 0.45) !important;
     box-shadow:
         inset 0 0 15px rgba(0, 119, 182, 0.15),
         inset 0 1px 0 rgba(255, 255, 255, 1) !important;
@@ -2353,7 +2351,7 @@ box-shadow {
 .ocean-board-surface {
     border: 2px solid #75dfff !important;
     box-shadow: 4px 4px 0 var(--game-shadow) !important;
-    border-radius: 16px !important;
+    border-radius: 0 !important;
 }
 
 .light-mode-active .ocean-board-surface {
@@ -2441,33 +2439,33 @@ button.game-ready-btn.is-valid-ready:active {
 
 /* Refined Board Cells */
 .ocean-board-surface .ocean-cell {
-    background: rgba(4, 20, 32, 0.72) !important;
-    border: 1px solid rgba(117, 223, 255, 0.08) !important;
+    background: rgba(255, 255, 255, 0.03) !important;
+    border: 1px solid rgba(117, 223, 255, 0.03) !important;
     box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.35) !important;
     transition: all 0.15s ease !important;
 }
 
 .ocean-board-surface .ocean-cell:hover {
     border-color: rgba(117, 223, 255, 0.3) !important;
-    background: rgba(11, 42, 57, 0.9) !important;
+    background: rgba(255, 255, 255, 0.15) !important;
     box-shadow: inset 0 0 10px rgba(117, 223, 255, 0.15) !important;
 }
 
 .light-mode-active .ocean-board-surface {
-    background: #10283a !important; /* solid deep navy layout base */
+    background: transparent !important;
     border: 2.5px solid #10283a !important;
     box-shadow: 4px 4px 0 #10283a !important;
 }
 
 .light-mode-active .ocean-board-surface .ocean-cell {
-    background: #f1f8fc !important; /* Premium ice blue blueprint cells */
-    border: 1px solid rgba(16, 40, 58, 0.08) !important;
+    background: rgba(255, 255, 255, 0.25) !important;
+    border: 1px solid rgba(16, 40, 58, 0.03) !important;
     box-shadow: inset 0 0 4px rgba(16, 40, 58, 0.04) !important;
     transition: all 0.15s ease !important;
 }
 
 .light-mode-active .ocean-board-surface .ocean-cell:hover {
-    background: #dbeaf5 !important; /* soft blueprint hover */
+    background: rgba(255, 255, 255, 0.45) !important;
     border-color: rgba(16, 40, 58, 0.22) !important;
     box-shadow: inset 0 0 6px rgba(16, 40, 58, 0.08) !important;
 }
@@ -2518,39 +2516,26 @@ button.game-ready-btn.is-valid-ready:active {
     position: relative !important;
     isolation: isolate !important;
     overflow: hidden !important;
-    background:
-        radial-gradient(circle at 20% 18%, rgba(117, 223, 255, 0.22), transparent 26%),
-        radial-gradient(circle at 76% 68%, rgba(66, 214, 164, 0.14), transparent 34%),
-        linear-gradient(135deg, #041826, #071f31) !important;
+    background: transparent !important;
 }
 
-.game-main.is-deploying .ocean-board-surface::before {
-    opacity: 0.38 !important;
-}
 
 .light-mode-active .game-main.is-deploying .ocean-board-surface {
     border-color: var(--deploy-ink) !important;
-    background:
-        radial-gradient(circle at 18% 14%, rgba(255, 255, 255, 0.78), transparent 22%),
-        radial-gradient(circle at 78% 72%, rgba(66, 214, 164, 0.16), transparent 30%),
-        linear-gradient(135deg, #79d9ea, #a9eff7 46%, #dff8ff) !important;
+    background: transparent !important;
 }
 
 .light-mode-active .game-main.is-deploying .ocean-board-surface .ocean-cell {
-    background:
-        radial-gradient(circle at 50% 35%, rgba(255, 255, 255, 0.66), transparent 34%),
-        linear-gradient(135deg, rgba(85, 204, 224, 0.55), rgba(190, 244, 252, 0.72)) !important;
-    border: 1px solid rgba(16, 40, 58, 0.24) !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(16, 40, 58, 0.04) !important;
     box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.72),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2),
         inset 0 -1px 0 rgba(16, 40, 58, 0.08) !important;
 }
 
 html:not(.light-mode-active) .game-main.is-deploying .ocean-board-surface .ocean-cell {
-    background:
-        radial-gradient(circle at 50% 35%, rgba(117, 223, 255, 0.30), transparent 30%),
-        linear-gradient(135deg, rgba(19, 93, 114, 0.72), rgba(7, 38, 57, 0.92)) !important;
-    border-color: rgba(117, 223, 255, 0.18) !important;
+    background: rgba(255, 255, 255, 0.03) !important;
+    border-color: rgba(117, 223, 255, 0.04) !important;
 }
 
 /* High-specificity overrides for custom shipyard painted cells during deployment in Dark Mode */
@@ -3373,60 +3358,37 @@ html:not(.light-mode-active) .game-header-difficulty:hover {
 
 .game-main.is-deploying .ocean-board-surface {
     border: 3px solid #082235 !important;
-    background:
-        radial-gradient(circle at 18% 12%, rgba(255, 255, 255, 0.28), transparent 18%),
-        radial-gradient(circle at 74% 76%, rgba(66, 214, 164, 0.12), transparent 30%),
-        linear-gradient(135deg, #57c7d9 0%, #8ee8f2 48%, #c8f8ff 100%) !important;
+    background: transparent !important;
     box-shadow:
         6px 6px 0 #10283a,
         inset 0 0 0 1px rgba(255, 255, 255, 0.34),
         inset 0 -24px 48px rgba(5, 83, 106, 0.12) !important;
 }
 
-.game-main.is-deploying .ocean-board-surface::before {
-    opacity: 0.46 !important;
-    background:
-        linear-gradient(rgba(255, 255, 255, 0.22), rgba(0, 128, 156, 0.05)),
-        url("../assets/ocean/deep-ocean-texture.webp") !important;
-    background-size: 100% 100%, 540px 540px !important;
-    mix-blend-mode: soft-light !important;
-}
-
-.game-main.is-deploying .ocean-board-surface::after {
-    opacity: 0.22 !important;
-    background:
-        linear-gradient(120deg, transparent 0 42%, rgba(255, 255, 255, 0.34) 48%, transparent 56%),
-        repeating-linear-gradient(135deg, transparent 0 18px, rgba(255, 255, 255, 0.10) 19px 20px) !important;
-}
 
 .game-main.is-deploying .ocean-board-surface .ocean-cell {
-    background:
-        radial-gradient(circle at 38% 26%, rgba(255, 255, 255, 0.64), transparent 22%),
-        linear-gradient(145deg, rgba(124, 224, 238, 0.76), rgba(80, 197, 217, 0.72)) !important;
-    border: 1px solid rgba(16, 40, 58, 0.32) !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    backdrop-filter: blur(1px);
+    -webkit-backdrop-filter: blur(1px);
+    border: 1px solid rgba(16, 40, 58, 0.04) !important;
     box-shadow:
-        inset 1px 1px 0 rgba(255, 255, 255, 0.68),
+        inset 1px 1px 0 rgba(255, 255, 255, 0.2),
         inset -1px -1px 0 rgba(16, 40, 58, 0.14),
         0 0 0 1px rgba(255, 255, 255, 0.18) !important;
 }
 
 .game-main.is-deploying .ocean-board-surface .ocean-cell:hover {
-    background:
-        radial-gradient(circle at 38% 26%, rgba(255, 255, 255, 0.76), transparent 24%),
-        linear-gradient(145deg, rgba(143, 239, 250, 0.88), rgba(72, 190, 213, 0.82)) !important;
-    border-color: rgba(17, 103, 216, 0.52) !important;
+    background: rgba(255, 255, 255, 0.15) !important;
+    border-color: rgba(17, 103, 216, 0.3) !important;
     box-shadow:
-        inset 1px 1px 0 rgba(255, 255, 255, 0.76),
+        inset 1px 1px 0 rgba(255, 255, 255, 0.3),
         inset -1px -1px 0 rgba(16, 40, 58, 0.18),
         0 0 10px rgba(117, 223, 255, 0.30) !important;
 }
 
 html:not(.light-mode-active) .game-main.is-deploying .ocean-board-surface {
     border-color: #75dfff !important;
-    background:
-        radial-gradient(circle at 18% 12%, rgba(117, 223, 255, 0.18), transparent 22%),
-        radial-gradient(circle at 74% 76%, rgba(66, 214, 164, 0.08), transparent 32%),
-        linear-gradient(135deg, #041826, #09293c 58%, #061827) !important;
+    background: transparent !important;
     box-shadow:
         6px 6px 0 #020b14,
         inset 0 0 0 1px rgba(117, 223, 255, 0.14),
@@ -3434,10 +3396,8 @@ html:not(.light-mode-active) .game-main.is-deploying .ocean-board-surface {
 }
 
 html:not(.light-mode-active) .game-main.is-deploying .ocean-board-surface .ocean-cell {
-    background:
-        radial-gradient(circle at 38% 26%, rgba(117, 223, 255, 0.30), transparent 25%),
-        linear-gradient(145deg, rgba(15, 83, 105, 0.78), rgba(5, 35, 54, 0.90)) !important;
-    border-color: rgba(117, 223, 255, 0.20) !important;
+    background: rgba(255, 255, 255, 0.03) !important;
+    border-color: rgba(117, 223, 255, 0.04) !important;
     box-shadow:
         inset 1px 1px 0 rgba(117, 223, 255, 0.22),
         inset -1px -1px 0 rgba(0, 0, 0, 0.34) !important;
@@ -3521,4 +3481,19 @@ html:not(.light-mode-active) .game-main.is-deploying .ocean-board-surface,
         align-items: center !important;
         gap: 12px !important;
     }
+}
+
+/* High-specificity drag targets for all modes */
+.game-shell .ocean-board-surface .ocean-cell.drag-target-cell-valid,
+.game-shell .game-main.is-deploying .ocean-board-surface .ocean-cell.drag-target-cell-valid {
+    background: rgba(46, 204, 113, 0.45) !important;
+    border-color: rgba(46, 204, 113, 0.8) !important;
+    box-shadow: inset 0 0 15px rgba(46, 204, 113, 0.6), 0 0 10px rgba(46, 204, 113, 0.4) !important;
+}
+
+.game-shell .ocean-board-surface .ocean-cell.drag-target-cell-invalid,
+.game-shell .game-main.is-deploying .ocean-board-surface .ocean-cell.drag-target-cell-invalid {
+    background: rgba(231, 76, 60, 0.5) !important;
+    border-color: rgba(231, 76, 60, 0.8) !important;
+    box-shadow: inset 0 0 15px rgba(231, 76, 60, 0.6), 0 0 10px rgba(231, 76, 60, 0.4) !important;
 }

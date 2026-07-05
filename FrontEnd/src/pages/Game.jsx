@@ -4416,7 +4416,7 @@ function Game() {
                         handleCustomBoardTouchMove(e, playerBoardRef)
                       }
                       onTouchEnd={stopCustomPainting}
-                      className={`ocean-cell relative overflow-visible ${isPlacementLocked ? "cursor-default" : "cursor-crosshair"} ${!isPainted ? "bg-surface-container/50" : `custom-painted-cell-${cell.shipBrushId}`}`}
+                      className={`ocean-cell relative overflow-visible ${isPlacementLocked ? "cursor-default" : "cursor-crosshair"} ${!isPainted ? "" : `custom-painted-cell-${cell.shipBrushId}`}`}
                       style={{
                         transition:
                           "background 0.1s, border 0.1s, box-shadow 0.1s",
@@ -4437,7 +4437,7 @@ function Game() {
                   cell.hasShip && sunkShipIds.includes(cell.shipId);
                 const playerCellBg = cell.hasShip
                   ? "bg-transparent"
-                  : "bg-surface-container/50";
+                  : "";
                 const baseCellBg = isEnemy
                   ? isSunkShipCell
                     ? "bg-transparent"
@@ -4478,19 +4478,10 @@ function Game() {
                     onTouchEnd={(event) =>
                       !isEnemy && handleTouchEnd(event, r, c)
                     }
-                    className={`ocean-cell relative ${cursorClass} overflow-visible transition-all duration-300 ${baseCellBg} ${!isEnemy && cell.hasShip ? "player-ship-cell" : ""
-                      } ${isHovered && draggedShip
-                        ? canPlace
+                    className={`ocean-cell relative ${cursorClass} overflow-visible transition-all duration-300 ${baseCellBg} ${!isEnemy && cell.hasShip ? "player-ship-cell" : ""} ${isHovered
+                        ? canPlace && !invalidRotationPreview
                           ? "drag-target-cell-valid"
                           : "drag-target-cell-invalid"
-                        : ""
-                      } ${isHovered && invalidRotationPreview && !draggedShip
-                        ? "drag-target-cell-invalid"
-                        : ""
-                      } ${isHovered
-                        ? canPlace
-                          ? "bg-secondary/50 shadow-[0_0_15px_#a5e7ff]"
-                          : "bg-error/50"
                         : ""
                       }`}
                   >
@@ -5134,12 +5125,12 @@ function Game() {
                           </div>
 
                           {/* Progress Bar */}
-                          <div className="order-3 md:order-2 col-span-2 md:col-span-1 w-full h-1 rounded-sm bg-white/10 overflow-hidden">
+                          <div className="order-3 md:order-2 col-span-2 md:col-span-1 w-full h-2 rounded-md bg-black/30 border border-[#75dfff]/30 overflow-hidden" style={{ boxShadow: "inset 0 1px 3px rgba(0,0,0,0.6)" }}>
                             <div
                               className="custom-shipyard-progress"
                               style={{
                                 height: "100%",
-                                borderRadius: "2px",
+                                borderRadius: "6px",
                                 width: `${Math.min(100, (customDrawCellCount / CUSTOM_SHIPYARD_CELL_BUDGET) * 100)}%`,
                                 background:
                                   customDrawCellCount >
@@ -5245,15 +5236,19 @@ function Game() {
                                   fontSize: "10px",
                                   fontWeight: "bold",
                                   padding: "3px 8px",
-                                  borderRadius: "4px",
-                                  border: `1px solid ${ok ? theme.border : "rgba(239,68,68,0.5)"}`,
+                                  borderRadius: "6px",
+                                  border: `1px solid ${ok ? theme.main : "#ef4444"}`,
                                   background: ok
                                     ? theme.bg
-                                    : "rgba(239,68,68,0.1)",
-                                  color: ok ? theme.main : "#ef4444",
+                                    : "rgba(239,68,68,0.15)",
+                                  backdropFilter: "blur(4px)",
+                                  WebkitBackdropFilter: "blur(4px)",
+                                  boxShadow: `2px 2px 0 ${ok ? theme.main : "#ef4444"}`,
+                                  color: ok ? theme.main : "#ff958c",
                                 }}
                               >
                                 {copy.shipLabel || "Ship"} {brushId}: {sz}{" "}
+
                                 {copy.cellsLabel || "cells"}
                               </span>
                             );
