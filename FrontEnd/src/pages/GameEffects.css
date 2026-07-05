@@ -3399,3 +3399,53 @@ html:not(.light-mode-active) .game-main.is-deploying .ocean-board-surface,
     outline: 0 !important;
     box-shadow: none !important;
 }
+
+/* GAME HEADER RESPONSIVE OPTIMIZATIONS */
+.game-exit-button {
+    display: none !important;
+}
+
+@media (max-width: 767px) {
+    /* Hide the brand text but keep the logo */
+    .game-shell .command-brand-copy {
+        display: none !important;
+    }
+
+    /* Hide account/commander profile card */
+    .game-shell .command-account {
+        display: none !important;
+    }
+
+    /* Hide difficulty label */
+    .game-shell .game-header-difficulty {
+        display: none !important;
+    }
+
+    /* Show exit button for single player on mobile */
+    .game-shell .game-exit-button {
+        display: inline-flex !important;
+    }
+
+    /* Force display of theme switch & language toggle on mobile */
+    .game-shell .command-desktop-actions {
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+    }
+
+    /* Center align and distribute actions inside header */
+    .game-shell .command-header-inner {
+        display: flex !important;
+        justify-content: space-between !important;
+        width: calc(100% - 24px) !important;
+        gap: 16px !important;
+    }
+
+    .game-shell .command-actions {
+        flex: 1 !important;
+        display: flex !important;
+        justify-content: flex-end !important;
+        align-items: center !important;
+        gap: 12px !important;
+    }
+}

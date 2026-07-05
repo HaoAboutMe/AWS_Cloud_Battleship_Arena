@@ -1102,3 +1102,22 @@
 .light-mode-active .command-enlist:hover {
   background: #073b82 !important;
 }
+
+/* Global Darkmode Buttons White Shadow */
+html:not(.light-mode-active) .command-header .command-icon-button,
+html:not(.light-mode-active) .command-header .language-toggle,
+html:not(.light-mode-active) .command-header .command-signin,
+html:not(.light-mode-active) .command-header .command-enlist,
+html:not(.light-mode-active) .game-shell .pvp-leave-match-button {
+    box-shadow: 2px 2px 0 #ffffff !important;
+    border: 2px solid #ffffff !important;
+}
+
+html:not(.light-mode-active) .command-header .command-icon-button:active,
+html:not(.light-mode-active) .command-header .language-toggle:active,
+html:not(.light-mode-active) .command-header .command-signin:active,
+html:not(.light-mode-active) .command-header .command-enlist:active,
+html:not(.light-mode-active) .game-shell .pvp-leave-match-button:active {
+    box-shadow: 1px 1px 0 #ffffff !important;
+    transform: translate(1px, 1px) !important;
+}

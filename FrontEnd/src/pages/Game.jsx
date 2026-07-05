@@ -4536,10 +4536,21 @@ function Game() {
                 <span>{copy.leave || "Leave Match"}</span>
               </button>
             ) : (
-              <span className="game-header-difficulty">
-                {copy.difficultyLabel}:{" "}
-                {copy.difficultyNames?.[difficulty] || difficulty}
-              </span>
+              <>
+                <span className="game-header-difficulty">
+                  {copy.difficultyLabel}:{" "}
+                  {copy.difficultyNames?.[difficulty] || difficulty}
+                </span>
+                <button
+                  onClick={() => requestGameExit("/")}
+                  className="pvp-leave-match-button game-exit-button"
+                >
+                  <span className="material-symbols-outlined" aria-hidden="true">
+                    logout
+                  </span>
+                  <span>{copy.leave || "Leave Match"}</span>
+                </button>
+              </>
             )}
           </div>
         }
