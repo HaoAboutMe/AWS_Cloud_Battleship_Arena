@@ -5253,9 +5253,6 @@ function Game() {
                           flex: 1.2,
                           minHeight: "36px",
                           padding: "6px 12px",
-                          background: "rgba(165,231,255,0.08)",
-                          border: "1px solid rgba(165,231,255,0.3)",
-                          color: "#a5e7ff",
                         }}
                         onClick={(e) => {
                           e.stopPropagation();
@@ -5481,9 +5478,6 @@ function Game() {
                       className="auto-arrange-button"
                       style={{
                         marginTop: "6px",
-                        background: "rgba(165,231,255,0.08)",
-                        border: "1px solid rgba(165,231,255,0.3)",
-                        color: "#a5e7ff",
                       }}
                       onClick={(e) => {
                         e.stopPropagation();
