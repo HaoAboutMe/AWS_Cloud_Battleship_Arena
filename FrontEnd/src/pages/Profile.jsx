@@ -244,9 +244,9 @@ function Profile() {
   };
 
   const handleLogout = async () => {
-    await logout();
     localStorage.removeItem("battleshipSession");
     navigate("/", { replace: true, state: { authEvent: "signed-out" } });
+    await logout();
   };
 
   const email =

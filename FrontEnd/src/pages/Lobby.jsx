@@ -143,9 +143,9 @@ function Lobby() {
     useState(false);
 
   const handleLogout = async () => {
-    await logout();
     localStorage.removeItem("battleshipSession");
     navigate("/", { replace: true, state: { authEvent: "signed-out" } });
+    await logout();
   };
 
   const [isLightMode, setIsLightMode] = useState(() => 

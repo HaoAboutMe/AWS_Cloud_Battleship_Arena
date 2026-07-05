@@ -129,6 +129,12 @@ const Leaderboard = () => {
     navigate(targetPath);
   };
 
+  const handleLogout = async () => {
+    localStorage.removeItem("battleshipSession");
+    navigate("/", { replace: true, state: { authEvent: "signed-out" } });
+    await logout();
+  };
+
   useEffect(() => {
     document.title = `${t("common.leaderboard") || "Leaderboard"} | Cloud Battleship`;
   }, [t]);
@@ -175,7 +181,7 @@ const Leaderboard = () => {
         authLoading={authLoading}
         isLightMode={isLightMode}
         onToggleTheme={toggleTheme}
-        onLogout={logout}
+        onLogout={handleLogout}
         onNavigateRequest={handleNavigateRequest}
       />
       <main className="container mx-auto px-4 pb-12 flex flex-col items-center w-full">

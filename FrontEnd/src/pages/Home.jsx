@@ -234,7 +234,6 @@ function Home() {
 
   const handleLogout = async () => {
     try {
-      await logout();
       localStorage.removeItem("battleshipSession");
       setAuthToast({
         type: "success",
@@ -242,6 +241,7 @@ function Home() {
         messageKey: "home.signedOutBody",
       });
       navigate("/", { replace: true, state: null });
+      await logout();
     } catch {
       setAuthToast({
         type: "error",
