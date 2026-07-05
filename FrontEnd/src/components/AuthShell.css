@@ -1015,10 +1015,6 @@
   box-shadow: 0 12px 34px rgba(21, 53, 79, 0.12) !important;
 }
 
-.auth-page .command-header-inner {
-  height: 76px;
-}
-
 .auth-page .command-brand-mark {
   border: 2px solid var(--auth-ink) !important;
   background: var(--auth-panel) !important;
@@ -1031,13 +1027,10 @@
 
 .auth-page .command-brand-copy strong {
   color: var(--auth-ink) !important;
-  font-weight: 850 !important;
-  font-family: var(--font-display) !important;
 }
 
 .auth-page .command-brand-copy small {
   color: var(--auth-muted) !important;
-  font-family: var(--font-mono) !important;
 }
 
 /* Return Home Button in Header */

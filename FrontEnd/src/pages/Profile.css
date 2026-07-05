@@ -1324,10 +1324,6 @@
   backdrop-filter: blur(22px);
 }
 
-.profile-page .command-header-inner {
-  height: 76px;
-}
-
 .profile-page .command-brand-copy strong,
 .profile-page .command-account-copy strong {
   color: #e7f8ff !important;

@@ -13,7 +13,7 @@
 
 .command-header-inner {
   width: min(1440px, calc(100% - 32px));
-  height: 64px;
+  height: 76px;
   margin: 0 auto;
   display: grid;
   grid-template-columns: minmax(230px, 1fr) auto minmax(300px, 1fr);
@@ -78,8 +78,9 @@
 .command-brand-copy strong {
   overflow: hidden;
   color: #bceeff;
-  font-size: 18px;
-  font-weight: 900;
+  font-size: 19px;
+  font-weight: 950;
+  letter-spacing: 0;
   line-height: 1.05;
   text-overflow: ellipsis;
   text-transform: uppercase;
@@ -89,9 +90,9 @@
 .command-brand-copy small {
   margin-top: 4px;
   color: rgba(188, 238, 255, 0.82);
-  font-size: 8.5px;
+  font-size: 8.75px;
   font-weight: 950;
-  letter-spacing: 0.025em;
+  letter-spacing: 0.035em;
   text-transform: uppercase;
 }
 
@@ -386,30 +387,32 @@
 
 .command-toast {
   position: fixed;
-  top: 78px;
+  top: 96px;
   right: 24px;
-  z-index: 100;
+  z-index: 1000;
   width: min(380px, calc(100vw - 32px));
   min-height: 68px;
   display: grid;
   grid-template-columns: 38px minmax(0, 1fr) 24px;
   align-items: center;
-  gap: 11px;
-  padding: 11px 12px;
-  border: 1px solid rgba(88, 230, 169, 0.28);
-  border-radius: 6px;
-  background:
-    linear-gradient(90deg, rgba(24, 121, 88, 0.2), transparent 72%),
-    rgba(3, 18, 29, 0.97);
-  box-shadow: inset 3px 0 0 #58e6a9, 0 18px 42px rgba(0, 0, 0, 0.38);
-  animation: command-toast-enter 280ms ease-out both;
+  gap: 12px;
+  padding: 12px;
+  border: 2px solid #58e6a9;
+  border-radius: 8px;
+  background: #081a29;
+  box-shadow: 
+    inset 4px 0 0 #58e6a9,
+    5px 5px 0 #020914,
+    0 12px 36px rgba(0, 0, 0, 0.4);
+  animation: command-toast-enter 280ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .command-toast-icon {
   position: relative;
   width: 34px;
   height: 34px;
-  border: 1px solid rgba(88, 230, 169, 0.36);
+  border: 1px solid rgba(88, 230, 169, 0.4);
+  background: rgba(88, 230, 169, 0.1);
   border-radius: 50%;
 }
 
@@ -424,24 +427,30 @@
   border-bottom: 2px solid #58e6a9;
   transform: rotate(-45deg);
 }
-
-.command-toast>span:nth-child(2) {
+.command-toast > div,
+.command-toast > span:nth-child(2) {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 4px;
 }
 
 .command-toast strong {
   color: #8af0c2;
-  font-size: 10px;
+  font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif;
+  font-size: 11px;
+  font-weight: 700;
   text-transform: uppercase;
+  letter-spacing: 0.05em;
+  line-height: 1.2;
 }
 
 .command-toast small {
-  color: rgba(220, 237, 248, 0.7);
-  font-size: 11px;
-  line-height: 1.35;
+  color: #d4e4fa;
+  font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
 }
 
 .command-toast button {
@@ -449,25 +458,39 @@
   height: 24px;
   border: 0;
   background: transparent;
-  color: rgba(220, 237, 248, 0.46);
-  font-size: 19px;
+  color: rgba(220, 237, 248, 0.6);
+  display: grid;
+  place-items: center;
   cursor: pointer;
+  transition: color 0.2s ease, transform 0.1s ease;
+}
+
+.command-toast button:hover {
+  color: #58e6a9;
+  transform: scale(1.1);
+}
+
+.command-toast button:active {
+  transform: scale(0.9);
 }
 
 .command-toast button .material-symbols-outlined {
-  font-size: 17px;
+  font-size: 18px;
 }
 
+/* Error state - Dark Mode */
 .command-toast.is-error {
-  border-color: rgba(255, 119, 112, 0.3);
-  background:
-    linear-gradient(90deg, rgba(145, 48, 43, 0.22), transparent 72%),
-    rgba(3, 18, 29, 0.97);
-  box-shadow: inset 3px 0 0 #ff7770, 0 18px 42px rgba(0, 0, 0, 0.38);
+  border-color: #ff7770;
+  background: #1a0f0f;
+  box-shadow: 
+    inset 4px 0 0 #ff7770,
+    5px 5px 0 #020914,
+    0 12px 36px rgba(0, 0, 0, 0.4);
 }
 
 .command-toast.is-error .command-toast-icon {
   border-color: rgba(255, 119, 112, 0.4);
+  background: rgba(255, 119, 112, 0.1);
 }
 
 .command-toast.is-error .command-toast-icon::before {
@@ -478,7 +501,7 @@
   border: 0;
   border-left: 2px solid #ff7770;
   transform: rotate(45deg);
-  box-shadow: 0 0 7px rgba(255, 119, 112, 0.5);
+  box-shadow: none;
 }
 
 .command-toast.is-error .command-toast-icon::after {
@@ -493,6 +516,77 @@
 
 .command-toast.is-error strong {
   color: #ffaaa3;
+}
+
+.command-toast.is-error small {
+  color: #fce8e6;
+}
+
+.command-toast.is-error button:hover {
+  color: #ff7770;
+}
+
+/* Light Mode Overrides */
+.light-mode-active .command-toast {
+  border-color: #10283a;
+  background: #ffffff;
+  box-shadow: 
+    inset 4px 0 0 #13a078,
+    5px 5px 0 #10283a;
+}
+
+.light-mode-active .command-toast .command-toast-icon {
+  border-color: rgba(19, 160, 120, 0.4);
+  background: rgba(19, 160, 120, 0.1);
+}
+
+.light-mode-active .command-toast .command-toast-icon::before {
+  border-left-color: #13a078;
+  border-bottom-color: #13a078;
+}
+
+.light-mode-active .command-toast strong {
+  color: #007a5c;
+}
+
+.light-mode-active .command-toast small {
+  color: #10283a;
+}
+
+.light-mode-active .command-toast button {
+  color: rgba(16, 40, 58, 0.5);
+}
+
+.light-mode-active .command-toast button:hover {
+  color: #13a078;
+}
+
+/* Light Mode Error */
+.light-mode-active .command-toast.is-error {
+  box-shadow: 
+    inset 4px 0 0 #ff6b4a,
+    5px 5px 0 #10283a;
+}
+
+.light-mode-active .command-toast.is-error .command-toast-icon {
+  border-color: rgba(255, 107, 74, 0.4);
+  background: rgba(255, 107, 74, 0.1);
+}
+
+.light-mode-active .command-toast.is-error .command-toast-icon::before {
+  border-left-color: #ff6b4a;
+}
+
+.light-mode-active .command-toast.is-error .command-toast-icon::after {
+  border-left-color: #ff6b4a;
+}
+
+.light-mode-active .command-toast.is-error strong {
+  color: #d83b1c;
+}
+
+.light-mode-active .command-toast.is-error button:hover {
+  color: #ff6b4a;
 }
 
 .command-section-anchor {
@@ -518,15 +612,11 @@
 
 .light-mode-active .command-header .command-brand-copy strong {
   color: #10283a;
-  font-weight: 950;
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.72);
 }
 
 .light-mode-active .command-header .command-brand-copy small {
   color: #0c6f8f;
-  font-size: 8.75px;
-  font-weight: 950;
-  letter-spacing: 0.035em;
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.75);
 }
 
@@ -650,10 +740,16 @@
   }
 }
 
+@media (max-width: 768px) {
+  .command-header-inner {
+    height: 60px;
+  }
+}
+
 @media (max-width: 640px) {
   .command-header-inner {
     width: calc(100% - 20px);
-    height: 58px;
+    height: 60px;
     grid-template-columns: minmax(0, 1fr) auto;
     gap: 8px;
   }
@@ -790,8 +886,10 @@
 
 
   .command-toast {
-    top: 70px;
+    top: 76px;
     right: 16px;
+    left: 16px;
+    width: auto;
   }
 
   .command-account.is-open .command-account-chevron {

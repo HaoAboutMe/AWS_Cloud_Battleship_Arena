@@ -42,23 +42,13 @@
   backdrop-filter: blur(22px);
 }
 
-.home-page .command-header-inner {
-  height: 76px;
-}
-
 .home-page .command-brand-copy strong {
   color: var(--home-ink);
-  font-size: 19px;
-  font-weight: 950;
-  letter-spacing: 0;
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.72);
 }
 
 .home-page .command-brand-copy small {
   color: #3f6f88;
-  font-size: 8.75px;
-  font-weight: 950;
-  letter-spacing: 0.035em;
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.75);
 }
 
@@ -1148,17 +1138,6 @@
   color: var(--home-ink);
 }
 
-.command-toast {
-  border: 2px solid var(--home-ink);
-  border-radius: 16px;
-  background: #ffffff;
-  color: var(--home-ink);
-  box-shadow: 5px 5px 0 var(--home-ink);
-}
-
-.command-toast small {
-  color: var(--home-muted);
-}
 
 @keyframes home-radar-spin {
   to {
@@ -1214,10 +1193,6 @@
 }
 
 @media (max-width: 1120px) {
-  .home-page .command-header-inner {
-    grid-template-columns: minmax(200px, 1fr) auto;
-  }
-
   .home-hero {
     grid-template-columns: 1fr;
     min-height: auto;
@@ -1257,10 +1232,6 @@
 
   .home-page .command-header {
     border-bottom: 2px solid var(--home-ink);
-  }
-
-  .home-page .command-header-inner {
-    height: 60px;
   }
 
   .home-hero {
