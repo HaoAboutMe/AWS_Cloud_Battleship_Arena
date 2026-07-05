@@ -715,7 +715,7 @@ function Home() {
                         <img
                           src={getRankInfo(stats?.rank, t).iconUrl}
                           alt={getRankInfo(stats?.rank, t).label}
-                          className="w-14 h-14 object-contain drop-shadow-[0_0_12px_rgba(255,215,0,0.70)]"
+                          className="home-rank-tier-badge"
                           onError={(e) => { e.target.style.display = 'none'; }}
                         />
                       )}

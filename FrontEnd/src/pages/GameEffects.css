@@ -1372,10 +1372,10 @@ box-shadow {
    LIGHT MODE OVERRIDES FOR GAME PAGE
    ========================================= */
 .light-mode-active .game-shell {
-    background: 
-      radial-gradient(ellipse at 50% 18%, rgba(0, 119, 182, 0.08), transparent 46%),
-      repeating-linear-gradient(172deg, rgba(0, 168, 232, 0.035) 0 1px, transparent 2px 13px),
-      linear-gradient(180deg, #f4f9fb 0%, #e8f4f8 58%, #dcf0f7 100%) !important;
+    background:
+        radial-gradient(ellipse at 50% 18%, rgba(0, 119, 182, 0.08), transparent 46%),
+        repeating-linear-gradient(172deg, rgba(0, 168, 232, 0.035) 0 1px, transparent 2px 13px),
+        linear-gradient(180deg, #f4f9fb 0%, #e8f4f8 58%, #dcf0f7 100%) !important;
     color: #173247 !important;
 }
 
@@ -1469,7 +1469,7 @@ box-shadow {
 }
 
 .light-mode-active .ocean-board-surface::before {
-    background: 
+    background:
         linear-gradient(rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.7)),
         url("../assets/ocean/deep-ocean-texture.webp") !important;
     background-size: 100% 100%, 620px 620px !important;
@@ -1481,27 +1481,27 @@ box-shadow {
 }
 
 .light-mode-active .ocean-cell {
-    background: 
+    background:
         radial-gradient(ellipse at 65% 18%, rgba(255, 255, 255, 0.6), transparent 48%),
         linear-gradient(150deg, rgba(200, 230, 245, 0.7), rgba(160, 210, 235, 0.8)) !important;
-    box-shadow: 
+    box-shadow:
         inset 0 0 10px rgba(0, 119, 182, 0.05),
         inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
 }
 
 .light-mode-active .ocean-cell:hover {
-    background: 
+    background:
         radial-gradient(ellipse at 65% 18%, rgba(255, 255, 255, 0.8), transparent 48%),
         linear-gradient(150deg, rgba(220, 240, 250, 0.9), rgba(180, 220, 245, 0.9)) !important;
-    box-shadow: 
+    box-shadow:
         inset 0 0 15px rgba(0, 119, 182, 0.15),
         inset 0 1px 0 rgba(255, 255, 255, 1) !important;
 }
 
 .light-mode-active .player-ship-cell {
-    background: 
+    background:
         radial-gradient(circle at center, rgba(0, 119, 182, 0.85), rgba(0, 53, 74, 0.95)) !important;
-    box-shadow: 
+    box-shadow:
         inset 0 0 16px rgba(0, 0, 0, 0.4),
         inset 0 0 6px rgba(100, 200, 255, 0.8) !important;
 }
@@ -1555,6 +1555,7 @@ box-shadow {
 .light-mode-active .border-white\/10 {
     border-color: rgba(0, 119, 182, 0.15) !important;
 }
+
 /* =========================================
    LIGHT MODE OVERRIDES FOR PVP PANELS
    ========================================= */
@@ -1867,7 +1868,7 @@ box-shadow {
 /* Fix the pale white labels */
 .light-mode-active .fleet-rule-panel .order-1 span:first-child,
 .light-mode-active .fleet-rule-panel .order-2 span:first-child,
-.light-mode-active .fleet-rule-panel .order-1 > span:last-child {
+.light-mode-active .fleet-rule-panel .order-1>span:last-child {
     color: #4a6773 !important;
     text-shadow: none !important;
 }
@@ -1891,8 +1892,8 @@ box-shadow {
 }
 
 /* Ship Size breakdown chips */
-.light-mode-active .fleet-rule-panel > div[style*="flex-wrap: wrap"] > span,
-.light-mode-active .fleet-rule-panel > div[style*="flexWrap: wrap"] > span,
+.light-mode-active .fleet-rule-panel>div[style*="flex-wrap: wrap"]>span,
+.light-mode-active .fleet-rule-panel>div[style*="flexWrap: wrap"]>span,
 .light-mode-active .fleet-rule-panel span[style*="padding: 3px 8px"] {
     filter: brightness(0.65) saturate(1.5) !important;
     font-weight: 900 !important;
@@ -1927,6 +1928,7 @@ box-shadow {
     border-color: rgba(30, 140, 200, 1) !important;
     filter: none !important;
 }
+
 .light-mode-active button.brush-1.is-active-brush span {
     color: rgba(20, 110, 170, 1) !important;
     font-weight: 900 !important;
@@ -1938,6 +1940,7 @@ box-shadow {
     border-color: rgba(34, 180, 80, 1) !important;
     filter: none !important;
 }
+
 .light-mode-active button.brush-2.is-active-brush span {
     color: rgba(24, 140, 60, 1) !important;
     font-weight: 900 !important;
@@ -1949,6 +1952,7 @@ box-shadow {
     border-color: rgba(220, 150, 20, 1) !important;
     filter: none !important;
 }
+
 .light-mode-active button.brush-3.is-active-brush span {
     color: rgba(180, 120, 10, 1) !important;
     font-weight: 900 !important;
@@ -1960,6 +1964,7 @@ box-shadow {
     border-color: rgba(160, 90, 220, 1) !important;
     filter: none !important;
 }
+
 .light-mode-active button.brush-4.is-active-brush span {
     color: rgba(130, 70, 190, 1) !important;
     font-weight: 900 !important;
@@ -1996,7 +2001,7 @@ box-shadow {
     --shipyard-text-faded: #5a7d8f;
     --shipyard-highlight: #0077b6;
     --shipyard-bar-bg: rgba(0, 119, 182, 0.15);
-    
+
     /* Variables for "5 cells", "3 cells" text */
     --shipyard-sunk-text: #cc0000;
     --shipyard-active-text: #087eaf;
@@ -2023,3 +2028,360 @@ box-shadow {
 }
 
 
+.pvp-comms-tab,
+.light-mode-active .pvp-comms-tab {
+    color: var(--game-muted) !important;
+    font-weight: 850 !important;
+    border-bottom: none !important;
+    border-right: 2px solid var(--game-ink) !important;
+}
+
+.pvp-comms-tab:hover,
+.light-mode-active .pvp-comms-tab:hover {
+    background: var(--game-panel) !important;
+    color: var(--game-ink) !important;
+}
+
+.pvp-comms-tab.is-active,
+.light-mode-active .pvp-comms-tab.is-active {
+    color: var(--game-ink) !important;
+    border-bottom-color: transparent !important;
+    background: var(--game-panel) !important;
+}
+
+.pvp-comms-body,
+.light-mode-active .pvp-comms-body {
+    background: var(--game-panel) !important;
+}
+
+.pvp-event-entry,
+.light-mode-active .pvp-event-entry {
+    border-left: 3px solid var(--game-accent) !important;
+    color: var(--game-ink) !important;
+    background-color: var(--game-panel-2) !important;
+    border-radius: 6px !important;
+    margin: 6px 12px !important;
+    border-right: 1px solid var(--game-ink) !important;
+    border-top: 1px solid var(--game-ink) !important;
+    border-bottom: 1px solid var(--game-ink) !important;
+    box-shadow: 2px 2px 0 var(--game-ink) !important;
+}
+
+.pvp-event-entry.is-destroy,
+.pvp-event-entry.is-victory,
+.light-mode-active .pvp-event-entry.is-destroy,
+.light-mode-active .pvp-event-entry.is-victory {
+    border-color: var(--game-success) !important;
+    background-color: rgba(54, 255, 176, 0.1) !important;
+}
+
+.pvp-event-entry.is-enemy_hit,
+.pvp-event-entry.is-defeat,
+.light-mode-active .pvp-event-entry.is-enemy_hit,
+.light-mode-active .pvp-event-entry.is-defeat {
+    border-color: var(--game-danger) !important;
+    background-color: rgba(255, 122, 114, 0.1) !important;
+}
+
+/* ==========================================================================
+   NEO-BRUTALIST SKIN OVERRIDES FOR GAME PLAY PAGE (DARK & LIGHT THEMES)
+   ========================================================================== */
+
+/* Game header custom styling */
+.game-header-difficulty {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 850;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #75dfff;
+    background: rgba(11, 42, 57, 0.8) !important;
+    border: 2px solid #75dfff !important;
+    padding: 6px 12px;
+    border-radius: 8px;
+    box-shadow: 3px 3px 0 #020b14 !important;
+}
+
+.light-mode-active .game-header-difficulty {
+    color: #10283a !important;
+    background: #ffffff !important;
+    border: 2px solid #10283a !important;
+    box-shadow: 3px 3px 0 #10283a !important;
+}
+
+.game-header-home-btn {
+    color: #75dfff !important;
+    background: rgba(11, 42, 57, 0.8) !important;
+    border: 2px solid #75dfff !important;
+    border-radius: 8px !important;
+    padding: 6px 10px !important;
+    transition: all 0.2s !important;
+    box-shadow: 3px 3px 0 #020b14 !important;
+    text-decoration: none !important;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+}
+
+.light-mode-active .game-header-home-btn {
+    color: #10283a !important;
+    background: #ffffff !important;
+    border: 2px solid #10283a !important;
+    box-shadow: 3px 3px 0 #10283a !important;
+}
+
+/* Coordinate label high contrast */
+.coordinate-label {
+    color: #75dfff !important;
+    font-family: var(--font-mono) !important;
+    font-size: 12px !important;
+    font-weight: 850 !important;
+    text-shadow: 0 0 6px rgba(117, 223, 255, 0.3) !important;
+}
+
+.light-mode-active .coordinate-label {
+    color: #10283a !important;
+    text-shadow: none !important;
+}
+
+/* Premium Neo-Brutalist Cards */
+.game-status {
+    background: linear-gradient(135deg, rgba(117, 223, 255, 0.08), rgba(2, 18, 29, 0.95)) !important;
+    border: 2.5px solid #75dfff !important;
+    border-top: 6px solid #ff6b4a !important; /* Coral top accent bar */
+    box-shadow: 4px 4px 0 #020b14 !important;
+    border-radius: 16px !important;
+    backdrop-filter: blur(12px) !important;
+    transition: none !important;
+}
+
+.game-status:hover {
+    border-color: #75dfff !important;
+    border-top-color: #ff6b4a !important;
+    box-shadow: 4px 4px 0 #020b14 !important;
+    transform: none !important;
+}
+
+.light-mode-active .game-status {
+    background: #ffffff !important;
+    border: 2.5px solid #10283a !important;
+    border-top: 6px solid #ff785f !important; /* Coral top accent bar */
+    box-shadow: 4px 4px 0 #10283a !important;
+}
+
+.light-mode-active .game-status:hover {
+    border-color: #10283a !important;
+    border-top-color: #ff785f !important;
+    box-shadow: 4px 4px 0 #10283a !important;
+    transform: none !important;
+}
+
+.deployment-dock {
+    background: linear-gradient(180deg, rgba(12, 35, 50, 0.8), rgba(2, 15, 25, 0.9)) !important;
+    border: 2.5px solid #75dfff !important;
+    border-top: 6px solid #1167d8 !important; /* Cobalt top accent bar */
+    box-shadow: 4px 4px 0 #020b14 !important;
+    border-radius: 16px !important;
+    padding: 18px !important;
+    max-width: 440px !important;
+    height: 540px !important;
+    max-height: min(540px, calc(100vh - 200px)) !important;
+}
+
+.light-mode-active .deployment-dock {
+    background: #ffffff !important;
+    border: 2.5px solid #10283a !important;
+    border-top: 6px solid #1167d8 !important; /* Cobalt top accent bar */
+    box-shadow: 4px 4px 0 #10283a !important;
+}
+
+/* Staging Ship cards */
+.deployment-ship-card {
+    border: 1.5px solid rgba(117, 223, 255, 0.25) !important;
+    background: rgba(4, 25, 39, 0.65) !important;
+    border-radius: 10px !important;
+    box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.2) !important;
+}
+
+.deployment-ship-card:hover:not(.is-placed) {
+    border-color: #75dfff !important;
+    background: rgba(11, 42, 57, 0.85) !important;
+    box-shadow: 0 0 15px rgba(117, 223, 255, 0.15) !important;
+}
+
+.light-mode-active .deployment-ship-card {
+    border: 2px solid #10283a !important;
+    background: #f4f9fb !important;
+    box-shadow: none !important;
+}
+
+.light-mode-active .deployment-ship-card:hover:not(.is-placed) {
+    background: #e6f3f8 !important;
+    border-color: #0077b6 !important;
+    box-shadow: 2px 2px 0 #10283a !important;
+}
+
+/* Right-side Log Panel */
+.pvp-comms-panel {
+    border: 2.5px solid #75dfff !important;
+    border-top: 6px solid #42d6a4 !important; /* Mint top accent bar */
+    box-shadow: 4px 4px 0 #020b14 !important;
+    border-radius: 16px !important;
+    background: linear-gradient(180deg, rgba(12, 35, 50, 0.8), rgba(2, 15, 25, 0.9)) !important;
+}
+
+.light-mode-active .pvp-comms-panel {
+    border: 2.5px solid #10283a !important;
+    border-top: 6px solid #42d6a4 !important; /* Mint top accent bar */
+    box-shadow: 4px 4px 0 #10283a !important;
+    background: #ffffff !important;
+}
+
+/* Ocean Board Outline */
+.ocean-board-surface {
+    border: 2px solid #75dfff !important;
+    box-shadow: 4px 4px 0 #020b14 !important;
+    border-radius: 16px !important;
+}
+
+.light-mode-active .ocean-board-surface {
+    border: 2.5px solid #10283a !important;
+    box-shadow: 4px 4px 0 #10283a !important;
+}
+
+/* Sidebar sizing during placement */
+.pvp-sidebar-column {
+    height: 540px !important;
+    max-height: min(540px, calc(100vh - 200px)) !important;
+}
+
+/* Ready Button default fallback */
+button.bg-secondary:not(:disabled) {
+    border: 2px solid transparent !important;
+    box-shadow: 0 0 16px rgba(104, 242, 188, 0.25) !important;
+}
+
+.light-mode-active button.bg-secondary:not(:disabled) {
+    border: 2px solid #10283a !important;
+    box-shadow: 3px 3px 0 #10283a !important;
+}
+
+/* Auto-arrange / shipyard buttons inside Staging */
+.deployment-dock button.auto-arrange-button {
+    border: 2px solid rgba(117, 223, 255, 0.3) !important;
+    border-radius: 8px !important;
+    background: rgba(117, 223, 255, 0.08) !important;
+    color: #75dfff !important;
+    font-weight: 850 !important;
+    transition: all 0.2s ease !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+}
+
+.deployment-dock button.auto-arrange-button:hover:not(:disabled) {
+    border-color: #75dfff !important;
+    background: rgba(117, 223, 255, 0.15) !important;
+    color: #ffffff !important;
+}
+
+.light-mode-active .deployment-dock button.auto-arrange-button {
+    border: 2px solid #10283a !important;
+    background: #f0f7fa !important;
+    color: #10283a !important;
+    box-shadow: 2px 2px 0 #10283a !important;
+}
+
+.light-mode-active .deployment-dock button.auto-arrange-button:hover:not(:disabled) {
+    background: #0077b6 !important;
+    color: #ffffff !important;
+    box-shadow: none !important;
+}
+
+/* Custom Ready Button */
+button.game-ready-btn {
+    border: 2.5px solid rgba(117, 223, 255, 0.25) !important;
+    border-radius: 8px !important;
+    font-weight: 900 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.1em !important;
+    transition: transform 0.12s ease, box-shadow 0.12s ease, background-color 0.12s ease !important;
+}
+
+button.game-ready-btn.is-valid-ready {
+    background: #ff6b4a !important; /* Matches home page BATTLE NOW coral */
+    color: #ffffff !important;
+    border: 2.5px solid #020b14 !important;
+    box-shadow: 4px 4px 0 #020b14 !important;
+    text-shadow: none !important;
+}
+
+button.game-ready-btn.is-valid-ready:hover {
+    transform: translate(-2px, -2px) !important;
+    box-shadow: 6px 6px 0 #020b14 !important;
+    background: #ff785f !important;
+}
+
+button.game-ready-btn.is-valid-ready:active {
+    transform: translate(1px, 1px) scale(0.99) !important;
+    box-shadow: 2px 2px 0 #020b14 !important;
+}
+
+.light-mode-active button.game-ready-btn {
+    border: 2.5px solid #10283a !important;
+    background: #ffffff !important;
+    color: #10283a !important;
+    box-shadow: 4px 4px 0 #10283a !important;
+    text-shadow: none !important;
+    transition: transform 0.12s ease, box-shadow 0.12s ease, background-color 0.12s ease !important;
+}
+
+.light-mode-active button.game-ready-btn.is-valid-ready {
+    background: #ff785f !important; /* Light mode coral orange */
+    color: #ffffff !important;
+    border: 2.5px solid #10283a !important;
+    box-shadow: 4px 4px 0 #10283a !important;
+}
+
+.light-mode-active button.game-ready-btn.is-valid-ready:hover {
+    transform: translate(-2px, -2px) !important;
+    box-shadow: 6px 6px 0 #10283a !important;
+    background: #ff8b75 !important;
+}
+
+.light-mode-active button.game-ready-btn.is-valid-ready:active {
+    transform: translate(1px, 1px) scale(0.99) !important;
+    box-shadow: 2px 2px 0 #10283a !important;
+}
+
+/* Refined Board Cells */
+.ocean-board-surface .ocean-cell {
+    background: rgba(4, 20, 32, 0.72) !important;
+    border: 1px solid rgba(117, 223, 255, 0.08) !important;
+    box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.35) !important;
+    transition: all 0.15s ease !important;
+}
+
+.ocean-board-surface .ocean-cell:hover {
+    border-color: rgba(117, 223, 255, 0.3) !important;
+    background: rgba(11, 42, 57, 0.9) !important;
+    box-shadow: inset 0 0 10px rgba(117, 223, 255, 0.15) !important;
+}
+
+.light-mode-active .ocean-board-surface {
+    background: #10283a !important; /* solid deep navy layout base */
+    border: 2.5px solid #10283a !important;
+    box-shadow: 4px 4px 0 #10283a !important;
+}
+
+.light-mode-active .ocean-board-surface .ocean-cell {
+    background: #f1f8fc !important; /* Premium ice blue blueprint cells */
+    border: 1px solid rgba(16, 40, 58, 0.08) !important;
+    box-shadow: inset 0 0 4px rgba(16, 40, 58, 0.04) !important;
+    transition: all 0.15s ease !important;
+}
+
+.light-mode-active .ocean-board-surface .ocean-cell:hover {
+    background: #dbeaf5 !important; /* soft blueprint hover */
+    border-color: rgba(16, 40, 58, 0.22) !important;
+    box-shadow: inset 0 0 6px rgba(16, 40, 58, 0.08) !important;
+}

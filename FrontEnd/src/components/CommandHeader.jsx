@@ -1,4 +1,3 @@
-
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
@@ -9,6 +8,7 @@ import logoImg from "../assets/logo/logo.webp";
 import { setPreferredLightMode } from "../utils/themePreference";
 import LanguageToggle from "./LanguageToggle";
 import SoundSettingsModal from "./SoundSettingsModal";
+import "../pages/HomeHeader.css";
 
 const COMMANDER_AVATAR =
   "https://lh3.googleusercontent.com/aida-public/AB6AXuBaat_LefR8zmWVQ9CHx0bp9dTekwkF9c9AQAo9FxlAx2bSsRi_lWU3tRBK1vdpC50zM3NdKJAB5hHd5ZusN0HuCxBcpe1IbzSlreCalSVomkgeQwYwz9iKrXYvj55d42PgtFMDfCUosVO6NBFPXtM_vVCTYDxnC7xz1DxkbcIvRSfpehGpD-kbu7XuQbuktassmbGVExYQy0GTNC_jJHX3hmbFNDIdyfqO5-uwHYbgPtFdacF4kVhq0AnscPv4dWSz-e_6DYUDMSxe";
@@ -22,6 +22,8 @@ function CommandHeader({
   onLogout,
   onNavigateRequest,
   showReturnHome = false,
+  backTo = "/",
+  backLabel,
 }) {
   const location = useLocation();
   const { t } = useLanguage();
@@ -77,8 +79,40 @@ function CommandHeader({
     }
 
     const nextLightMode = !localLightMode;
-    setPreferredLightMode(nextLightMode);
-    setLocalLightMode(nextLightMode);
+
+    if (!document.startViewTransition) {
+      setPreferredLightMode(nextLightMode);
+      setLocalLightMode(nextLightMode);
+      return;
+    }
+
+    const x = event.clientX;
+    const y = event.clientY;
+    const endRadius = Math.hypot(
+      Math.max(x, window.innerWidth - x),
+      Math.max(y, window.innerHeight - y)
+    );
+
+    const transition = document.startViewTransition(() => {
+      setPreferredLightMode(nextLightMode);
+      setLocalLightMode(nextLightMode);
+    });
+
+    transition.ready.then(() => {
+      document.documentElement.animate(
+        {
+          clipPath: [
+            `circle(0px at ${x}px ${y}px)`,
+            `circle(${endRadius}px at ${x}px ${y}px)`
+          ],
+        },
+        {
+          duration: 700,
+          easing: "ease-in-out",
+          pseudoElement: "::view-transition-new(root)",
+        }
+      );
+    });
   };
 
   return (
@@ -154,9 +188,9 @@ function CommandHeader({
           </div>
 
           {showReturnHome ? (
-            <Link to="/" className="command-signin" style={{ gap: "6px" }}>
+            <Link to={backTo} className="command-signin" style={{ gap: "6px" }}>
               <span className="material-symbols-outlined" style={{ fontSize: "18px" }}>arrow_back</span>
-              <span>{t("auth.returnBase") || "Return Home"}</span>
+              <span>{backLabel || t("auth.returnBase") || "Return Home"}</span>
             </Link>
           ) : (
             <>

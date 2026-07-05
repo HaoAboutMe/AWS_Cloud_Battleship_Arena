@@ -321,7 +321,7 @@
   gap: 12px;
 }
 
-.profile-section-heading > .material-symbols-outlined {
+.profile-section-heading>.material-symbols-outlined {
   color: #75dfff;
   font-size: 25px;
 }
@@ -708,6 +708,7 @@
   border-color: rgba(0, 119, 182, 0.12);
   color: #0077a9;
 }
+
 .light-mode-active .profile-match-stat-pill.shots .val {
   color: #005f87;
 }
@@ -717,6 +718,7 @@
   border-color: rgba(211, 47, 47, 0.12);
   color: #c62828;
 }
+
 .light-mode-active .profile-match-stat-pill.misses .val {
   color: #b71c1c;
 }
@@ -726,6 +728,7 @@
   border-color: rgba(245, 158, 11, 0.12);
   color: #d97706;
 }
+
 .light-mode-active .profile-match-stat-pill.accuracy .val {
   color: #b45309;
 }
@@ -860,7 +863,7 @@
   border-radius: 6px;
   border: 2px solid rgba(255, 255, 255, 0.15);
   background: rgba(0, 0, 0, 0.2);
-  box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
   color: var(--text-main);
   font-size: 16px;
   outline: none;
@@ -880,7 +883,7 @@
   align-items: center;
   background: rgba(0, 0, 0, 0.2);
   border: 2px solid rgba(255, 255, 255, 0.15);
-  box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
   border-radius: 6px;
   transition: border-color 0.2s;
 }
@@ -1038,7 +1041,7 @@
     justify-content: space-between;
     margin: 16px 0 24px 0;
   }
-  
+
   .profile-tab-btn {
     padding: 10px 8px;
     font-size: 11px;
@@ -1046,7 +1049,7 @@
     flex: 1;
     justify-content: center;
   }
-  
+
   .profile-tab-btn .material-symbols-outlined {
     font-size: 16px;
   }
@@ -1063,22 +1066,22 @@
     padding: 20px;
     gap: 20px;
   }
-  
+
   .profile-riot-id-inputs-row {
     flex-wrap: wrap;
     gap: 12px;
   }
-  
+
   .profile-riot-id-input-group.tag-group {
     width: 100%;
   }
-  
+
   .profile-riot-id-footer {
     flex-direction: column;
     gap: 16px;
     align-items: stretch;
   }
-  
+
   .profile-riot-id-submit-btn {
     align-self: stretch;
   }
@@ -1095,17 +1098,17 @@
     align-items: stretch;
     text-align: center;
   }
-  
-  .profile-match-header > div {
+
+  .profile-match-header>div {
     justify-content: center !important;
   }
-  
+
   .profile-match-players {
     flex-direction: column;
     gap: 14px;
     align-items: stretch;
   }
-  
+
   /* Make Player 2 layout identical to Player 1 on mobile */
   .profile-match-player.is-p2 {
     justify-content: flex-start !important;
@@ -1153,7 +1156,7 @@
     white-space: nowrap !important;
     flex-shrink: 0;
   }
-  
+
   /* Align statistics pills to the left for Player 2 on mobile */
   .profile-match-stats-row.is-right {
     justify-content: flex-start !important;
@@ -1264,23 +1267,19 @@
 
 /* Skeleton Loading Animation */
 .skeleton-pulse {
-  background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0.05) 0%,
-    rgba(255, 255, 255, 0.15) 50%,
-    rgba(255, 255, 255, 0.05) 100%
-  );
+  background: linear-gradient(90deg,
+      rgba(255, 255, 255, 0.05) 0%,
+      rgba(255, 255, 255, 0.15) 50%,
+      rgba(255, 255, 255, 0.05) 100%);
   background-size: 200% 100%;
   animation: skeleton-loading 1.5s infinite linear;
 }
 
 .light-mode-active .skeleton-pulse {
-  background: linear-gradient(
-    90deg,
-    rgba(0, 119, 182, 0.05) 0%,
-    rgba(0, 119, 182, 0.15) 50%,
-    rgba(0, 119, 182, 0.05) 100%
-  );
+  background: linear-gradient(90deg,
+      rgba(0, 119, 182, 0.05) 0%,
+      rgba(0, 119, 182, 0.15) 50%,
+      rgba(0, 119, 182, 0.05) 100%);
   background-size: 200% 100%;
 }
 
@@ -1288,6 +1287,7 @@
   0% {
     background-position: 200% 0;
   }
+
   100% {
     background-position: -200% 0;
   }
@@ -1713,7 +1713,7 @@
   background: rgba(255, 253, 247, 0.96);
 }
 
-.profile-section-heading > .material-symbols-outlined {
+.profile-section-heading>.material-symbols-outlined {
   width: 46px;
   height: 46px;
   display: grid;
@@ -1724,7 +1724,7 @@
   color: var(--profile-accent);
 }
 
-.light-mode-active .profile-section-heading > .material-symbols-outlined {
+.light-mode-active .profile-section-heading>.material-symbols-outlined {
   border-color: var(--profile-ink);
   background: var(--profile-mint);
   color: var(--profile-ink);
@@ -1951,10 +1951,21 @@
     grid-template-columns: 1fr 1fr !important;
   }
 
-  .profile-stat-grid article:nth-child(1) { order: 1; }
-  .profile-stat-grid article:nth-child(4) { order: 2; }
-  .profile-stat-grid article:nth-child(2) { order: 3; }
-  .profile-stat-grid article:nth-child(3) { order: 4; }
+  .profile-stat-grid article:nth-child(1) {
+    order: 1;
+  }
+
+  .profile-stat-grid article:nth-child(4) {
+    order: 2;
+  }
+
+  .profile-stat-grid article:nth-child(2) {
+    order: 3;
+  }
+
+  .profile-stat-grid article:nth-child(3) {
+    order: 4;
+  }
 }
 
 @media (max-width: 620px) {
@@ -2031,7 +2042,7 @@
 }
 
 /* Targeted avatar upload hover polish */
-.profile-avatar-frame > span {
+.profile-avatar-frame>span {
   position: absolute;
   right: -8px;
   bottom: 8px;
@@ -2113,6 +2124,7 @@
   justify-content: space-between;
   align-items: center;
   gap: 12px;
+  min-height: 90px;
 }
 
 .profile-service-rank-title-group {
@@ -2146,20 +2158,22 @@
 }
 
 .profile-service-rank-badge-wrap {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 92px;
-  min-height: 74px;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex: 0 0 auto !important;
+  width: 160px !important;
+  height: 90px !important;
+  padding: 4px !important;
 }
 
 .profile-service-rank-badge {
-  width: 78px;
-  height: 78px;
-  object-fit: contain;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  display: block !important;
   filter:
-    drop-shadow(0 8px 12px rgba(16, 40, 58, 0.2))
-    drop-shadow(0 0 14px rgba(255, 215, 0, 0.58));
+    drop-shadow(0 8px 12px rgba(16, 40, 58, 0.2)) drop-shadow(0 0 14px rgba(255, 215, 0, 0.58));
 }
 
 .profile-service-rank-progress-group {
@@ -2232,8 +2246,7 @@
 
 .light-mode-active .profile-service-rank-badge {
   filter:
-    drop-shadow(0 8px 12px rgba(16, 40, 58, 0.18))
-    drop-shadow(0 0 12px rgba(255, 215, 0, 0.28));
+    drop-shadow(0 8px 12px rgba(16, 40, 58, 0.18)) drop-shadow(0 0 12px rgba(255, 215, 0, 0.28));
 }
 
 .light-mode-active .profile-service-rank-progress-labels {
@@ -2258,13 +2271,15 @@
 /* Mobile responsive avatar upload badge */
 @media (max-width: 620px) {
   .profile-service-rank-badge-wrap {
-    min-width: 72px;
-    min-height: 62px;
+    width: 110px !important;
+    height: 60px !important;
+    padding: 4px !important;
   }
 
   .profile-service-rank-badge {
-    width: 62px;
-    height: 62px;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain !important;
   }
 
   .profile-avatar-frame .avatar-upload-overlay {
@@ -2280,7 +2295,8 @@
     background: #020b14 !important;
     color: #75dfff !important;
     box-shadow: 2px 2px 0px #020b14 !important;
-    opacity: 1 !important; /* Always visible on mobile */
+    opacity: 1 !important;
+    /* Always visible on mobile */
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -2342,8 +2358,8 @@
   gap: 10px !important;
 }
 
-.profile-badges > span,
-.profile-badges > button {
+.profile-badges>span,
+.profile-badges>button {
   min-height: 38px !important;
   padding: 0 14px !important;
   border: 2px solid var(--profile-accent) !important;
@@ -2359,8 +2375,8 @@
   text-transform: uppercase !important;
 }
 
-.light-mode-active .profile-badges > span,
-.light-mode-active .profile-badges > button {
+.light-mode-active .profile-badges>span,
+.light-mode-active .profile-badges>button {
   border-color: #10283a !important;
   background: #ffffff !important;
   color: #10283a !important;
@@ -2392,29 +2408,30 @@
   filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.3)) !important;
 }
 
-.profile-badges > span {
+.profile-badges>span {
   border-color: rgba(66, 214, 164, 0.72) !important;
   color: var(--profile-mint) !important;
 }
 
-.light-mode-active .profile-badges > span {
+.light-mode-active .profile-badges>span {
   border-color: #10283a !important;
   background: #eafff7 !important;
   color: #107c52 !important;
 }
 
-.profile-badges > button:hover {
+.profile-badges>button:hover {
   transform: translate(-1px, -1px);
   box-shadow: 4px 4px 0 #020b14 !important;
 }
 
-.light-mode-active .profile-badges > button:hover {
+.light-mode-active .profile-badges>button:hover {
   box-shadow: 4px 4px 0 #10283a !important;
 }
 
 @media (max-width: 620px) {
-  .profile-badges > span,
-  .profile-badges > button {
+
+  .profile-badges>span,
+  .profile-badges>button {
     min-height: 36px !important;
     max-width: 100%;
     font-size: 9px !important;

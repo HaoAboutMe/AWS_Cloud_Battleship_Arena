@@ -1,13 +1,11 @@
-import { Link } from "react-router-dom";
 import shipCarrier from "../assets/ships/image/ship-10.webp";
 import shipDestroyer from "../assets/ships/image/ship-6.webp";
 import shipScout from "../assets/ships/image/ship-8.webp";
 import { useLanguage } from "../contexts/LanguageContext";
-import LanguageToggle from "./LanguageToggle";
 import CommandHeader from "./CommandHeader";
 import "./AuthShell.css";
 
-export function AuthShell({ children, backTo = "/", backLabel, pageClass = "", useCommandHeader = false }) {
+export function AuthShell({ children, backTo = "/", backLabel, pageClass = "" }) {
   const { t } = useLanguage();
 
   return (
@@ -15,26 +13,7 @@ export function AuthShell({ children, backTo = "/", backLabel, pageClass = "", u
       <div className="auth-ocean" aria-hidden="true" />
       <div className="auth-grid-overlay" aria-hidden="true" />
 
-      {useCommandHeader ? (
-        <CommandHeader showReturnHome={true} />
-      ) : (
-        <header className="auth-header">
-          <Link to="/" className="auth-brand" aria-label="Cloud Battleship Arena home">
-            <span className="material-symbols-outlined auth-brand-glyph" aria-hidden="true">radar</span>
-            <span>
-              <strong>Cloud Battleship</strong>
-              <small>{t("auth.brandSub")}</small>
-            </span>
-          </Link>
-          <div className="auth-header-actions">
-            <LanguageToggle compact />
-            <Link to={backTo} className="auth-home-link">
-              <span className="material-symbols-outlined" aria-hidden="true">arrow_back</span>
-              {backLabel || t("auth.returnBase")}
-            </Link>
-          </div>
-        </header>
-      )}
+      <CommandHeader showReturnHome={true} backTo={backTo} backLabel={backLabel} />
 
       <section className="auth-layout">
         <div className="auth-form-panel">{children}</div>

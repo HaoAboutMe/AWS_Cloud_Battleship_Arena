@@ -55,7 +55,7 @@
 }
 
 .home-page .command-brand-copy small {
-  color: #0c6f8f;
+  color: #3f6f88;
   font-size: 8.75px;
   font-weight: 950;
   letter-spacing: 0.035em;
@@ -862,15 +862,23 @@
 }
 
 .home-rank-tier-banner {
-  min-height: 86px;
+  min-height: 110px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px;
+  padding: 12px 16px;
   border: 2px solid var(--home-ink);
   border-radius: 16px;
   background: #fff3c4;
   box-shadow: 4px 4px 0 rgba(16, 40, 58, 0.18);
+}
+
+.home-rank-tier-badge {
+  height: 90px;
+  width: auto;
+  flex-shrink: 0;
+  object-fit: contain;
+  filter: drop-shadow(0 0 12px rgba(255, 215, 0, 0.70));
 }
 
 .home-rank-tier-banner.is-unranked {
@@ -1648,6 +1656,13 @@
 .light-mode-active .home-stats-card .font-body-md,
 .light-mode-active .arc-pct {
   color: #10283a !important;
+}
+
+.light-mode-active .home-page .command-brand-copy small,
+.light-mode-active .home-page .command-account-copy small,
+.light-mode-active .home-page .command-account-chevron {
+  color: #3f6f88 !important;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.72);
 }
 
 .light-mode-active .home-page .command-nav,

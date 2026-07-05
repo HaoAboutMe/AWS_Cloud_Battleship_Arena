@@ -1455,7 +1455,7 @@ function Game() {
           headers: { "content-type": "application/json" },
           body: JSON.stringify({ player: currentPlayer }),
           keepalive: true,
-        }).catch(() => {});
+        }).catch(() => { });
         return;
       }
 
@@ -1663,13 +1663,13 @@ function Game() {
       ).replace("{roomCode}", roomCode);
     return pvpTurnUserId === currentPlayerId
       ? (copy.yourTurnPvp || "Room {roomCode}: your turn.").replace(
-          "{roomCode}",
-          roomCode,
-        )
+        "{roomCode}",
+        roomCode,
+      )
       : (copy.opponentTurnPvp || "Room {roomCode}: opponent turn.").replace(
-          "{roomCode}",
-          roomCode,
-        );
+        "{roomCode}",
+        roomCode,
+      );
   };
 
   const clearShipFromBoard = (board, shipId) => {
@@ -3254,8 +3254,8 @@ function Game() {
         const currentRot = prev[shipDef.id] ?? shipDef.rotations[0];
         const nextRot =
           shipDef.rotations[
-            (shipDef.rotations.indexOf(currentRot) + 1) %
-              shipDef.rotations.length
+          (shipDef.rotations.indexOf(currentRot) + 1) %
+          shipDef.rotations.length
           ];
         return {
           ...prev,
@@ -4077,15 +4077,12 @@ function Game() {
               key={`ship-${cell.shipId}`}
               data-board-side={boardSide}
               data-ship-id={cell.shipId}
-              className={`pointer-events-none ship-overlay ${
-                isShipSunk ? "ship-sunk-silhouette" : ""
-              } ${!isShipSunk ? "ship-afloat" : ""} ${
-                draggedShip?.shipId === cell.shipId ? "ship-drag-source" : ""
-              } ${
-                invalidRotationPreview?.shipId === cell.shipId
+              className={`pointer-events-none ship-overlay ${isShipSunk ? "ship-sunk-silhouette" : ""
+                } ${!isShipSunk ? "ship-afloat" : ""} ${draggedShip?.shipId === cell.shipId ? "ship-drag-source" : ""
+                } ${invalidRotationPreview?.shipId === cell.shipId
                   ? "ship-invalid-source"
                   : ""
-              }`}
+                }`}
               style={overlayStyle}
             >
               {spriteUrl ? (
@@ -4132,7 +4129,7 @@ function Game() {
       };
       const invalidSpriteUrl = resolveSpriteUrl(
         SHIP_SPRITES[invalidRotationPreview.shipDef.id]?.[
-          invalidRotationPreview.rotation
+        invalidRotationPreview.rotation
         ],
       );
 
@@ -4412,25 +4409,21 @@ function Game() {
                     onTouchEnd={(event) =>
                       !isEnemy && handleTouchEnd(event, r, c)
                     }
-                    className={`ocean-cell relative ${cursorClass} overflow-visible transition-all duration-300 ${baseCellBg} ${
-                      !isEnemy && cell.hasShip ? "player-ship-cell" : ""
-                    } ${
-                      isHovered && draggedShip
+                    className={`ocean-cell relative ${cursorClass} overflow-visible transition-all duration-300 ${baseCellBg} ${!isEnemy && cell.hasShip ? "player-ship-cell" : ""
+                      } ${isHovered && draggedShip
                         ? canPlace
                           ? "drag-target-cell-valid"
                           : "drag-target-cell-invalid"
                         : ""
-                    } ${
-                      isHovered && invalidRotationPreview && !draggedShip
+                      } ${isHovered && invalidRotationPreview && !draggedShip
                         ? "drag-target-cell-invalid"
                         : ""
-                    } ${
-                      isHovered
+                      } ${isHovered
                         ? canPlace
                           ? "bg-secondary/50 shadow-[0_0_15px_#a5e7ff]"
                           : "bg-error/50"
                         : ""
-                    }`}
+                      }`}
                   >
                     {/* Miss dots are now rendered as overlays at z-40 (hitOverlays) to appear above ship overlays at z-20 */}
                   </div>
@@ -4509,11 +4502,11 @@ function Game() {
                 myPlayer={currentBattlePlayer || roomPlayer}
                 myRankLabel={
                   (currentBattlePlayer?.rank &&
-                  currentBattlePlayer.rank.toLowerCase() !== "unranked"
+                    currentBattlePlayer.rank.toLowerCase() !== "unranked"
                     ? currentBattlePlayer.rank
                     : null) ||
                   (attributes?.rank &&
-                  attributes.rank.toLowerCase() !== "unranked"
+                    attributes.rank.toLowerCase() !== "unranked"
                     ? attributes.rank
                     : null) ||
                   copy.unrankedLabel
@@ -4537,7 +4530,7 @@ function Game() {
                 oppPlayer={opponentBattlePlayer}
                 oppRankLabel={
                   (opponentBattlePlayer?.rank &&
-                  opponentBattlePlayer.rank.toLowerCase() !== "unranked"
+                    opponentBattlePlayer.rank.toLowerCase() !== "unranked"
                     ? opponentBattlePlayer.rank
                     : null) || copy.unrankedLabel
                 }
@@ -4565,15 +4558,15 @@ function Game() {
                         ? copy.waitingFleetLog
                         : !isFleetValid
                           ? copy.dragShipsInstructions ||
-                            "Drag ships from staging onto your map. Right-click to rotate."
+                          "Drag ships from staging onto your map. Right-click to rotate."
                           : copy.formationCompleteInstructions ||
-                            "Formation complete. Adjust ships, auto-arrange again, or press Ready.")}
+                          "Formation complete. Adjust ships, auto-arrange again, or press Ready.")}
                     {gameState === "READY" &&
                       (selectedShip
                         ? copy.moveSelectedShipInstructions ||
-                          "Move the selected ship or right-click to rotate it, then press Ready."
+                        "Move the selected ship or right-click to rotate it, then press Ready."
                         : copy.selectShipInstructions ||
-                          "Select any ship to move or rotate it, then press Ready.")}
+                        "Select any ship to move or rotate it, then press Ready.")}
                     {gameState === "PLAYER_TURN" && (
                       <span className="text-secondary glow-text">
                         {getPvpStatusText()}
@@ -4605,22 +4598,21 @@ function Game() {
                         (isCustomShipyardActive
                           ? !isCustomFleetValid
                           : !isFleetValid ||
-                            Boolean(invalidRotationPreview) ||
-                            Boolean(draggedShip)) ||
+                          Boolean(invalidRotationPreview) ||
+                          Boolean(draggedShip)) ||
                         pvpReadyLoading ||
                         isWaitingForOpponentFleet
                       }
-                      className={`font-bold px-4 py-1.5 md:px-8 md:py-2 text-sm md:text-base rounded-sm transition-all tracking-widest ${
-                        (isCustomShipyardActive
+                      className={`font-bold px-4 py-1.5 md:px-8 md:py-2 text-sm md:text-base rounded-sm transition-all tracking-widest ${(isCustomShipyardActive
                           ? !isCustomFleetValid
                           : !isFleetValid ||
-                            invalidRotationPreview ||
-                            draggedShip) ||
-                        pvpReadyLoading ||
-                        isWaitingForOpponentFleet
+                          invalidRotationPreview ||
+                          draggedShip) ||
+                          pvpReadyLoading ||
+                          isWaitingForOpponentFleet
                           ? "bg-surface-container text-on-surface-variant/40 cursor-not-allowed opacity-50"
                           : "bg-secondary text-on-secondary-fixed hover:bg-secondary-container active:scale-95"
-                      }`}
+                        }`}
                     >
                       {pvpReadyLoading
                         ? copy.syncing
@@ -4647,15 +4639,15 @@ function Game() {
                   {gameState === "PLACEMENT" &&
                     (!isFleetValid
                       ? copy.dragShipsInstructions ||
-                        "Drag ships from staging onto your map. Right-click to rotate."
+                      "Drag ships from staging onto your map. Right-click to rotate."
                       : copy.formationCompleteInstructions ||
-                        "Formation complete. Adjust ships, auto-arrange again, or press Ready.")}
+                      "Formation complete. Adjust ships, auto-arrange again, or press Ready.")}
                   {gameState === "READY" &&
                     (selectedShip
                       ? copy.moveSelectedShipInstructions ||
-                        "Move the selected ship or right-click to rotate it, then press Ready."
+                      "Move the selected ship or right-click to rotate it, then press Ready."
                       : copy.selectShipInstructions ||
-                        "Select any ship to move or rotate it, then press Ready.")}
+                      "Select any ship to move or rotate it, then press Ready.")}
                   {gameState === "PLAYER_TURN" && (
                     <span className="text-secondary glow-text">
                       {copy.yourTurn || "Your turn! Target enemy waters."}
@@ -4685,16 +4677,15 @@ function Game() {
                     isCustomShipyardActive
                       ? !isCustomFleetValid
                       : !isFleetValid ||
-                        Boolean(invalidRotationPreview) ||
-                        Boolean(draggedShip)
+                      Boolean(invalidRotationPreview) ||
+                      Boolean(draggedShip)
                   }
-                  className={`font-bold px-4 py-1.5 md:px-8 md:py-2 text-sm md:text-base rounded-sm transition-all tracking-widest ${
-                    isCustomShipyardActive
+                  className={`font-bold px-4 py-1.5 md:px-8 md:py-2 text-sm md:text-base rounded-sm transition-all tracking-widest ${isCustomShipyardActive
                       ? !isCustomFleetValid
                       : !isFleetValid || invalidRotationPreview || draggedShip
                         ? "bg-surface-container text-on-surface-variant/40 cursor-not-allowed opacity-50"
                         : "bg-secondary text-on-secondary-fixed hover:bg-secondary-container active:scale-95"
-                  }`}
+                    }`}
                 >
                   {copy.ready}
                 </button>
@@ -4719,22 +4710,20 @@ function Game() {
             <div className="flex w-full justify-center gap-2 mb-2 px-4">
               <button
                 onClick={() => setActiveBattleTab("enemy")}
-                className={`flex-1 py-2 px-4 rounded-lg font-bold tracking-widest text-sm transition-all border ${
-                  activeBattleTab === "enemy"
+                className={`flex-1 py-2 px-4 rounded-lg font-bold tracking-widest text-sm transition-all border ${activeBattleTab === "enemy"
                     ? "bg-error/20 text-error border-error shadow-[0_0_15px_rgba(255,0,0,0.2)]"
                     : "bg-surface-container border-white/10 text-on-surface-variant"
-                }`}
+                  }`}
               >
                 {(isPvpMode ? copy.enemyFleet : copy.enemyWaters) ||
                   "ENEMY FLEET"}
               </button>
               <button
                 onClick={() => setActiveBattleTab("fleet")}
-                className={`flex-1 py-2 px-4 rounded-lg font-bold tracking-widest text-sm transition-all border ${
-                  activeBattleTab === "fleet"
+                className={`flex-1 py-2 px-4 rounded-lg font-bold tracking-widest text-sm transition-all border ${activeBattleTab === "fleet"
                     ? "bg-secondary/20 text-secondary border-secondary shadow-[0_0_15px_rgba(0,210,255,0.2)]"
                     : "bg-surface-container border-white/10 text-on-surface-variant"
-                }`}
+                  }`}
               >
                 {copy.yourFleet || "YOUR FLEET"}
               </button>
@@ -5066,10 +5055,10 @@ function Game() {
                                   fontWeight: "bold",
                                   color:
                                     customDrawCellCount >
-                                    CUSTOM_SHIPYARD_CELL_BUDGET
+                                      CUSTOM_SHIPYARD_CELL_BUDGET
                                       ? "#ef4444"
                                       : customDrawCellCount ===
-                                          CUSTOM_SHIPYARD_CELL_BUDGET
+                                        CUSTOM_SHIPYARD_CELL_BUDGET
                                         ? "#22c55e"
                                         : "#a5e7ff",
                                 }}
@@ -5103,11 +5092,11 @@ function Game() {
                                 width: `${Math.min(100, (customDrawCellCount / CUSTOM_SHIPYARD_CELL_BUDGET) * 100)}%`,
                                 background:
                                   customDrawCellCount >
-                                  CUSTOM_SHIPYARD_CELL_BUDGET
+                                    CUSTOM_SHIPYARD_CELL_BUDGET
                                     ? "#ef4444"
                                     : customDrawCellCount ===
-                                          CUSTOM_SHIPYARD_CELL_BUDGET &&
-                                        isCustomFleetValid
+                                      CUSTOM_SHIPYARD_CELL_BUDGET &&
+                                      isCustomFleetValid
                                       ? "#22c55e"
                                       : "#a5e7ff",
                                 transition: "width 0.2s, background 0.2s",
@@ -5134,7 +5123,7 @@ function Game() {
                                 color:
                                   customComponents.length >=
                                     CUSTOM_SHIPYARD_MIN_SHIPS &&
-                                  customComponents.length <=
+                                    customComponents.length <=
                                     CUSTOM_SHIPYARD_MAX_SHIPS
                                     ? "#22c55e"
                                     : customComponents.length > 0
@@ -5392,9 +5381,8 @@ function Game() {
                         return (
                           <div
                             key={shipDef.id}
-                            className={`deployment-ship-card deployment-${shipDef.id} ${
-                              isPlaced ? "is-placed" : ""
-                            } ${isPlacementLocked ? "is-locked" : ""}`}
+                            className={`deployment-ship-card deployment-${shipDef.id} ${isPlaced ? "is-placed" : ""
+                              } ${isPlacementLocked ? "is-locked" : ""}`}
                             onClick={(event) => {
                               event.stopPropagation();
                               if (!isPlaced) {
@@ -5514,17 +5502,17 @@ function Game() {
                     {(!isMobile ||
                       gameState === "PLACEMENT" ||
                       gameState === "READY") && (
-                      <h3 className="font-bold text-error tracking-widest uppercase mb-1">
-                        {gameState === "READY"
-                          ? isPvpMode
-                            ? copy.enemyFleetScan || "Enemy Fleet (Scanning...)"
-                            : copy.enemyWatersScan ||
+                        <h3 className="font-bold text-error tracking-widest uppercase mb-1">
+                          {gameState === "READY"
+                            ? isPvpMode
+                              ? copy.enemyFleetScan || "Enemy Fleet (Scanning...)"
+                              : copy.enemyWatersScan ||
                               "Enemy Waters (Scanning...)"
-                          : isPvpMode
-                            ? copy.enemyFleet || "Enemy Fleet"
-                            : copy.enemyWaters || "Enemy Waters"}
-                      </h3>
-                    )}
+                            : isPvpMode
+                              ? copy.enemyFleet || "Enemy Fleet"
+                              : copy.enemyWaters || "Enemy Waters"}
+                        </h3>
+                      )}
 
                     {renderFleetStatus(
                       isPvpMode ? opponentFleetStatusDefs : enemyFleetDefs,
@@ -5546,11 +5534,10 @@ function Game() {
 
             {sunkEffect && (
               <div
-                className={`sunk-announcement ${
-                  sunkEffect.boardSide === "enemy"
+                className={`sunk-announcement ${sunkEffect.boardSide === "enemy"
                     ? "sunk-announcement-victory"
                     : "sunk-announcement-danger"
-                }`}
+                  }`}
               >
                 <span className="sunk-announcement-line" />
                 <strong>
@@ -5573,13 +5560,12 @@ function Game() {
           {isMobile && gameState !== "PLACEMENT" && gameState !== "READY" && (
             <div className="mobile-mini-battle-log mx-4">
               <div
-                className={`mini-turn-status text-center ${
-                  gameState === "PLAYER_TURN"
+                className={`mini-turn-status text-center ${gameState === "PLAYER_TURN"
                     ? "text-secondary shadow-secondary/50 drop-shadow-md"
                     : gameState === "BOT_TURN"
                       ? "text-error shadow-error/50 drop-shadow-md"
                       : "text-yellow-400"
-                }`}
+                  }`}
               >
                 {gameState === "PLAYER_TURN"
                   ? "YOUR TURN"

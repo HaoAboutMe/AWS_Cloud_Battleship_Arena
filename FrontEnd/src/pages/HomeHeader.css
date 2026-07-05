@@ -505,6 +505,13 @@
   box-shadow: 0 8px 28px rgba(0, 30, 50, 0.05) !important;
 }
 
+.light-mode-active .auth-page .command-header {
+  background: rgba(246, 242, 233, 0.92) !important;
+  border-bottom: 1px solid rgba(16, 40, 58, 0.12) !important;
+  box-shadow: 0 8px 28px rgba(21, 53, 79, 0.04) !important;
+  backdrop-filter: blur(18px);
+}
+
 .light-mode-active .command-header-inner {
   background: transparent !important;
 }
@@ -914,4 +921,86 @@
   background: rgba(0, 12, 22, 0.46);
   color: rgba(218, 235, 246, 0.72);
   border-color: rgba(165, 231, 255, 0.2);
+}
+
+/* ==========================================================================
+   NEO-BRUTALIST GLOBAL HEADER OVERRIDES
+   ========================================================================== */
+
+/* Dark Mode (Default) Brutalist Header Styles */
+.command-nav,
+.command-icon-button,
+.command-signin {
+  border: 2px solid #7ddfff !important;
+  border-radius: 999px !important;
+  background: #071a2a !important;
+  color: #e7f8ff !important;
+  box-shadow: 3px 3px 0 #020b14 !important;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease !important;
+}
+
+.command-nav {
+  border-radius: 999px !important;
+  box-shadow: 5px 5px 0 #020b14 !important;
+}
+
+.command-nav a {
+  border-radius: 999px !important;
+  color: rgba(231, 248, 255, 0.68) !important;
+  transition: color 0.15s ease, background-color 0.15s ease !important;
+}
+
+.command-nav a:hover,
+.command-nav a.is-active {
+  color: #061827 !important;
+  background: #7ddfff !important;
+  box-shadow: none !important;
+}
+
+.command-enlist {
+  border: 2px solid #7ddfff !important;
+  border-radius: 999px !important;
+  background: #7ddfff !important;
+  color: #061827 !important;
+  box-shadow: 3px 3px 0 #020b14 !important;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease !important;
+}
+
+.command-enlist:hover {
+  background: #9ee8ff !important;
+}
+
+/* Light Mode Brutalist Header Styles */
+.light-mode-active .command-nav,
+.light-mode-active .command-icon-button,
+.light-mode-active .command-signin {
+  border-color: #10283a !important;
+  background: #ffffff !important;
+  color: #10283a !important;
+  box-shadow: 3px 3px 0 #10283a !important;
+}
+
+.light-mode-active .command-nav {
+  box-shadow: 5px 5px 0 #10283a !important;
+}
+
+.light-mode-active .command-nav a {
+  color: #52687a !important;
+}
+
+.light-mode-active .command-nav a:hover,
+.light-mode-active .command-nav a.is-active {
+  color: #ffffff !important;
+  background: #1167d8 !important;
+}
+
+.light-mode-active .command-enlist {
+  border-color: #10283a !important;
+  background: #1167d8 !important;
+  color: #ffffff !important;
+  box-shadow: 3px 3px 0 #10283a !important;
+}
+
+.light-mode-active .command-enlist:hover {
+  background: #073b82 !important;
 }

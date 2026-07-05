@@ -224,7 +224,7 @@
 
 .auth-social-buttons {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: 1fr;
   gap: 12px;
 }
 
@@ -1105,6 +1105,10 @@
   box-shadow: none !important;
 }
 
+.light-mode-active .auth-page .language-toggle::before {
+  background: var(--auth-accent) !important;
+}
+
 .auth-page .language-toggle[data-language="vi"]::before {
   transform: translateX(41px);
 }
@@ -1123,4 +1127,22 @@
 
 .auth-page .language-toggle button.is-active {
   color: var(--auth-ink) !important;
+}
+
+/* Header Theme Switcher */
+.auth-page .command-icon-button {
+  border: 2px solid var(--auth-accent) !important;
+  border-radius: 999px !important;
+  background: var(--auth-panel) !important;
+  color: var(--auth-ink) !important;
+  box-shadow: 3px 3px 0 var(--auth-bg) !important;
+  width: 38px;
+  height: 38px;
+}
+
+.light-mode-active .auth-page .command-icon-button {
+  border-color: var(--auth-ink) !important;
+  background: #ffffff !important;
+  color: var(--auth-ink) !important;
+  box-shadow: 3px 3px 0 var(--auth-ink) !important;
 }

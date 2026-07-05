@@ -339,10 +339,12 @@
 }
 
 .register-page .auth-check input {
-  display: none !important;
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
 }
 
-.register-page .auth-check span {
+.register-page .auth-check > span {
   width: 20px !important;
   height: 20px !important;
   border: 2px solid var(--auth-ink) !important;
@@ -354,11 +356,11 @@
 }
 
 .register-page .auth-check input:checked + span {
-  background: var(--auth-success) !important;
+  background: var(--auth-accent) !important;
   border-color: var(--auth-ink) !important;
 }
 
-.register-page .auth-check span .auth-glyph {
+.register-page .auth-check > span > .auth-glyph {
   color: var(--auth-bg) !important;
   font-weight: 900 !important;
   font-size: 12px !important;
@@ -367,7 +369,8 @@
   transition: opacity 0.15s ease, transform 0.15s ease;
 }
 
-.register-page .auth-check input:checked + span .auth-glyph {
+.register-page .auth-check input:checked + span > .auth-glyph {
+  color: #ffffff !important;
   opacity: 1;
   transform: scale(1);
 }
@@ -432,9 +435,7 @@
   cursor: not-allowed !important;
 }
 
-.register-page .auth-submit-icon i {
-  background: var(--auth-bg) !important;
-}
+
 
 .register-page .auth-loading-bars i {
   background: var(--auth-bg) !important;
