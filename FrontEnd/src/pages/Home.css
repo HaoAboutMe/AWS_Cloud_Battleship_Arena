@@ -53,74 +53,67 @@
 }
 
 .home-page .command-nav {
-  border: 2px solid var(--home-ink);
+  border: 2px solid #7ddfff;
   border-radius: 999px;
-  background: #ffffff;
-  box-shadow: 5px 5px 0 var(--home-ink);
+  background: rgba(7, 24, 39, 0.8);
+  box-shadow: 5px 5px 0 #ffffff;
 }
 
 .home-page .command-nav a {
   border-radius: 999px;
-  color: var(--home-muted);
+  color: #a5e7ff;
 }
 
 .home-page .command-nav a:hover,
 .home-page .command-nav a.is-active {
-  color: #ffffff;
-  background: var(--home-cobalt);
+  color: #020812;
+  background: #7ddfff;
   box-shadow: none;
 }
 
 .home-page .command-icon-button,
 .home-page .command-signin {
-  border: 2px solid var(--home-ink);
+  border: 2px solid #7ddfff;
   border-radius: 999px;
-  background: #ffffff;
-  color: var(--home-ink);
-  box-shadow: 3px 3px 0 var(--home-ink);
+  background: rgba(7, 24, 39, 0.8);
+  color: #7ddfff;
+  box-shadow: 3px 3px 0 #7ddfff;
 }
 
 .home-page .command-enlist {
-  border: 2px solid var(--home-ink);
+  border: 2px solid #ff6b4a;
   border-radius: 999px;
   background: var(--home-coral);
   color: #ffffff;
-  box-shadow: 3px 3px 0 var(--home-ink);
+  box-shadow: 3px 3px 0 #ff6b4a;
 }
 
-.light-mode-active .home-page .command-header,
-.home-page .command-header {
+.light-mode-active .home-page .command-header {
   border-bottom: 0 !important;
   background: rgba(255, 252, 244, 0.9) !important;
   box-shadow: 0 12px 34px rgba(21, 53, 79, 0.12) !important;
 }
 
-.light-mode-active .home-page .command-nav,
-.home-page .command-nav {
+.light-mode-active .home-page .command-nav {
   border: 2px solid var(--home-ink) !important;
   border-radius: 999px !important;
   background: #ffffff !important;
   box-shadow: 5px 5px 0 var(--home-ink) !important;
 }
 
-.light-mode-active .home-page .command-nav a,
-.home-page .command-nav a {
+.light-mode-active .home-page .command-nav a {
   color: #52687a !important;
 }
 
 .light-mode-active .home-page .command-nav a:hover,
-.light-mode-active .home-page .command-nav a.is-active,
-.home-page .command-nav a:hover,
-.home-page .command-nav a.is-active {
+.light-mode-active .home-page .command-nav a.is-active {
   color: #ffffff !important;
   background: var(--home-cobalt) !important;
   box-shadow: none !important;
 }
 
 .light-mode-active .home-page .command-icon-button,
-.light-mode-active .home-page .command-signin,
-.home-page .command-icon-button,
-.home-page .command-signin {
+.light-mode-active .home-page .command-signin {
   border: 2px solid var(--home-ink) !important;
   border-radius: 999px !important;
   background: #ffffff !important;
@@ -128,8 +121,7 @@
   box-shadow: 3px 3px 0 var(--home-ink) !important;
 }
 
-.light-mode-active .home-page .command-enlist,
-.home-page .command-enlist {
+.light-mode-active .home-page .command-enlist {
   border: 2px solid var(--home-ink) !important;
   border-radius: 999px !important;
   background: var(--home-coral) !important;
@@ -362,14 +354,14 @@
   justify-content: center;
   gap: 10px;
   padding: 0 22px;
-  border: 2px solid var(--home-ink);
+  border: 2px solid #7ddfff;
   border-radius: 999px;
   font-size: 12px;
   font-weight: 900;
   letter-spacing: 0.05em;
   text-decoration: none;
   text-transform: uppercase;
-  box-shadow: 5px 5px 0 var(--home-ink);
+  box-shadow: 5px 5px 0 #7ddfff;
   cursor: pointer;
   transition: transform 150ms ease, box-shadow 150ms ease, background 150ms ease;
 }
@@ -377,19 +369,25 @@
 .home-primary-cta {
   background: var(--home-coral);
   color: #ffffff;
+  border-color: var(--home-coral);
+  box-shadow: 5px 5px 0 var(--home-coral);
 }
 
 .home-secondary-cta {
-  background: #ffffff;
-  color: var(--home-ink);
+  background: rgba(7, 24, 39, 0.6);
+  color: #7ddfff;
 }
 
 .home-primary-cta:hover,
-.home-secondary-cta:hover,
 .home-card-cta:hover,
 .pvp-search-cancel:hover {
   transform: translate(-2px, -2px);
-  box-shadow: 7px 7px 0 var(--home-ink);
+  box-shadow: 7px 7px 0 var(--home-coral);
+}
+
+.home-secondary-cta:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 7px 7px 0 #7ddfff;
 }
 
 .home-primary-cta:active,
@@ -397,6 +395,39 @@
 .home-card-cta:active,
 .pvp-search-cancel:active {
   transform: translate(2px, 2px) scale(0.99);
+  box-shadow: 2px 2px 0 transparent;
+}
+
+/* Light Mode Overrides */
+.light-mode-active .home-primary-cta,
+.light-mode-active .home-secondary-cta,
+.light-mode-active .home-card-cta,
+.light-mode-active .pvp-search-cancel {
+  border: 2px solid var(--home-ink);
+  box-shadow: 5px 5px 0 var(--home-ink);
+}
+
+.light-mode-active .home-primary-cta {
+  background: var(--home-coral);
+  color: #ffffff;
+}
+
+.light-mode-active .home-secondary-cta {
+  background: #ffffff;
+  color: var(--home-ink);
+}
+
+.light-mode-active .home-primary-cta:hover,
+.light-mode-active .home-secondary-cta:hover,
+.light-mode-active .home-card-cta:hover,
+.light-mode-active .pvp-search-cancel:hover {
+  box-shadow: 7px 7px 0 var(--home-ink);
+}
+
+.light-mode-active .home-primary-cta:active,
+.light-mode-active .home-secondary-cta:active,
+.light-mode-active .home-card-cta:active,
+.light-mode-active .pvp-search-cancel:active {
   box-shadow: 2px 2px 0 var(--home-ink);
 }
 
@@ -411,8 +442,16 @@
 .home-hero-metrics div {
   min-width: 0;
   padding: 14px 16px;
-  border: 2px solid var(--home-ink);
+  border: 2px solid #7ddfff;
   border-radius: 14px;
+  background: rgba(7, 24, 39, 0.4);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 4px 4px 0 #7ddfff;
+}
+
+.light-mode-active .home-hero-metrics div {
+  border: 2px solid var(--home-ink);
   background: #ffffff;
   box-shadow: 4px 4px 0 var(--home-ink);
 }
@@ -594,10 +633,12 @@
   grid-template-columns: repeat(3, 1fr);
   gap: 8px;
   padding: 8px;
-  border: 2px solid var(--home-ink);
+  border: 2px solid #7ddfff;
   border-radius: 18px;
-  background: #ffffff;
-  box-shadow: 4px 4px 0 var(--home-ink);
+  background: rgba(7, 24, 39, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 4px 4px 0 #020b14;
 }
 
 .home-mobile-tabs button {
@@ -605,13 +646,30 @@
   border: 0;
   border-radius: 999px;
   background: transparent;
-  color: var(--home-muted);
+  color: rgba(147, 173, 190, 0.8);
   font-size: 11px;
   font-weight: 900;
   text-transform: uppercase;
+  transition: all 0.2s ease;
 }
 
 .home-mobile-tabs button.is-active {
+  background: #7ddfff;
+  color: #071827;
+}
+
+/* Light Mode */
+.light-mode-active .home-mobile-tabs {
+  border: 2px solid var(--home-ink);
+  background: rgba(255, 255, 255, 0.7);
+  box-shadow: 4px 4px 0 var(--home-ink);
+}
+
+.light-mode-active .home-mobile-tabs button {
+  color: var(--home-muted);
+}
+
+.light-mode-active .home-mobile-tabs button.is-active {
   background: var(--home-cobalt);
   color: #ffffff;
 }
@@ -1390,7 +1448,7 @@
 }
 
 .home-page .command-nav {
-  box-shadow: 5px 5px 0 #020b14 !important;
+  box-shadow: 5px 5px 0 #ffff !important;
 }
 
 .home-page .command-nav a {
