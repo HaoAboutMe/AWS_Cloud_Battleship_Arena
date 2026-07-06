@@ -99,28 +99,49 @@ export function PvpCommandStrip({
       <div className="pvp-command-strip flex flex-col gap-2">
         <div className="pvp-command-strip-top">
           {/* ── LEFT: Commander ── */}
-        <div className="pvp-strip-player pvp-strip-commander">
-          <div className="pvp-strip-avatar-wrap">
-            <MiniAvatar player={myPlayer} tone="cyan" />
-            <span className={`pvp-strip-dot is-${myStatusDot}`} aria-hidden="true" />
-          </div>
-          <div className="pvp-strip-info">
-            <strong title={myPlayer?.displayName}>
-              {myPlayer?.displayName || "Commander"}
-            </strong>
-            <span className="pvp-strip-rank">
-              {myRankLabel}
-              {myIsDeploying && myIsConnected && (
-                <span className="ml-1 opacity-80 italic">
-                  - {myIsReady ? (copy?.readyStatus || "Đã sẵn sàng") : (copy?.deployingStatus || "Đang xếp tàu")}
-                </span>
-              )}
-            </span>
+          <div className="pvp-strip-player pvp-strip-commander">
+            <div className="pvp-strip-avatar-wrap">
+              <MiniAvatar player={myPlayer} tone="cyan" />
+              <span className={`pvp-strip-dot is-${myStatusDot}`} aria-hidden="true" />
+            </div>
+            <div className="pvp-strip-info">
+              <strong title={myPlayer?.displayName}>
+                {myPlayer?.displayName || "Commander"}
+              </strong>
+              <span className="pvp-strip-rank">
+                {myRankLabel}
+                {myIsDeploying && myIsConnected && (
+                  <span className="ml-1 opacity-80 italic">
+                    - {myIsReady ? (copy?.readyStatus || "Đã sẵn sàng") : (copy?.deployingStatus || "Đang xếp tàu")}
+                  </span>
+                )}
+              </span>
+            </div>
           </div>
 
+          {/* ── RIGHT: Opponent ── */}
+          <div className="pvp-strip-player pvp-strip-opponent">
+            <div className="pvp-strip-info pvp-strip-info-right">
+              <strong title={oppPlayer?.displayName}>
+                {oppPlayer?.displayName || (copy.waitingPlayer || "Waiting…")}
+              </strong>
+              <span className="pvp-strip-rank">
+                {oppRankLabel}
+                {oppIsDeploying && oppIsConnected && (
+                  <span className="ml-1 opacity-80 italic">
+                    - {oppIsReady ? (copy?.readyStatus || "Đã sẵn sàng") : (copy?.deployingStatus || "Đang xếp tàu")}
+                  </span>
+                )}
+              </span>
+            </div>
+            <div className="pvp-strip-avatar-wrap">
+              <MiniAvatar player={oppPlayer} tone="red" />
+              <span className={`pvp-strip-dot is-${oppStatusDot}`} aria-hidden="true" />
+            </div>
+          </div>
         </div>
 
-        {/* ── CENTER: Status badge ── */}
+        {/* ── BOTTOM: Status badge & Action ── */}
         <div
           className={`pvp-strip-center ${
             myIsMyTurn
@@ -140,41 +161,9 @@ export function PvpCommandStrip({
           </span>
           <span className="pvp-strip-center-label">{centerLabel}</span>
         </div>
-
-        {/* ── RIGHT: Opponent ── */}
-        <div className="pvp-strip-player pvp-strip-opponent">
-
-          <div className="pvp-strip-info pvp-strip-info-right">
-            <strong title={oppPlayer?.displayName}>
-              {oppPlayer?.displayName || (copy.waitingPlayer || "Waiting…")}
-            </strong>
-            <span className="pvp-strip-rank">
-              {oppRankLabel}
-              {oppIsDeploying && oppIsConnected && (
-                <span className="ml-1 opacity-80 italic">
-                  - {oppIsReady ? (copy?.readyStatus || "Đã sẵn sàng") : (copy?.deployingStatus || "Đang xếp tàu")}
-                </span>
-              )}
-            </span>
-          </div>
-          <div className="pvp-strip-avatar-wrap">
-            <MiniAvatar player={oppPlayer} tone="red" />
-            <span className={`pvp-strip-dot is-${oppStatusDot}`} aria-hidden="true" />
-          </div>
-        </div>
-        </div>
-
-        {/* ── BOTTOM: Status & Action ── */}
-        {(statusTextNode || actionButtonNode) && (
-          <div className="pvp-command-strip-bottom">
-            <div className="pvp-strip-status-text">
-              {statusTextNode}
-            </div>
-            {actionButtonNode && (
-              <div className="pvp-strip-action">
-                {actionButtonNode}
-              </div>
-            )}
+        {actionButtonNode && (
+          <div className="pvp-strip-action">
+            {actionButtonNode}
           </div>
         )}
       </div>

@@ -4710,7 +4710,7 @@ function Game() {
           {/* PvP Command Strip — replaces two side panels and game-status */}
           {isPvpMode && (
             <div
-              className="sticky z-40 lg:static bg-background/95 lg:bg-transparent pb-2 lg:pb-0 pt-2 lg:pt-0 backdrop-blur-md lg:backdrop-blur-none -mx-gutter px-gutter lg:mx-0 lg:px-0"
+              className="sticky z-40 lg:static pvp-command-sticky-container lg:bg-transparent pb-2 lg:pb-0 pt-2 lg:pt-0 backdrop-blur-md lg:backdrop-blur-none -mx-gutter px-gutter lg:mx-0 lg:px-0"
               style={{ top: "76px" }}
             >
               <PvpCommandStrip
@@ -5763,49 +5763,6 @@ function Game() {
               </div>
             )}
           </div>
-
-          {/* Mini Battle Log for Mobile */}
-          {isMobile && gameState !== "PLACEMENT" && gameState !== "READY" && (
-            <div className="mobile-mini-battle-log mx-4">
-              <div
-                className={`mini-turn-status text-center ${
-                  gameState === "PLAYER_TURN"
-                    ? "text-secondary shadow-secondary/50 drop-shadow-md"
-                    : gameState === "BOT_TURN"
-                      ? "text-error shadow-error/50 drop-shadow-md"
-                      : "text-yellow-400"
-                }`}
-              >
-                {gameState === "PLAYER_TURN"
-                  ? "YOUR TURN"
-                  : gameState === "BOT_TURN"
-                    ? "ENEMY TURN"
-                    : "GAME OVER"}
-              </div>
-
-              <div className="mini-log-list flex flex-col gap-1 items-center text-on-surface-variant mt-2">
-                {logs
-                  .filter((log) =>
-                    [
-                      "player_hit",
-                      "player_miss",
-                      "enemy_hit",
-                      "enemy_miss",
-                      "destroy",
-                    ].includes(log.type),
-                  )
-                  .slice(-2)
-                  .map((log) => (
-                    <div
-                      key={log.id}
-                      className="mini-log-item truncate w-full text-center"
-                    >
-                      {log.msg}
-                    </div>
-                  ))}
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Comms Panel — Right Sidebar / Bottom Sheet on Mobile */}

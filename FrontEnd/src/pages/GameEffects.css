@@ -1757,17 +1757,6 @@ html:not(.light-mode-active) .auto-arrange-button:disabled {
     text-shadow: none !important;
 }
 
-.light-mode-active .pvp-command-strip-bottom {
-    background: #e1eff5 !important;
-    border-top: 1px solid rgba(0, 119, 182, 0.2) !important;
-}
-
-.light-mode-active .pvp-strip-status-text {
-    color: #00354a !important;
-    font-weight: 800 !important;
-}
-
-
 
 .light-mode-active .pvp-comms-body {
     background: rgba(255, 255, 255, 0.9) !important;
