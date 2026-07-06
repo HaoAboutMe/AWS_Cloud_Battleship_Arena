@@ -545,7 +545,7 @@
   --settings-accent: #7ddfff;
   --settings-mint: #42d6a4;
   --settings-coral: #ff785f;
-  --settings-shadow: 8px 8px 0 #020b14, 0 28px 90px rgba(0, 0, 0, 0.42);
+  --settings-shadow: 8px 8px 0 #ffffff, 0 28px 90px rgba(0, 0, 0, 0.42);
   width: min(980px, 100%);
   border: 3px solid var(--settings-accent);
   border-radius: 22px;
@@ -613,7 +613,7 @@
   border: 2px solid var(--settings-accent) !important;
   background: var(--settings-panel) !important;
   color: var(--settings-accent) !important;
-  box-shadow: 4px 4px 0 #020b14;
+  box-shadow: 4px 4px 0 #ffffff;
 }
 
 .light-mode-active .sound-settings-close {
@@ -650,7 +650,7 @@
   border-color: var(--settings-accent) !important;
   background: rgba(125, 223, 255, 0.12) !important;
   color: var(--settings-ink) !important;
-  box-shadow: 4px 4px 0 #020b14 !important;
+  box-shadow: 4px 4px 0 #ffffff !important;
 }
 
 .light-mode-active .sound-settings-nav button.is-active {
@@ -707,7 +707,7 @@
   border-radius: 999px;
   background: var(--settings-panel) !important;
   color: var(--settings-accent) !important;
-  box-shadow: 4px 4px 0 #020b14;
+  box-shadow: 4px 4px 0 #ffffff;
 }
 
 .light-mode-active .sound-settings-mute,

@@ -1,7 +1,7 @@
 .command-header {
   position: sticky;
   top: 0;
-  z-index: 60;
+  z-index: 120;
   width: 100%;
   border-bottom: 1px solid rgba(117, 223, 255, 0.13);
   background:
@@ -212,6 +212,7 @@
 
 .command-account {
   position: relative;
+  z-index: 1;
   min-width: 0;
   max-width: 290px;
   border-left: 1px solid rgba(117, 223, 255, 0.12);
@@ -303,6 +304,7 @@
 
 .command-account-menu {
   position: absolute;
+  z-index: 160;
   top: 100%;
   right: 0;
   width: 190px;
@@ -311,6 +313,20 @@
   opacity: 0;
   transform: translateY(-4px);
   transition: opacity 150ms ease, transform 150ms ease, visibility 150ms;
+}
+
+.command-account.is-open {
+  z-index: 160;
+}
+
+.command-account.is-open .command-account-chevron {
+  transform: rotate(180deg);
+}
+
+.command-account.is-open .command-account-menu {
+  visibility: visible;
+  opacity: 1;
+  transform: translateY(0);
 }
 
 @media (min-width: 641px) {

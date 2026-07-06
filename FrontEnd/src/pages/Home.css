@@ -198,7 +198,7 @@
   border: 2px solid #7ddfff !important;
   border-radius: 16px !important;
   background: #071827 !important;
-  box-shadow: 5px 5px 0 #020b14, 0 18px 44px rgba(0, 0, 0, 0.35) !important;
+  box-shadow: 5px 5px 0 #ffffff, 0 18px 44px rgba(0, 0, 0, 0.35) !important;
 }
 
 .home-page .command-account-menu a,
@@ -638,7 +638,7 @@
   background: rgba(7, 24, 39, 0.6);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  box-shadow: 4px 4px 0 #020b14;
+  box-shadow: 4px 4px 0 #ffffff;
 }
 
 .home-mobile-tabs button {
@@ -1039,6 +1039,20 @@
   background: #ffffff;
   color: var(--home-ink);
   cursor: pointer;
+  box-shadow: 3px 3px 0 var(--home-ink);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+}
+
+.pvp-mode-close:hover {
+  transform: translate(-1px, -1px);
+  background: var(--home-accent);
+  color: #061827;
+  box-shadow: 4px 4px 0 var(--home-ink);
+}
+
+.pvp-mode-close:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0 var(--home-ink);
 }
 
 .pvp-mode-kicker {
@@ -1444,7 +1458,7 @@
   border-color: #7ddfff !important;
   background: #071a2a !important;
   color: #e7f8ff !important;
-  box-shadow: 3px 3px 0 #020b14 !important;
+  box-shadow: 3px 3px 0 #ffffff !important;
 }
 
 .home-page .command-nav {
@@ -1480,7 +1494,7 @@
 .home-page .command-enlist {
   border-color: #7ddfff !important;
   color: #061827 !important;
-  box-shadow: 3px 3px 0 #020b14 !important;
+  box-shadow: 3px 3px 0 #ffffff !important;
 }
 
 .home-hero {
@@ -1488,7 +1502,7 @@
   background:
     linear-gradient(112deg, rgba(2, 9, 20, 0.95), rgba(7, 24, 39, 0.86) 48%, rgba(7, 24, 39, 0.52)),
     var(--hero-ocean) center / cover;
-  box-shadow: 10px 10px 0 #020b14, var(--home-shadow);
+  box-shadow: 10px 10px 0 #ffffff, var(--home-shadow);
 }
 
 
@@ -1526,7 +1540,7 @@
 .home-section-heading>.material-symbols-outlined {
   border-color: #7ddfff;
   color: #061827;
-  box-shadow: 4px 4px 0 #020b14;
+  box-shadow: 4px 4px 0 #ffffff;
 }
 
 .home-primary-cta,
@@ -1534,7 +1548,7 @@
 .home-card-cta,
 .pvp-search-cancel {
   border-color: #7ddfff;
-  box-shadow: 5px 5px 0 #020b14;
+  box-shadow: 5px 5px 0 #ffffff;
 }
 
 .home-secondary-cta,
@@ -1549,7 +1563,7 @@
 .pvp-search-status {
   border-color: #7ddfff;
   background: #071a2a;
-  box-shadow: 4px 4px 0 #020b14;
+  box-shadow: 4px 4px 0 #ffffff;
 }
 
 .home-map-board {
@@ -1557,7 +1571,7 @@
   background: #062236;
   box-shadow:
     12px 18px 0 rgba(0, 0, 0, 0.22),
-    14px 20px 0 #020b14;
+    14px 20px 0 #ffffff;
 }
 
 .home-map-board span {
@@ -1579,13 +1593,13 @@
 .home-page .home-stats-card.glass-card {
   border-color: #7ddfff !important;
   background: linear-gradient(160deg, rgba(7, 26, 42, 0.96), rgba(4, 14, 26, 0.94)) !important;
-  box-shadow: 7px 7px 0 #020b14, var(--home-shadow) !important;
+  box-shadow: 7px 7px 0 #ffffff, var(--home-shadow) !important;
 }
 
 .home-page .home-mode-pvp.glass-card {
   border-color: #7ddfff !important;
   background: linear-gradient(160deg, rgba(17, 103, 216, 0.78), rgba(4, 18, 34, 0.98)) !important;
-  box-shadow: 7px 7px 0 #020b14, var(--home-shadow) !important;
+  box-shadow: 7px 7px 0 #ffffff, var(--home-shadow) !important;
 }
 
 .home-mode-icon,
@@ -1608,7 +1622,7 @@
 .home-rank-tier-banner.is-unranked {
   border-color: #7ddfff;
   background: linear-gradient(135deg, rgba(125, 223, 255, 0.16), rgba(255, 209, 102, 0.1));
-  box-shadow: 4px 4px 0 #020b14;
+  box-shadow: 4px 4px 0 #ffffff;
 }
 
 .home-stats-card .bg-surface-container {
@@ -1631,7 +1645,7 @@
   border-color: #7ddfff;
   background: #071827;
   color: #e7f8ff;
-  box-shadow: 8px 8px 0 #020b14, 0 28px 90px rgba(0, 0, 0, 0.34);
+  box-shadow: 8px 8px 0 #ffffff, 0 28px 90px rgba(0, 0, 0, 0.34);
 }
 
 .pvp-mode-option.ranked {
@@ -1721,7 +1735,7 @@
 .light-mode-active .home-hero {
   border-color: #10283a;
   background:
-    linear-gradient(112deg, rgba(255, 252, 244, 0.98), rgba(255, 252, 244, 0.86) 48%, rgba(255, 252, 244, 0.5)),
+    linear-gradient(112deg, rgba(255, 252, 244, 0.94), rgba(255, 252, 244, 0.76) 48%, rgba(255, 252, 244, 0.22)),
     var(--hero-ocean) center / cover;
   box-shadow: 10px 10px 0 #10283a, var(--home-shadow);
 }
@@ -1836,6 +1850,23 @@
   background: #fffdf7;
   color: #10283a;
   box-shadow: 8px 8px 0 #10283a, 0 28px 90px rgba(21, 53, 79, 0.18);
+}
+
+html:not(.light-mode-active) .pvp-mode-close {
+  border-color: #75dfff;
+  background: #071827;
+  color: #75dfff;
+  box-shadow: 3px 3px 0 #ffffff;
+}
+
+html:not(.light-mode-active) .pvp-mode-close:hover {
+  background: #75dfff;
+  color: #061827;
+  box-shadow: 4px 4px 0 #ffffff;
+}
+
+html:not(.light-mode-active) .pvp-mode-close:active {
+  box-shadow: 1px 1px 0 #ffffff;
 }
 
 .light-mode-active .pvp-mode-option.ranked {

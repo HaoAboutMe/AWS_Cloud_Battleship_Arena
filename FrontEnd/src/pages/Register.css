@@ -15,8 +15,8 @@
   --auth-accent-hover: #40d7ff;
   --auth-success: #42d6a4;
   --auth-danger: #ff7a72;
-  --auth-shadow: 8px 8px 0 #020b14;
-  --auth-card-shadow: 8px 8px 0 #020b14, 0 26px 80px rgba(0, 0, 0, 0.32);
+  --auth-shadow: 8px 8px 0 #ffffff;
+  --auth-card-shadow: 8px 8px 0 #ffffff, 0 26px 80px rgba(0, 0, 0, 0.32);
 }
 
 .light-mode-active .register-page {

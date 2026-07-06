@@ -444,21 +444,21 @@
   border-color: #7ddfff;
   background: #071a2a;
   color: #e7f8ff;
-  box-shadow: 4px 4px 0 #020b14;
+  box-shadow: 4px 4px 0 #ffffff;
 }
 
 .hs-trigger:hover {
   border-color: #9cecff;
   background: #0b2436;
   color: #ffffff;
-  box-shadow: 6px 6px 0 #020b14;
+  box-shadow: 6px 6px 0 #ffffff;
 }
 
 .hs-open .hs-trigger {
   border-color: #9cecff;
   background: #0e2c42;
   color: #ffffff;
-  box-shadow: 3px 3px 0 #020b14;
+  box-shadow: 3px 3px 0 #ffffff;
 }
 
 .hs-panel-inner {
@@ -468,7 +468,7 @@
   background-image:
     linear-gradient(90deg, rgba(125, 223, 255, 0.055) 1px, transparent 1px),
     linear-gradient(rgba(125, 223, 255, 0.055) 1px, transparent 1px);
-  box-shadow: 6px 6px 0 #020b14, 0 18px 44px rgba(0, 0, 0, 0.38);
+  box-shadow: 6px 6px 0 #ffffff, 0 18px 44px rgba(0, 0, 0, 0.38);
 }
 
 .hs-option {
@@ -486,7 +486,7 @@
   border-color: #7ddfff;
   background: #42d6a4;
   color: #071827;
-  box-shadow: 3px 3px 0 #020b14;
+  box-shadow: 3px 3px 0 #ffffff;
 }
 
 .light-mode-active .hs-trigger {

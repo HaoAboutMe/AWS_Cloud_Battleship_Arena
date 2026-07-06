@@ -1219,7 +1219,7 @@
   --lb-mint: #42d6a4;
   --lb-coral: #ff785f;
   --lb-gold: #ffd166;
-  --lb-shadow: 8px 8px 0 #020b14, 0 26px 80px rgba(0, 0, 0, 0.32);
+  --lb-shadow: 8px 8px 0 #ffffff, 0 26px 80px rgba(0, 0, 0, 0.32);
   background:
     linear-gradient(90deg, rgba(125, 223, 255, 0.04) 1px, transparent 1px),
     linear-gradient(rgba(125, 223, 255, 0.04) 1px, transparent 1px),
@@ -1255,11 +1255,11 @@
   border-radius: 999px !important;
   background: #071a2a !important;
   color: #e7f8ff !important;
-  box-shadow: 3px 3px 0 #020b14 !important;
+  box-shadow: 3px 3px 0 #ffffff !important;
 }
 
 .leaderboard-page .command-nav {
-  box-shadow: 5px 5px 0 #020b14 !important;
+  box-shadow: 5px 5px 0 #ffffff !important;
 }
 
 .leaderboard-page .command-nav a {
@@ -1314,7 +1314,7 @@
   border-radius: 999px !important;
   background: #ff785f !important;
   color: #061827 !important;
-  box-shadow: 3px 3px 0 #020b14 !important;
+  box-shadow: 3px 3px 0 #ffffff !important;
 }
 
 .light-mode-active .leaderboard-page {
@@ -1452,7 +1452,7 @@
   background: rgba(255, 209, 102, 0.12);
   color: var(--lb-gold) !important;
   filter: none;
-  box-shadow: 4px 4px 0 #020b14;
+  box-shadow: 4px 4px 0 #ffffff;
 }
 
 .light-mode-active .leaderboard-title-icon {
@@ -1485,7 +1485,7 @@
   border: 3px solid var(--lb-accent);
   border-radius: 18px;
   background: rgba(7, 24, 39, 0.92);
-  box-shadow: 5px 5px 0 #020b14;
+  box-shadow: 5px 5px 0 #ffffff;
 }
 
 .light-mode-active .leaderboard-dual-search {

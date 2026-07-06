@@ -713,8 +713,8 @@
   --lobby-accent: #7ddfff;
   --lobby-accent-hover: #1167d8;
   --lobby-success: #42d6a4;
-  --lobby-shadow: 8px 8px 0 #020b14;
-  --lobby-shadow-sm: 4px 4px 0 #020b14;
+  --lobby-shadow: 8px 8px 0 #ffffff;
+  --lobby-shadow-sm: 4px 4px 0 #ffffff;
 
   min-height: 100vh;
   background:

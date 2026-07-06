@@ -15,8 +15,8 @@
   --auth-accent-hover: #40d7ff;
   --auth-success: #42d6a4;
   --auth-danger: #ff7a72;
-  --auth-shadow: 8px 8px 0 #020b14;
-  --auth-card-shadow: 8px 8px 0 #020b14, 0 26px 80px rgba(0, 0, 0, 0.32);
+  --auth-shadow: 8px 8px 0 #ffffff;
+  --auth-card-shadow: 8px 8px 0 #ffffff, 0 26px 80px rgba(0, 0, 0, 0.32);
 
   position: relative;
   min-height: 100dvh;
@@ -54,6 +54,12 @@
     radial-gradient(circle at 15% 68%, rgba(66, 214, 164, 0.16), transparent 26rem),
     linear-gradient(135deg, #fffaf0 0%, #eef8ff 48%, #f8efe4 100%);
   background-size: 42px 42px, 42px 42px, auto, auto, auto;
+}
+
+.light-mode-active .auth-ocean {
+  background:
+    linear-gradient(rgba(255, 252, 244, 0.28), rgba(255, 252, 244, 0.62)),
+    url("../assets/ocean/auth-ocean-light.webp") 58% center / cover;
 }
 
 .auth-page,

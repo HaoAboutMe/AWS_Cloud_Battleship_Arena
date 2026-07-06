@@ -7,7 +7,8 @@ import goldBadge from '../assets/badge/gold.webp';
 import masterBadge from '../assets/badge/master.webp';
 import platinumBadge from '../assets/badge/platinum.webp';
 import silverBadge from '../assets/badge/silver.webp';
-import oceanTexture from "../assets/ocean/deep-ocean-texture.webp";
+import homeOceanDark from "../assets/ocean/deep-ocean-texture.webp";
+import homeOceanLight from "../assets/ocean/auth-ocean-light.webp";
 import shipCarrier from "../assets/ships/image/ship-10.webp";
 import shipDestroyer from "../assets/ships/image/ship-6.webp";
 import shipScout from "../assets/ships/image/ship-8.webp";
@@ -360,6 +361,8 @@ function Home() {
     }
   };
 
+  const heroOcean = isLightMode ? homeOceanLight : homeOceanDark;
+
   return (
     <div id="top" className="home-page bg-background text-on-background font-body-md min-h-screen selection:bg-secondary/30">
       <TacticsModal isOpen={isTacticsOpen} onClose={() => setIsTacticsOpen(false)} />
@@ -449,7 +452,7 @@ function Home() {
         </div>
       )}
       <main className="home-main">
-        <section className="home-hero" style={{ "--hero-ocean": `url(${oceanTexture})` }}>
+        <section className="home-hero" style={{ "--hero-ocean": `url(${heroOcean})` }}>
           <div className="home-hero-copy">
             <span className="home-hero-kicker">
               <span className="material-symbols-outlined" aria-hidden="true">casino</span>
