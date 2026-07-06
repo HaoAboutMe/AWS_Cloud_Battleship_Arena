@@ -2468,7 +2468,6 @@ button.game-ready-btn.is-valid-ready:active {
 
 /* Refined Board Cells */
 .ocean-board-surface .ocean-cell {
-    background: rgba(255, 255, 255, 0.05) !important;
     backdrop-filter: blur(1px);
     -webkit-backdrop-filter: blur(1px);
     border: 1px solid rgba(16, 40, 58, 0.04) !important;
@@ -2493,7 +2492,6 @@ button.game-ready-btn.is-valid-ready:active {
 }
 
 .light-mode-active .ocean-board-surface .ocean-cell {
-    background: rgba(255, 255, 255, 0.08) !important;
     backdrop-filter: blur(1px);
     -webkit-backdrop-filter: blur(1px);
     border: 1px solid rgba(16, 40, 58, 0.18) !important;
