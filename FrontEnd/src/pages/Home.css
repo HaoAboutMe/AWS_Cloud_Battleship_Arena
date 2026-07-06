@@ -78,6 +78,11 @@
   background: rgba(7, 24, 39, 0.8);
   color: #7ddfff;
   box-shadow: 3px 3px 0 #7ddfff;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    background-color 0.15s ease,
+    color 0.15s ease;
 }
 
 .home-page .command-enlist {
@@ -86,6 +91,37 @@
   background: var(--home-coral);
   color: #ffffff;
   box-shadow: 3px 3px 0 #ff6b4a;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.home-page .command-signin:hover {
+  transform: translate(-1px, -1px);
+  background: #7ddfff;
+  color: #020812;
+  box-shadow: 4px 4px 0 #ffffff;
+}
+
+.home-page .command-icon-button:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0 #ffffff;
+}
+
+.home-page .command-enlist:hover {
+  transform: translate(-1px, -1px);
+  background: #ff8065;
+  color: #ffffff;
+  box-shadow: 4px 4px 0 #ffffff;
+}
+
+.home-page .command-icon-button:active,
+.home-page .command-signin:active,
+.home-page .command-enlist:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 #ffffff;
 }
 
 .light-mode-active .home-page .command-header {
@@ -127,6 +163,32 @@
   background: var(--home-coral) !important;
   color: #ffffff !important;
   box-shadow: 3px 3px 0 var(--home-ink) !important;
+}
+
+.light-mode-active .home-page .command-signin:hover {
+  transform: translate(-1px, -1px);
+  background: var(--home-cobalt) !important;
+  color: #ffffff !important;
+  box-shadow: 4px 4px 0 var(--home-ink) !important;
+}
+
+.light-mode-active .home-page .command-icon-button:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0 var(--home-ink) !important;
+}
+
+.light-mode-active .home-page .command-enlist:hover {
+  transform: translate(-1px, -1px);
+  background: #ff8065 !important;
+  color: #ffffff !important;
+  box-shadow: 4px 4px 0 var(--home-ink) !important;
+}
+
+.light-mode-active .home-page .command-icon-button:active,
+.light-mode-active .home-page .command-signin:active,
+.light-mode-active .home-page .command-enlist:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 var(--home-ink) !important;
 }
 
 .home-page .language-toggle,
@@ -1611,6 +1673,10 @@
   color: #dff8ff !important;
 }
 
+.home-mode-icon {
+  box-shadow: 4px 4px 0 rgba(223, 248, 255, 0.18) !important;
+}
+
 .home-stats-card h3,
 .home-stats-card .text-on-surface,
 .home-stats-card .font-body-md,
@@ -1829,6 +1895,14 @@
   color: #10283a !important;
 }
 
+.light-mode-active .home-mode-icon {
+  box-shadow: 4px 4px 0 rgba(16, 40, 58, 0.18) !important;
+}
+
+.light-mode-active .home-section-heading>.material-symbols-outlined {
+  box-shadow: 4px 4px 0 #10283a;
+}
+
 .light-mode-active .home-rank-tier-banner {
   border-color: #10283a;
   background: #fff3c4;
@@ -1915,6 +1989,14 @@ html:not(.light-mode-active) .pvp-mode-close:active {
   border-color: rgba(255, 255, 255, 0.82) !important;
   background: rgba(255, 255, 255, 0.92) !important;
   color: #063f85 !important;
+}
+
+.home-mode-pvp .home-mode-icon {
+  box-shadow: 4px 4px 0 rgba(2, 11, 20, 0.36) !important;
+}
+
+.light-mode-active .home-mode-pvp .home-mode-icon {
+  box-shadow: 4px 4px 0 rgba(16, 40, 58, 0.18) !important;
 }
 
 .home-mode-pvp .home-mode-ribbon,

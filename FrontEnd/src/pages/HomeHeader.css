@@ -932,6 +932,10 @@
   position: relative;
 }
 
+.command-settings-mobile-button {
+  display: none !important;
+}
+
 @media (max-width: 640px) {
   .command-desktop-actions {
     display: none !important;
@@ -939,6 +943,10 @@
 
   .command-mobile-settings {
     display: block;
+  }
+
+  .command-settings-mobile-button {
+    display: grid !important;
   }
 }
 

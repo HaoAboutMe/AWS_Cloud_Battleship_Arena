@@ -180,6 +180,14 @@ function CommandHeader({
             <LanguageToggle />
             <button
               type="button"
+              onClick={() => setSettingsOpen(true)}
+              className="command-icon-button command-settings-button"
+              aria-label={t("common.settings")}
+            >
+              <span className="material-symbols-outlined">settings</span>
+            </button>
+            <button
+              type="button"
               onClick={handleThemeToggle}
               className="command-icon-button"
               aria-label={resolvedLightMode ? t("common.useDark") : t("common.useLight")}
@@ -189,6 +197,14 @@ function CommandHeader({
               </span>
             </button>
           </div>
+          <button
+            type="button"
+            onClick={() => setSettingsOpen(true)}
+            className="command-icon-button command-settings-mobile-button"
+            aria-label={t("common.settings")}
+          >
+            <span className="material-symbols-outlined">settings</span>
+          </button>
 
           {showReturnHome ? (
             <Link to={backTo} className="command-signin" style={{ gap: "6px" }}>
@@ -249,14 +265,6 @@ function CommandHeader({
                           <span className="material-symbols-outlined">person</span>
                           {t("common.viewProfile")}
                         </Link>
-                        <button
-                          type="button"
-                          className="command-menu-settings"
-                          onClick={() => setSettingsOpen(true)}
-                        >
-                          <span className="material-symbols-outlined">settings</span>
-                          {t("common.settings")}
-                        </button>
 
                         <button
                           type="button"

@@ -49,7 +49,7 @@ import {
   resetRoomForRematch,
   sendSocketMessage,
 } from "../services/matchService";
-import { playSound } from "../services/soundService";
+import { playSound, syncBackgroundMusic } from "../services/soundService";
 import "./GameEffects.css";
 
 const RankUpAnimation = lazy(() => import("../components/RankUpAnimation"));
@@ -1533,6 +1533,7 @@ function Game() {
   const requestGameExit = useCallback(
     (target = "/") => {
       if (!shouldConfirmPvpExit()) {
+        syncBackgroundMusic(target);
         navigate(target);
         return;
       }
@@ -1552,6 +1553,7 @@ function Game() {
           player: currentBattlePlayer || roomPlayer,
         });
       }
+      syncBackgroundMusic("/");
       navigate("/", { replace: true, state: { authEvent: "signed-out" } });
       await logout();
     } catch (err) {
@@ -1569,6 +1571,7 @@ function Game() {
   const handleHeaderNavigation = useCallback(
     (targetPath) => {
       if (!shouldConfirmPvpExit()) {
+        syncBackgroundMusic(targetPath);
         navigate(targetPath);
         return;
       }
@@ -1651,6 +1654,7 @@ function Game() {
       });
     }
 
+    syncBackgroundMusic("/");
     navigate("/");
   }, [isPvpMode, leavePvpRoomCleanly, navigate, roomCode]);
 
@@ -4663,12 +4667,7 @@ function Game() {
           >
             {isPvpMode ? (
               <button
-                onClick={(event) => {
-                  if (!shouldConfirmPvpExit()) {
-                    navigate("/");
-                    return;
-                  }
-                  event.preventDefault();
+                onClick={() => {
                   requestGameExit("/");
                 }}
                 className="pvp-leave-match-button"
