@@ -1783,6 +1783,32 @@ function Game() {
         );
   };
 
+  const getInstructionText = (isShort) => {
+    if (gameState === "PLACEMENT") {
+      if (!isFleetValid) {
+        return isShort
+          ? (language === "vi" ? "Kéo tàu vào bản đồ" : "Drag ships to map")
+          : (copy.dragShipsInstructions || "Drag ships from staging onto your map. Right-click to rotate.");
+      } else {
+        return isShort
+          ? (language === "vi" ? "Bấm Sẵn sàng để đấu" : "Press Ready to battle")
+          : (copy.formationCompleteInstructions || "Formation complete. Adjust ships, auto-arrange again, or press Ready.");
+      }
+    }
+    if (gameState === "READY") {
+      if (selectedShip) {
+        return isShort
+          ? (language === "vi" ? "Di chuyển/Xoay tàu" : "Move or rotate ship")
+          : (copy.moveSelectedShipInstructions || "Move the selected ship or right-click to rotate it, then press Ready.");
+      } else {
+        return isShort
+          ? (language === "vi" ? "Chọn tàu để chỉnh" : "Select ship to adjust")
+          : (copy.selectShipInstructions || "Select any ship to move or rotate it, then press Ready.");
+      }
+    }
+    return "";
+  };
+
   const clearShipFromBoard = (board, shipId) => {
     board.forEach((row) => {
       row.forEach((cell) => {
@@ -4818,10 +4844,10 @@ function Game() {
           )}
           {/* Status Header — Only for Single Player Modes */}
           {!isPvpMode && (
-            <div className="game-status glass-card rounded-xl border border-white/10 flex flex-col md:grid md:grid-cols-3 gap-3 md:gap-0 items-center justify-between w-full mb-2 p-4">
+            <div className="game-status glass-card rounded-xl border border-white/10 flex flex-row md:grid md:grid-cols-3 gap-3 md:gap-0 items-center justify-between w-full mb-2 p-3 md:p-4">
               {/* Left Column: Sector Command Title */}
-              <div className="w-full md:w-auto flex flex-col justify-center items-center md:items-start">
-                <h2 className="font-display-lg text-sm md:text-lg uppercase tracking-widest text-on-surface leading-none text-center md:text-left">
+              <div className="hidden md:flex w-full md:w-auto flex-col justify-center items-start">
+                <h2 className="font-display-lg text-sm md:text-lg uppercase tracking-widest text-on-surface leading-none text-left">
                   {gameState === "PLACEMENT" || gameState === "READY"
                     ? copy.deployFleet || "Deploy Your Fleet"
                     : copy.sectorCommand || "Sector Command"}
@@ -4829,21 +4855,10 @@ function Game() {
               </div>
 
               {/* Center Column: Turn Indicator Badge */}
-              <div className="flex justify-center items-center">
-                {gameState === "PLACEMENT" && (
+              <div className="flex-1 md:flex-none flex justify-start md:justify-center items-center">
+                {(gameState === "PLACEMENT" || gameState === "READY") && (
                   <span className="turn-badge-deploying">
-                    {!isFleetValid
-                      ? copy.dragShipsInstructions || "Deploying Fleet"
-                      : copy.formationCompleteInstructions ||
-                        "Formation Complete"}
-                  </span>
-                )}
-                {gameState === "READY" && (
-                  <span className="turn-badge-deploying">
-                    {selectedShip
-                      ? copy.moveSelectedShipInstructions ||
-                        "Adjusting Formation"
-                      : copy.selectShipInstructions || "Ready for Combat"}
+                    {getInstructionText(isMobile)}
                   </span>
                 )}
                 {gameState === "PLAYER_TURN" && (
@@ -4868,8 +4883,8 @@ function Game() {
                   ))}
               </div>
 
-              {/* Right Column: Time or Action Button */}
-              <div className="w-full md:w-auto flex justify-center md:justify-end items-center">
+              {/* Right Column: Action Button or Time */}
+              <div className="flex-none flex justify-end items-center ml-2 md:ml-0 md:w-auto">
                 {(gameState === "PLACEMENT" || gameState === "READY") && (
                   <button
                     onClick={beginBattle}
@@ -4892,12 +4907,12 @@ function Game() {
                   </button>
                 )}
                 {(gameState === "PLAYER_TURN" || gameState === "BOT_TURN") && (
-                  <div className="text-center md:text-right">
+                  <div className="text-right">
                     <span className="text-[10px] text-on-surface-variant uppercase font-bold tracking-widest block leading-none mb-1">
                       {copy.timeLabel || "Time"}
                     </span>
                     <div
-                      className={`text-2xl md:text-3xl font-black leading-none ${turnTimer <= 10 ? "timer-pulse-red animate-pulse" : "text-secondary"}`}
+                      className={`text-xl md:text-3xl font-black leading-none ${turnTimer <= 10 ? "timer-pulse-red animate-pulse" : "text-secondary"}`}
                     >
                       {turnTimer}s
                     </div>
@@ -4909,24 +4924,24 @@ function Game() {
 
           {/* Battle Tabs for Mobile */}
           {isMobile && gameState !== "PLACEMENT" && gameState !== "READY" && (
-            <div className="flex w-full justify-center gap-2 mb-2 px-4">
+            <div className="flex w-full justify-center gap-3 mb-3 px-4">
               <button
                 onClick={() => setActiveBattleTab("enemy")}
-                className={`flex-1 py-2 px-4 rounded-lg font-bold tracking-widest text-sm transition-all border ${
+                className={`mobile-battle-tab flex-1 ${
                   activeBattleTab === "enemy"
-                    ? "bg-error/20 text-error border-error shadow-[0_0_15px_rgba(255,0,0,0.2)]"
-                    : "bg-surface-container border-white/10 text-on-surface-variant"
+                    ? "is-active-enemy"
+                    : "is-inactive"
                 }`}
               >
                 {(isPvpMode ? copy.enemyFleet : copy.enemyWaters) ||
-                  "ENEMY FLEET"}
+                  "ENEMY WATERS"}
               </button>
               <button
                 onClick={() => setActiveBattleTab("fleet")}
-                className={`flex-1 py-2 px-4 rounded-lg font-bold tracking-widest text-sm transition-all border ${
+                className={`mobile-battle-tab flex-1 ${
                   activeBattleTab === "fleet"
-                    ? "bg-secondary/20 text-secondary border-secondary shadow-[0_0_15px_rgba(0,210,255,0.2)]"
-                    : "bg-surface-container border-white/10 text-on-surface-variant"
+                    ? "is-active-fleet"
+                    : "is-inactive"
                 }`}
               >
                 {copy.yourFleet || "YOUR FLEET"}

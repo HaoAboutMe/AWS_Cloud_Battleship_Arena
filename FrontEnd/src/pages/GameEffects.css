@@ -624,8 +624,27 @@
 
     .game-status {
         min-height: auto;
-        padding: 6px 12px;
+        padding: 6px 10px;
         margin-bottom: 6px;
+    }
+
+    .turn-badge-deploying,
+    .turn-badge-player,
+    .turn-badge-bot,
+    .turn-badge-victory,
+    .turn-badge-defeat {
+        padding: 5px 10px !important;
+        font-size: 10px !important;
+        letter-spacing: 0.05em !important;
+        box-shadow: 2px 2px 0 #02121d !important;
+    }
+
+    .light-mode-active .turn-badge-deploying,
+    .light-mode-active .turn-badge-player,
+    .light-mode-active .turn-badge-bot,
+    .light-mode-active .turn-badge-victory,
+    .light-mode-active .turn-badge-defeat {
+        box-shadow: 2px 2px 0 #10283a !important;
     }
 
     .board-heading {
@@ -3814,6 +3833,117 @@ html:not(.light-mode-active) .game-main.is-deploying .ocean-board-surface,
 }
 .light-mode-active .game-exit-dialog .btn-leave:active {
     box-shadow: 1px 1px 0 #10283a !important;
+}
+
+/* Mobile Battle Tabs Selector */
+.mobile-battle-tab {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 16px !important;
+    border-radius: 8px !important;
+    font-size: 13px !important;
+    font-weight: 900 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.08em !important;
+    transition: transform 0.12s ease, box-shadow 0.12s ease, background-color 0.12s ease, border-color 0.12s ease !important;
+    cursor: pointer;
+}
+
+/* Inactive State - Dark Mode */
+.mobile-battle-tab.is-inactive {
+    background: rgba(8, 28, 42, 0.65) !important;
+    color: rgba(140, 220, 255, 0.6) !important;
+    border: 2.5px solid rgba(117, 223, 255, 0.25) !important;
+    box-shadow: none !important;
+}
+
+.mobile-battle-tab.is-inactive:hover {
+    background: rgba(8, 28, 42, 0.85) !important;
+    color: rgba(140, 220, 255, 0.9) !important;
+    border-color: rgba(117, 223, 255, 0.45) !important;
+}
+
+/* Active State - Enemy Waters (Red/Coral tint for attack) - Dark Mode */
+.mobile-battle-tab.is-active-enemy {
+    background: #ff5a36 !important; /* Coral */
+    color: #ffffff !important;
+    border: 2.5px solid var(--game-shadow) !important;
+    box-shadow: 4px 4px 0 var(--game-shadow) !important;
+}
+
+.mobile-battle-tab.is-active-enemy:hover {
+    transform: translate(-2px, -2px) !important;
+    box-shadow: 6px 6px 0 var(--game-shadow) !important;
+}
+
+.mobile-battle-tab.is-active-enemy:active {
+    transform: translate(1px, 1px) scale(0.99) !important;
+    box-shadow: 2px 2px 0 var(--game-shadow) !important;
+}
+
+/* Active State - Your Fleet (Blue/Teal tint for defense) - Dark Mode */
+.mobile-battle-tab.is-active-fleet {
+    background: #00d2ff !important; /* Cyan */
+    color: #020d17 !important;
+    border: 2.5px solid var(--game-shadow) !important;
+    box-shadow: 4px 4px 0 var(--game-shadow) !important;
+}
+
+.mobile-battle-tab.is-active-fleet:hover {
+    transform: translate(-2px, -2px) !important;
+    box-shadow: 6px 6px 0 var(--game-shadow) !important;
+}
+
+.mobile-battle-tab.is-active-fleet:active {
+    transform: translate(1px, 1px) scale(0.99) !important;
+    box-shadow: 2px 2px 0 var(--game-shadow) !important;
+}
+
+/* --- LIGHT MODE ACTIVE --- */
+.light-mode-active .mobile-battle-tab.is-inactive {
+    background: rgba(255, 255, 255, 0.65) !important;
+    color: #10283a !important;
+    border: 2.5px solid rgba(16, 40, 58, 0.3) !important;
+    box-shadow: none !important;
+    opacity: 0.7;
+}
+
+.light-mode-active .mobile-battle-tab.is-inactive:hover {
+    background: rgba(255, 255, 255, 0.85) !important;
+    border-color: #10283a !important;
+    opacity: 1;
+}
+
+/* Active State - Enemy Waters - Light Mode */
+.light-mode-active .mobile-battle-tab.is-active-enemy {
+    background: #e63946 !important; /* Premium High-contrast Red */
+    color: #ffffff !important;
+    border: 2.5px solid #10283a !important;
+    box-shadow: 4px 4px 0 #10283a !important;
+}
+
+.light-mode-active .mobile-battle-tab.is-active-enemy:hover {
+    transform: translate(-2px, -2px) !important;
+    box-shadow: 6px 6px 0 #10283a !important;
+}
+
+/* Active State - Your Fleet - Light Mode */
+.light-mode-active .mobile-battle-tab.is-active-fleet {
+    background: #0077b6 !important; /* Premium High-contrast Blue */
+    color: #ffffff !important;
+    border: 2.5px solid #10283a !important;
+    box-shadow: 4px 4px 0 #10283a !important;
+}
+
+.light-mode-active .mobile-battle-tab.is-active-fleet:hover {
+    transform: translate(-2px, -2px) !important;
+    box-shadow: 6px 6px 0 #10283a !important;
+}
+
+.light-mode-active .mobile-battle-tab:active {
+    transform: translate(1px, 1px) scale(0.99) !important;
+    box-shadow: 2px 2px 0 #10283a !important;
 }
 
 
