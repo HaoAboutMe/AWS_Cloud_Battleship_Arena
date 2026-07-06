@@ -17,7 +17,7 @@ import HomeSelect from "../components/HomeSelect";
 import TacticsModal from "../components/TacticsModal";
 import { useAuth } from "../contexts/AuthContext";
 import { useLanguage } from "../contexts/LanguageContext";
-import { findMatch, getRoom, leaveRoom } from "../services/matchService";
+import { findMatch, getRoom, leaveRoom, getRoomPlayerId } from "../services/matchService";
 import { getUserProfile, getLeaderboard } from "../services/userService";
 import { getAvatarCdnUrl } from "../utils/avatar";
 import { setPreferredLightMode } from "../utils/themePreference";
@@ -85,7 +85,7 @@ function Home() {
   const [matchmakingMode, setMatchmakingMode] = useState(null);
   const [matchmakingRoomCode, setMatchmakingRoomCode] = useState("");
   const [matchmakingError, setMatchmakingError] = useState("");
-  const [guestUserId] = useState(() => `guest-${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 9)}`);
+  const [guestUserId] = useState(() => getRoomPlayerId("guest", "global"));
   const [stats, setStats] = useState({
     totalGames: 0,
     wins: 0,
@@ -467,10 +467,10 @@ function Home() {
               {t("home.heroBody")}
             </p>
             <div className="home-hero-actions">
-              <Link to={`/game?mode=pve&difficulty=${botDifficulty}`} className="home-primary-cta">
+              <button type="button" className="home-primary-cta" onClick={() => setPvpModeOpen(true)}>
                 <span className="material-symbols-outlined" aria-hidden="true">rocket_launch</span>
                 {t("home.battle")}
-              </Link>
+              </button>
               <button type="button" className="home-secondary-cta" onClick={() => setIsTacticsOpen(true)}>
                 <span className="material-symbols-outlined" aria-hidden="true">school</span>
                 {t("home.learn")}

@@ -55,7 +55,7 @@ import "./GameEffects.css";
 const RankUpAnimation = lazy(() => import("../components/RankUpAnimation"));
 
 const BOARD_SIZE = 10;
-const CELL_SIZE = 40;
+const CELL_SIZE = 35;
 const CELL_GAP = 2;
 const COORD_HEADER_HEIGHT = 24;
 const SHIP_CELL_PADDING = 0;
@@ -322,6 +322,7 @@ const GAME_COPY = {
     unableLeaveCleanly: "Unable to leave room cleanly.",
     unableResetRematch: "Unable to reset room for rematch.",
     youLeftMatch: "You left the match.",
+    opponentLeftMatch: "Opponent left the match.",
     timeUp: "Time is up! Turn passes to enemy.",
     yourTurnStarted: "Your turn started.",
     waitingOpponentMove: "Waiting for opponent move through the room channel.",
@@ -465,6 +466,7 @@ const GAME_COPY = {
     unableLeaveCleanly: "Không thể rời phòng gọn gàng.",
     unableResetRematch: "Không thể đặt lại phòng để tái đấu.",
     youLeftMatch: "Bạn đã rời trận.",
+    opponentLeftMatch: "Đối phương đã rời trận.",
     timeUp: "Hết giờ! Lượt chuyển sang đối thủ.",
     yourTurnStarted: "Bắt đầu lượt của bạn.",
     waitingOpponentMove: "Đang chờ đối thủ đi qua kênh phòng.",
@@ -1558,7 +1560,7 @@ function Game() {
     // Instead of navigate, we set Game Over state for player A
     gameStateRef.current = "GAME_OVER";
     setGameOverReason("player_left");
-    setGameOverSubMessage("Bạn đã rời trận");
+    setGameOverSubMessage("youLeftMatch");
     setGameState("GAME_OVER");
     setWinner("BOT"); // This triggers a Lose popup (since winner !== "PLAYER")
     releaseShotLock();
@@ -1582,7 +1584,7 @@ function Game() {
 
     try {
       setRematchLoading(true);
-      if (gameOverReason === "opponent_left") {
+      if (gameOverReason === "opponent_left" || gameOverReason === "player_left") {
         void leavePvpRoomCleanly().catch((leaveError) => {
           console.warn(leaveError.message || "Unable to leave room cleanly.");
         });
@@ -2221,7 +2223,7 @@ function Game() {
   const handleOpponentLeft = useCallback(() => {
     gameStateRef.current = "GAME_OVER";
     setGameOverReason("opponent_left");
-    setGameOverSubMessage("Đối phương rời trận");
+    setGameOverSubMessage("opponentLeftMatch");
     setGameState("GAME_OVER");
     setWinner("PLAYER");
     releaseShotLock();
@@ -4385,6 +4387,7 @@ function Game() {
             cellGap={CELL_GAP}
             boardSide={boardSide}
             smokeCells={smokeCells}
+            isLightMode={isLightMode}
           />
           <div
             className="relative z-10 grid"
@@ -4685,80 +4688,89 @@ function Game() {
           )}
           {/* Status Header — Only for Single Player Modes */}
           {!isPvpMode && (
-            <div className="game-status glass-card rounded-xl border border-white/10 flex justify-between items-center mb-4">
-              <div>
-                <h2 className="font-display-lg text-base md:text-xl uppercase tracking-widest text-on-surface">
+            <div className="game-status glass-card rounded-xl border border-white/10 flex flex-col md:grid md:grid-cols-3 gap-3 md:gap-0 items-center justify-between w-full mb-2 p-4">
+              {/* Left Column: Sector Command Title */}
+              <div className="w-full md:w-auto flex flex-col justify-center items-center md:items-start">
+                <h2 className="font-display-lg text-sm md:text-lg uppercase tracking-widest text-on-surface leading-none text-center md:text-left">
                   {gameState === "PLACEMENT" || gameState === "READY"
                     ? copy.deployFleet || "Deploy Your Fleet"
                     : copy.sectorCommand || "Sector Command"}
                 </h2>
-                <p className="text-on-surface-variant text-xs md:text-sm mt-1 hidden md:block">
-                  {gameState === "PLACEMENT" &&
-                    (!isFleetValid
-                      ? copy.dragShipsInstructions ||
-                      "Drag ships from staging onto your map. Right-click to rotate."
-                      : copy.formationCompleteInstructions ||
-                      "Formation complete. Adjust ships, auto-arrange again, or press Ready.")}
-                  {gameState === "READY" &&
-                    (selectedShip
-                      ? copy.moveSelectedShipInstructions ||
-                      "Move the selected ship or right-click to rotate it, then press Ready."
-                      : copy.selectShipInstructions ||
-                      "Select any ship to move or rotate it, then press Ready.")}
-                  {gameState === "PLAYER_TURN" && (
-                    <span className="text-secondary glow-text">
-                      {copy.yourTurn || "Your turn! Target enemy waters."}
-                    </span>
-                  )}
-                  {gameState === "BOT_TURN" && (
-                    <span className="text-error">
-                      {copy.enemyFiring || "Enemy is firing! Brace for impact!"}
-                    </span>
-                  )}
-                  {gameState === "GAME_OVER" &&
-                    (winner === "PLAYER" ? (
-                      <span className="text-green-400">
-                        {copy.sectorSecured || "Sector Secured!"}
-                      </span>
-                    ) : (
-                      <span className="text-error">
-                        {copy.fleetAnnihilated || "Fleet Annihilated!"}
-                      </span>
-                    ))}
-                </p>
               </div>
-              {(gameState === "PLACEMENT" || gameState === "READY") && (
-                <button
-                  onClick={beginBattle}
-                  disabled={
-                    isCustomShipyardActive
-                      ? !isCustomFleetValid
-                      : !isFleetValid ||
-                      Boolean(invalidRotationPreview) ||
-                      Boolean(draggedShip)
-                  }
-                  className={`game-ready-btn font-bold px-4 py-1.5 md:px-8 md:py-2 text-sm md:text-base rounded-sm transition-all tracking-widest ${isCustomShipyardActive
-                      ? !isCustomFleetValid
-                      : !isFleetValid || invalidRotationPreview || draggedShip
-                        ? "bg-surface-container text-on-surface-variant/40 cursor-not-allowed opacity-50"
-                        : "is-valid-ready bg-secondary text-on-secondary-fixed hover:bg-secondary-container active:scale-95"
-                    }`}
-                >
-                  {copy.ready}
-                </button>
-              )}
-              {(gameState === "PLAYER_TURN" || gameState === "BOT_TURN") && (
-                <div className="text-center">
-                  <span className="text-[10px] text-on-surface-variant uppercase font-bold tracking-widest">
-                    {copy.timeLabel || "Time"}
+
+              {/* Center Column: Turn Indicator Badge */}
+              <div className="flex justify-center items-center">
+                {gameState === "PLACEMENT" && (
+                  <span className="turn-badge-deploying">
+                    {!isFleetValid
+                      ? copy.dragShipsInstructions || "Deploying Fleet"
+                      : copy.formationCompleteInstructions || "Formation Complete"}
                   </span>
-                  <div
-                    className={`text-3xl font-black ${turnTimer <= 10 ? "text-error animate-pulse" : "text-secondary"}`}
+                )}
+                {gameState === "READY" && (
+                  <span className="turn-badge-deploying">
+                    {selectedShip
+                      ? copy.moveSelectedShipInstructions || "Adjusting Formation"
+                      : copy.selectShipInstructions || "Ready for Combat"}
+                  </span>
+                )}
+                {gameState === "PLAYER_TURN" && (
+                  <span className="turn-badge-player">
+                    {language === "vi" ? "Lượt của bạn" : "Your Turn"}
+                  </span>
+                )}
+                {gameState === "BOT_TURN" && (
+                  <span className="turn-badge-bot">
+                    {language === "vi" ? "Lượt của máy" : "Enemy Turn"}
+                  </span>
+                )}
+                {gameState === "GAME_OVER" &&
+                  (winner === "PLAYER" ? (
+                    <span className="turn-badge-victory">
+                      {language === "vi" ? "Chiến thắng" : "Victory"}
+                    </span>
+                  ) : (
+                    <span className="turn-badge-defeat">
+                      {language === "vi" ? "Thất bại" : "Defeat"}
+                    </span>
+                  ))}
+              </div>
+
+              {/* Right Column: Time or Action Button */}
+              <div className="w-full md:w-auto flex justify-center md:justify-end items-center">
+                {(gameState === "PLACEMENT" || gameState === "READY") && (
+                  <button
+                    onClick={beginBattle}
+                    disabled={
+                      isCustomShipyardActive
+                        ? !isCustomFleetValid
+                        : !isFleetValid ||
+                        Boolean(invalidRotationPreview) ||
+                        Boolean(draggedShip)
+                    }
+                    className={`game-ready-btn font-bold px-4 py-1.5 md:px-8 md:py-2 text-sm md:text-base rounded-sm transition-all tracking-widest ${isCustomShipyardActive
+                        ? !isCustomFleetValid
+                        : !isFleetValid || invalidRotationPreview || draggedShip
+                          ? "bg-surface-container text-on-surface-variant/40 cursor-not-allowed opacity-50"
+                          : "is-valid-ready bg-secondary text-on-secondary-fixed hover:bg-secondary-container active:scale-95"
+                      }`}
                   >
-                    {turnTimer}s
+                    {copy.ready}
+                  </button>
+                )}
+                {(gameState === "PLAYER_TURN" || gameState === "BOT_TURN") && (
+                  <div className="text-center md:text-right">
+                    <span className="text-[10px] text-on-surface-variant uppercase font-bold tracking-widest block leading-none mb-1">
+                      {copy.timeLabel || "Time"}
+                    </span>
+                    <div
+                      className={`text-2xl md:text-3xl font-black leading-none ${turnTimer <= 10 ? "timer-pulse-red animate-pulse" : "text-secondary"}`}
+                    >
+                      {turnTimer}s
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           )}
 
@@ -5661,8 +5673,8 @@ function Game() {
       </main>
 
       {exitPromptOpen && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-fade-in">
-          <div className="game-exit-dialog glass-card max-w-md w-full p-7 rounded-2xl border border-white/10 shadow-2xl text-center">
+        <div className="fixed inset-0 z-[210] flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-fade-in">
+          <div className="game-exit-dialog max-w-md w-full p-7 text-center">
             <span className="material-symbols-outlined text-[56px] text-error drop-shadow-[0_0_18px_rgba(255,87,87,0.45)]">
               warning
             </span>
@@ -5676,14 +5688,14 @@ function Game() {
               <button
                 type="button"
                 onClick={() => setExitPromptOpen(false)}
-                className="flex-1 bg-surface-container border border-white/10 text-on-surface font-bold py-3 rounded-full hover:bg-white/5 transition-all active:scale-95"
+                className="flex-1 btn-stay"
               >
                 {copy.stay}
               </button>
               <button
                 type="button"
                 onClick={confirmGameExit}
-                className="flex-1 bg-error text-white font-bold py-3 rounded-full hover:brightness-110 transition-all active:scale-95"
+                className="flex-1 btn-leave"
               >
                 {copy.leave}
               </button>

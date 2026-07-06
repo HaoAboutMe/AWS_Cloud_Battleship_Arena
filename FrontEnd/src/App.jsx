@@ -48,6 +48,10 @@ function App() {
     });
   }, [pathname]);
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
   return (
     <LanguageProvider>
       <AuthProvider>

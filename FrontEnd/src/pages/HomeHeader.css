@@ -416,7 +416,7 @@
   border: 2px solid #58e6a9;
   border-radius: 8px;
   background: #081a29;
-  box-shadow: 
+  box-shadow:
     inset 4px 0 0 #58e6a9,
     5px 5px 0 #020914,
     0 12px 36px rgba(0, 0, 0, 0.4);
@@ -443,8 +443,9 @@
   border-bottom: 2px solid #58e6a9;
   transform: rotate(-45deg);
 }
-.command-toast > div,
-.command-toast > span:nth-child(2) {
+
+.command-toast>div,
+.command-toast>span:nth-child(2) {
   min-width: 0;
   display: flex;
   flex-direction: column;
@@ -498,7 +499,7 @@
 .command-toast.is-error {
   border-color: #ff7770;
   background: #1a0f0f;
-  box-shadow: 
+  box-shadow:
     inset 4px 0 0 #ff7770,
     5px 5px 0 #020914,
     0 12px 36px rgba(0, 0, 0, 0.4);
@@ -546,7 +547,7 @@
 .light-mode-active .command-toast {
   border-color: #10283a;
   background: #ffffff;
-  box-shadow: 
+  box-shadow:
     inset 4px 0 0 #13a078,
     5px 5px 0 #10283a;
 }
@@ -579,7 +580,7 @@
 
 /* Light Mode Error */
 .light-mode-active .command-toast.is-error {
-  box-shadow: 
+  box-shadow:
     inset 4px 0 0 #ff6b4a,
     5px 5px 0 #10283a;
 }
@@ -1125,8 +1126,8 @@ html:not(.light-mode-active) .command-header .language-toggle,
 html:not(.light-mode-active) .command-header .command-signin,
 html:not(.light-mode-active) .command-header .command-enlist,
 html:not(.light-mode-active) .game-shell .pvp-leave-match-button {
-    box-shadow: 2px 2px 0 #ffffff !important;
-    border: 2px solid #ffffff !important;
+  box-shadow: 2px 2px 0 #ffffff !important;
+  border: 2px solid #ffffff !important;
 }
 
 html:not(.light-mode-active) .command-header .command-icon-button:active,
@@ -1134,6 +1135,42 @@ html:not(.light-mode-active) .command-header .language-toggle:active,
 html:not(.light-mode-active) .command-header .command-signin:active,
 html:not(.light-mode-active) .command-header .command-enlist:active,
 html:not(.light-mode-active) .game-shell .pvp-leave-match-button:active {
-    box-shadow: 1px 1px 0 #ffffff !important;
-    transform: translate(1px, 1px) !important;
+  box-shadow: 1px 1px 0 #ffffff !important;
+  transform: translate(1px, 1px) !important;
+}
+
+.light-mode-active .command-nav a:hover,
+.light-mode-active .command-nav a.is-active {
+  color: #ffffff !important;
+  background: #1167d8 !important;
+}
+
+.light-mode-active .command-enlist {
+  border-color: #10283a !important;
+  background: #1167d8 !important;
+  color: #ffffff !important;
+  box-shadow: 3px 3px 0 #10283a !important;
+}
+
+.light-mode-active .command-enlist:hover {
+  background: #073b82 !important;
+}
+
+/* Global Darkmode Buttons White Shadow */
+html:not(.light-mode-active) .command-header .command-icon-button,
+html:not(.light-mode-active) .command-header .language-toggle,
+html:not(.light-mode-active) .command-header .command-signin,
+html:not(.light-mode-active) .command-header .command-enlist,
+html:not(.light-mode-active) .game-shell .pvp-leave-match-button {
+  box-shadow: 2px 2px 0 #ffffff !important;
+  border: 2px solid #ffffff !important;
+}
+
+html:not(.light-mode-active) .command-header .command-icon-button:active,
+html:not(.light-mode-active) .command-header .language-toggle:active,
+html:not(.light-mode-active) .command-header .command-signin:active,
+html:not(.light-mode-active) .command-header .command-enlist:active,
+html:not(.light-mode-active) .game-shell .pvp-leave-match-button:active {
+  box-shadow: 1px 1px 0 #ffffff !important;
+  transform: translate(1px, 1px) !important;
 }

@@ -13,7 +13,6 @@
 }
 
 .miss-dot {
-    position: absolute;
     width: 8px;
     height: 8px;
     border: 2px solid rgba(209, 246, 255, 0.8);
@@ -177,30 +176,39 @@
 .board-heading {
     position: relative;
     width: 100%;
-    height: 94px;
+    height: 80px !important;
     display: flex;
-    align-items: flex-start;
-    justify-content: center;
-    padding-top: 3px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 6px;
+    padding-top: 4px;
+}
+
+.board-heading h3 {
+    margin: 0 !important;
+    line-height: 1.2 !important;
 }
 
 .fleet-image-panel {
-    position: absolute;
-    top: 34px;
-    right: 0;
-    width: 188px;
-    height: 54px;
-    padding: 7px 8px 8px;
-    border: 1px solid rgba(92, 202, 240, 0.42);
-    background: rgba(2, 17, 30, 0.92);
-    box-shadow:
-        inset 0 0 18px rgba(16, 113, 148, 0.12),
-        0 0 14px rgba(0, 191, 255, 0.08);
-    backdrop-filter: blur(8px);
+    position: relative !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    transform: none !important;
+    margin: 0 auto !important;
+    width: 380px;
+    height: 40px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
 }
 
 .fleet-image-panel-placeholder {
     visibility: hidden;
+    height: 40px !important;
 }
 
 .enemy-fleet-panel-title {
@@ -328,31 +336,11 @@
 
 @media (max-width: 720px) {
     .board-heading {
-        height: 104px;
-    }
-
-    .fleet-image-panel {
-        top: 34px;
-        left: 50%;
-        right: auto;
-        transform: translateX(-50%);
+        height: auto !important;
     }
 }
 
-/* Wide, unframed enemy fleet strip */
-.fleet-image-panel {
-    top: 38px;
-    left: 50%;
-    right: auto;
-    width: 380px;
-    height: 60px;
-    padding: 0;
-    border: 0;
-    background: transparent;
-    box-shadow: none;
-    backdrop-filter: none;
-    transform: translateX(-50%);
-}
+
 
 .fleet-image-list {
     grid-template-columns: repeat(var(--fleet-count, 5), minmax(48px, 64px));
@@ -360,13 +348,13 @@
     align-items: center;
     gap: 10px;
     width: 100%;
-    height: 54px;
+    height: 36px !important;
     overflow: visible;
 }
 
 .fleet-shape-item {
-    min-height: 46px;
-    padding: 5px 0 8px;
+    min-height: 32px !important;
+    padding: 2px 0 3px !important;
     overflow: visible;
     border: 0;
     background: transparent;
@@ -390,7 +378,7 @@
 
 .fleet-image-panel-placeholder {
     width: 380px;
-    height: 60px;
+    height: 40px !important;
 }
 
 .game-main {
@@ -414,47 +402,47 @@
     align-items: center;
     justify-content: center;
     gap: 8px;
-    min-height: 36px;
-    padding: 7px 14px;
-    overflow: hidden;
-    border: 1px solid rgba(255, 126, 132, 0.4);
-    border-radius: 8px;
-    color: #ffafb2;
-    background:
-        linear-gradient(180deg, rgba(92, 31, 43, 0.48), rgba(33, 13, 23, 0.76));
-    box-shadow:
-        inset 0 1px rgba(255, 220, 222, 0.07),
-        0 8px 22px rgba(0, 0, 0, 0.2);
-    font-size: 10px;
-    font-weight: 900;
+    padding: 8px 16px !important;
+    border-radius: 4px !important;
+    font-size: 11px !important;
+    font-weight: 900 !important;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    transition: transform 160ms ease, color 160ms ease, border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
+    background: #ef4444 !important;
+    color: #ffffff !important;
+    border: 2px solid #02121d !important;
+    box-shadow: 3px 3px 0 #02121d !important;
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+    cursor: pointer;
 }
 
 .pvp-leave-match-button::before {
-    position: absolute;
-    inset: 0;
-    content: "";
-    background: linear-gradient(105deg, transparent 20%, rgba(255, 255, 255, 0.1) 48%, transparent 76%);
-    transform: translateX(-130%);
-    transition: transform 320ms ease;
+    display: none !important;
 }
 
 .pvp-leave-match-button:hover {
-    transform: translateY(-1px);
-    border-color: rgba(255, 134, 139, 0.78);
-    color: #ffe1e2;
-    background: linear-gradient(180deg, rgba(132, 39, 53, 0.68), rgba(56, 15, 28, 0.9));
-    box-shadow: 0 0 20px rgba(255, 74, 84, 0.18), 0 10px 24px rgba(0, 0, 0, 0.25);
-}
-
-.pvp-leave-match-button:hover::before {
-    transform: translateX(130%);
+    transform: translate(-1px, -1px);
+    box-shadow: 4px 4px 0 #02121d !important;
 }
 
 .pvp-leave-match-button:active {
-    transform: translateY(0) scale(0.97);
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 0 #02121d !important;
+}
+
+.light-mode-active .pvp-leave-match-button {
+    background: #dc2626 !important;
+    color: #ffffff !important;
+    border: 2px solid #10283a !important;
+    box-shadow: 3px 3px 0 #10283a !important;
+}
+
+.light-mode-active .pvp-leave-match-button:hover {
+    box-shadow: 4px 4px 0 #10283a !important;
+}
+
+.light-mode-active .pvp-leave-match-button:active {
+    box-shadow: 1px 1px 0 #10283a !important;
 }
 
 .pvp-leave-match-button .material-symbols-outlined {
@@ -562,7 +550,7 @@
 }
 
 .pvp-game-main .ocean-board-surface {
-    overflow: visible;
+    overflow: hidden;
 }
 
 .pvp-game-main .ocean-board-surface::before,
@@ -607,7 +595,7 @@
 }
 
 .board-heading {
-    height: 100px;
+    height: 68px;
 }
 
 @media (max-width: 720px) {
@@ -713,11 +701,11 @@
     }
 
     .board-heading {
-        height: 94px;
+        height: 80px !important;
     }
 
     .fleet-image-panel {
-        top: 34px;
+        top: 0 !important;
     }
 }
 
@@ -870,11 +858,21 @@
 }
 
 .shot-miss .miss-dot {
-    width: 6px;
-    height: 6px;
-    border: 0;
-    background: rgba(125, 177, 193, 0.46);
-    box-shadow: 0 0 3px rgba(69, 137, 158, 0.3);
+    width: 8px;
+    height: 8px;
+    border: 1px solid #ffffff;
+    background: #86e8ff;
+    box-shadow: 0 0 6px rgba(134, 232, 255, 0.8);
+    border-radius: 50%;
+}
+
+.light-mode-active .shot-miss .miss-dot {
+    width: 9px !important;
+    height: 9px !important;
+    border: 1.5px solid #ffffff !important;
+    background: #0077a6 !important;
+    box-shadow: 0 0 6px rgba(0, 119, 166, 0.6) !important;
+    border-radius: 50% !important;
 }
 
 .shot-hit {
@@ -896,12 +894,12 @@
     mix-blend-mode: normal;
 }
 
-.player-ship-cell {
-    background:
-        radial-gradient(circle at center, rgba(18, 78, 96, 0.28), rgba(4, 28, 42, 0.42) 72%) !important;
+.ocean-board-surface .ocean-cell.player-ship-cell {
+    background: rgba(134, 232, 255, 0.16) !important;
+    border: 1.5px solid rgba(134, 232, 255, 0.45) !important;
     box-shadow:
-        inset 0 0 12px rgba(0, 0, 0, 0.28),
-        inset 0 0 5px rgba(20, 118, 148, 0.22) !important;
+        inset 0 0 12px rgba(0, 0, 0, 0.4),
+        inset 0 0 5px rgba(134, 232, 255, 0.3) !important;
 }
 
 .ocean-board-surface .ocean-cell.drag-target-cell-valid {
@@ -1450,12 +1448,18 @@ html:not(.light-mode-active) .auto-arrange-button:disabled {
     background: radial-gradient(circle at center, rgba(72, 19, 12, 0.3), transparent 66%);
 }
 
-box-shadow {
-    inset: 0 0 8px rgba(0, 0, 0, 0.98), 0 0 4px rgba(255, 74, 24, 0.55);
+/* Light mode overrides for thermal/molten hit effect */
+.light-mode-active .hit-static-mark {
+    background:
+        radial-gradient(circle at 46% 43%, #1c120c 0 16%, #d33b25 35%, #e68200 50%, rgba(45, 30, 20, 0.76) 72%, transparent 90%) !important;
+    box-shadow:
+        inset 0 0 5px rgba(0, 0, 0, 0.65),
+        inset 0 0 2px rgba(255, 255, 255, 0.35),
+        0 0 5px rgba(211, 59, 37, 0.45) !important;
 }
 
-.shot-hit {
-    background: radial-gradient(circle at center, rgba(72, 19, 12, 0.3), transparent 66%);
+.light-mode-active .shot-hit {
+    background: radial-gradient(circle at center, rgba(211, 59, 37, 0.12), transparent 70%) !important;
 }
 
 /* Custom Shipyard Painted Cells */
@@ -1629,12 +1633,12 @@ box-shadow {
         inset 0 1px 0 rgba(255, 255, 255, 1) !important;
 }
 
-.light-mode-active .player-ship-cell {
-    background:
-        radial-gradient(circle at center, rgba(0, 119, 182, 0.32), rgba(0, 95, 125, 0.36)) !important;
+.light-mode-active .ocean-board-surface .ocean-cell.player-ship-cell {
+    background: rgba(0, 119, 166, 0.16) !important;
+    border: 1.5px solid rgba(0, 119, 166, 0.6) !important;
     box-shadow:
-        inset 0 0 12px rgba(0, 82, 108, 0.12),
-        inset 0 0 5px rgba(0, 119, 182, 0.16) !important;
+        inset 0 0 12px rgba(0, 50, 70, 0.18),
+        inset 0 0 5px rgba(0, 119, 166, 0.3) !important;
 }
 
 .light-mode-active .fleet-rule-panel {
@@ -1697,9 +1701,11 @@ box-shadow {
 }
 
 .light-mode-active .pvp-command-strip {
-    background: rgba(255, 255, 255, 0.95) !important;
-    border-color: rgba(0, 119, 182, 0.25) !important;
-    box-shadow: 0 15px 40px rgba(0, 53, 74, 0.12), 0 5px 15px rgba(0, 53, 74, 0.06) !important;
+    border: 2.5px solid #10283a !important;
+    background: rgba(255, 255, 255, 0.65) !important;
+    box-shadow: 4px 4px 0 #10283a !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
 }
 
 .light-mode-active .pvp-strip-player {
@@ -1742,26 +1748,7 @@ box-shadow {
     font-weight: 800 !important;
 }
 
-.light-mode-active .pvp-comms-tabbar {
-    background: rgba(255, 255, 255, 0.95) !important;
-    border: none !important;
-}
 
-.light-mode-active .pvp-comms-tab {
-    color: #2b4f61 !important;
-    font-weight: 800 !important;
-    border-bottom: 2px solid transparent !important;
-}
-
-.light-mode-active .pvp-comms-tab:hover {
-    background: rgba(0, 119, 182, 0.06) !important;
-}
-
-.light-mode-active .pvp-comms-tab.is-active {
-    color: #006093 !important;
-    border-bottom-color: #0077b6 !important;
-    background: rgba(0, 119, 182, 0.1) !important;
-}
 
 .light-mode-active .pvp-comms-body {
     background: rgba(255, 255, 255, 0.9) !important;
@@ -1773,9 +1760,7 @@ box-shadow {
     box-shadow: none !important;
 }
 
-.light-mode-active .pvp-sidebar-column .glass-card,
-.light-mode-active .pvp-comms-panel,
-.light-mode-active .pvp-comms-panel * {
+.light-mode-active .pvp-sidebar-column .glass-card {
     border-color: transparent !important;
 }
 
@@ -1868,19 +1853,7 @@ box-shadow {
     color: #00354a !important;
 }
 
-.light-mode-active .pvp-strip-center,
-.light-mode-active .pvp-strip-center.is-deploying {
-    background-color: transparent !important;
-    border-color: rgba(0, 119, 182, 0.25) !important;
-    box-shadow: none !important;
-    color: #0077b6 !important;
-}
 
-.light-mode-active .pvp-strip-center-label,
-.light-mode-active .pvp-strip-center-icon {
-    color: #0077b6 !important;
-    font-weight: 800 !important;
-}
 
 .light-mode-active .pvp-comms-empty {
     color: #4a6773 !important;
@@ -2159,25 +2132,49 @@ box-shadow {
 }
 
 
-.pvp-comms-tab,
+.pvp-comms-tab {
+    margin-top: 4px !important;
+    border: 2px solid #02121d !important;
+    border-radius: 6px 6px 0 0 !important;
+    background: transparent !important;
+    color: rgba(218, 236, 248, 0.68) !important;
+    transition: transform 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease !important;
+    box-shadow: none !important;
+    transform: translateY(0);
+}
+
+.pvp-comms-tab:hover {
+    transform: translateY(-2px) !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: #ffffff !important;
+    box-shadow: 2px 2px 0 var(--game-shadow) !important;
+}
+
+.pvp-comms-tab.is-active {
+    transform: translateY(-3px) !important;
+    background: #ffffff !important;
+    color: #020812 !important;
+    border-color: #02121d !important;
+    box-shadow: 3px 3px 0 var(--game-shadow) !important;
+}
+
 .light-mode-active .pvp-comms-tab {
-    color: var(--game-muted) !important;
-    font-weight: 850 !important;
-    border-bottom: none !important;
-    border-right: 2px solid var(--game-ink) !important;
+    border: 2px solid #10283a !important;
+    color: rgba(8, 38, 58, 0.68) !important;
+    background: transparent !important;
+    box-shadow: none !important;
 }
 
-.pvp-comms-tab:hover,
 .light-mode-active .pvp-comms-tab:hover {
-    background: var(--game-panel) !important;
-    color: var(--game-ink) !important;
+    background: rgba(0, 0, 0, 0.05) !important;
+    color: #10283a !important;
+    box-shadow: 2px 2px 0 #10283a !important;
 }
 
-.pvp-comms-tab.is-active,
 .light-mode-active .pvp-comms-tab.is-active {
-    color: var(--game-ink) !important;
-    border-bottom-color: transparent !important;
-    background: var(--game-panel) !important;
+    background: #10283a !important;
+    color: #ffffff !important;
+    box-shadow: 3px 3px 0 #10283a !important;
 }
 
 .pvp-comms-body,
@@ -2276,43 +2273,40 @@ box-shadow {
 }
 
 /* Premium Neo-Brutalist Cards */
+/* Premium Glassmorphic Cards & Panels with Neo-Brutalist Shadows */
 .game-status {
-    background: linear-gradient(135deg, rgba(117, 223, 255, 0.08), rgba(2, 18, 29, 0.95)) !important;
+    background: linear-gradient(135deg, rgba(8, 28, 42, 0.65), rgba(3, 14, 23, 0.85)) !important;
     border: 2.5px solid #75dfff !important;
-    border-top: 6px solid #ff6b4a !important; /* Coral top accent bar */
     box-shadow: 4px 4px 0 var(--game-shadow) !important;
     border-radius: 16px !important;
     backdrop-filter: blur(12px) !important;
-    transition: none !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    transition: all 0.2s ease !important;
 }
 
 .game-status:hover {
-    border-color: #75dfff !important;
-    border-top-color: #ff6b4a !important;
+    border-color: #8beaff !important;
     box-shadow: 4px 4px 0 var(--game-shadow) !important;
-    transform: none !important;
 }
 
 .light-mode-active .game-status {
-    background: #ffffff !important;
+    background: rgba(255, 255, 255, 0.65) !important;
     border: 2.5px solid #10283a !important;
-    border-top: 6px solid #ff785f !important; /* Coral top accent bar */
     box-shadow: 4px 4px 0 #10283a !important;
 }
 
 .light-mode-active .game-status:hover {
     border-color: #10283a !important;
-    border-top-color: #ff785f !important;
     box-shadow: 4px 4px 0 #10283a !important;
-    transform: none !important;
 }
 
 .deployment-dock {
-    background: linear-gradient(180deg, rgba(12, 35, 50, 0.8), rgba(2, 15, 25, 0.9)) !important;
+    background: linear-gradient(135deg, rgba(8, 28, 42, 0.65), rgba(3, 14, 23, 0.85)) !important;
     border: 2.5px solid #75dfff !important;
-    border-top: 6px solid #1167d8 !important; /* Cobalt top accent bar */
     box-shadow: 4px 4px 0 var(--game-shadow) !important;
     border-radius: 16px !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
     padding: 18px !important;
     max-width: 440px !important;
     height: auto !important;
@@ -2328,64 +2322,70 @@ box-shadow {
 }
 
 .light-mode-active .deployment-dock {
-    background: #ffffff !important;
+    background: rgba(255, 255, 255, 0.65) !important;
     border: 2.5px solid #10283a !important;
-    border-top: 6px solid #1167d8 !important; /* Cobalt top accent bar */
     box-shadow: 4px 4px 0 #10283a !important;
 }
 
 /* Staging Ship cards */
 .deployment-ship-card {
-    border: 1.5px solid rgba(117, 223, 255, 0.25) !important;
-    background: rgba(4, 25, 39, 0.65) !important;
+    border: 1px solid rgba(117, 223, 255, 0.18) !important;
+    background: rgba(4, 25, 39, 0.45) !important;
     border-radius: 10px !important;
     box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.2) !important;
+    backdrop-filter: blur(4px) !important;
+    -webkit-backdrop-filter: blur(4px) !important;
+    transition: all 0.2s ease !important;
 }
 
 .deployment-ship-card:hover:not(.is-placed) {
-    border-color: #75dfff !important;
-    background: rgba(11, 42, 57, 0.85) !important;
-    box-shadow: 0 0 15px rgba(117, 223, 255, 0.15) !important;
+    border-color: rgba(117, 223, 255, 0.5) !important;
+    background: rgba(11, 42, 57, 0.65) !important;
+    box-shadow: 0 4px 15px rgba(117, 223, 255, 0.1) !important;
+    transform: translateY(-1px) !important;
 }
 
 .light-mode-active .deployment-ship-card {
-    border: 2px solid #10283a !important;
-    background: #f4f9fb !important;
-    box-shadow: none !important;
+    border: 1.5px solid rgba(16, 40, 58, 0.15) !important;
+    background: rgba(255, 255, 255, 0.6) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
 }
 
 .light-mode-active .deployment-ship-card:hover:not(.is-placed) {
-    background: #e6f3f8 !important;
-    border-color: #0077b6 !important;
-    box-shadow: 2px 2px 0 #10283a !important;
+    background: rgba(0, 119, 182, 0.05) !important;
+    border-color: rgba(0, 119, 182, 0.3) !important;
+    box-shadow: 0 4px 12px rgba(0, 119, 182, 0.06) !important;
+    transform: translateY(-1px) !important;
 }
 
 /* Right-side Log Panel */
 .pvp-comms-panel {
     border: 2.5px solid #75dfff !important;
-    border-top: 6px solid #42d6a4 !important; /* Mint top accent bar */
     box-shadow: 4px 4px 0 var(--game-shadow) !important;
     border-radius: 16px !important;
-    background: linear-gradient(180deg, rgba(12, 35, 50, 0.8), rgba(2, 15, 25, 0.9)) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    background: linear-gradient(135deg, rgba(8, 28, 42, 0.65), rgba(3, 14, 23, 0.85)) !important;
 }
 
 .light-mode-active .pvp-comms-panel {
     border: 2.5px solid #10283a !important;
-    border-top: 6px solid #42d6a4 !important; /* Mint top accent bar */
     box-shadow: 4px 4px 0 #10283a !important;
-    background: #ffffff !important;
+    background: rgba(255, 255, 255, 0.65) !important;
 }
 
 /* Ocean Board Outline */
 .ocean-board-surface {
-    border: 2px solid #75dfff !important;
-    box-shadow: 4px 4px 0 var(--game-shadow) !important;
+    border: 0 !important;
+    outline: 0 !important;
+    box-shadow: none !important;
     border-radius: 0 !important;
 }
 
 .light-mode-active .ocean-board-surface {
-    border: 2.5px solid #10283a !important;
-    box-shadow: 4px 4px 0 #10283a !important;
+    border: 0 !important;
+    outline: 0 !important;
+    box-shadow: none !important;
 }
 
 /* Sidebar sizing during placement */
@@ -2468,9 +2468,14 @@ button.game-ready-btn.is-valid-ready:active {
 
 /* Refined Board Cells */
 .ocean-board-surface .ocean-cell {
-    background: rgba(255, 255, 255, 0.03) !important;
-    border: 1px solid rgba(117, 223, 255, 0.03) !important;
-    box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.35) !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    backdrop-filter: blur(1px);
+    -webkit-backdrop-filter: blur(1px);
+    border: 1px solid rgba(16, 40, 58, 0.04) !important;
+    box-shadow:
+        inset 1px 1px 0 rgba(255, 255, 255, 0.2),
+        inset -1px -1px 0 rgba(16, 40, 58, 0.14),
+        0 0 0 1px rgba(255, 255, 255, 0.18) !important;
     transition: all 0.15s ease !important;
 }
 
@@ -2482,14 +2487,19 @@ button.game-ready-btn.is-valid-ready:active {
 
 .light-mode-active .ocean-board-surface {
     background: transparent !important;
-    border: 2.5px solid #10283a !important;
-    box-shadow: 4px 4px 0 #10283a !important;
+    border: 0 !important;
+    outline: 0 !important;
+    box-shadow: none !important;
 }
 
 .light-mode-active .ocean-board-surface .ocean-cell {
-    background: rgba(255, 255, 255, 0.16) !important;
-    border: 1px solid rgba(16, 40, 58, 0.03) !important;
-    box-shadow: inset 0 0 4px rgba(16, 40, 58, 0.04) !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    backdrop-filter: blur(1px);
+    -webkit-backdrop-filter: blur(1px);
+    border: 1px solid rgba(16, 40, 58, 0.18) !important;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.35),
+        inset 0 -1px 0 rgba(16, 40, 58, 0.12) !important;
     transition: all 0.15s ease !important;
 }
 
@@ -2555,11 +2565,11 @@ button.game-ready-btn.is-valid-ready:active {
 }
 
 .light-mode-active .game-main.is-deploying .ocean-board-surface .ocean-cell {
-    background: rgba(255, 255, 255, 0.05) !important;
-    border: 1px solid rgba(16, 40, 58, 0.04) !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    border: 1px solid rgba(16, 40, 58, 0.18) !important;
     box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.2),
-        inset 0 -1px 0 rgba(16, 40, 58, 0.08) !important;
+        inset 0 1px 0 rgba(255, 255, 255, 0.35),
+        inset 0 -1px 0 rgba(16, 40, 58, 0.12) !important;
 }
 
 html:not(.light-mode-active) .game-main.is-deploying .ocean-board-surface .ocean-cell {
@@ -3552,3 +3562,263 @@ html:not(.light-mode-active) .game-main.is-deploying .ocean-board-surface,
     border-color: rgba(231, 76, 60, 0.8) !important;
     box-shadow: inset 0 0 15px rgba(231, 76, 60, 0.6), 0 0 10px rgba(231, 76, 60, 0.4) !important;
 }
+
+/* =========================================
+   BOARD BG-SURFACE-CONTAINER SEAMLESS FIXES
+   ========================================= */
+
+/* Dark mode battle board container cell override */
+.ocean-board-surface .bg-surface-container {
+    background: rgba(255, 255, 255, 0.05) !important;
+    backdrop-filter: blur(1px) !important;
+    -webkit-backdrop-filter: blur(1px) !important;
+    border: 1px solid rgba(16, 40, 58, 0.04) !important;
+    box-shadow:
+        inset 1px 1px 0 rgba(255, 255, 255, 0.2),
+        inset -1px -1px 0 rgba(16, 40, 58, 0.14),
+        0 0 0 1px rgba(255, 255, 255, 0.18) !important;
+}
+
+/* Light mode battle board container cell override */
+.light-mode-active .ocean-board-surface .bg-surface-container {
+    background: rgba(255, 255, 255, 0.08) !important;
+    backdrop-filter: blur(1px) !important;
+    -webkit-backdrop-filter: blur(1px) !important;
+    border: 1px solid rgba(16, 40, 58, 0.18) !important;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.35),
+        inset 0 -1px 0 rgba(16, 40, 58, 0.12) !important;
+}
+
+/* Centered status badges for single player battle header */
+.turn-badge-player {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 28px !important;
+    border-radius: 9999px;
+    font-size: 13px !important;
+    font-weight: 900 !important;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: #00d2ff !important;
+    color: #02121d !important;
+    border: 2px solid #02121d !important;
+    box-shadow: 3px 3px 0 #02121d !important;
+}
+
+.light-mode-active .turn-badge-player {
+    background: #0077b6 !important;
+    color: #ffffff !important;
+    border: 2px solid #10283a !important;
+    box-shadow: 3px 3px 0 #10283a !important;
+}
+
+.turn-badge-bot {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 28px !important;
+    border-radius: 9999px;
+    font-size: 13px !important;
+    font-weight: 900 !important;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: #ff6b4a !important;
+    color: #ffffff !important;
+    border: 2px solid #02121d !important;
+    box-shadow: 3px 3px 0 #02121d !important;
+}
+
+.light-mode-active .turn-badge-bot {
+    background: #e63946 !important;
+    color: #ffffff !important;
+    border: 2px solid #10283a !important;
+    box-shadow: 3px 3px 0 #10283a !important;
+}
+
+.turn-badge-victory {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 28px !important;
+    border-radius: 9999px;
+    font-size: 13px !important;
+    font-weight: 900 !important;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: #22c55e !important;
+    color: #ffffff !important;
+    border: 2px solid #02121d !important;
+    box-shadow: 3px 3px 0 #02121d !important;
+}
+
+.light-mode-active .turn-badge-victory {
+    border: 2px solid #10283a !important;
+    box-shadow: 3px 3px 0 #10283a !important;
+}
+
+.turn-badge-defeat {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 28px !important;
+    border-radius: 9999px;
+    font-size: 13px !important;
+    font-weight: 900 !important;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: #ef4444 !important;
+    color: #ffffff !important;
+    border: 2px solid #02121d !important;
+    box-shadow: 3px 3px 0 #02121d !important;
+}
+
+.light-mode-active .turn-badge-defeat {
+    border: 2px solid #10283a !important;
+    box-shadow: 3px 3px 0 #10283a !important;
+}
+
+/* Vibrant and readable red timer when time < 10 seconds */
+.timer-pulse-red {
+    color: #ff3b30 !important;
+    text-shadow: 0 0 10px rgba(255, 59, 48, 0.4) !important;
+}
+
+.light-mode-active .timer-pulse-red {
+    color: #d90429 !important;
+    text-shadow: 0 0 8px rgba(217, 4, 41, 0.15) !important;
+}
+
+/* Deploying fleet status badge - high contrast box with block shadow */
+.turn-badge-deploying {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 22px !important;
+    border-radius: 4px !important;
+    font-size: 12px !important;
+    font-weight: 900 !important;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: #00d2ff !important;
+    color: #020d17 !important;
+    border: 2px solid #02121d !important;
+    box-shadow: 3px 3px 0 #02121d !important;
+    text-align: center;
+}
+
+.light-mode-active .turn-badge-deploying {
+    background: #0077b6 !important;
+    color: #ffffff !important;
+    border: 2px solid #10283a !important;
+    box-shadow: 3px 3px 0 #10283a !important;
+}
+
+/* Premium Exit Dialog Modal */
+.game-exit-dialog {
+    background: linear-gradient(135deg, rgba(8, 28, 42, 0.95), rgba(3, 14, 23, 0.98)) !important;
+    border: 2.5px solid #75dfff !important;
+    box-shadow: 6px 6px 0 var(--game-shadow) !important;
+    border-radius: 16px !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+    color: #ffffff !important;
+}
+
+.light-mode-active .game-exit-dialog {
+    background: rgba(255, 255, 255, 0.98) !important;
+    border: 2.5px solid #10283a !important;
+    box-shadow: 6px 6px 0 #10283a !important;
+    color: #10283a !important;
+}
+
+/* Modal text colors */
+.game-exit-dialog h2 {
+    color: #8fe9ff !important;
+}
+.light-mode-active .game-exit-dialog h2 {
+    color: #10283a !important;
+}
+.game-exit-dialog p {
+    color: rgba(234, 247, 255, 0.72) !important;
+}
+.light-mode-active .game-exit-dialog p {
+    color: rgba(16, 40, 58, 0.8) !important;
+}
+
+/* Modal buttons */
+.game-exit-dialog .btn-stay,
+.game-exit-dialog .btn-leave {
+    font-size: 12px !important;
+    font-weight: 900 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.08em !important;
+    border-radius: 4px !important;
+    padding: 12px 24px !important;
+    cursor: pointer;
+    transition: transform 0.1s ease, box-shadow 0.1s ease !important;
+}
+
+/* Stay Button (Cancel/Neutral) */
+.game-exit-dialog .btn-stay {
+    background: #1e293b !important;
+    color: #ffffff !important;
+    border: 2px solid #02121d !important;
+    box-shadow: 3px 3px 0 var(--game-shadow) !important;
+}
+.game-exit-dialog .btn-stay:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 4px 4px 0 var(--game-shadow) !important;
+}
+.game-exit-dialog .btn-stay:active {
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 0 var(--game-shadow) !important;
+}
+
+.light-mode-active .game-exit-dialog .btn-stay {
+    background: #e2e8f0 !important;
+    color: #10283a !important;
+    border: 2px solid #10283a !important;
+    box-shadow: 3px 3px 0 #10283a !important;
+}
+.light-mode-active .game-exit-dialog .btn-stay:hover {
+    box-shadow: 4px 4px 0 #10283a !important;
+}
+.light-mode-active .game-exit-dialog .btn-stay:active {
+    box-shadow: 1px 1px 0 #10283a !important;
+}
+
+/* Leave Button (Confirm/Danger) */
+.game-exit-dialog .btn-leave {
+    background: #ef4444 !important;
+    color: #ffffff !important;
+    border: 2px solid #02121d !important;
+    box-shadow: 3px 3px 0 var(--game-shadow) !important;
+}
+.game-exit-dialog .btn-leave:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 4px 4px 0 var(--game-shadow) !important;
+}
+.game-exit-dialog .btn-leave:active {
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 0 var(--game-shadow) !important;
+}
+
+.light-mode-active .game-exit-dialog .btn-leave {
+    background: #dc2626 !important;
+    color: #ffffff !important;
+    border: 2px solid #10283a !important;
+    box-shadow: 3px 3px 0 #10283a !important;
+}
+.light-mode-active .game-exit-dialog .btn-leave:hover {
+    box-shadow: 4px 4px 0 #10283a !important;
+}
+.light-mode-active .game-exit-dialog .btn-leave:active {
+    box-shadow: 1px 1px 0 #10283a !important;
+}
+
+
+
+
+

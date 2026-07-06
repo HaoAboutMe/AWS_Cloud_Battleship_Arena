@@ -24,6 +24,11 @@
   --shadow-panel: 0 24px 80px rgba(0, 0, 0, 0.36);
   --shadow-glow: 0 0 36px rgba(64, 215, 255, 0.18);
   --game-shadow: #e7f8ff;
+  --game-ink: var(--color-text);
+  --game-muted: var(--color-muted);
+  --game-panel: var(--color-panel);
+  --game-accent: var(--color-accent);
+  --game-panel-2: var(--color-abyss-2);
 
   font-family: var(--font-body);
   color: var(--color-text);

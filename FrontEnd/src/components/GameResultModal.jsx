@@ -51,7 +51,7 @@ function GameResultModal({
     const posterTitle = isVictory ? (copy.victoryTitle || "VICTORY") : (copy.defeatTitle || "DEFEAT");
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-background/85 backdrop-blur-md animate-fade-in">
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-background/85 backdrop-blur-md animate-fade-in">
             <div className={`result-modal ${isVictory ? 'result-modal--victory' : 'result-modal--defeat'}`}>
                 <div className="result-modal__signal">
                     <span />
@@ -79,7 +79,7 @@ function GameResultModal({
                     <div className="result-stat flex flex-col">
                         <p>{copy.reason || "Reason"}</p>
                         <strong className="!text-[16px] md:!text-[18px] !leading-tight !mt-auto">
-                            {subMessage || (isVictory ? (copy.sectorSecured || "Sector Secured!") : (copy.fleetAnnihilated || "Fleet Annihilated!"))}
+                            {(copy[subMessage] || subMessage) || (isVictory ? (copy.sectorSecured || "Sector Secured!") : (copy.fleetAnnihilated || "Fleet Annihilated!"))}
                         </strong>
                     </div>
                     <div className="result-stat">
