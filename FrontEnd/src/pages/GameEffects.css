@@ -2474,6 +2474,30 @@ button.game-ready-btn.is-valid-ready:active {
     box-shadow: 2px 2px 0 #10283a !important;
 }
 
+@media (max-width: 767px) {
+  button.game-ready-btn {
+    font-size: 11px !important;
+    padding: 5px 12px !important;
+    border-width: 1.5px !important;
+    letter-spacing: 0.05em !important;
+  }
+  
+  button.game-ready-btn.is-valid-ready {
+    border-width: 1.5px !important;
+    box-shadow: 2px 2px 0 var(--game-shadow) !important;
+  }
+  
+  .light-mode-active button.game-ready-btn {
+    border-width: 1.5px !important;
+    box-shadow: 2px 2px 0 #10283a !important;
+  }
+  
+  .light-mode-active button.game-ready-btn.is-valid-ready {
+    border-width: 1.5px !important;
+    box-shadow: 2px 2px 0 #10283a !important;
+  }
+}
+
 /* Refined Board Cells */
 .ocean-board-surface .ocean-cell {
     backdrop-filter: blur(1px);
