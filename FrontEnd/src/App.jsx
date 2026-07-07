@@ -15,16 +15,6 @@ const Leaderboard = lazy(() => import("./pages/Leaderboard"));
 
 const loadSoundService = () => import("./services/soundService");
 
-const runWhenIdle = (task) => {
-  if (typeof window === "undefined") return undefined;
-  if ("requestIdleCallback" in window) {
-    const id = window.requestIdleCallback(task, { timeout: 1500 });
-    return () => window.cancelIdleCallback(id);
-  }
-  const id = window.setTimeout(task, 250);
-  return () => window.clearTimeout(id);
-};
-
 function RouteFallback() {
   return <div className="min-h-screen bg-background" />;
 }
@@ -33,19 +23,36 @@ function App() {
   const { pathname } = useLocation();
 
   useEffect(() => {
-    return runWhenIdle(() => {
-      loadSoundService().then(({ installUIClickSounds }) => {
+    let cancelled = false;
+
+    loadSoundService().then(({ installUIClickSounds, syncBackgroundMusic }) => {
+      if (!cancelled) {
+        syncBackgroundMusic(window.location.pathname);
         installUIClickSounds();
-      });
+      }
     });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
-    return runWhenIdle(() => {
-      loadSoundService().then(({ syncBackgroundMusic }) => {
+    let cancelled = false;
+
+    loadSoundService().then(({ syncBackgroundMusic }) => {
+      if (!cancelled) {
         syncBackgroundMusic(pathname);
-      });
+      }
     });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [pathname]);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
   }, [pathname]);
 
   return (

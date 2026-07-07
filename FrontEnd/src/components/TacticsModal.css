@@ -1,107 +1,156 @@
 .tactics-overlay {
+  --modal-bg: #071827;
+  --modal-ink: #020b14;
+  --modal-border: #7ddfff;
+  --modal-text: #e7f8ff;
+  --modal-muted: #93adbe;
+  --modal-accent: #7ddfff;
+  --modal-btn-primary-bg: #7ddfff;
+  --modal-btn-primary-text: #061827;
+  --modal-shadow-color: #ffffff;
+  --modal-grid-bg: rgba(2, 9, 20, 0.65);
+  --modal-grid-cell: rgba(125, 223, 255, 0.05);
+  --modal-grid-border: rgba(125, 223, 255, 0.16);
+
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(2, 9, 20, 0.82);
   backdrop-filter: blur(8px);
   z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1rem;
-  animation: fadeIn 0.3s ease;
+  padding: 1.5rem;
+  animation: tactics-fade-in 0.25s ease both;
+}
+
+/* Light mode overrides using scoped variables */
+.light-mode-active .tactics-overlay {
+  --modal-bg: #f6f2e9;
+  --modal-ink: #10283a;
+  --modal-border: #10283a;
+  --modal-text: #10283a;
+  --modal-muted: #617484;
+  --modal-accent: #1167d8;
+  --modal-btn-primary-bg: #1167d8;
+  --modal-btn-primary-text: #ffffff;
+  --modal-shadow-color: #10283a;
+  --modal-grid-bg: rgba(255, 252, 244, 0.82);
+  --modal-grid-cell: rgba(16, 40, 58, 0.05);
+  --modal-grid-border: rgba(16, 40, 58, 0.16);
+
+  background: rgba(246, 242, 233, 0.82);
 }
 
 .tactics-modal {
-  background: rgba(20, 25, 35, 0.95);
-  border: 1px solid rgba(0, 210, 255, 0.2);
+  background: var(--modal-bg);
+  border: 3px solid var(--modal-border);
   border-radius: 16px;
   width: 100%;
-  max-width: 800px;
-  height: 600px;
+  max-width: 820px;
+  height: 620px;
   max-height: 90vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 0 40px rgba(0, 210, 255, 0.1);
+  box-shadow: 10px 10px 0 var(--modal-shadow-color);
   overflow: hidden;
   position: relative;
+  animation: tactics-slide-up 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
 
 .tactics-header {
-  padding: 1.5rem;
+  padding: 1.25rem 2rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 3px solid var(--modal-border);
 }
 
 .tactics-title {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  font-size: 1.25rem;
-  color: var(--color-on-surface, #fff);
+  font-family: var(--font-display, "Space Grotesk", sans-serif);
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--modal-text);
   text-transform: uppercase;
-  letter-spacing: 1px;
-  font-weight: bold;
+  letter-spacing: 0.05em;
+}
+
+.tactics-title .material-symbols-outlined {
+  font-size: 24px;
+  color: var(--modal-accent);
 }
 
 .tactics-close {
-  background: transparent;
-  border: none;
-  color: var(--color-on-surface-variant, #aaa);
+  background: var(--modal-bg);
+  border: 2px solid var(--modal-border);
+  color: var(--modal-text);
   cursor: pointer;
-  padding: 0.5rem;
-  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s;
+  box-shadow: 3px 3px 0 var(--modal-shadow-color);
+  transition: transform 0.1s, box-shadow 0.1s;
 }
 
 .tactics-close:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
+  transform: translate(1px, 1px);
+  box-shadow: 2px 2px 0 var(--modal-shadow-color);
+}
+
+.tactics-close:active {
+  transform: translate(3px, 3px);
+  box-shadow: none;
+}
+
+.tactics-close .material-symbols-outlined {
+  font-size: 20px;
+  font-weight: 600;
 }
 
 .tactics-body {
   flex: 1;
   overflow-y: auto;
   position: relative;
-  min-height: 400px;
+  min-height: 350px;
+  background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.03));
 }
 
 .tactics-slide {
-  padding: 2rem;
+  padding: 2.2rem;
+  min-height: 100%;
   display: flex;
-  flex-direction: column;
-  gap: 2rem;
-  animation: slideIn 0.4s ease;
-}
-
-@keyframes slideIn {
-  from { opacity: 0; transform: translateX(20px); }
-  to { opacity: 1; transform: translateX(0); }
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  align-items: center;
 }
 
 .tactics-content-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2rem;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 2.5rem;
   align-items: center;
+  width: 100%;
 }
 
 .tactics-text h3 {
-  font-size: 1.5rem;
-  color: var(--color-secondary, #00d2ff);
-  margin-bottom: 1rem;
+  font-family: var(--font-display, "Space Grotesk", sans-serif);
+  font-size: 1.45rem;
+  font-weight: 700;
+  color: var(--modal-text);
+  margin-bottom: 1.25rem;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.65rem;
+  line-height: 1.2;
+}
+
+.tactics-text h3 .material-symbols-outlined {
+  font-size: 26px;
+  color: var(--modal-accent);
 }
 
 .tactics-text ul {
@@ -109,300 +158,299 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.2rem;
 }
 
 .tactics-text li {
   position: relative;
-  padding-left: 1.5rem;
-  color: var(--color-on-surface-variant, #ddd);
-  line-height: 1.5;
-  font-size: 0.95rem;
+  padding-left: 2rem;
+  color: var(--modal-muted);
+  line-height: 1.6;
+  font-size: 0.98rem;
+}
+
+.tactics-text li strong {
+  color: var(--modal-text);
+  font-family: var(--font-display, "Space Grotesk", sans-serif);
+  font-weight: 600;
+  margin-right: 0.25rem;
 }
 
 .tactics-text li::before {
-  content: '▹';
-  color: var(--color-secondary, #00d2ff);
-  font-weight: bold;
+  content: '■';
+  color: var(--modal-accent);
+  font-size: 0.68rem;
   position: absolute;
-  left: 0;
-  top: 0;
+  left: 0.25rem;
+  top: 0.22rem;
 }
 
 .tactics-visual {
-  background: rgba(0, 0, 0, 0.3);
+  background: var(--modal-grid-bg);
+  border: 2px solid var(--modal-border);
   border-radius: 12px;
-  padding: 1.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 1.8rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 250px;
+  min-height: 270px;
   position: relative;
+  box-shadow: inset 3px 3px 0 rgba(0, 0, 0, 0.15);
 }
 
 .tactics-footer {
-  padding: 1.5rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 1.25rem 2rem;
+  border-top: 3px solid var(--modal-border);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: rgba(0, 0, 0, 0.2);
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.light-mode-active .tactics-footer {
+  background: rgba(16, 40, 58, 0.03);
 }
 
 .tactics-dots {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.6rem;
 }
 
 .tactics-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
-  transition: all 0.3s;
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--modal-border);
+  background: transparent;
+  border-radius: 2px;
+  transition: all 0.2s ease;
 }
 
 .tactics-dot.active {
-  background: var(--color-secondary, #00d2ff);
-  box-shadow: 0 0 10px rgba(0, 210, 255, 0.5);
-  width: 24px;
-  border-radius: 4px;
+  background: var(--modal-accent);
+  box-shadow: 2px 2px 0 var(--modal-shadow-color);
+  transform: translate(-1px, -1px);
 }
 
 .tactics-nav-btn {
-  padding: 0.5rem 1.5rem;
-  border-radius: 4px;
-  font-weight: bold;
+  font-family: var(--font-display, "Space Grotesk", sans-serif);
+  font-size: 0.85rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 0.05em;
+  padding: 0.65rem 1.5rem;
+  border-radius: 6px;
   cursor: pointer;
-  transition: all 0.2s;
-  font-size: 0.875rem;
+  transition: transform 0.1s, box-shadow 0.1s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .tactics-nav-btn.secondary {
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: var(--color-on-surface-variant, #aaa);
+  background: var(--modal-bg);
+  border: 2px solid var(--modal-border);
+  color: var(--modal-text);
+  box-shadow: 3px 3px 0 var(--modal-shadow-color);
 }
 
 .tactics-nav-btn.secondary:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
+  transform: translate(1px, 1px);
+  box-shadow: 2px 2px 0 var(--modal-shadow-color);
+}
+
+.tactics-nav-btn.secondary:active {
+  transform: translate(3px, 3px);
+  box-shadow: none;
 }
 
 .tactics-nav-btn.primary {
-  background: var(--color-secondary, #00d2ff);
-  border: 1px solid var(--color-secondary, #00d2ff);
-  color: var(--color-on-secondary-fixed, #000);
+  background: var(--modal-btn-primary-bg);
+  border: 2px solid var(--modal-border);
+  color: var(--modal-btn-primary-text);
+  box-shadow: 3px 3px 0 var(--modal-shadow-color);
 }
 
 .tactics-nav-btn.primary:hover {
-  box-shadow: 0 0 15px rgba(0, 210, 255, 0.4);
+  transform: translate(1px, 1px);
+  box-shadow: 2px 2px 0 var(--modal-shadow-color);
 }
 
-/* Mini grids for visual */
+.tactics-nav-btn.primary:active {
+  transform: translate(3px, 3px);
+  box-shadow: none;
+}
+
+/* Mini grids for visual representation */
 .mini-grid {
   display: grid;
   grid-template-columns: repeat(10, 1fr);
-  gap: 2px;
+  gap: 3px;
   width: 100%;
-  max-width: 250px;
+  max-width: 220px;
   aspect-ratio: 1;
 }
 
 .mini-cell {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--modal-grid-cell);
+  border: 1px solid var(--modal-grid-border);
   border-radius: 2px;
-  transition: all 0.3s ease;
+  transition: background-color 0.2s, border-color 0.2s;
 }
 
-.mini-cell.ship { background: rgba(150, 150, 150, 0.8); }
-.mini-cell.red-zone { background: rgba(255, 50, 50, 0.15); border-color: rgba(255, 50, 50, 0.3); }
-.mini-cell.green-zone { background: rgba(50, 255, 50, 0.15); border-color: rgba(50, 255, 50, 0.3); }
-.mini-cell.checker { background: rgba(0, 210, 255, 0.3); }
-.mini-cell.hit { background: rgba(255, 50, 50, 0.8); position: relative; border-color: rgba(255, 50, 50, 1); }
+.mini-cell.ship {
+  background: var(--modal-accent) !important;
+  border-color: var(--modal-border) !important;
+  box-shadow: 0 0 10px rgba(125, 223, 255, 0.35);
+}
+
+.light-mode-active .mini-cell.ship {
+  box-shadow: 0 0 10px rgba(17, 103, 216, 0.25);
+}
+
+.mini-cell.red-zone {
+  background: rgba(255, 107, 74, 0.25) !important;
+  border-color: #ff6b4a !important;
+}
+
+.mini-cell.green-zone {
+  background: rgba(66, 214, 164, 0.25) !important;
+  border-color: #42d6a4 !important;
+}
+
+.mini-cell.checker {
+  background: var(--modal-accent) !important;
+  opacity: 0.65;
+  border-color: var(--modal-border) !important;
+}
+
+.mini-cell.hit {
+  background: #ff6b4a !important;
+  border-color: var(--modal-border) !important;
+  position: relative;
+}
+
 .mini-cell.hit::after {
-  content: '✕'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 14px; color: white;
+  content: '✕';
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 900;
+  color: var(--modal-bg);
 }
-.mini-cell.target { border: 2px solid rgba(255, 215, 0, 0.8); background: rgba(255, 215, 0, 0.2); }
-.pulse-anim { animation: pulse 2s infinite; }
 
-@keyframes pulse {
-  0% { transform: scale(1); opacity: 0.8; }
-  50% { transform: scale(1.05); opacity: 1; }
-  100% { transform: scale(1); opacity: 0.8; }
+.mini-cell.target {
+  border: 2px solid var(--modal-accent) !important;
+  background: rgba(125, 223, 255, 0.15) !important;
 }
 
-/* MEDIA QUERIES MUST BE AT THE BOTTOM TO OVERRIDE BASE STYLES */
+.light-mode-active .mini-cell.target {
+  background: rgba(17, 103, 216, 0.15) !important;
+}
+
+.pulse-anim {
+  animation: tactics-pulse 2s infinite ease-in-out;
+}
+
+/* Keyframes */
+@keyframes tactics-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes tactics-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes tactics-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scale(1.03);
+    opacity: 1;
+  }
+}
+
+/* Responsive Adaptations */
 @media (max-width: 768px) {
+  .tactics-overlay {
+    padding: 0.8rem;
+  }
+
   .tactics-modal {
-    height: 70vh;
+    height: 560px;
+    max-height: 90dvh;
+    border-radius: 12px;
+  }
+
+  .tactics-header {
+    padding: 1rem 1.25rem;
+  }
+
+  .tactics-title {
+    font-size: 1.1rem;
+  }
+
+  .tactics-body {
+    min-height: auto;
+  }
+
+  .tactics-slide {
+    padding: 0.85rem;
   }
 
   .tactics-content-grid {
     grid-template-columns: 1fr;
-    gap: 1.5rem;
-  }
-
-  .tactics-header, .tactics-footer {
-    padding: 1rem;
-  }
-
-  .tactics-body {
-    min-height: 250px;
-  }
-
-  .tactics-slide {
-    padding: 1.25rem;
-    gap: 1.5rem;
-  }
-
-  .tactics-visual {
-    padding: 1rem;
-    min-height: auto;
-  }
-
-  .mini-grid {
-    max-width: 180px;
+    gap: 1rem;
   }
 
   .tactics-text h3 {
-    font-size: 1.25rem;
-    margin-bottom: 0.75rem;
+    font-size: 1.15rem;
+    margin-bottom: 0.4rem;
   }
 
   .tactics-text ul {
-    gap: 0.75rem;
+    gap: 0.4rem;
   }
 
   .tactics-text li {
-    font-size: 0.875rem;
+    font-size: 0.82rem;
+    line-height: 1.45;
     padding-left: 1.25rem;
   }
 
-  .tactics-nav-btn {
-    padding: 0.4rem 0.6rem;
-    font-size: 0.7rem;
-    letter-spacing: 0;
-    white-space: nowrap;
+  .tactics-text li::before {
+    font-size: 0.55rem;
+    top: 0.15rem;
+    left: 0.1rem;
   }
-}
 
-/* =========================================
-   LIGHT MODE OVERRIDES FOR TACTICS MODAL
-   ========================================= */
-.light-mode-active .tactics-overlay {
-    background: rgba(255, 255, 255, 0.7) !important;
-}
+  .tactics-visual {
+    min-height: 160px;
+    padding: 0.75rem;
+  }
 
-.light-mode-active .tactics-modal {
-    background: rgba(244, 249, 253, 0.95) !important;
-    border: 1px solid rgba(0, 119, 182, 0.3) !important;
-    box-shadow: 0 0 40px rgba(0, 119, 182, 0.15) !important;
-}
+  .mini-grid {
+    max-width: 140px;
+  }
 
-.light-mode-active .tactics-header,
-.light-mode-active .tactics-footer {
-    border-color: rgba(0, 119, 182, 0.15) !important;
-}
+  .tactics-footer {
+    padding: 1rem 1.25rem;
+  }
 
-.light-mode-active .tactics-footer {
-    background: rgba(255, 255, 255, 0.6) !important;
-}
-
-.light-mode-active .tactics-title {
-    color: #0b4969 !important;
-}
-
-.light-mode-active .tactics-close {
-    color: #5a7d8f !important;
-}
-
-.light-mode-active .tactics-close:hover {
-    background: rgba(0, 119, 182, 0.1) !important;
-    color: #0077b6 !important;
-}
-
-.light-mode-active .tactics-text h3 {
-    color: #0077b6 !important;
-}
-
-.light-mode-active .tactics-text li {
-    color: #3a5c6d !important;
-}
-
-.light-mode-active .tactics-text li::before {
-    color: #0077b6 !important;
-}
-
-.light-mode-active .tactics-visual {
-    background: rgba(255, 255, 255, 0.7) !important;
-    border: 1px solid rgba(0, 119, 182, 0.2) !important;
-}
-
-.light-mode-active .tactics-dot {
-    background: rgba(0, 119, 182, 0.2) !important;
-}
-
-.light-mode-active .tactics-dot.active {
-    background: #0077b6 !important;
-    box-shadow: 0 0 10px rgba(0, 119, 182, 0.4) !important;
-}
-
-.light-mode-active .tactics-nav-btn.secondary {
-    border-color: rgba(0, 119, 182, 0.4) !important;
-    color: #0077b6 !important;
-}
-
-.light-mode-active .tactics-nav-btn.secondary:hover {
-    background: rgba(0, 119, 182, 0.1) !important;
-}
-
-.light-mode-active .tactics-nav-btn.primary {
-    background: #0077b6 !important;
-    border-color: #0077b6 !important;
-    color: #ffffff !important;
-}
-
-.light-mode-active .tactics-nav-btn.primary:hover {
-    box-shadow: 0 0 15px rgba(0, 119, 182, 0.3) !important;
-}
-
-/* Mini Grid LightMode */
-.light-mode-active .mini-cell {
-    background: rgba(0, 119, 182, 0.05) !important;
-    border: 1px solid rgba(0, 119, 182, 0.2) !important;
-}
-
-.light-mode-active .mini-cell.ship {
-    background: #5a7d8f !important;
-    border-color: #3a5c6d !important;
-}
-
-.light-mode-active .mini-cell.checker {
-    background: #0077b6 !important;
-    border-color: #005f92 !important;
-}
-
-.light-mode-active .mini-cell.red-zone {
-    background: rgba(204, 34, 0, 0.2) !important;
-    border-color: rgba(204, 34, 0, 0.5) !important;
-}
-
-.light-mode-active .mini-cell.green-zone {
-    background: rgba(10, 138, 37, 0.2) !important;
-    border-color: rgba(10, 138, 37, 0.5) !important;
-}
-
-.light-mode-active .mini-cell.hit {
-    background: #cc2200 !important;
-    border-color: #991a00 !important;
-}
-
-.light-mode-active .mini-cell.target {
-    border: 2px solid #0077b6 !important;
-    background: rgba(0, 119, 182, 0.2) !important;
+  .tactics-nav-btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+  }
 }
