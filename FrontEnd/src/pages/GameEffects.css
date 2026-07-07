@@ -3561,6 +3561,23 @@ html:not(.light-mode-active) .game-main.is-deploying .ocean-board-surface,
         gap: 8px !important;
     }
 
+    /* Hide the duplicate settings button (the one outside command-desktop-actions) */
+    .game-shell .command-settings-mobile-button {
+        display: none !important;
+    }
+
+    /* Refine Leave Match button size to prevent text wrapping on mobile */
+    .game-shell .pvp-leave-match-button {
+        padding: 5px 10px !important;
+        font-size: 10px !important;
+        white-space: nowrap !important;
+        gap: 4px !important;
+    }
+
+    .game-shell .pvp-leave-match-button .material-symbols-outlined {
+        font-size: 15px !important;
+    }
+
     /* Center align and distribute actions inside header */
     .game-shell .command-header-inner {
         display: flex !important;
