@@ -330,7 +330,7 @@
 
 
 .home-hero::after {
-  content: "BATTLE GRID";
+  content: none;
   position: absolute;
   right: clamp(18px, 3vw, 38px);
   bottom: clamp(18px, 3vw, 34px);

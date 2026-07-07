@@ -442,6 +442,7 @@
 
 .hs-trigger {
   border-color: #7ddfff;
+  border-top-color: #7ddfff;
   background: #071a2a;
   color: #e7f8ff;
   box-shadow: 4px 4px 0 #ffffff;
@@ -449,6 +450,7 @@
 
 .hs-trigger:hover {
   border-color: #9cecff;
+  border-top-color: #9cecff;
   background: #0b2436;
   color: #ffffff;
   box-shadow: 6px 6px 0 #ffffff;
@@ -456,6 +458,7 @@
 
 .hs-open .hs-trigger {
   border-color: #9cecff;
+  border-top-color: #9cecff;
   background: #0e2c42;
   color: #ffffff;
   box-shadow: 3px 3px 0 #ffffff;

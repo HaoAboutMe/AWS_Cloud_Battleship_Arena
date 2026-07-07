@@ -1508,7 +1508,7 @@
 }
 
 .profile-identity::after {
-  content: "COMMAND CARD";
+  content: none;
   position: absolute;
   right: 24px;
   bottom: 16px;

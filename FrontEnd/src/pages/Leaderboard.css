@@ -1417,7 +1417,7 @@
 }
 
 .leaderboard-page-header::after {
-  content: "RANK BOARD";
+  content: none;
   position: absolute;
   right: 22px;
   bottom: 12px;

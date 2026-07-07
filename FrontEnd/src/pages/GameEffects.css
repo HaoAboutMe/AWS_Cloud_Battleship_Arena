@@ -647,6 +647,16 @@
         box-shadow: 2px 2px 0 #10283a !important;
     }
 
+    html:not(.light-mode-active) .turn-badge-deploying,
+    html:not(.light-mode-active) .turn-badge-player,
+    html:not(.light-mode-active) .turn-badge-bot,
+    html:not(.light-mode-active) .turn-badge-victory,
+    html:not(.light-mode-active) .turn-badge-defeat {
+        border: 2px solid #ffffff !important;
+        box-shadow: 2px 2px 0 #ffffff !important;
+        color: #ffffff !important;
+    }
+
     .board-heading {
         height: auto;
         margin-bottom: 2px;
@@ -3387,6 +3397,11 @@ button.game-ready-btn.is-valid-ready {
 .game-header-difficulty {
     cursor: default !important;
     transform: none !important;
+    height: 38px !important;
+    min-height: 38px !important;
+    padding: 0 16px !important;
+    border: 2px solid var(--game-header-shadow) !important;
+    border-radius: 999px !important;
     box-shadow: 3px 3px 0 var(--game-header-shadow) !important;
     background: var(--game-header-panel) !important;
     color: var(--game-header-ink) !important;
@@ -3394,7 +3409,17 @@ button.game-ready-btn.is-valid-ready {
 }
 
 html:not(.light-mode-active) .game-header-difficulty {
-    box-shadow: 3px 3px 0 var(--game-shadow) !important;
+    border: 2px solid #75dfff !important;
+    background: #071827 !important;
+    color: #e7f8ff !important;
+    box-shadow: 3px 3px 0 #ffffff !important;
+}
+
+.light-mode-active .game-header-difficulty {
+    border: 2px solid #10283a !important;
+    background: #ffffff !important;
+    color: #10283a !important;
+    box-shadow: 3px 3px 0 #10283a !important;
 }
 
 @media (min-width: 1024px) {
@@ -3766,6 +3791,16 @@ html:not(.light-mode-active) .game-main.is-deploying .ocean-board-surface,
     color: #ffffff !important;
     border: 2px solid #10283a !important;
     box-shadow: 3px 3px 0 #10283a !important;
+}
+
+html:not(.light-mode-active) .turn-badge-deploying,
+html:not(.light-mode-active) .turn-badge-player,
+html:not(.light-mode-active) .turn-badge-bot,
+html:not(.light-mode-active) .turn-badge-victory,
+html:not(.light-mode-active) .turn-badge-defeat {
+    border: 2px solid #ffffff !important;
+    box-shadow: 3px 3px 0 #ffffff !important;
+    color: #ffffff !important;
 }
 
 /* Premium Exit Dialog Modal */
