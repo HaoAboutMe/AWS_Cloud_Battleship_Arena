@@ -4895,9 +4895,9 @@ function Game() {
                           Boolean(draggedShip)
                     }
                     className={`game-ready-btn font-bold px-4 py-1.5 md:px-8 md:py-2 text-sm md:text-base rounded-sm transition-all tracking-widest ${
-                      isCustomShipyardActive
+                      (isCustomShipyardActive
                         ? !isCustomFleetValid
-                        : !isFleetValid || invalidRotationPreview || draggedShip
+                        : !isFleetValid || invalidRotationPreview || draggedShip)
                           ? "bg-surface-container text-on-surface-variant/40 cursor-not-allowed opacity-50"
                           : "is-valid-ready bg-secondary text-on-secondary-fixed hover:bg-secondary-container active:scale-95"
                     }`}
