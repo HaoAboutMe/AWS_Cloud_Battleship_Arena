@@ -2140,10 +2140,16 @@ html:not(.light-mode-active) .auto-arrange-button:disabled {
 }
 
 
+.pvp-comms-tabbar {
+    gap: 8px !important;
+}
+
 .pvp-comms-tab {
+    flex: 1 !important;
+    justify-content: center !important;
     margin-top: 4px !important;
     border: 2px solid #02121d !important;
-    border-radius: 6px 6px 0 0 !important;
+    border-radius: 9999px !important;
     background: transparent !important;
     color: rgba(218, 236, 248, 0.68) !important;
     transition: transform 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease !important;

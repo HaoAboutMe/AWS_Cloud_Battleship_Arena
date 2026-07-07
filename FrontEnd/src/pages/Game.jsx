@@ -571,7 +571,7 @@ const GAME_COPY = {
     shipsTab: "Tín hiệu hạm đội",
     chatEventLog: "Chat & nhật ký trận",
     battleChat: "Trò Chuyện",
-    eventLog: "Nhật Ký Trận",
+    eventLog: "Nhật Ký",
     chatPlaceholder: "Gửi thông điệp chiến thuật...",
     sendChat: "Gửi tin nhắn",
     awaitingSignal: "Đang chờ tín hiệu chiến đấu...",
