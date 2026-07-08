@@ -3629,7 +3629,15 @@ html:not(.light-mode-active) .game-main.is-deploying .ocean-board-surface,
         gap: 12px !important;
     }
 
-    
+    .fleet-rule-message {
+        display: none !important;
+    }
+
+    .deployment-dock.is-custom-shipyard {
+        height: 250px !important;
+        min-height: 250px !important;
+        padding: 12px 14px !important;
+    }
 }
 
 /* High-specificity drag targets for all modes */
