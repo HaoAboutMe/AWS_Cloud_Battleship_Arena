@@ -793,6 +793,9 @@ function Game() {
   const [selectedShip, setSelectedShip] = useState(null);
   const [draggedShip, setDraggedShip] = useState(null);
   const [dragPointer, setDragPointer] = useState(null);
+  const lastHoverCellRef = useRef(null);
+  const latestPointerRef = useRef(null);
+  const dragPointerUpdatePendingRef = useRef(false);
   const [originalPlacement, setOriginalPlacement] = useState(null);
   const [invalidRotationPreview, setInvalidRotationPreview] = useState(null);
   const [unplacedShipIds, setUnplacedShipIds] = useState(() =>
@@ -3074,21 +3077,35 @@ function Game() {
   };
 
   useEffect(() => {
-    if (!draggedShip) return undefined;
+    if (!draggedShip) {
+      lastHoverCellRef.current = null;
+      latestPointerRef.current = null;
+      dragPointerUpdatePendingRef.current = false;
+      return undefined;
+    }
 
     const updateDragPointer = (event) => {
       let clientX, clientY;
-      if (event.touches) {
-        if (!isMobile) {
-          event.preventDefault();
-          clientX = event.touches[0].clientX;
-          clientY = event.touches[0].clientY;
-          setDragPointer({ x: clientX, y: clientY });
-        }
-      } else {
+      if (event.touches && event.touches.length > 0) {
+        clientX = event.touches[0].clientX;
+        clientY = event.touches[0].clientY;
+      } else if (!event.touches) {
         clientX = event.clientX;
         clientY = event.clientY;
-        setDragPointer({ x: clientX, y: clientY });
+      }
+
+      if (clientX === undefined || clientY === undefined) return;
+
+      latestPointerRef.current = { x: clientX, y: clientY };
+
+      if (!dragPointerUpdatePendingRef.current) {
+        dragPointerUpdatePendingRef.current = true;
+        requestAnimationFrame(() => {
+          dragPointerUpdatePendingRef.current = false;
+          if (latestPointerRef.current) {
+            setDragPointer(latestPointerRef.current);
+          }
+        });
       }
 
       if (isMobile && playerBoardRef.current && draggedShip) {
@@ -3103,12 +3120,22 @@ function Game() {
           const c = Math.floor((clientX - rect.left) / cellSize);
           const r = Math.floor((clientY - rect.top) / cellSize);
           if (r >= 0 && r < BOARD_SIZE && c >= 0 && c < BOARD_SIZE) {
-            setHoverCell({ r, c });
+            if (!lastHoverCellRef.current || lastHoverCellRef.current.r !== r || lastHoverCellRef.current.c !== c) {
+              const newVal = { r, c };
+              lastHoverCellRef.current = newVal;
+              setHoverCell(newVal);
+            }
           } else {
-            setHoverCell(null);
+            if (lastHoverCellRef.current !== null) {
+              lastHoverCellRef.current = null;
+              setHoverCell(null);
+            }
           }
         } else {
-          setHoverCell(null);
+          if (lastHoverCellRef.current !== null) {
+            lastHoverCellRef.current = null;
+            setHoverCell(null);
+          }
         }
       }
     };
@@ -3145,7 +3172,6 @@ function Game() {
 
         setPlayerBoard((prevBoard) => {
           const newBoard = cloneBoard(prevBoard);
-          // clear any remaining original instances of this ship before place
           removeShipById(newBoard, originalPlacement.shipId);
 
           if (
@@ -3193,6 +3219,8 @@ function Game() {
       }
 
       setDraggedShip(null);
+      setSelectedShip(null);
+      setInvalidRotationPreview(null);
       setDragPointer(null);
       setTouchData(null);
       setOriginalPlacement(null);
@@ -3212,7 +3240,7 @@ function Game() {
       document.body.style.overflow = "";
       document.documentElement.style.overflow = "";
     };
-  }, [draggedShip, isMobile]);
+  }, [draggedShip, isMobile, originalPlacement, copy]);
 
   const handlePlayerCellClick = (event, r, c) => {
     if (isPlacementLocked) return;
@@ -3285,6 +3313,12 @@ function Game() {
         return;
       }
 
+      let cellStep = CELL_SIZE + CELL_GAP;
+      if (playerBoardRef.current) {
+        const rect = playerBoardRef.current.getBoundingClientRect();
+        cellStep = rect.width / 10;
+      }
+
       const newCenter = getCenterOffset(
         placedShip.shipDef,
         placedShip.rotation,
@@ -3293,8 +3327,8 @@ function Game() {
         ...placedShip,
         grabOffset: newCenter,
         pointerOffset: {
-          x: newCenter.col * (CELL_SIZE + CELL_GAP) + CELL_SIZE / 2,
-          y: newCenter.row * (CELL_SIZE + CELL_GAP) + CELL_SIZE / 2,
+          x: newCenter.col * cellStep + cellStep / 2,
+          y: newCenter.row * cellStep + cellStep / 2,
         },
       };
 
@@ -3306,6 +3340,9 @@ function Game() {
       setRotation(placedShip.rotation);
       setDraggedShip(shipToDrag);
       setDragPointer({ x: event.clientX, y: event.clientY });
+    } else {
+      setSelectedShip(null);
+      setInvalidRotationPreview(null);
     }
   };
 
@@ -3325,6 +3362,9 @@ function Game() {
 
     if (draggedShip && !draggedShip.fromTray) {
       returnShipToStaging(draggedShip.shipId, draggedShip.shipDef.id);
+    } else {
+      setSelectedShip(null);
+      setInvalidRotationPreview(null);
     }
   };
 
@@ -3488,6 +3528,11 @@ function Game() {
         return newBoard;
       });
     }
+    let cellStep = CELL_SIZE + CELL_GAP;
+    if (playerBoardRef.current) {
+      const rect = playerBoardRef.current.getBoundingClientRect();
+      cellStep = rect.width / 10;
+    }
     const rotation = trayRotations[shipDef.id] ?? shipDef.rotations[0];
     const newCenter = getCenterOffset(shipDef, rotation);
 
@@ -3502,8 +3547,8 @@ function Game() {
       col: 0,
       grabOffset: newCenter,
       pointerOffset: {
-        x: newCenter.col * (CELL_SIZE + CELL_GAP) + CELL_SIZE / 2,
-        y: newCenter.row * (CELL_SIZE + CELL_GAP) + CELL_SIZE / 2,
+        x: newCenter.col * cellStep + cellStep / 2,
+        y: newCenter.row * cellStep + cellStep / 2,
       },
     });
     setDragPointer({ x: event.clientX, y: event.clientY });
@@ -4223,17 +4268,14 @@ function Game() {
     if (
       !isEnemy &&
       hoverCell &&
-      (gameState === "PLACEMENT" || gameState === "READY")
+      (gameState === "PLACEMENT" || gameState === "READY") &&
+      draggedShip
     ) {
-      const movingShip = draggedShip || selectedShip;
+      const movingShip = draggedShip;
 
       if (movingShip) {
-        const rootRow = draggedShip
-          ? hoverCell.r - draggedShip.grabOffset.row
-          : hoverCell.r;
-        const rootCol = draggedShip
-          ? hoverCell.c - draggedShip.grabOffset.col
-          : hoverCell.c;
+        const rootRow = hoverCell.r - draggedShip.grabOffset.row;
+        const rootCol = hoverCell.c - draggedShip.grabOffset.col;
         const previewBoard = cloneBoard(board);
 
         clearShipFromBoard(previewBoard, movingShip.shipId);
@@ -4255,7 +4297,7 @@ function Game() {
       !isEnemy &&
       (gameState === "PLACEMENT" || gameState === "READY") &&
       invalidRotationPreview &&
-      !draggedShip
+      draggedShip
     ) {
       placementOffsets = getShipOffsets(
         invalidRotationPreview.shipDef,
@@ -4326,7 +4368,7 @@ function Game() {
       !isEnemy &&
       (gameState === "PLACEMENT" || gameState === "READY") &&
       invalidRotationPreview &&
-      !draggedShip
+      draggedShip
     ) {
       const invalidOffsets = getShipOffsets(
         invalidRotationPreview.shipDef,
