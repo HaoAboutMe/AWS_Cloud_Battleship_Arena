@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { createPortal } from "react-dom";
 import axios from "axios";
 import { useAuth } from "../contexts/AuthContext";
 import { getAvatarUploadUrl } from "../services/userService";
@@ -337,7 +338,7 @@ const AvatarUpload = ({ currentAvatarUrl, onAvatarUpdate, showToast }) => {
         </svg>
       </label>
 
-      {imageSrc && (
+      {imageSrc && createPortal(
         <div
           style={{
             position: "fixed",
@@ -346,7 +347,7 @@ const AvatarUpload = ({ currentAvatarUrl, onAvatarUpdate, showToast }) => {
             right: 0,
             bottom: 0,
             background: "rgba(0,0,0,0.85)",
-            zIndex: 1000,
+            zIndex: 99999, // Ensure it's above everything
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
@@ -491,31 +492,25 @@ const AvatarUpload = ({ currentAvatarUrl, onAvatarUpdate, showToast }) => {
                 })}
               </div>
             )}
-          </div>
-          <div
-            style={{
-              marginTop: "16px",
-              display: "flex",
-              width: "300px",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            <span
+            <div
               style={{
-                fontSize: "11px",
-                color: "#8cdaef",
-                textTransform: "uppercase",
-                fontWeight: "800",
+                position: "absolute",
+                bottom: "8px",
+                right: "8px",
+                background: "rgba(4, 20, 33, 0.8)",
+                padding: "6px 10px",
+                borderRadius: "4px",
+                border: "1px solid rgba(117, 223, 255, 0.3)",
+                color: "#00e5ff",
+                fontSize: "10px",
+                fontWeight: "bold",
+                letterSpacing: "0.5px",
+                zIndex: 20,
+                pointerEvents: "none",
               }}
             >
-              Kích thước khung:
-            </span>
-            <span
-              style={{ fontSize: "11px", color: "#00e5ff", fontWeight: "bold" }}
-            >
-              {Math.round(boxSize)} x {Math.round(boxSize)} px
-            </span>
+              KÍCH THƯỚC {Math.round(boxSize)} x {Math.round(boxSize)} PX
+            </div>
           </div>
           <div style={{ marginTop: "24px", display: "flex", gap: "16px" }}>
             <button
@@ -570,7 +565,8 @@ const AvatarUpload = ({ currentAvatarUrl, onAvatarUpdate, showToast }) => {
               {isUploading ? "Đang tải lên..." : "Lưu Avatar"}
             </button>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
