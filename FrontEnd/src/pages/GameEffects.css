@@ -3566,6 +3566,10 @@ html:not(.light-mode-active) .game-main.is-deploying .ocean-board-surface,
 
 @media (max-width: 767px) {
     /* Hide the brand text but keep the logo */
+    .game-main {
+        zoom: 0.95;
+    }
+
     .game-shell .command-brand-copy {
         display: none !important;
     }
@@ -3624,6 +3628,8 @@ html:not(.light-mode-active) .game-main.is-deploying .ocean-board-surface,
         align-items: center !important;
         gap: 12px !important;
     }
+
+    
 }
 
 /* High-specificity drag targets for all modes */
