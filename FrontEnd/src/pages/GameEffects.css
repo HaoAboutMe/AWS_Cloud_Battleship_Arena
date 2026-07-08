@@ -3567,7 +3567,7 @@ html:not(.light-mode-active) .game-main.is-deploying .ocean-board-surface,
 @media (max-width: 767px) {
     /* Hide the brand text but keep the logo */
     .game-main {
-        zoom: 0.95;
+        zoom: 0.85;
     }
 
     .game-shell .command-brand-copy {
