@@ -40,11 +40,48 @@ Parameters:
       - PriceClass_All
     Description: CloudFront edge location price class.
 
+  MonitoringAlarmEmail:
+    Type: String
+    Default: ""
+    Description: Optional email address that receives CloudWatch alarm notifications.
+
+  CloudFront5xxErrorRateThreshold:
+    Type: Number
+    Default: 5
+    MinValue: 1
+    Description: CloudFront 5xx error rate percentage required to trigger an alarm.
+
+  CloudFrontTotalErrorRateThreshold:
+    Type: Number
+    Default: 15
+    MinValue: 1
+    Description: CloudFront total error rate percentage required to trigger an alarm.
+
 Conditions:
   HasFrontendBucketName: !Not [!Equals [!Ref FrontendBucketName, ""]]
   CreateGitHubOidcProvider: !Equals [!Ref GitHubOidcProviderArn, ""]
+  HasMonitoringAlarmEmail: !Not [!Equals [!Ref MonitoringAlarmEmail, ""]]
+  IsUsEast1: !Equals [!Ref AWS::Region, us-east-1]
+  CreateCloudFrontAlarms: !And
+    - !Condition IsUsEast1
+    - !Condition HasMonitoringAlarmEmail
 
 Resources:
+  MonitoringAlarmTopic:
+    Type: AWS::SNS::Topic
+    Condition: CreateCloudFrontAlarms
+    Properties:
+      TopicName: !Sub "${ProjectName}-${EnvironmentName}-frontend-monitoring-alarms"
+      DisplayName: !Sub "${ProjectName} ${EnvironmentName} frontend monitoring alarms"
+
+  MonitoringAlarmSubscription:
+    Type: AWS::SNS::Subscription
+    Condition: CreateCloudFrontAlarms
+    Properties:
+      Protocol: email
+      TopicArn: !Ref MonitoringAlarmTopic
+      Endpoint: !Ref MonitoringAlarmEmail
+
   FrontendBucket:
     Type: AWS::S3::Bucket
     DeletionPolicy: Retain
@@ -181,6 +218,120 @@ Resources:
                   - cloudfront:CreateInvalidation
                 Resource: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${FrontendDistribution}"
 
+  CloudFront5xxErrorRateAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: CreateCloudFrontAlarms
+    Properties:
+      AlarmName: !Sub "${ProjectName}-${EnvironmentName}-cloudfront-5xx-error-rate"
+      AlarmDescription: Alerts when CloudFront 5xx error rate is elevated.
+      Namespace: AWS/CloudFront
+      MetricName: 5xxErrorRate
+      Dimensions:
+        - Name: DistributionId
+          Value: !Ref FrontendDistribution
+        - Name: Region
+          Value: Global
+      Statistic: Average
+      Period: 300
+      EvaluationPeriods: 2
+      DatapointsToAlarm: 2
+      Threshold: !Ref CloudFront5xxErrorRateThreshold
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      Unit: Percent
+      AlarmActions:
+        - !Ref MonitoringAlarmTopic
+      OKActions:
+        - !Ref MonitoringAlarmTopic
+
+  CloudFrontTotalErrorRateAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: CreateCloudFrontAlarms
+    Properties:
+      AlarmName: !Sub "${ProjectName}-${EnvironmentName}-cloudfront-total-error-rate"
+      AlarmDescription: Alerts when CloudFront total error rate is elevated.
+      Namespace: AWS/CloudFront
+      MetricName: TotalErrorRate
+      Dimensions:
+        - Name: DistributionId
+          Value: !Ref FrontendDistribution
+        - Name: Region
+          Value: Global
+      Statistic: Average
+      Period: 300
+      EvaluationPeriods: 2
+      DatapointsToAlarm: 2
+      Threshold: !Ref CloudFrontTotalErrorRateThreshold
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      Unit: Percent
+      AlarmActions:
+        - !Ref MonitoringAlarmTopic
+      OKActions:
+        - !Ref MonitoringAlarmTopic
+
+  FrontendCloudWatchDashboard:
+    Type: AWS::CloudWatch::Dashboard
+    Properties:
+      DashboardName: !Sub "${ProjectName}-${EnvironmentName}-frontend"
+      DashboardBody: !Sub |
+        {
+          "widgets": [
+            {
+              "type": "metric",
+              "x": 0,
+              "y": 0,
+              "width": 12,
+              "height": 6,
+              "properties": {
+                "title": "CloudFront requests and errors",
+                "region": "us-east-1",
+                "stat": "Sum",
+                "period": 300,
+                "metrics": [
+                  [ "AWS/CloudFront", "Requests", "DistributionId", "${FrontendDistribution}", "Region", "Global" ],
+                  [ ".", "TotalErrorRate", ".", "${FrontendDistribution}", ".", "Global", { "stat": "Average", "yAxis": "right" } ],
+                  [ ".", "5xxErrorRate", ".", "${FrontendDistribution}", ".", "Global", { "stat": "Average", "yAxis": "right" } ]
+                ]
+              }
+            },
+            {
+              "type": "metric",
+              "x": 12,
+              "y": 0,
+              "width": 12,
+              "height": 6,
+              "properties": {
+                "title": "CloudFront traffic",
+                "region": "us-east-1",
+                "stat": "Sum",
+                "period": 300,
+                "metrics": [
+                  [ "AWS/CloudFront", "BytesDownloaded", "DistributionId", "${FrontendDistribution}", "Region", "Global" ],
+                  [ ".", "BytesUploaded", ".", "${FrontendDistribution}", ".", "Global" ]
+                ]
+              }
+            },
+            {
+              "type": "metric",
+              "x": 0,
+              "y": 6,
+              "width": 12,
+              "height": 6,
+              "properties": {
+                "title": "Frontend bucket storage",
+                "region": "${AWS::Region}",
+                "stat": "Average",
+                "period": 86400,
+                "metrics": [
+                  [ "AWS/S3", "BucketSizeBytes", "BucketName", "${FrontendBucket}", "StorageType", "StandardStorage" ],
+                  [ ".", "NumberOfObjects", ".", "${FrontendBucket}", "StorageType", "AllStorageTypes" ]
+                ]
+              }
+            }
+          ]
+        }
+
 Outputs:
   FrontendBucketName:
     Description: S3 bucket for frontend build artifacts.
@@ -201,3 +352,11 @@ Outputs:
   GitHubDeployRoleArn:
     Description: IAM role ARN to store as the AWS_DEPLOY_ROLE_ARN GitHub Actions secret.
     Value: !GetAtt GitHubDeployRole.Arn
+
+  FrontendCloudWatchDashboardName:
+    Description: CloudWatch dashboard name for frontend metrics.
+    Value: !Sub "${ProjectName}-${EnvironmentName}-frontend"
+
+  CloudFrontAlarmRegion:
+    Description: Region where CloudFront alarms are created when MonitoringAlarmEmail is provided.
+    Value: us-east-1
