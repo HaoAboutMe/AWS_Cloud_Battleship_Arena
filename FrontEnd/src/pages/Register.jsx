@@ -63,12 +63,17 @@ function Register() {
 
   useEffect(() => {
     if (isConfirmStep || username.length < 3) {
-      setIsChecking(false);
-      setIsTaken(false);
-      return;
+      const tId = setTimeout(() => {
+        setIsChecking(false);
+        setIsTaken(false);
+      }, 0);
+      return () => clearTimeout(tId);
     }
 
-    setIsChecking(true);
+    const tId = setTimeout(() => {
+      setIsChecking(true);
+    }, 0);
+
     const timeoutId = setTimeout(async () => {
       try {
         const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/users/check-username?username=${encodeURIComponent(fullUsername)}`);
@@ -83,8 +88,12 @@ function Register() {
       }
     }, 500);
 
-    return () => clearTimeout(timeoutId);
+    return () => {
+      clearTimeout(tId);
+      clearTimeout(timeoutId);
+    };
   }, [username, tag, isConfirmStep, fullUsername]);
+
 
   const errors = useMemo(() => {
     const nextErrors = {};
@@ -179,7 +188,7 @@ function Register() {
   };
 
   return (
-    <AuthShell pageClass="register-page">
+    <AuthShell pageClass="register-page" useCommandHeader={true}>
       <div className="auth-form-heading">
         <span className="auth-kicker">
           <span className="auth-live-dot" />
@@ -212,28 +221,28 @@ function Register() {
             <span>{t("common.username")}</span>
             <div className="auth-input-shell">
               <span className="auth-glyph auth-input-glyph" aria-hidden="true">*</span>
-              <div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
+              <div className="auth-username-tag-container">
                 <input
                   type="text"
+                  className="auth-username-input"
                   value={username}
                   onChange={(event) => setUsername(event.target.value)}
                   placeholder="Commander"
                   disabled={isConfirmStep}
-                  style={{ flex: 1 }}
                 />
-                <span className="auth-glyph" style={{ margin: '0 4px', fontSize: '14px', color: 'rgba(165, 231, 255, 0.56)' }}>#</span>
+                <span className="auth-input-hash">#</span>
                 <input
                   type="text"
+                  className="auth-tag-input"
                   value={tag}
                   onChange={(event) => setTag(event.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))}
                   maxLength={5}
                   disabled={isConfirmStep}
-                  style={{ width: '60px', padding: '0 8px', textAlign: 'center' }}
                 />
               </div>
             </div>
             {username.length > 0 && (
-              <div style={{ marginTop: '8px', fontSize: '13px', color: isChecking ? '#888' : isTaken ? '#ff4d4d' : (username.length < 3 || tag.length === 0) ? '#ff4d4d' : '#4caf50' }}>
+              <div className={`auth-validation-msg ${isChecking ? "is-checking" : (isTaken || username.length < 3 || tag.length === 0) ? "is-error" : "is-valid"}`}>
                 {isChecking ? t("profile.checking") : username.length < 3 ? t("profile.nameTooShort") : tag.length === 0 ? t("profile.tagEmpty") : isTaken ? t("profile.nameTaken") : t("profile.nameValid")}
               </div>
             )}

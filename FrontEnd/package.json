@@ -10,6 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@fontsource/ibm-plex-mono": "^5.2.7",
+    "@fontsource/space-grotesk": "^5.2.10",
     "aws-amplify": "^6.18.0",
     "axios": "^1.18.0",
     "headroom-ai": "^0.22.4",

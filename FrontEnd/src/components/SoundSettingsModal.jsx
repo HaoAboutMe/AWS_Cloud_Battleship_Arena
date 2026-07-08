@@ -7,6 +7,7 @@ import {
   setSoundSettings,
   subscribeSoundSettings,
 } from "../services/soundService";
+import { setPreferredLightMode } from "../utils/themePreference";
 import "./SoundSettingsModal.css";
 
 const VOLUME_CONTROLS = [
@@ -42,7 +43,7 @@ function SoundSettingsModal({ open, onClose }) {
 
   const handleThemeToggle = () => {
     const nextLightMode = !localLightMode;
-    document.documentElement.classList.toggle("light-mode-active", nextLightMode);
+    setPreferredLightMode(nextLightMode);
     setLocalLightMode(nextLightMode);
   };
 
@@ -164,7 +165,7 @@ function SoundSettingsModal({ open, onClose }) {
                     <span>{t("common.language")}</span>
                   </label>
                   <div id="settings-language" className="settings-language-control">
-                    <LanguageToggle compact={true} />
+                    <LanguageToggle />
                   </div>
                 </div>
                 <div className="sound-volume-row settings-theme-row">

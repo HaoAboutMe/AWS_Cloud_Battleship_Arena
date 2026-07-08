@@ -7,14 +7,20 @@ import goldBadge from '../assets/badge/gold.webp';
 import masterBadge from '../assets/badge/master.webp';
 import platinumBadge from '../assets/badge/platinum.webp';
 import silverBadge from '../assets/badge/silver.webp';
+import homeOceanDark from "../assets/ocean/deep-ocean-texture.webp";
+import homeOceanLight from "../assets/ocean/auth-ocean-light.webp";
+import shipCarrier from "../assets/ships/image/ship-10.webp";
+import shipDestroyer from "../assets/ships/image/ship-6.webp";
+import shipScout from "../assets/ships/image/ship-8.webp";
 import CommandHeader from "../components/CommandHeader";
 import HomeSelect from "../components/HomeSelect";
 import TacticsModal from "../components/TacticsModal";
 import { useAuth } from "../contexts/AuthContext";
 import { useLanguage } from "../contexts/LanguageContext";
-import { findMatch, getRoom, leaveRoom } from "../services/matchService";
+import { findMatch, getRoom, leaveRoom, getRoomPlayerId } from "../services/matchService";
 import { getUserProfile, getLeaderboard } from "../services/userService";
 import { getAvatarCdnUrl } from "../utils/avatar";
+import { setPreferredLightMode } from "../utils/themePreference";
 import "./Home.css";
 import "./HomeHeader.css";
 
@@ -30,7 +36,7 @@ const getRankInfo = (rank, t) => {
     "admiral": admiralBadge,
     "unranked": bronzeBadge,
   };
-  
+
   const translatedLabel = t ? t(`common.${rankStr}`) : rankStr;
 
   return {
@@ -79,7 +85,7 @@ function Home() {
   const [matchmakingMode, setMatchmakingMode] = useState(null);
   const [matchmakingRoomCode, setMatchmakingRoomCode] = useState("");
   const [matchmakingError, setMatchmakingError] = useState("");
-  const [guestUserId] = useState(() => `guest-${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 9)}`);
+  const [guestUserId] = useState(() => getRoomPlayerId("guest", "global"));
   const [stats, setStats] = useState({
     totalGames: 0,
     wins: 0,
@@ -132,10 +138,12 @@ function Home() {
   }, [leaderboardRank]);
 
   const toggleTheme = (e) => {
+    const nextLightMode = !isLightMode;
+
     // Fallback for browsers that don't support view transitions
     if (!document.startViewTransition) {
-      document.documentElement.classList.toggle('light-mode-active');
-      setIsLightMode(!isLightMode);
+      setPreferredLightMode(nextLightMode);
+      setIsLightMode(nextLightMode);
       return;
     }
 
@@ -145,11 +153,10 @@ function Home() {
       Math.max(x, window.innerWidth - x),
       Math.max(y, window.innerHeight - y)
     );
-    const isDark = !isLightMode;
 
     const transition = document.startViewTransition(() => {
-      document.documentElement.classList.toggle('light-mode-active');
-      setIsLightMode(isDark);
+      setPreferredLightMode(nextLightMode);
+      setIsLightMode(nextLightMode);
     });
 
     transition.ready.then(() => {
@@ -228,7 +235,6 @@ function Home() {
 
   const handleLogout = async () => {
     try {
-      await logout();
       localStorage.removeItem("battleshipSession");
       setAuthToast({
         type: "success",
@@ -236,6 +242,7 @@ function Home() {
         messageKey: "home.signedOutBody",
       });
       navigate("/", { replace: true, state: null });
+      await logout();
     } catch {
       setAuthToast({
         type: "error",
@@ -354,6 +361,8 @@ function Home() {
     }
   };
 
+  const heroOcean = isLightMode ? homeOceanLight : homeOceanDark;
+
   return (
     <div id="top" className="home-page bg-background text-on-background font-body-md min-h-screen selection:bg-secondary/30">
       <TacticsModal isOpen={isTacticsOpen} onClose={() => setIsTacticsOpen(false)} />
@@ -442,188 +451,151 @@ function Home() {
           </div>
         </div>
       )}
-      <main className="home-main max-w-[1440px] mx-auto px-gutter pb-6 overflow-hidden flex flex-col gap-6">
-        {/*  Hero Section  */}
-        <section className="home-hero relative grid grid-cols-1 md:grid-cols-2 items-center gap-x-8 gap-y-4 md:gap-y-6 py-2">
-          <div className="z-10 order-1 md:col-start-1 md:row-start-1 self-end text-center md:text-left">
-            <h1 className="font-display-lg text-on-surface leading-tight text-[24px] md:text-[32px]">
-              {t("home.heroOne")} <span className="text-secondary glow-text">{t("home.heroFleet")}</span>
+      <main className="home-main">
+        <section className="home-hero" style={{ "--hero-ocean": `url(${heroOcean})` }}>
+          <div className="home-hero-copy">
+            <span className="home-hero-kicker">
+              <span className="material-symbols-outlined" aria-hidden="true">casino</span>
+              {t("home.heroKicker")}
+            </span>
+            <h1>
+              {t("home.heroOne")} <span>{t("home.heroFleet")}</span>
               <br />
               {t("home.heroTwo")}
             </h1>
+            <p>
+              {t("home.heroBody")}
+            </p>
+            <div className="home-hero-actions">
+              <button type="button" className="home-primary-cta" onClick={() => setPvpModeOpen(true)}>
+                <span className="material-symbols-outlined" aria-hidden="true">rocket_launch</span>
+                {t("home.battle")}
+              </button>
+              <button type="button" className="home-secondary-cta" onClick={() => setIsTacticsOpen(true)}>
+                <span className="material-symbols-outlined" aria-hidden="true">school</span>
+                {t("home.learn")}
+              </button>
+            </div>
           </div>
 
-          <div className="relative order-2 md:col-start-2 md:row-start-1 md:row-span-2 flex justify-center md:justify-end w-full py-4 md:py-0">
-            <div className="absolute inset-0 ocean-wave -z-10 animate-pulse"></div>
-            <img
-              alt="Tactical naval combat view from above with neon ships and radar sweeps"
-              className="w-64 sm:w-72 md:w-80 h-auto drop-shadow-[0_0_50px_rgba(0,210,255,0.2)] rounded-xl transform hover:scale-105 transition-transform duration-700"
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuB1yTSkvD5vp5gcRLUr8zR_w8VZ0l7fR_f1CecqhdDez07y_DahvV-W3SraDfp39kdhNRrldcW-qs7SVQuv-z2zg-i7iht-ATRqpri4Pwf4egVN3npAuHUqi-qIFlJV4qLAVmDWC3FMzkha-vo2EuAwguKQEkqVxGD88JsoYr6ADKrsWRtGYJrzKI60w-L3en7RhnXByJql8W_2WWw269Mdavu_pIUOYWj8FXkYzz3EaPooWH2A5xyNitffhU_CIvVrZidsrEvFFhd7"
-            />
-          </div>
-
-          <div className="z-10 order-3 md:col-start-1 md:row-start-2 self-start flex flex-col sm:flex-row gap-3 md:gap-4 w-full">
-            <button 
-              className="home-tactics-button w-full sm:w-auto justify-center border font-label-md text-label-md px-8 py-3 rounded-sm transition-all active:scale-95"
-              onClick={() => setIsTacticsOpen(true)}
-            >
-              {t("home.learn")}
-            </button>
+          <div className="home-war-room" aria-label="Fleet tactical preview">
+            <div className="home-map-board" aria-hidden="true">
+              {Array.from({ length: 64 }).map((_, index) => (
+                <span key={index} className={(index + Math.floor(index / 8)) % 2 === 0 ? "is-tide" : ""} />
+              ))}
+            </div>
+            <img className="home-ship home-ship-carrier" src={shipCarrier} alt="" />
+            <img className="home-ship home-ship-destroyer" src={shipDestroyer} alt="" />
+            <img className="home-ship home-ship-scout" src={shipScout} alt="" />
+            <div className="home-telemetry-panel">
+              <small>{t("home.customFleet")}</small>
+              <strong>{t("home.blocksCount", { count: 15 })}</strong>
+              <span>{t("home.shipsOnDeck")}</span>
+            </div>
           </div>
         </section>
-        {/*  Game Modes Section  */}
-        <section id="deployment" className="command-section-anchor">
-          <div className="home-section-heading flex items-center gap-3 mb-4">
-            <span className="material-symbols-outlined text-secondary">
-              grid_view
-            </span>
-            <h2 className="font-headline-md text-headline-md text-on-surface uppercase tracking-tight">
-              {t("home.deployment")}
-            </h2>
+
+        <section id="deployment" className="home-deployment command-section-anchor">
+          <div className="home-section-heading">
+            <span className="material-symbols-outlined text-secondary" aria-hidden="true">grid_view</span>
+            <div>
+              <h2>{t("home.deployment")}</h2>
+              <p>Pick the kind of battle you want right now.</p>
+            </div>
           </div>
-          {/* Mobile Tabs */}
-          <div className="md:hidden flex bg-surface-container/30 rounded-lg p-1 mb-4">
-            <button 
-              onClick={() => setActiveModeTab('bot')}
-              className={`flex-1 py-2 text-xs font-bold uppercase rounded-md transition-all ${activeModeTab === 'bot' ? 'bg-secondary text-on-secondary-fixed shadow-[0_0_10px_rgba(0,210,255,0.2)]' : 'text-on-surface-variant'}`}
-            >
+
+          <div className="home-mobile-tabs md:hidden">
+            <button type="button" onClick={() => setActiveModeTab("bot")} className={activeModeTab === "bot" ? "is-active" : ""}>
               {t("home.bot")}
             </button>
-            <button 
-              onClick={() => setActiveModeTab('player')}
-              className={`flex-1 py-2 text-xs font-bold uppercase rounded-md transition-all ${activeModeTab === 'player' ? 'bg-secondary text-on-secondary-fixed shadow-[0_0_10px_rgba(0,210,255,0.2)]' : 'text-on-surface-variant'}`}
-            >
+            <button type="button" onClick={() => setActiveModeTab("player")} className={activeModeTab === "player" ? "is-active" : ""}>
               {t("home.player")}
             </button>
-            <button 
-              onClick={() => setActiveModeTab('room')}
-              className={`flex-1 py-2 text-xs font-bold uppercase rounded-md transition-all ${activeModeTab === 'room' ? 'bg-secondary text-on-secondary-fixed shadow-[0_0_10px_rgba(0,210,255,0.2)]' : 'text-on-surface-variant'}`}
-            >
+            <button type="button" onClick={() => setActiveModeTab("room")} className={activeModeTab === "room" ? "is-active" : ""}>
               {t("home.room")}
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/*  Mode 1: Play vs Bot  */}
-            <div className={`home-mode-card glass-card p-6 md:p-8 rounded-xl flex flex-col group h-full ${activeModeTab !== 'bot' ? 'hidden md:flex' : 'flex'}`}>
-              <div className="flex items-center gap-4 mb-4 md:mb-6">
-                <div className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center bg-secondary/10 rounded-lg text-secondary group-hover:scale-110 transition-transform shrink-0">
-                  <span className="material-symbols-outlined text-2xl md:text-3xl">
-                    smart_toy
-                  </span>
-                </div>
-                <h3 className="font-title-lg text-[20px] md:text-title-lg text-on-surface leading-tight">
-                  {t("home.playBot")}
-                </h3>
+          <div className="home-mode-grid">
+            <article className={`home-mode-card home-mode-bot glass-card ${activeModeTab !== "bot" ? "hidden md:flex" : "flex"}`}>
+              <div className="home-mode-icon">
+                <span className="material-symbols-outlined" aria-hidden="true">smart_toy</span>
               </div>
-              <p className="font-body-md text-body-md text-on-surface-variant mb-6 md:mb-8 flex-grow">
-                {t("home.botBody")}
-              </p>
-              <div className="flex flex-col gap-4">
-                <div className="flex gap-2">
-                  <span className="text-[10px] px-2 py-1 bg-surface-container text-on-surface-variant font-bold uppercase rounded-sm border border-white/5">
-                    {t("home.aiOpponent")}
-                  </span>
-                  <span className="text-[10px] px-2 py-1 bg-surface-container text-on-surface-variant font-bold uppercase rounded-sm border border-white/5">
-                    {t("home.practice")}
-                  </span>
-                </div>
-                
-                <div className="flex flex-col gap-2 mb-1">
-                  <span className="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider">{t("home.difficulty")}</span>
-                  <HomeSelect
-                    value={botDifficulty}
-                    onChange={(val) => setBotDifficulty(val)}
-                    options={[
-                      { value: "easy",   label: t("home.easy") },
-                      { value: "normal", label: t("home.normal") },
-                      { value: "hard",   label: t("home.hard") },
-                    ]}
-                  />
-                </div>
+              <div className="home-mode-copy">
+                <h3>{t("home.playBot")}</h3>
+                <p>{t("home.botBody")}</p>
+              </div>
+              <div className="home-mode-tags">
+                <span>{t("home.aiOpponent")}</span>
+                <span>{t("home.practice")}</span>
+              </div>
+              <label className="home-mode-field">
+                <span>{t("home.difficulty")}</span>
+                <HomeSelect
+                  value={botDifficulty}
+                  onChange={(val) => setBotDifficulty(val)}
+                  options={[
+                    { value: "easy", label: t("home.easy") },
+                    { value: "normal", label: t("home.normal") },
+                    { value: "hard", label: t("home.hard") },
+                  ]}
+                />
+              </label>
+              <Link to={`/game?mode=pve&difficulty=${botDifficulty}`} className="home-card-cta">
+                <span className="material-symbols-outlined" aria-hidden="true">play_arrow</span>
+                {t("home.battle")}
+              </Link>
+            </article>
 
-                <Link to={`/game?mode=pve&difficulty=${botDifficulty}`} className="w-full block">
-                  <button className="w-full bg-secondary text-on-secondary-fixed font-label-md text-label-md py-3 rounded-sm hover:bg-secondary-container transition-all active:scale-95 tracking-widest">
-                    {t("home.battle")}
-                  </button>
-                </Link>
+            <article className={`home-mode-card home-mode-pvp glass-card ${activeModeTab !== "player" ? "hidden md:flex" : "flex"}`}>
+              <div className="home-mode-ribbon">{t("home.competitive")}</div>
+              <div className="home-mode-icon">
+                <span className="material-symbols-outlined" aria-hidden="true">groups</span>
               </div>
-            </div>
-            {/*  Mode 2: Play vs Player  */}
-            <div className={`home-mode-card glass-card p-6 rounded-xl flex flex-col group h-full border-secondary/20 relative overflow-hidden ${activeModeTab !== 'player' ? 'hidden md:flex' : 'flex'}`}>
-              <div className="absolute top-0 right-0 p-2">
-                <span className="text-[10px] bg-secondary text-on-secondary-fixed px-2 py-0.5 font-black uppercase rounded-bl-sm">
-                  {t("home.competitive")}
-                </span>
+              <div className="home-mode-copy">
+                <h3>{t("home.playPlayer")}</h3>
+                <p>{t("home.playerBody")}</p>
               </div>
-              <div className="flex items-center gap-4 mb-4 mt-2 md:mt-0">
-                <div className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center bg-secondary/10 rounded-lg text-secondary group-hover:scale-110 transition-transform shrink-0">
-                  <span className="material-symbols-outlined text-2xl md:text-3xl">groups</span>
-                </div>
-                <h3 className="font-title-lg text-[20px] md:text-title-lg text-on-surface leading-tight pr-16">
-                  {t("home.playPlayer")}
-                </h3>
+              <div className="home-mode-tags">
+                <span>{t("home.matchmaking")}</span>
+                <span>{t("home.ranked")}</span>
               </div>
-              <p className="font-body-md text-body-md text-on-surface-variant mb-4 flex-grow">
-                {t("home.playerBody")}
-              </p>
-              <div className="flex flex-col gap-4">
-                <div className="flex gap-2">
-                  <span className="text-[10px] px-2 py-1 bg-secondary/20 text-secondary font-bold uppercase rounded-sm border border-secondary/20">
-                    {t("home.matchmaking")}
-                  </span>
-                </div>
-                <button 
-                  onClick={() => setPvpModeOpen(true)}
-                  className="w-full bg-secondary text-on-secondary-fixed font-label-md text-label-md py-3 rounded-sm hover:bg-secondary-container transition-all active:scale-95 tracking-widest"
-                >
-                  {t("home.joinQueue")}
-                </button>
+              <button type="button" onClick={() => setPvpModeOpen(true)} className="home-card-cta">
+                <span className="material-symbols-outlined" aria-hidden="true">travel_explore</span>
+                {t("home.joinQueue")}
+              </button>
+            </article>
+
+            <article className={`home-mode-card home-mode-room glass-card ${activeModeTab !== "room" ? "hidden md:flex" : "flex"}`}>
+              <div className="home-mode-icon">
+                <span className="material-symbols-outlined" aria-hidden="true">vpn_key</span>
               </div>
-            </div>
-            {/*  Mode 3: Create Private Room  */}
-            <div className={`home-mode-card glass-card p-6 rounded-xl flex flex-col group h-full ${activeModeTab !== 'room' ? 'hidden md:flex' : 'flex'}`}>
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center bg-secondary/10 rounded-lg text-secondary group-hover:scale-110 transition-transform shrink-0">
-                  <span className="material-symbols-outlined text-2xl md:text-3xl">
-                    key
-                  </span>
-                </div>
-                <h3 className="font-title-lg text-[20px] md:text-title-lg text-on-surface leading-tight">
-                  {t("home.privateRoom")}
-                </h3>
+              <div className="home-mode-copy">
+                <h3>{t("home.privateRoom")}</h3>
+                <p>{t("home.roomBody")}</p>
               </div>
-              <p className="font-body-md text-body-md text-on-surface-variant mb-4 flex-grow">
-                {t("home.roomBody")}
-              </p>
-              <div className="flex flex-col gap-4">
-                <div className="flex gap-2">
-                  <span className="text-[10px] px-2 py-1 bg-surface-container text-on-surface-variant font-bold uppercase rounded-sm border border-white/5">
-                    {t("home.customMatch")}
-                  </span>
-                </div>
-                <button 
-                  onClick={handleCreatePrivateRoom}
-                  disabled={roomCreating}
-                  className="w-full bg-transparent border border-secondary text-secondary font-label-md text-label-md py-3 rounded-sm hover:bg-secondary/10 transition-all active:scale-95 tracking-widest disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {roomCreating ? "Creating..." : t("home.createRoom")}
-                </button>
+              <div className="home-mode-tags">
+                <span>{t("home.customMatch")}</span>
+                <span>{t("home.roomCode")}</span>
               </div>
-            </div>
+              <button type="button" onClick={handleCreatePrivateRoom} disabled={roomCreating} className="home-card-cta is-ghost">
+                <span className="material-symbols-outlined" aria-hidden="true">add_circle</span>
+                {roomCreating ? t("home.creatingRoom") : t("home.createRoom")}
+              </button>
+            </article>
           </div>
         </section>
         {/*  Secondary Content Row  */}
         <section id="records" className="command-section-anchor">
           {/* Mobile Tabs */}
           <div className="lg:hidden flex bg-surface-container/30 rounded-lg p-1 mb-4">
-            <button 
+            <button
               onClick={() => setActiveStatsTab('record')}
               className={`flex-1 py-2 text-xs font-bold uppercase rounded-md transition-all ${activeStatsTab === 'record' ? 'bg-secondary text-on-secondary-fixed shadow-[0_0_10px_rgba(0,210,255,0.2)]' : 'text-on-surface-variant'}`}
             >
               {t("home.stats")}
             </button>
-            <button 
+            <button
               onClick={() => setActiveStatsTab('leaderboard')}
               className={`flex-1 py-2 text-xs font-bold uppercase rounded-md transition-all ${activeStatsTab === 'leaderboard' ? 'bg-secondary text-on-secondary-fixed shadow-[0_0_10px_rgba(0,210,255,0.2)]' : 'text-on-surface-variant'}`}
             >
@@ -634,16 +606,16 @@ function Home() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/*  Leaderboard Preview  */}
             <div id="leaderboard" className={`home-stats-card command-section-anchor lg:col-span-5 glass-card p-4 rounded-xl ${activeStatsTab !== 'leaderboard' ? 'hidden lg:block' : 'block'}`}>
-            <div className="flex justify-between items-center mb-4">
-              <div className="flex items-center gap-3">
-                <span className="material-symbols-outlined text-secondary">
-                  emoji_events
-                </span>
-                <h3 className="font-headline-md text-[18px] text-on-surface uppercase tracking-tight">
-                  {t("home.topCommanders") || "Top 5 Commanders"}
-                </h3>
-              </div>
-              <div className="w-32 md:w-36">
+              <div className="flex justify-between items-center mb-4">
+                <div className="flex items-center gap-3">
+                  <span className="material-symbols-outlined text-secondary">
+                    emoji_events
+                  </span>
+                  <h3 className="font-headline-md text-[18px] text-on-surface uppercase tracking-tight">
+                    {t("home.topCommanders") || "Top 5 Commanders"}
+                  </h3>
+                </div>
+                <div className="w-32 md:w-36">
                   <HomeSelect
                     value={leaderboardRank}
                     onChange={(val) => setLeaderboardRank(val)}
@@ -657,187 +629,187 @@ function Home() {
                       { value: "admiral", label: t("common.admiral") || "Admiral" },
                     ]}
                   />
+                </div>
               </div>
-            </div>
-            <div className="space-y-3">
-              {loadingLeaderboard ? (
-                <div className="text-center text-sm text-on-surface-variant p-4">{t("common.loading") || "Loading..."}</div>
-              ) : topCommanders.length === 0 ? (
-                <div className="text-center text-sm text-on-surface-variant p-4">No commanders found.</div>
-              ) : (
-                topCommanders.map((commander, idx) => {
-                  let badgeColor = "bg-white/5 text-on-surface-variant";
-                  if (idx === 0) badgeColor = "bg-[#FFD700]/20 text-[#FFD700]";
-                  else if (idx === 1) badgeColor = "bg-[#C0C0C0]/20 text-[#C0C0C0]";
-                  else if (idx === 2) badgeColor = "bg-[#CD7F32]/20 text-[#CD7F32]";
+              <div className="space-y-3">
+                {loadingLeaderboard ? (
+                  <div className="text-center text-sm text-on-surface-variant p-4">{t("common.loading") || "Loading..."}</div>
+                ) : topCommanders.length === 0 ? (
+                  <div className="text-center text-sm text-on-surface-variant p-4">{t("home.noCommandersFound") || "No commanders found."}</div>
+                ) : (
+                  topCommanders.map((commander, idx) => {
+                    let badgeColor = "bg-white/5 text-on-surface-variant";
+                    if (idx === 0) badgeColor = "bg-[#FFD700]/20 text-[#FFD700]";
+                    else if (idx === 1) badgeColor = "bg-[#C0C0C0]/20 text-[#C0C0C0]";
+                    else if (idx === 2) badgeColor = "bg-[#CD7F32]/20 text-[#CD7F32]";
 
-                  return (
-                    <div key={commander.userId} data-rank={idx + 1} className="flex items-center gap-3 p-2 bg-white/5 rounded-sm">
-                      <div className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs ${badgeColor}`}>
-                        {idx + 1}
-                      </div>
-                      <img
-                        alt="Commander Avatar"
-                        className="w-8 h-8 rounded-lg object-cover"
-                        src={getAvatarCdnUrl(commander.avatarUrl) || "https://lh3.googleusercontent.com/aida-public/AB6AXuAS3z6urK3fvR8xGr9Kiy9fDPlYG-F9al9-KmluBpXOzu-QMVa2cJjM8WubGwh014LQ2Ht813nBgJBwedr_YjpSelFZ5zVMxrPdwCgagH5NSUoCwmTVTdH3caaVlXgU6nEZm4VkHM_HDNM93d7ohZjAEuSwzNahcKHym93fnxz9pDvj6tOPU28Az03dcaXYmzdj9tHJIhng4wDDS7eWm7a9lkL7Z_aGua4YtsBpUpuYISfyBDDDYbHiFSaDXGGxGRjpgsqk6AvWlN_x"}
-                      />
-                      <div className="flex flex-col min-w-0">
-                        <span className="font-body-md text-on-surface text-sm truncate max-w-[120px] md:max-w-[150px]">
-                          {commander.username || "Unknown"}
+                    return (
+                      <div key={commander.userId} data-rank={idx + 1} className="flex items-center gap-3 p-2 bg-white/5 rounded-sm">
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs ${badgeColor}`}>
+                          {idx + 1}
+                        </div>
+                        <img
+                          alt="Commander Avatar"
+                          className="w-8 h-8 rounded-lg object-cover"
+                          src={getAvatarCdnUrl(commander.avatarUrl) || "https://lh3.googleusercontent.com/aida-public/AB6AXuAS3z6urK3fvR8xGr9Kiy9fDPlYG-F9al9-KmluBpXOzu-QMVa2cJjM8WubGwh014LQ2Ht813nBgJBwedr_YjpSelFZ5zVMxrPdwCgagH5NSUoCwmTVTdH3caaVlXgU6nEZm4VkHM_HDNM93d7ohZjAEuSwzNahcKHym93fnxz9pDvj6tOPU28Az03dcaXYmzdj9tHJIhng4wDDS7eWm7a9lkL7Z_aGua4YtsBpUpuYISfyBDDDYbHiFSaDXGGxGRjpgsqk6AvWlN_x"}
+                        />
+                        <div className="flex flex-col min-w-0">
+                          <span className="font-body-md text-on-surface text-sm truncate max-w-[120px] md:max-w-[150px]">
+                            {commander.username || "Unknown"}
+                          </span>
+                          {leaderboardRank === "all" && (
+                            <span className="text-[10px] text-on-surface-variant uppercase font-bold leading-none mt-0.5">
+                              {t(`common.${(commander.rank || "unranked").toLowerCase()}`) || commander.rank}
+                            </span>
+                          )}
+                        </div>
+                        <span className="ml-auto font-body-md text-secondary glow-text text-sm font-black">
+                          {commander.rankPoints || 0} pts
                         </span>
-                        {leaderboardRank === "all" && (
-                           <span className="text-[10px] text-on-surface-variant uppercase font-bold leading-none mt-0.5">
-                             {t(`common.${(commander.rank || "unranked").toLowerCase()}`) || commander.rank}
-                           </span>
-                        )}
                       </div>
-                      <span className="ml-auto font-body-md text-secondary glow-text text-sm font-black">
-                        {commander.rankPoints || 0} pts
+                    );
+                  })
+                )}
+              </div>
+              <button
+                onClick={() => navigate('/leaderboard')}
+                className="w-full mt-4 border border-secondary/30 text-secondary font-label-md text-[10px] py-2 rounded-sm hover:bg-secondary/5 transition-all uppercase tracking-widest"
+              >
+                {t("home.fullLeaderboard")}
+              </button>
+            </div>
+            {/*  Player Statistics Widget  */}
+            <div className={`flex flex-col gap-6 lg:col-span-7 ${activeStatsTab !== 'record' ? 'hidden lg:flex' : 'flex'}`}>
+              <div className="home-stats-card glass-card rounded-xl h-full border-l-4 border-l-secondary p-4 flex flex-col">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <span className="material-symbols-outlined text-secondary">
+                      analytics
+                    </span>
+                    <h3 className="font-headline-md text-[20px] text-on-surface">
+                      <span className="hidden md:inline">{t("home.serviceRecord")}</span>
+                      <span className="md:hidden">{t("home.stats")}</span>
+                    </h3>
+                  </div>
+                  <div className="w-36 md:w-44">
+                    <HomeSelect
+                      value={recordMode}
+                      onChange={(val) => setRecordMode(val)}
+                      options={[
+                        { value: "all", label: t("home.all") },
+                        { value: "ranked", label: t("home.ranked") },
+                      ]}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-4 flex-grow">
+                  {/* Rank Tier Banner – taste-skill elevated */}
+                  <div className={`home-rank-tier-banner ${(stats?.rank || "Unranked").toLowerCase() === "unranked" ? "is-unranked" : ""}`}>
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-[9px] font-black uppercase tracking-widest text-on-surface-variant opacity-60">
+                        {t("home.rankTier")}
+                      </span>
+                      <span className="text-[18px] font-black tracking-tight" style={{ color: (stats?.rank || "Unranked").toLowerCase() === "unranked" ? "#75dfff" : "#FFD700", textShadow: "0 0 16px currentColor" }}>
+                        {getRankInfo(stats?.rank, t).label}
                       </span>
                     </div>
-                  );
-                })
-              )}
-            </div>
-            <button
-              onClick={() => navigate('/leaderboard')}
-              className="w-full mt-4 border border-secondary/30 text-secondary font-label-md text-[10px] py-2 rounded-sm hover:bg-secondary/5 transition-all uppercase tracking-widest"
-            >
-              {t("home.fullLeaderboard")}
-            </button>
-          </div>
-          {/*  Player Statistics Widget  */}
-          <div className={`flex flex-col gap-6 lg:col-span-7 ${activeStatsTab !== 'record' ? 'hidden lg:flex' : 'flex'}`}>
-            <div className="home-stats-card glass-card rounded-xl h-full border-l-4 border-l-secondary p-4 flex flex-col">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <span className="material-symbols-outlined text-secondary">
-                    analytics
-                  </span>
-                  <h3 className="font-headline-md text-[20px] text-on-surface">
-                    <span className="hidden md:inline">{t("home.serviceRecord")}</span>
-                    <span className="md:hidden">{t("home.stats")}</span>
-                  </h3>
-                </div>
-                <div className="w-36 md:w-44">
-                  <HomeSelect
-                    value={recordMode}
-                    onChange={(val) => setRecordMode(val)}
-                    options={[
-                      { value: "all",    label: t("home.all") },
-                      { value: "ranked", label: t("home.ranked") },
-                    ]}
-                  />
-                </div>
-              </div>
-              <div className="space-y-4 flex-grow">
-                {/* Rank Tier Banner – taste-skill elevated */}
-                <div className={`home-rank-tier-banner ${(stats?.rank || "Unranked").toLowerCase() === "unranked" ? "is-unranked" : ""}`}>
-                  <div className="flex flex-col gap-0.5">
-                    <span className="text-[9px] font-black uppercase tracking-widest text-on-surface-variant opacity-60">
-                      {t("home.rankTier")}
-                    </span>
-                    <span className="text-[18px] font-black tracking-tight" style={{ color: (stats?.rank || "Unranked").toLowerCase() === "unranked" ? "#75dfff" : "#FFD700", textShadow: "0 0 16px currentColor" }}>
-                      {getRankInfo(stats?.rank, t).label}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      {(stats?.rank || "Unranked").toLowerCase() !== "unranked" && (
+                        <img
+                          src={getRankInfo(stats?.rank, t).iconUrl}
+                          alt={getRankInfo(stats?.rank, t).label}
+                          className="home-rank-tier-badge"
+                          onError={(e) => { e.target.style.display = 'none'; }}
+                        />
+                      )}
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    {(stats?.rank || "Unranked").toLowerCase() !== "unranked" && (
-                      <img 
-                        src={getRankInfo(stats?.rank, t).iconUrl} 
-                        alt={getRankInfo(stats?.rank, t).label} 
-                        className="w-14 h-14 object-contain drop-shadow-[0_0_12px_rgba(255,215,0,0.70)]" 
-                        onError={(e) => { e.target.style.display = 'none'; }}
-                      />
-                    )}
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-surface-container/30 p-4 rounded-sm border border-white/5">
-                    <p className="text-[10px] text-on-surface-variant uppercase font-bold mb-1">
-                      {t("profile.totalBattles") || "Total Battles"}
-                    </p>
-                    <p className="text-xl font-black text-on-surface">
-                      {recordMode === "all" ? (stats?.totalGames || 0) : (stats?.rankedMatches || 0)}
-                    </p>
-                  </div>
-                  <div className="bg-surface-container/30 p-4 rounded-sm border border-white/5">
-                    <p className="text-[10px] text-on-surface-variant uppercase font-bold mb-1">
-                      {t("home.victories") || "Victories"}
-                    </p>
-                    <p className="text-xl font-black text-secondary">
-                      {recordMode === "all" ? (stats?.wins || 0) : (stats?.rankedWins || 0)}
-                    </p>
-                  </div>
-                  <div className="bg-surface-container/30 p-4 rounded-sm border border-white/5">
-                    <p className="text-[10px] text-on-surface-variant uppercase font-bold mb-1">
-                      {t("home.defeats") || "Defeats"}
-                    </p>
-                    <p className="text-xl font-black text-error">
-                      {recordMode === "all" ? (stats?.losses || 0) : (stats?.rankedLosses || 0)}
-                    </p>
-                  </div>
-                  <div className="bg-surface-container/30 p-2 md:p-4 rounded-sm border border-white/5 flex items-center gap-2 md:gap-3 overflow-hidden">
-                    {/* Circular Win-Rate Arc */}
-                    {(() => {
-                      const pct = recordMode === "all"
-                        ? (stats?.totalGames > 0 ? ((stats?.wins / stats?.totalGames) * 100) : 0)
-                        : (stats?.rankedMatches > 0 ? ((stats?.rankedWins / stats?.rankedMatches) * 100) : 0);
-                      const r = 30;
-                      const circ = 2 * Math.PI * r;
-                      const offset = circ - (pct / 100) * circ;
-                      return (
-                        <div className="home-winrate-arc flex-shrink-0">
-                          <svg viewBox="0 0 80 80" width="80" height="80">
-                            <defs>
-                              <linearGradient id="winArcGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                                <stop offset="0%" stopColor="#47d6ff" />
-                                <stop offset="100%" stopColor="#a5e7ff" />
-                              </linearGradient>
-                            </defs>
-                            <circle className="arc-track" cx="40" cy="40" r={r} />
-                            <circle
-                              className="arc-fill"
-                              cx="40" cy="40" r={r}
-                              strokeDasharray={circ}
-                              strokeDashoffset={offset}
-                              style={{ transformOrigin: "40px 40px", transform: "rotate(-90deg)" }}
-                            />
-                          </svg>
-                          <div className="arc-center-text">
-                            <span className="arc-pct">{pct.toFixed(0)}<span style={{fontSize:"9px", opacity:0.7}}>%</span></span>
-                            <span className="arc-label">WIN</span>
+                  <div className="grid grid-cols-2 gap-4" style={{ gridAutoRows: "1fr" }}>
+                    <div className="bg-surface-container/30 p-4 rounded-sm border border-white/5 flex flex-col justify-center">
+                      <p className="text-[10px] text-on-surface-variant uppercase font-bold mb-1">
+                        {t("profile.totalBattles") || "Total Battles"}
+                      </p>
+                      <p className="text-xl font-black text-on-surface">
+                        {recordMode === "all" ? (stats?.totalGames || 0) : (stats?.rankedMatches || 0)}
+                      </p>
+                    </div>
+                    <div className="bg-surface-container/30 p-4 rounded-sm border border-white/5 flex flex-col justify-center">
+                      <p className="text-[10px] text-on-surface-variant uppercase font-bold mb-1">
+                        {t("home.victories") || "Victories"}
+                      </p>
+                      <p className="text-xl font-black text-secondary">
+                        {recordMode === "all" ? (stats?.wins || 0) : (stats?.rankedWins || 0)}
+                      </p>
+                    </div>
+                    <div className="bg-surface-container/30 p-4 rounded-sm border border-white/5 flex flex-col justify-center">
+                      <p className="text-[10px] text-on-surface-variant uppercase font-bold mb-1">
+                        {t("home.defeats") || "Defeats"}
+                      </p>
+                      <p className="text-xl font-black text-error">
+                        {recordMode === "all" ? (stats?.losses || 0) : (stats?.rankedLosses || 0)}
+                      </p>
+                    </div>
+                    <div className="bg-surface-container/30 p-2 md:p-4 rounded-sm border border-white/5 flex items-center gap-2 md:gap-3 overflow-hidden">
+                      {/* Circular Win-Rate Arc */}
+                      {(() => {
+                        const pct = recordMode === "all"
+                          ? (stats?.totalGames > 0 ? ((stats?.wins / stats?.totalGames) * 100) : 0)
+                          : (stats?.rankedMatches > 0 ? ((stats?.rankedWins / stats?.rankedMatches) * 100) : 0);
+                        const r = 30;
+                        const circ = 2 * Math.PI * r;
+                        const offset = circ - (pct / 100) * circ;
+                        return (
+                          <div className="home-winrate-arc flex-shrink-0">
+                            <svg viewBox="0 0 80 80" width="80" height="80">
+                              <defs>
+                                <linearGradient id="winArcGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                                  <stop offset="0%" stopColor="#47d6ff" />
+                                  <stop offset="100%" stopColor="#a5e7ff" />
+                                </linearGradient>
+                              </defs>
+                              <circle className="arc-track" cx="40" cy="40" r={r} />
+                              <circle
+                                className="arc-fill"
+                                cx="40" cy="40" r={r}
+                                strokeDasharray={circ}
+                                strokeDashoffset={offset}
+                                style={{ transformOrigin: "40px 40px", transform: "rotate(-90deg)" }}
+                              />
+                            </svg>
+                            <div className="arc-center-text">
+                              <span className="arc-pct">{pct.toFixed(0)}<span style={{ fontSize: "9px", opacity: 0.7 }}>%</span></span>
+                              <span className="arc-label">WIN</span>
+                            </div>
                           </div>
-                        </div>
-                      );
-                    })()}
-                    <div className="min-w-0 flex-1">
-                      <p className="text-[9px] md:text-[10px] text-on-surface-variant uppercase font-bold mb-0.5 md:mb-1 truncate">
-                        {t("home.winRate") || "Win Rate"}
-                      </p>
-                      <p className="text-base md:text-xl font-black text-secondary truncate">
-                        {recordMode === "all" 
-                          ? (stats?.totalGames > 0 ? ((stats?.wins / stats?.totalGames) * 100).toFixed(1) : 0)
-                          : (stats?.rankedMatches > 0 ? ((stats?.rankedWins / stats?.rankedMatches) * 100).toFixed(1) : 0)}%
-                      </p>
+                        );
+                      })()}
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[9px] md:text-[10px] text-on-surface-variant uppercase font-bold mb-0.5 md:mb-1 truncate">
+                          {t("home.winRate") || "Win Rate"}
+                        </p>
+                        <p className="text-base md:text-xl font-black text-secondary truncate">
+                          {recordMode === "all"
+                            ? (stats?.totalGames > 0 ? ((stats?.wins / stats?.totalGames) * 100).toFixed(1) : 0)
+                            : (stats?.rankedMatches > 0 ? ((stats?.rankedWins / stats?.rankedMatches) * 100).toFixed(1) : 0)}%
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="pt-4">
+                    <div className="flex justify-between text-[10px] font-bold uppercase text-on-surface-variant mb-2">
+                      <span>Điểm xếp hạng</span>
+                      <span>{stats?.rankPoints || 0}</span>
+                    </div>
+                    <div className="w-full h-2 bg-surface-container rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-secondary shadow-[0_0_10px_#a5e7ff]"
+                        style={{ width: `${Math.min(100, (stats?.rankPoints || 0) / 10)}%` }}
+                      ></div>
                     </div>
                   </div>
                 </div>
-                <div className="pt-4">
-                  <div className="flex justify-between text-[10px] font-bold uppercase text-on-surface-variant mb-2">
-                    <span>Điểm xếp hạng</span>
-                    <span>{stats?.rankPoints || 0}</span>
-                  </div>
-                  <div className="w-full h-2 bg-surface-container rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-secondary shadow-[0_0_10px_#a5e7ff]"
-                      style={{ width: `${Math.min(100, (stats?.rankPoints || 0) / 10)}%` }}
-                    ></div>
-                  </div>
-                </div>
               </div>
             </div>
-          </div>
           </div>
         </section>
       </main>

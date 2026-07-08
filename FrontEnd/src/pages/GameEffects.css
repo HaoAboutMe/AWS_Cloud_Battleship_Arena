@@ -13,7 +13,6 @@
 }
 
 .miss-dot {
-    position: absolute;
     width: 8px;
     height: 8px;
     border: 2px solid rgba(209, 246, 255, 0.8);
@@ -177,30 +176,39 @@
 .board-heading {
     position: relative;
     width: 100%;
-    height: 94px;
+    height: 80px !important;
     display: flex;
-    align-items: flex-start;
-    justify-content: center;
-    padding-top: 3px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 6px;
+    padding-top: 4px;
+}
+
+.board-heading h3 {
+    margin: 0 !important;
+    line-height: 1.2 !important;
 }
 
 .fleet-image-panel {
-    position: absolute;
-    top: 34px;
-    right: 0;
-    width: 188px;
-    height: 54px;
-    padding: 7px 8px 8px;
-    border: 1px solid rgba(92, 202, 240, 0.42);
-    background: rgba(2, 17, 30, 0.92);
-    box-shadow:
-        inset 0 0 18px rgba(16, 113, 148, 0.12),
-        0 0 14px rgba(0, 191, 255, 0.08);
-    backdrop-filter: blur(8px);
+    position: relative !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    transform: none !important;
+    margin: 0 auto !important;
+    width: 380px;
+    height: 40px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
 }
 
 .fleet-image-panel-placeholder {
     visibility: hidden;
+    height: 40px !important;
 }
 
 .enemy-fleet-panel-title {
@@ -328,31 +336,11 @@
 
 @media (max-width: 720px) {
     .board-heading {
-        height: 104px;
-    }
-
-    .fleet-image-panel {
-        top: 34px;
-        left: 50%;
-        right: auto;
-        transform: translateX(-50%);
+        height: auto !important;
     }
 }
 
-/* Wide, unframed enemy fleet strip */
-.fleet-image-panel {
-    top: 38px;
-    left: 50%;
-    right: auto;
-    width: 380px;
-    height: 60px;
-    padding: 0;
-    border: 0;
-    background: transparent;
-    box-shadow: none;
-    backdrop-filter: none;
-    transform: translateX(-50%);
-}
+
 
 .fleet-image-list {
     grid-template-columns: repeat(var(--fleet-count, 5), minmax(48px, 64px));
@@ -360,13 +348,13 @@
     align-items: center;
     gap: 10px;
     width: 100%;
-    height: 54px;
+    height: 36px !important;
     overflow: visible;
 }
 
 .fleet-shape-item {
-    min-height: 46px;
-    padding: 5px 0 8px;
+    min-height: 32px !important;
+    padding: 2px 0 3px !important;
     overflow: visible;
     border: 0;
     background: transparent;
@@ -390,7 +378,7 @@
 
 .fleet-image-panel-placeholder {
     width: 380px;
-    height: 60px;
+    height: 40px !important;
 }
 
 .game-main {
@@ -414,47 +402,47 @@
     align-items: center;
     justify-content: center;
     gap: 8px;
-    min-height: 36px;
-    padding: 7px 14px;
-    overflow: hidden;
-    border: 1px solid rgba(255, 126, 132, 0.4);
-    border-radius: 8px;
-    color: #ffafb2;
-    background:
-        linear-gradient(180deg, rgba(92, 31, 43, 0.48), rgba(33, 13, 23, 0.76));
-    box-shadow:
-        inset 0 1px rgba(255, 220, 222, 0.07),
-        0 8px 22px rgba(0, 0, 0, 0.2);
-    font-size: 10px;
-    font-weight: 900;
+    padding: 8px 16px !important;
+    border-radius: 4px !important;
+    font-size: 11px !important;
+    font-weight: 900 !important;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    transition: transform 160ms ease, color 160ms ease, border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
+    background: #ef4444 !important;
+    color: #ffffff !important;
+    border: 2px solid #02121d !important;
+    box-shadow: 3px 3px 0 #02121d !important;
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+    cursor: pointer;
 }
 
 .pvp-leave-match-button::before {
-    position: absolute;
-    inset: 0;
-    content: "";
-    background: linear-gradient(105deg, transparent 20%, rgba(255, 255, 255, 0.1) 48%, transparent 76%);
-    transform: translateX(-130%);
-    transition: transform 320ms ease;
+    display: none !important;
 }
 
 .pvp-leave-match-button:hover {
-    transform: translateY(-1px);
-    border-color: rgba(255, 134, 139, 0.78);
-    color: #ffe1e2;
-    background: linear-gradient(180deg, rgba(132, 39, 53, 0.68), rgba(56, 15, 28, 0.9));
-    box-shadow: 0 0 20px rgba(255, 74, 84, 0.18), 0 10px 24px rgba(0, 0, 0, 0.25);
-}
-
-.pvp-leave-match-button:hover::before {
-    transform: translateX(130%);
+    transform: translate(-1px, -1px);
+    box-shadow: 4px 4px 0 #02121d !important;
 }
 
 .pvp-leave-match-button:active {
-    transform: translateY(0) scale(0.97);
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 0 #02121d !important;
+}
+
+.light-mode-active .pvp-leave-match-button {
+    background: #dc2626 !important;
+    color: #ffffff !important;
+    border: 2px solid #10283a !important;
+    box-shadow: 3px 3px 0 #10283a !important;
+}
+
+.light-mode-active .pvp-leave-match-button:hover {
+    box-shadow: 4px 4px 0 #10283a !important;
+}
+
+.light-mode-active .pvp-leave-match-button:active {
+    box-shadow: 1px 1px 0 #10283a !important;
 }
 
 .pvp-leave-match-button .material-symbols-outlined {
@@ -562,7 +550,7 @@
 }
 
 .pvp-game-main .ocean-board-surface {
-    overflow: visible;
+    overflow: hidden;
 }
 
 .pvp-game-main .ocean-board-surface::before,
@@ -607,7 +595,7 @@
 }
 
 .board-heading {
-    height: 100px;
+    height: 68px;
 }
 
 @media (max-width: 720px) {
@@ -636,8 +624,37 @@
 
     .game-status {
         min-height: auto;
-        padding: 6px 12px;
+        padding: 6px 10px;
         margin-bottom: 6px;
+    }
+
+    .turn-badge-deploying,
+    .turn-badge-player,
+    .turn-badge-bot,
+    .turn-badge-victory,
+    .turn-badge-defeat {
+        padding: 5px 10px !important;
+        font-size: 10px !important;
+        letter-spacing: 0.05em !important;
+        box-shadow: 2px 2px 0 #02121d !important;
+    }
+
+    .light-mode-active .turn-badge-deploying,
+    .light-mode-active .turn-badge-player,
+    .light-mode-active .turn-badge-bot,
+    .light-mode-active .turn-badge-victory,
+    .light-mode-active .turn-badge-defeat {
+        box-shadow: 2px 2px 0 #10283a !important;
+    }
+
+    html:not(.light-mode-active) .turn-badge-deploying,
+    html:not(.light-mode-active) .turn-badge-player,
+    html:not(.light-mode-active) .turn-badge-bot,
+    html:not(.light-mode-active) .turn-badge-victory,
+    html:not(.light-mode-active) .turn-badge-defeat {
+        border: 2px solid #ffffff !important;
+        box-shadow: 2px 2px 0 #ffffff !important;
+        color: #ffffff !important;
     }
 
     .board-heading {
@@ -713,11 +730,11 @@
     }
 
     .board-heading {
-        height: 94px;
+        height: 80px !important;
     }
 
     .fleet-image-panel {
-        top: 34px;
+        top: 0 !important;
     }
 }
 
@@ -730,22 +747,20 @@
 }
 
 .ocean-cell {
-    background:
-        radial-gradient(ellipse at 65% 18%, rgba(62, 143, 164, 0.15), transparent 48%),
-        linear-gradient(150deg, rgba(20, 60, 80, 0.65), rgba(10, 35, 50, 0.75)) !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    backdrop-filter: blur(1px);
+    -webkit-backdrop-filter: blur(1px);
     box-shadow:
-        inset 0 0 10px rgba(0, 0, 0, 0.2),
-        inset 0 1px 0 rgba(94, 169, 190, 0.2) !important;
+        inset 0 0 10px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
     transition: all 0.2s ease-out;
 }
 
 .ocean-cell:hover {
-    background:
-        radial-gradient(ellipse at 65% 18%, rgba(100, 200, 255, 0.25), transparent 48%),
-        linear-gradient(150deg, rgba(30, 80, 100, 0.75), rgba(15, 50, 70, 0.85)) !important;
+    background: rgba(255, 255, 255, 0.15) !important;
     box-shadow:
-        inset 0 0 15px rgba(0, 200, 255, 0.2),
-        inset 0 1px 0 rgba(100, 200, 255, 0.4) !important;
+        inset 0 0 15px rgba(255, 255, 255, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
 }
 
 .ocean-board-surface {
@@ -807,15 +822,11 @@
 }
 
 .ocean-board-surface .ocean-cell {
-    background:
-        radial-gradient(ellipse at 65% 18%, rgba(62, 143, 164, 0.12), transparent 48%),
-        linear-gradient(150deg, rgba(15, 55, 75, 0.56), rgba(5, 25, 40, 0.68)) !important;
+    background: rgba(255, 255, 255, 0.03) !important;
 }
 
 .ocean-board-surface .ocean-cell:hover {
-    background:
-        radial-gradient(ellipse at 65% 18%, rgba(100, 200, 255, 0.25), transparent 48%),
-        linear-gradient(150deg, rgba(30, 80, 100, 0.75), rgba(15, 50, 70, 0.85)) !important;
+    background: rgba(255, 255, 255, 0.15) !important;
 }
 
 @keyframes ocean-texture-drift {
@@ -876,11 +887,21 @@
 }
 
 .shot-miss .miss-dot {
-    width: 6px;
-    height: 6px;
-    border: 0;
-    background: rgba(125, 177, 193, 0.46);
-    box-shadow: 0 0 3px rgba(69, 137, 158, 0.3);
+    width: 8px;
+    height: 8px;
+    border: 1px solid #ffffff;
+    background: #86e8ff;
+    box-shadow: 0 0 6px rgba(134, 232, 255, 0.8);
+    border-radius: 50%;
+}
+
+.light-mode-active .shot-miss .miss-dot {
+    width: 9px !important;
+    height: 9px !important;
+    border: 1.5px solid #ffffff !important;
+    background: #0077a6 !important;
+    box-shadow: 0 0 6px rgba(0, 119, 166, 0.6) !important;
+    border-radius: 50% !important;
 }
 
 .shot-hit {
@@ -902,12 +923,12 @@
     mix-blend-mode: normal;
 }
 
-.player-ship-cell {
-    background:
-        radial-gradient(circle at center, rgba(8, 38, 48, 0.72), rgba(2, 12, 22, 0.98) 72%) !important;
+.ocean-board-surface .ocean-cell.player-ship-cell {
+    background: rgba(134, 232, 255, 0.16) !important;
+    border: 1.5px solid rgba(134, 232, 255, 0.45) !important;
     box-shadow:
-        inset 0 0 16px rgba(0, 0, 0, 0.937),
-        inset 0 0 6px rgba(20, 118, 148, 0.623) !important;
+        inset 0 0 12px rgba(0, 0, 0, 0.4),
+        inset 0 0 5px rgba(134, 232, 255, 0.3) !important;
 }
 
 .ocean-board-surface .ocean-cell.drag-target-cell-valid {
@@ -1067,7 +1088,7 @@
 
 .deployment-ship-size {
     color: rgba(124, 190, 211, 0.58);
-    font-size: 8px;
+    font-size: 9px;
     font-weight: 700;
     text-transform: uppercase;
 }
@@ -1254,25 +1275,146 @@
     align-items: center;
     justify-content: center;
     gap: 8px;
-    border: 1px solid rgba(117, 216, 243, 0.42);
-    border-radius: 4px;
-    background: rgba(49, 147, 178, 0.16);
-    color: #9ee6fb;
+    text-transform: uppercase;
+    border: 2px solid #020b14;
+    border-radius: 8px;
+    background: #1877f2;
+    color: #ffffff;
     font-size: 11px;
     font-weight: 900;
     letter-spacing: 0;
     cursor: pointer;
-    transition: background-color 140ms ease, border-color 140ms ease;
+    box-shadow: 3px 3px 0 var(--game-shadow, #ffffff);
+    transition: transform 140ms ease, box-shadow 140ms ease, border-color 140ms ease, background-color 140ms ease;
 }
 
-.auto-arrange-button:hover {
-    border-color: rgba(154, 232, 252, 0.72);
-    background: rgba(56, 168, 201, 0.27);
+.auto-arrange-button:hover:not(:disabled) {
+    transform: translate(-2px, -2px);
+    box-shadow: 5px 5px 0 var(--game-shadow, #ffffff);
+    background: #166ae0;
+}
+
+.auto-arrange-button:active:not(:disabled) {
+    transform: translate(1px, 1px);
+    box-shadow: 2px 2px 0 var(--game-shadow, #ffffff);
+}
+
+.auto-arrange-button.is-orange {
+    background: #ff6b4a;
+}
+
+.auto-arrange-button.is-orange:hover:not(:disabled) {
+    background: #fa5d3a;
 }
 
 .auto-arrange-button:disabled {
     cursor: not-allowed;
     opacity: 0.45;
+    transform: none !important;
+    box-shadow: 3px 3px 0 var(--game-shadow, #ffffff) !important;
+}
+
+html:not(.light-mode-active) .auto-arrange-button:disabled {
+    background: #10283a;
+    color: rgba(255, 255, 255, 0.4);
+    border-color: #10283a;
+    box-shadow: none;
+    transform: none;
+}
+
+/* Custom Shipyard Brush Buttons */
+.custom-shipyard-brush-btn {
+    border: 2px solid #020b14;
+    border-radius: 8px;
+    background: rgba(4, 25, 39, 0.65);
+    color: #ffffff;
+    cursor: pointer;
+    box-shadow: 2px 2px 0 var(--game-shadow, #ffffff);
+    transition: transform 140ms ease, box-shadow 140ms ease, border-color 140ms ease, background-color 140ms ease;
+    overflow: hidden;
+    outline: none;
+    -webkit-appearance: none;
+    background-clip: padding-box;
+}
+
+.custom-shipyard-brush-btn:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 3px 3px 0 var(--game-shadow, #ffffff);
+    background: rgba(12, 45, 65, 0.85);
+}
+
+.custom-shipyard-brush-btn:active {
+    transform: translate(1px, 1px);
+    box-shadow: 1px 1px 0 var(--game-shadow, #ffffff);
+}
+
+.custom-shipyard-brush-btn.is-active-brush {
+    background: color-mix(in srgb, var(--brush-color, #75dfff) 25%, rgba(4, 25, 39, 0.65));
+    box-shadow: 3px 3px 0 var(--brush-color, #75dfff);
+    transform: translate(-2px, -2px);
+}
+
+.custom-shipyard-brush-btn.is-active-brush:active {
+    transform: translate(1px, 1px);
+    box-shadow: 1px 1px 0 var(--brush-color, #75dfff);
+}
+
+.custom-shipyard-brush-btn.is-invalid-brush {
+    border-color: #ef4444;
+}
+
+.custom-shipyard-brush-label {
+    color: rgba(255, 255, 255, 0.7);
+    transition: color 140ms ease;
+}
+
+.custom-shipyard-brush-count {
+    color: rgba(255, 255, 255, 0.5);
+    transition: color 140ms ease;
+}
+
+.custom-shipyard-brush-btn.is-active-brush .custom-shipyard-brush-label {
+    color: var(--brush-color, #75dfff);
+}
+
+.custom-shipyard-brush-btn.is-invalid-brush .custom-shipyard-brush-label,
+.custom-shipyard-brush-btn.is-invalid-brush .custom-shipyard-brush-count {
+    color: #ef4444;
+}
+
+.light-mode-active .custom-shipyard-brush-btn {
+    background: #ffffff;
+    border-color: #10283a;
+    color: #10283a;
+}
+
+.light-mode-active .custom-shipyard-brush-btn.is-active-brush {
+    background: color-mix(in srgb, var(--brush-color, #1167d8) 15%, #ffffff);
+}
+
+.light-mode-active .custom-shipyard-brush-label {
+    color: rgba(16, 40, 58, 0.7);
+}
+
+.light-mode-active .custom-shipyard-brush-count {
+    color: rgba(16, 40, 58, 0.5);
+}
+
+html:not(.light-mode-active) .auto-arrange-button {
+    border-color: #ffffff;
+    box-shadow: 3px 3px 0 #ffffff;
+}
+
+html:not(.light-mode-active) .auto-arrange-button:hover:not(:disabled) {
+    box-shadow: 5px 5px 0 #ffffff;
+}
+
+html:not(.light-mode-active) .auto-arrange-button:active:not(:disabled) {
+    box-shadow: 2px 2px 0 #ffffff;
+}
+
+html:not(.light-mode-active) .auto-arrange-button:disabled {
+    box-shadow: 3px 3px 0 #ffffff !important;
 }
 
 .auto-arrange-button .material-symbols-outlined {
@@ -1335,12 +1477,18 @@
     background: radial-gradient(circle at center, rgba(72, 19, 12, 0.3), transparent 66%);
 }
 
-box-shadow {
-    inset: 0 0 8px rgba(0, 0, 0, 0.98), 0 0 4px rgba(255, 74, 24, 0.55);
+/* Light mode overrides for thermal/molten hit effect */
+.light-mode-active .hit-static-mark {
+    background:
+        radial-gradient(circle at 46% 43%, #1c120c 0 16%, #d33b25 35%, #e68200 50%, rgba(45, 30, 20, 0.76) 72%, transparent 90%) !important;
+    box-shadow:
+        inset 0 0 5px rgba(0, 0, 0, 0.65),
+        inset 0 0 2px rgba(255, 255, 255, 0.35),
+        0 0 5px rgba(211, 59, 37, 0.45) !important;
 }
 
-.shot-hit {
-    background: radial-gradient(circle at center, rgba(72, 19, 12, 0.3), transparent 66%);
+.light-mode-active .shot-hit {
+    background: radial-gradient(circle at center, rgba(211, 59, 37, 0.12), transparent 70%) !important;
 }
 
 /* Custom Shipyard Painted Cells */
@@ -1372,10 +1520,10 @@ box-shadow {
    LIGHT MODE OVERRIDES FOR GAME PAGE
    ========================================= */
 .light-mode-active .game-shell {
-    background: 
-      radial-gradient(ellipse at 50% 18%, rgba(0, 119, 182, 0.08), transparent 46%),
-      repeating-linear-gradient(172deg, rgba(0, 168, 232, 0.035) 0 1px, transparent 2px 13px),
-      linear-gradient(180deg, #f4f9fb 0%, #e8f4f8 58%, #dcf0f7 100%) !important;
+    background:
+        radial-gradient(ellipse at 50% 18%, rgba(0, 119, 182, 0.08), transparent 46%),
+        repeating-linear-gradient(172deg, rgba(0, 168, 232, 0.035) 0 1px, transparent 2px 13px),
+        linear-gradient(180deg, #f4f9fb 0%, #e8f4f8 58%, #dcf0f7 100%) !important;
     color: #173247 !important;
 }
 
@@ -1414,24 +1562,7 @@ box-shadow {
     text-shadow: none !important;
 }
 
-.light-mode-active .auto-arrange-button {
-    background: linear-gradient(135deg, #0077b6, #005a8c) !important;
-    color: #ffffff !important;
-    border-color: transparent !important;
-    font-weight: 900 !important;
-    box-shadow: 0 8px 25px rgba(0, 119, 182, 0.35) !important;
-}
 
-.light-mode-active .auto-arrange-button:hover:not(:disabled) {
-    background: linear-gradient(135deg, #0088cc, #006093) !important;
-    box-shadow: 0 12px 30px rgba(0, 119, 182, 0.45) !important;
-}
-
-.light-mode-active .auto-arrange-button:disabled {
-    background: rgba(0, 119, 182, 0.2) !important;
-    color: rgba(255, 255, 255, 0.8) !important;
-    box-shadow: none !important;
-}
 
 .light-mode-active .deployment-ship-card {
     background: #ffffff !important;
@@ -1462,48 +1593,81 @@ box-shadow {
 }
 
 .light-mode-active .ocean-board-surface {
-    background: #e1eff5 !important;
+    background: transparent !important;
     border: 1px solid rgba(0, 119, 182, 0.25) !important;
-    border-radius: 8px;
+    border-radius: 0 !important;
     box-shadow: inset 0 0 25px rgba(0, 119, 182, 0.08), 0 15px 40px rgba(0, 53, 74, 0.12) !important;
 }
 
 .light-mode-active .ocean-board-surface::before {
-    background: 
-        linear-gradient(rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.7)),
-        url("../assets/ocean/deep-ocean-texture.webp") !important;
+    background:
+        linear-gradient(rgba(233, 250, 255, 0.22), rgba(111, 196, 219, 0.24)),
+        url("../assets/ocean/light-ocean-texture.webp") !important;
     background-size: 100% 100%, 620px 620px !important;
-    filter: saturate(1.2) brightness(1.1) contrast(0.9) !important;
+    filter: saturate(0.98) brightness(0.96) contrast(1.02) !important;
+    animation: light-ocean-texture-drift 8s ease-in-out infinite alternate !important;
 }
 
 .light-mode-active .ocean-board-surface::after {
-    display: none !important;
+    display: block !important;
+    background:
+        url("../assets/ocean/light-ocean-texture.webp") !important;
+    background-size: 540px 540px !important;
+    background-position: 80px 45px !important;
+    opacity: 0.34 !important;
+    mix-blend-mode: multiply !important;
+    filter: saturate(1.04) brightness(0.98) blur(0.45px) !important;
+    animation: light-ocean-highlight-drift 5s ease-in-out infinite alternate-reverse !important;
+}
+
+@keyframes light-ocean-texture-drift {
+    0% {
+        background-position: 0 0, -72px -46px;
+        transform: translate3d(-3%, -2%, 0) scale(1.1);
+    }
+
+    100% {
+        background-position: 0 0, 96px 68px;
+        transform: translate3d(3%, 2%, 0) scale(1.14);
+    }
+}
+
+@keyframes light-ocean-highlight-drift {
+    0% {
+        background-position: 112px 64px;
+        transform: translate3d(-4%, 2%, 0) scale(1.05);
+        opacity: 0.24;
+    }
+
+    100% {
+        background-position: -92px -58px;
+        transform: translate3d(4%, -2%, 0) scale(1.12);
+        opacity: 0.38;
+    }
 }
 
 .light-mode-active .ocean-cell {
-    background: 
-        radial-gradient(ellipse at 65% 18%, rgba(255, 255, 255, 0.6), transparent 48%),
-        linear-gradient(150deg, rgba(200, 230, 245, 0.7), rgba(160, 210, 235, 0.8)) !important;
-    box-shadow: 
+    background: rgba(255, 255, 255, 0.18) !important;
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    box-shadow:
         inset 0 0 10px rgba(0, 119, 182, 0.05),
         inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
 }
 
 .light-mode-active .ocean-cell:hover {
-    background: 
-        radial-gradient(ellipse at 65% 18%, rgba(255, 255, 255, 0.8), transparent 48%),
-        linear-gradient(150deg, rgba(220, 240, 250, 0.9), rgba(180, 220, 245, 0.9)) !important;
-    box-shadow: 
+    background: rgba(255, 255, 255, 0.45) !important;
+    box-shadow:
         inset 0 0 15px rgba(0, 119, 182, 0.15),
         inset 0 1px 0 rgba(255, 255, 255, 1) !important;
 }
 
-.light-mode-active .player-ship-cell {
-    background: 
-        radial-gradient(circle at center, rgba(0, 119, 182, 0.85), rgba(0, 53, 74, 0.95)) !important;
-    box-shadow: 
-        inset 0 0 16px rgba(0, 0, 0, 0.4),
-        inset 0 0 6px rgba(100, 200, 255, 0.8) !important;
+.light-mode-active .ocean-board-surface .ocean-cell.player-ship-cell {
+    background: rgba(0, 119, 166, 0.16) !important;
+    border: 1.5px solid rgba(0, 119, 166, 0.6) !important;
+    box-shadow:
+        inset 0 0 12px rgba(0, 50, 70, 0.18),
+        inset 0 0 5px rgba(0, 119, 166, 0.3) !important;
 }
 
 .light-mode-active .fleet-rule-panel {
@@ -1555,6 +1719,7 @@ box-shadow {
 .light-mode-active .border-white\/10 {
     border-color: rgba(0, 119, 182, 0.15) !important;
 }
+
 /* =========================================
    LIGHT MODE OVERRIDES FOR PVP PANELS
    ========================================= */
@@ -1565,9 +1730,11 @@ box-shadow {
 }
 
 .light-mode-active .pvp-command-strip {
-    background: rgba(255, 255, 255, 0.95) !important;
-    border-color: rgba(0, 119, 182, 0.25) !important;
-    box-shadow: 0 15px 40px rgba(0, 53, 74, 0.12), 0 5px 15px rgba(0, 53, 74, 0.06) !important;
+    border: 2.5px solid #10283a !important;
+    background: rgba(255, 255, 255, 0.65) !important;
+    box-shadow: 4px 4px 0 #10283a !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
 }
 
 .light-mode-active .pvp-strip-player {
@@ -1600,36 +1767,6 @@ box-shadow {
     text-shadow: none !important;
 }
 
-.light-mode-active .pvp-command-strip-bottom {
-    background: #e1eff5 !important;
-    border-top: 1px solid rgba(0, 119, 182, 0.2) !important;
-}
-
-.light-mode-active .pvp-strip-status-text {
-    color: #00354a !important;
-    font-weight: 800 !important;
-}
-
-.light-mode-active .pvp-comms-tabbar {
-    background: rgba(255, 255, 255, 0.95) !important;
-    border: none !important;
-}
-
-.light-mode-active .pvp-comms-tab {
-    color: #2b4f61 !important;
-    font-weight: 800 !important;
-    border-bottom: 2px solid transparent !important;
-}
-
-.light-mode-active .pvp-comms-tab:hover {
-    background: rgba(0, 119, 182, 0.06) !important;
-}
-
-.light-mode-active .pvp-comms-tab.is-active {
-    color: #006093 !important;
-    border-bottom-color: #0077b6 !important;
-    background: rgba(0, 119, 182, 0.1) !important;
-}
 
 .light-mode-active .pvp-comms-body {
     background: rgba(255, 255, 255, 0.9) !important;
@@ -1641,9 +1778,7 @@ box-shadow {
     box-shadow: none !important;
 }
 
-.light-mode-active .pvp-sidebar-column .glass-card,
-.light-mode-active .pvp-comms-panel,
-.light-mode-active .pvp-comms-panel * {
+.light-mode-active .pvp-sidebar-column .glass-card {
     border-color: transparent !important;
 }
 
@@ -1736,19 +1871,7 @@ box-shadow {
     color: #00354a !important;
 }
 
-.light-mode-active .pvp-strip-center,
-.light-mode-active .pvp-strip-center.is-deploying {
-    background-color: transparent !important;
-    border-color: rgba(0, 119, 182, 0.25) !important;
-    box-shadow: none !important;
-    color: #0077b6 !important;
-}
 
-.light-mode-active .pvp-strip-center-label,
-.light-mode-active .pvp-strip-center-icon {
-    color: #0077b6 !important;
-    font-weight: 800 !important;
-}
 
 .light-mode-active .pvp-comms-empty {
     color: #4a6773 !important;
@@ -1867,7 +1990,7 @@ box-shadow {
 /* Fix the pale white labels */
 .light-mode-active .fleet-rule-panel .order-1 span:first-child,
 .light-mode-active .fleet-rule-panel .order-2 span:first-child,
-.light-mode-active .fleet-rule-panel .order-1 > span:last-child {
+.light-mode-active .fleet-rule-panel .order-1>span:last-child {
     color: #4a6773 !important;
     text-shadow: none !important;
 }
@@ -1891,8 +2014,8 @@ box-shadow {
 }
 
 /* Ship Size breakdown chips */
-.light-mode-active .fleet-rule-panel > div[style*="flex-wrap: wrap"] > span,
-.light-mode-active .fleet-rule-panel > div[style*="flexWrap: wrap"] > span,
+.light-mode-active .fleet-rule-panel>div[style*="flex-wrap: wrap"]>span,
+.light-mode-active .fleet-rule-panel>div[style*="flexWrap: wrap"]>span,
 .light-mode-active .fleet-rule-panel span[style*="padding: 3px 8px"] {
     filter: brightness(0.65) saturate(1.5) !important;
     font-weight: 900 !important;
@@ -1927,6 +2050,7 @@ box-shadow {
     border-color: rgba(30, 140, 200, 1) !important;
     filter: none !important;
 }
+
 .light-mode-active button.brush-1.is-active-brush span {
     color: rgba(20, 110, 170, 1) !important;
     font-weight: 900 !important;
@@ -1938,6 +2062,7 @@ box-shadow {
     border-color: rgba(34, 180, 80, 1) !important;
     filter: none !important;
 }
+
 .light-mode-active button.brush-2.is-active-brush span {
     color: rgba(24, 140, 60, 1) !important;
     font-weight: 900 !important;
@@ -1949,6 +2074,7 @@ box-shadow {
     border-color: rgba(220, 150, 20, 1) !important;
     filter: none !important;
 }
+
 .light-mode-active button.brush-3.is-active-brush span {
     color: rgba(180, 120, 10, 1) !important;
     font-weight: 900 !important;
@@ -1960,6 +2086,7 @@ box-shadow {
     border-color: rgba(160, 90, 220, 1) !important;
     filter: none !important;
 }
+
 .light-mode-active button.brush-4.is-active-brush span {
     color: rgba(130, 70, 190, 1) !important;
     font-weight: 900 !important;
@@ -1996,7 +2123,7 @@ box-shadow {
     --shipyard-text-faded: #5a7d8f;
     --shipyard-highlight: #0077b6;
     --shipyard-bar-bg: rgba(0, 119, 182, 0.15);
-    
+
     /* Variables for "5 cells", "3 cells" text */
     --shipyard-sunk-text: #cc0000;
     --shipyard-active-text: #087eaf;
@@ -2021,5 +2148,1876 @@ box-shadow {
     color: #cc0000;
     text-shadow: none;
 }
+
+
+.pvp-comms-tabbar {
+    gap: 8px !important;
+}
+
+.pvp-comms-tab {
+    flex: 1 !important;
+    justify-content: center !important;
+    margin-top: 4px !important;
+    border: 2px solid #02121d !important;
+    border-radius: 9999px !important;
+    background: transparent !important;
+    color: rgba(218, 236, 248, 0.68) !important;
+    transition: transform 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease !important;
+    box-shadow: none !important;
+    transform: translateY(0);
+}
+
+.pvp-comms-tab:hover {
+    transform: translateY(-2px) !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: #ffffff !important;
+    box-shadow: 2px 2px 0 var(--game-shadow) !important;
+}
+
+.pvp-comms-tab.is-active {
+    transform: translateY(-3px) !important;
+    background: #ffffff !important;
+    color: #020812 !important;
+    border-color: #02121d !important;
+    box-shadow: 3px 3px 0 var(--game-shadow) !important;
+}
+
+.light-mode-active .pvp-comms-tab {
+    border: 2px solid #10283a !important;
+    color: rgba(8, 38, 58, 0.68) !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+.light-mode-active .pvp-comms-tab:hover {
+    background: rgba(0, 0, 0, 0.05) !important;
+    color: #10283a !important;
+    box-shadow: 2px 2px 0 #10283a !important;
+}
+
+.light-mode-active .pvp-comms-tab.is-active {
+    background: #10283a !important;
+    color: #ffffff !important;
+    box-shadow: 3px 3px 0 #10283a !important;
+}
+
+.pvp-comms-body,
+.light-mode-active .pvp-comms-body {
+    background: var(--game-panel) !important;
+}
+
+.pvp-event-entry,
+.light-mode-active .pvp-event-entry {
+    border-left: 3px solid var(--game-accent) !important;
+    color: var(--game-ink) !important;
+    background-color: var(--game-panel-2) !important;
+    border-radius: 6px !important;
+    margin: 6px 12px !important;
+    border-right: 1px solid var(--game-ink) !important;
+    border-top: 1px solid var(--game-ink) !important;
+    border-bottom: 1px solid var(--game-ink) !important;
+    box-shadow: 2px 2px 0 var(--game-ink) !important;
+}
+
+.pvp-event-entry.is-destroy,
+.pvp-event-entry.is-victory,
+.light-mode-active .pvp-event-entry.is-destroy,
+.light-mode-active .pvp-event-entry.is-victory {
+    border-color: var(--game-success) !important;
+    background-color: rgba(54, 255, 176, 0.1) !important;
+}
+
+.pvp-event-entry.is-enemy_hit,
+.pvp-event-entry.is-defeat,
+.light-mode-active .pvp-event-entry.is-enemy_hit,
+.light-mode-active .pvp-event-entry.is-defeat {
+    border-color: var(--game-danger) !important;
+    background-color: rgba(255, 122, 114, 0.1) !important;
+}
+
+/* ==========================================================================
+   NEO-BRUTALIST SKIN OVERRIDES FOR GAME PLAY PAGE (DARK & LIGHT THEMES)
+   ========================================================================== */
+
+/* Game header custom styling */
+.game-header-difficulty {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 850;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #75dfff;
+    background: rgba(11, 42, 57, 0.8) !important;
+    border: 2px solid #75dfff !important;
+    padding: 6px 12px;
+    border-radius: 8px;
+    box-shadow: 3px 3px 0 var(--game-shadow) !important;
+}
+
+.light-mode-active .game-header-difficulty {
+    color: #10283a !important;
+    background: #ffffff !important;
+    border: 2px solid #10283a !important;
+    box-shadow: 3px 3px 0 #10283a !important;
+}
+
+.game-header-home-btn {
+    color: #75dfff !important;
+    background: rgba(11, 42, 57, 0.8) !important;
+    border: 2px solid #75dfff !important;
+    border-radius: 8px !important;
+    padding: 6px 10px !important;
+    transition: all 0.2s !important;
+    box-shadow: 3px 3px 0 var(--game-shadow) !important;
+    text-decoration: none !important;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+}
+
+.light-mode-active .game-header-home-btn {
+    color: #10283a !important;
+    background: #ffffff !important;
+    border: 2px solid #10283a !important;
+    box-shadow: 3px 3px 0 #10283a !important;
+}
+
+/* Coordinate label high contrast */
+.coordinate-label {
+    color: #75dfff !important;
+    font-family: var(--font-mono) !important;
+    font-size: 12px !important;
+    font-weight: 850 !important;
+    text-shadow: 0 0 6px rgba(117, 223, 255, 0.3) !important;
+}
+
+.light-mode-active .coordinate-label {
+    color: #10283a !important;
+    text-shadow: none !important;
+}
+
+/* Premium Neo-Brutalist Cards */
+/* Premium Glassmorphic Cards & Panels with Neo-Brutalist Shadows */
+.game-status {
+    background: linear-gradient(135deg, rgba(8, 28, 42, 0.65), rgba(3, 14, 23, 0.85)) !important;
+    border: 2.5px solid #75dfff !important;
+    box-shadow: 4px 4px 0 var(--game-shadow) !important;
+    border-radius: 16px !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    transition: all 0.2s ease !important;
+}
+
+.game-status:hover {
+    border-color: #8beaff !important;
+    box-shadow: 4px 4px 0 var(--game-shadow) !important;
+}
+
+.light-mode-active .game-status {
+    background: rgba(255, 255, 255, 0.65) !important;
+    border: 2.5px solid #10283a !important;
+    box-shadow: 4px 4px 0 #10283a !important;
+}
+
+.light-mode-active .game-status:hover {
+    border-color: #10283a !important;
+    box-shadow: 4px 4px 0 #10283a !important;
+}
+
+.deployment-dock {
+    background: linear-gradient(135deg, rgba(8, 28, 42, 0.65), rgba(3, 14, 23, 0.85)) !important;
+    border: 2.5px solid #75dfff !important;
+    box-shadow: 4px 4px 0 var(--game-shadow) !important;
+    border-radius: 16px !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    padding: 18px !important;
+    max-width: 440px !important;
+    height: auto !important;
+    max-height: min(540px, calc(100vh - 200px)) !important;
+}
+
+/* Fix height for custom shipyard on mobile to prevent layout jitter when drawing */
+@media (max-width: 1023px) {
+    .deployment-dock.is-custom-shipyard {
+        height: 290px !important;
+        min-height: 290px !important;
+    }
+}
+
+.light-mode-active .deployment-dock {
+    background: rgba(255, 255, 255, 0.65) !important;
+    border: 2.5px solid #10283a !important;
+    box-shadow: 4px 4px 0 #10283a !important;
+}
+
+/* Staging Ship cards */
+.deployment-ship-card {
+    border: 1px solid rgba(117, 223, 255, 0.18) !important;
+    background: rgba(4, 25, 39, 0.45) !important;
+    border-radius: 10px !important;
+    box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.2) !important;
+    backdrop-filter: blur(4px) !important;
+    -webkit-backdrop-filter: blur(4px) !important;
+    transition: all 0.2s ease !important;
+}
+
+.deployment-ship-card:hover:not(.is-placed) {
+    border-color: rgba(117, 223, 255, 0.5) !important;
+    background: rgba(11, 42, 57, 0.65) !important;
+    box-shadow: 0 4px 15px rgba(117, 223, 255, 0.1) !important;
+    transform: translateY(-1px) !important;
+}
+
+.light-mode-active .deployment-ship-card {
+    border: 1.5px solid rgba(16, 40, 58, 0.15) !important;
+    background: rgba(255, 255, 255, 0.6) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
+}
+
+.light-mode-active .deployment-ship-card:hover:not(.is-placed) {
+    background: rgba(0, 119, 182, 0.05) !important;
+    border-color: rgba(0, 119, 182, 0.3) !important;
+    box-shadow: 0 4px 12px rgba(0, 119, 182, 0.06) !important;
+    transform: translateY(-1px) !important;
+}
+
+/* Right-side Log Panel */
+.pvp-comms-panel {
+    border: 2.5px solid #75dfff !important;
+    box-shadow: 4px 4px 0 var(--game-shadow) !important;
+    border-radius: 16px !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    background: linear-gradient(135deg, rgba(8, 28, 42, 0.65), rgba(3, 14, 23, 0.85)) !important;
+}
+
+.light-mode-active .pvp-comms-panel {
+    border: 2.5px solid #10283a !important;
+    box-shadow: 4px 4px 0 #10283a !important;
+    background: rgba(255, 255, 255, 0.65) !important;
+}
+
+/* Ocean Board Outline */
+.ocean-board-surface {
+    border: 0 !important;
+    outline: 0 !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+}
+
+.light-mode-active .ocean-board-surface {
+    border: 0 !important;
+    outline: 0 !important;
+    box-shadow: none !important;
+}
+
+/* Sidebar sizing during placement */
+@media (min-width: 1024px) {
+    .pvp-sidebar-column {
+        height: 540px !important;
+        max-height: min(540px, calc(100vh - 200px)) !important;
+    }
+}
+
+/* Ready Button default fallback */
+button.bg-secondary:not(:disabled) {
+    border: 2px solid transparent !important;
+    box-shadow: 0 0 16px rgba(104, 242, 188, 0.25) !important;
+}
+
+.light-mode-active button.bg-secondary:not(:disabled) {
+    border: 2px solid #10283a !important;
+    box-shadow: 3px 3px 0 #10283a !important;
+}
+
+/* Auto-arrange / shipyard buttons inside Staging */
+
+
+/* Custom Ready Button */
+button.game-ready-btn {
+    border: 2.5px solid rgba(117, 223, 255, 0.25) !important;
+    border-radius: 8px !important;
+    font-weight: 900 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.1em !important;
+    transition: transform 0.12s ease, box-shadow 0.12s ease, background-color 0.12s ease !important;
+}
+
+button.game-ready-btn.is-valid-ready {
+    background: #ff6b4a !important; /* Matches home page BATTLE NOW coral */
+    color: #ffffff !important;
+    border: 2.5px solid var(--game-shadow) !important;
+    box-shadow: 4px 4px 0 var(--game-shadow) !important;
+    text-shadow: none !important;
+}
+
+button.game-ready-btn.is-valid-ready:hover {
+    transform: translate(-2px, -2px) !important;
+    box-shadow: 6px 6px 0 var(--game-shadow) !important;
+    background: #ff785f !important;
+}
+
+button.game-ready-btn.is-valid-ready:active {
+    transform: translate(1px, 1px) scale(0.99) !important;
+    box-shadow: 2px 2px 0 var(--game-shadow) !important;
+}
+
+.light-mode-active button.game-ready-btn {
+    border: 2.5px solid #10283a !important;
+    background: #ffffff !important;
+    color: #10283a !important;
+    box-shadow: 4px 4px 0 #10283a !important;
+    text-shadow: none !important;
+    transition: transform 0.12s ease, box-shadow 0.12s ease, background-color 0.12s ease !important;
+}
+
+.light-mode-active button.game-ready-btn.is-valid-ready {
+    background: #ff785f !important; /* Light mode coral orange */
+    color: #ffffff !important;
+    border: 2.5px solid #10283a !important;
+    box-shadow: 4px 4px 0 #10283a !important;
+}
+
+.light-mode-active button.game-ready-btn.is-valid-ready:hover {
+    transform: translate(-2px, -2px) !important;
+    box-shadow: 6px 6px 0 #10283a !important;
+    background: #ff8b75 !important;
+}
+
+.light-mode-active button.game-ready-btn.is-valid-ready:active {
+    transform: translate(1px, 1px) scale(0.99) !important;
+    box-shadow: 2px 2px 0 #10283a !important;
+}
+
+@media (max-width: 767px) {
+  button.game-ready-btn {
+    font-size: 11px !important;
+    padding: 5px 12px !important;
+    border-width: 1.5px !important;
+    letter-spacing: 0.05em !important;
+  }
+  
+  button.game-ready-btn.is-valid-ready {
+    border-width: 1.5px !important;
+    box-shadow: 2px 2px 0 var(--game-shadow) !important;
+  }
+  
+  .light-mode-active button.game-ready-btn {
+    border-width: 1.5px !important;
+    box-shadow: 2px 2px 0 #10283a !important;
+  }
+  
+  .light-mode-active button.game-ready-btn.is-valid-ready {
+    border-width: 1.5px !important;
+    box-shadow: 2px 2px 0 #10283a !important;
+  }
+}
+
+/* Refined Board Cells */
+.ocean-board-surface .ocean-cell {
+    backdrop-filter: blur(1px);
+    -webkit-backdrop-filter: blur(1px);
+    border: 1px solid rgba(16, 40, 58, 0.04) !important;
+    box-shadow:
+        inset 1px 1px 0 rgba(255, 255, 255, 0.2),
+        inset -1px -1px 0 rgba(16, 40, 58, 0.14),
+        0 0 0 1px rgba(255, 255, 255, 0.18) !important;
+    transition: all 0.15s ease !important;
+}
+
+.ocean-board-surface .ocean-cell:hover {
+    border-color: rgba(117, 223, 255, 0.3) !important;
+    background: rgba(255, 255, 255, 0.15) !important;
+    box-shadow: inset 0 0 10px rgba(117, 223, 255, 0.15) !important;
+}
+
+.light-mode-active .ocean-board-surface {
+    background: transparent !important;
+    border: 0 !important;
+    outline: 0 !important;
+    box-shadow: none !important;
+}
+
+.light-mode-active .ocean-board-surface .ocean-cell {
+    backdrop-filter: blur(1px);
+    -webkit-backdrop-filter: blur(1px);
+    border: 1px solid rgba(16, 40, 58, 0.18) !important;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.35),
+        inset 0 -1px 0 rgba(16, 40, 58, 0.12) !important;
+    transition: all 0.15s ease !important;
+}
+
+.light-mode-active .ocean-board-surface .ocean-cell:hover {
+    background: rgba(255, 255, 255, 0.32) !important;
+    border-color: rgba(16, 40, 58, 0.22) !important;
+    box-shadow: inset 0 0 6px rgba(16, 40, 58, 0.08) !important;
+}
+
+/* DEPLOYMENT COLOR FILL PASS */
+.game-main.is-deploying {
+    --deploy-ink: #10283a;
+    --deploy-blue: #1167d8;
+    --deploy-blue-deep: #063f73;
+    --deploy-sky: #75dfff;
+    --deploy-mint: #42d6a4;
+    --deploy-coral: #ff6b4a;
+    --deploy-cream: #fff8e6;
+}
+
+.game-main.is-deploying .game-status {
+    overflow: hidden !important;
+    background:
+        linear-gradient(90deg, rgba(255, 107, 74, 0.18) 0 8px, transparent 8px),
+        radial-gradient(circle at 82% 0%, rgba(117, 223, 255, 0.16), transparent 38%),
+        linear-gradient(135deg, rgba(9, 37, 55, 0.96), rgba(3, 16, 27, 0.96)) !important;
+}
+
+.light-mode-active .game-main.is-deploying .game-status {
+    background:
+        linear-gradient(90deg, rgba(255, 107, 74, 0.22) 0 8px, transparent 8px),
+        radial-gradient(circle at 85% 12%, rgba(117, 223, 255, 0.28), transparent 34%),
+        linear-gradient(135deg, #fffdf7, #eef9ff 58%, #ffffff) !important;
+}
+
+.game-main.is-deploying .game-ready-btn {
+    min-width: clamp(128px, 13vw, 184px) !important;
+}
+
+.game-main.is-deploying .game-ready-btn:not(.is-valid-ready) {
+    background: rgba(117, 223, 255, 0.08) !important;
+    color: rgba(190, 219, 234, 0.58) !important;
+    border-color: rgba(117, 223, 255, 0.35) !important;
+}
+
+.light-mode-active .game-main.is-deploying .game-ready-btn:not(.is-valid-ready) {
+    background: #f7fbff !important;
+    color: #526b79 !important;
+    border-color: #a9d4ee !important;
+}
+
+.game-main.is-deploying .ocean-board-surface {
+    position: relative !important;
+    isolation: isolate !important;
+    overflow: hidden !important;
+    background: transparent !important;
+}
+
+
+.light-mode-active .game-main.is-deploying .ocean-board-surface {
+    border-color: var(--deploy-ink) !important;
+    background: transparent !important;
+}
+
+.light-mode-active .game-main.is-deploying .ocean-board-surface .ocean-cell {
+    background: rgba(255, 255, 255, 0.08) !important;
+    border: 1px solid rgba(16, 40, 58, 0.18) !important;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.35),
+        inset 0 -1px 0 rgba(16, 40, 58, 0.12) !important;
+}
+
+html:not(.light-mode-active) .game-main.is-deploying .ocean-board-surface .ocean-cell {
+    background: rgba(255, 255, 255, 0.03) !important;
+    border-color: rgba(117, 223, 255, 0.04) !important;
+}
+
+/* High-specificity overrides for custom shipyard painted cells during deployment in Dark Mode */
+html:not(.light-mode-active) .game-main.is-deploying .ocean-board-surface .ocean-cell.custom-painted-cell-1 {
+    background: rgba(78, 168, 222, 0.85) !important;
+    border: 1px solid rgba(78, 168, 222, 1) !important;
+    box-shadow: 0 0 10px rgba(78, 168, 222, 0.4), inset 0 0 6px rgba(255, 255, 255, 0.3) !important;
+}
+html:not(.light-mode-active) .game-main.is-deploying .ocean-board-surface .ocean-cell.custom-painted-cell-2 {
+    background: rgba(74, 222, 128, 0.85) !important;
+    border: 1px solid rgba(74, 222, 128, 1) !important;
+    box-shadow: 0 0 10px rgba(74, 222, 128, 0.4), inset 0 0 6px rgba(255, 255, 255, 0.3) !important;
+}
+html:not(.light-mode-active) .game-main.is-deploying .ocean-board-surface .ocean-cell.custom-painted-cell-3 {
+    background: rgba(251, 191, 36, 0.85) !important;
+    border: 1px solid rgba(251, 191, 36, 1) !important;
+    box-shadow: 0 0 10px rgba(251, 191, 36, 0.4), inset 0 0 6px rgba(255, 255, 255, 0.3) !important;
+}
+html:not(.light-mode-active) .game-main.is-deploying .ocean-board-surface .ocean-cell.custom-painted-cell-4 {
+    background: rgba(192, 132, 252, 0.85) !important;
+    border: 1px solid rgba(192, 132, 252, 1) !important;
+    box-shadow: 0 0 10px rgba(192, 132, 252, 0.4), inset 0 0 6px rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Light mode high-specificity overrides for custom shipyard painted cells during deployment */
+.light-mode-active .game-main.is-deploying .ocean-board-surface .ocean-cell.custom-painted-cell-1 {
+    background: rgba(30, 140, 200, 0.95) !important;
+    border: 1px solid rgba(20, 110, 170, 1) !important;
+    box-shadow: inset 0 0 8px rgba(0, 53, 74, 0.2) !important;
+}
+.light-mode-active .game-main.is-deploying .ocean-board-surface .ocean-cell.custom-painted-cell-2 {
+    background: rgba(34, 180, 80, 0.95) !important;
+    border: 1px solid rgba(24, 140, 60, 1) !important;
+    box-shadow: inset 0 0 8px rgba(0, 53, 74, 0.2) !important;
+}
+.light-mode-active .game-main.is-deploying .ocean-board-surface .ocean-cell.custom-painted-cell-3 {
+    background: rgba(220, 150, 20, 0.95) !important;
+    border: 1px solid rgba(180, 120, 10, 1) !important;
+    box-shadow: inset 0 0 8px rgba(0, 53, 74, 0.2) !important;
+}
+.light-mode-active .game-main.is-deploying .ocean-board-surface .ocean-cell.custom-painted-cell-4 {
+    background: rgba(160, 90, 220, 0.95) !important;
+    border: 1px solid rgba(130, 70, 190, 1) !important;
+    box-shadow: inset 0 0 8px rgba(0, 53, 74, 0.2) !important;
+}
+
+
+.game-main.is-deploying .player-board-wrapper h2 {
+    width: max-content !important;
+    margin-inline: auto !important;
+    padding: 12px 20px !important;
+    border: 2.5px solid var(--deploy-ink) !important;
+    border-radius: 16px !important;
+    background: var(--deploy-mint) !important;
+    color: var(--deploy-ink) !important;
+    box-shadow: 4px 4px 0 var(--deploy-ink) !important;
+}
+
+html:not(.light-mode-active) .game-main.is-deploying .player-board-wrapper h2 {
+    border-color: #75dfff !important;
+    background: #34d1a0 !important;
+    box-shadow: 4px 4px 0 var(--game-shadow) !important;
+}
+
+.game-main.is-deploying .deployment-dock {
+    overflow: visible !important;
+    background:
+        linear-gradient(180deg, rgba(117, 223, 255, 0.08), transparent 42%),
+        linear-gradient(135deg, rgba(8, 34, 50, 0.98), rgba(3, 16, 27, 0.98)) !important;
+}
+
+.light-mode-active .game-main.is-deploying .deployment-dock {
+    background:
+        radial-gradient(circle at 90% 0%, rgba(17, 103, 216, 0.10), transparent 32%),
+        linear-gradient(180deg, #ffffff, #f5fbff) !important;
+}
+
+.game-main.is-deploying .deployment-dock-heading {
+    border-bottom: 2px solid rgba(117, 223, 255, 0.16) !important;
+}
+
+.light-mode-active .game-main.is-deploying .deployment-dock-heading {
+    border-bottom-color: rgba(16, 40, 58, 0.14) !important;
+}
+
+.game-main.is-deploying .fleet-count-badge {
+    background: rgba(255, 107, 74, 0.15) !important;
+    border-color: rgba(255, 107, 74, 0.8) !important;
+    color: #ff8b75 !important;
+}
+
+.light-mode-active .game-main.is-deploying .fleet-count-badge {
+    background: #fff0e9 !important;
+    color: var(--deploy-coral) !important;
+}
+
+.game-main.is-deploying .fleet-rule-panel {
+    border: 1.5px solid rgba(117, 223, 255, 0.28) !important;
+    background:
+        linear-gradient(90deg, rgba(117, 223, 255, 0.11), rgba(66, 214, 164, 0.05)) !important;
+    color: #bfeeff !important;
+}
+
+.light-mode-active .game-main.is-deploying .fleet-rule-panel {
+    border-color: #9dd0ec !important;
+    background:
+        linear-gradient(90deg, #eef9ff, #f8fffb) !important;
+    color: #254c60 !important;
+}
+
+.game-main.is-deploying .deployment-ship-card {
+    position: relative !important;
+    overflow: hidden !important;
+    min-height: 142px !important;
+    border: 2.5px solid #75dfff !important;
+    border-radius: 12px !important;
+    box-shadow: 4px 4px 0 var(--game-shadow) !important;
+}
+
+.game-main.is-deploying .deployment-ship-card::after {
+    content: "" !important;
+    position: absolute !important;
+    inset: 0 !important;
+    z-index: 0 !important;
+    background:
+        radial-gradient(circle at 50% 64%, rgba(117, 223, 255, 0.18), transparent 34%),
+        repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0 8px, transparent 8px 18px) !important;
+    pointer-events: none !important;
+}
+
+.game-main.is-deploying .deployment-ship-card > * {
+    z-index: 1 !important;
+}
+
+.game-main.is-deploying .deployment-ship-meta {
+    position: absolute !important;
+}
+
+.game-main.is-deploying .deployment-ship-stage {
+    position: absolute !important;
+}
+
+.light-mode-active .game-main.is-deploying .deployment-ship-card {
+    border: 2.5px solid var(--deploy-ink) !important;
+    box-shadow: 4px 4px 0 var(--deploy-ink) !important;
+}
+
+.light-mode-active .game-main.is-deploying .deployment-carrier {
+    background: linear-gradient(135deg, #fff9e6, #edfaff 72%) !important;
+}
+
+.light-mode-active .game-main.is-deploying .deployment-zship {
+    background: linear-gradient(135deg, #eef7ff, #e9fbff 72%) !important;
+}
+
+.light-mode-active .game-main.is-deploying .deployment-destroyer {
+    background: linear-gradient(135deg, #fff0ea, #f3fbff 72%) !important;
+}
+
+.light-mode-active .game-main.is-deploying .deployment-patrol {
+    background: linear-gradient(135deg, #ecfff7, #f5fbff 72%) !important;
+}
+
+.game-main.is-deploying .deployment-ship-card img {
+    filter: drop-shadow(0 10px 12px rgba(0, 0, 0, 0.22)) !important;
+}
+
+.light-mode-active .game-main.is-deploying .deployment-ship-card img {
+    filter: none !important;
+}
+
+.game-main.is-deploying .deployment-dock > .auto-arrange-button {
+    background: var(--deploy-coral) !important;
+    border: 2px solid var(--game-shadow) !important;
+    color: #ffffff !important;
+    box-shadow: 4px 4px 0 var(--game-shadow) !important;
+    transition: transform 0.12s ease, box-shadow 0.12s ease, background-color 0.12s ease !important;
+}
+
+.game-main.is-deploying .deployment-dock > .auto-arrange-button + .auto-arrange-button {
+    background: var(--deploy-blue) !important;
+    border-color: var(--game-shadow) !important;
+}
+
+.light-mode-active .game-main.is-deploying .deployment-dock > .auto-arrange-button {
+    border-color: var(--deploy-ink) !important;
+    box-shadow: 4px 4px 0 var(--deploy-ink) !important;
+}
+
+.light-mode-active .game-main.is-deploying .deployment-dock > .auto-arrange-button + .auto-arrange-button {
+    border-color: var(--deploy-ink) !important;
+}
+
+.game-main.is-deploying .fleet-size-filters {
+    background: rgba(10, 39, 54, 0.96) !important;
+    border: 2px solid #75dfff !important;
+    border-radius: 8px !important;
+    padding: 6px !important;
+    box-shadow: 3px 3px 0 var(--game-shadow) !important;
+}
+
+.light-mode-active .game-main.is-deploying .fleet-size-filters {
+    background: #f0f7fa !important;
+    border-color: var(--deploy-ink) !important;
+    box-shadow: 3px 3px 0 var(--deploy-ink) !important;
+}
+
+.game-main.is-deploying .fleet-size-filters button {
+    border: 1.5px solid #75dfff !important;
+    border-radius: 6px !important;
+    background: rgba(1, 16, 27, 0.6) !important;
+    color: #75dfff !important;
+    transition: all 0.12s ease !important;
+}
+
+.light-mode-active .game-main.is-deploying .fleet-size-filters button {
+    border: 1.5px solid var(--deploy-ink) !important;
+    background: #ffffff !important;
+    color: #006093 !important;
+}
+
+.game-main.is-deploying .fleet-size-filters button:hover {
+    background: rgba(117, 223, 255, 0.2) !important;
+    color: #ffffff !important;
+}
+
+.light-mode-active .game-main.is-deploying .fleet-size-filters button:hover {
+    background: #0077b6 !important;
+    color: #ffffff !important;
+}
+
+.game-main.is-deploying .fleet-size-filters button.is-active {
+    background: var(--deploy-blue) !important;
+    color: #ffffff !important;
+}
+
+.light-mode-active .game-main.is-deploying .fleet-size-filters button.is-active {
+    background: var(--deploy-blue) !important;
+    color: #ffffff !important;
+}
+
+.game-main.is-deploying .pvp-comms-panel {
+    position: relative !important;
+    isolation: isolate !important;
+    overflow: hidden !important;
+    background:
+        radial-gradient(circle at 50% 40%, rgba(117, 223, 255, 0.10), transparent 32%),
+        linear-gradient(180deg, rgba(7, 31, 46, 0.98), rgba(2, 15, 25, 0.98)) !important;
+}
+
+.light-mode-active .game-main.is-deploying .pvp-comms-panel {
+    background:
+        radial-gradient(circle at 50% 42%, rgba(117, 223, 255, 0.18), transparent 32%),
+        linear-gradient(180deg, #ffffff, #eff8fc) !important;
+}
+
+.game-main.is-deploying .pvp-comms-header {
+    background: rgba(117, 223, 255, 0.05) !important;
+    border-bottom: 1px solid rgba(117, 223, 255, 0.16) !important;
+}
+
+.light-mode-active .game-main.is-deploying .pvp-comms-header {
+    background: #f3fbff !important;
+    border-bottom-color: rgba(16, 40, 58, 0.10) !important;
+}
+
+.game-main.is-deploying .pvp-comms-panel::after {
+    content: "RADAR SIGNAL" !important;
+    position: absolute !important;
+    inset: 0 !important;
+    z-index: 0 !important;
+    display: grid !important;
+    place-items: center !important;
+    color: rgba(117, 223, 255, 0.08) !important;
+    font-family: var(--font-display) !important;
+    font-size: clamp(34px, 4.5vw, 76px) !important;
+    font-weight: 950 !important;
+    letter-spacing: 0.16em !important;
+    line-height: 1.35 !important;
+    text-align: center !important;
+    pointer-events: none !important;
+}
+
+.game-main.is-deploying .pvp-comms-panel > * {
+    position: relative !important;
+    z-index: 1 !important;
+}
+
+.light-mode-active .game-main.is-deploying .pvp-comms-panel::after {
+    color: rgba(0, 119, 182, 0.12) !important;
+}
+
+/* DEPLOYMENT TRIM AND READY INTERACTION */
+.game-main.is-deploying .game-status,
+.light-mode-active .game-main.is-deploying .game-status {
+    border-top: 2.5px solid var(--deploy-ink) !important;
+}
+
+html:not(.light-mode-active) .game-main.is-deploying .game-status {
+    border-top-color: #75dfff !important;
+}
+
+.game-main.is-deploying .pvp-comms-panel,
+.light-mode-active .game-main.is-deploying .pvp-comms-panel {
+    border-top: 2.5px solid var(--deploy-ink) !important;
+}
+
+html:not(.light-mode-active) .game-main.is-deploying .pvp-comms-panel {
+    border-top-color: #75dfff !important;
+}
+
+.game-main.is-deploying .game-ready-btn {
+    border-radius: 14px !important;
+    transition:
+        transform 0.14s ease,
+        box-shadow 0.14s ease,
+        background-color 0.14s ease,
+        border-color 0.14s ease,
+        color 0.14s ease !important;
+}
+
+.game-main.is-deploying .game-ready-btn:not(:disabled) {
+    cursor: pointer !important;
+}
+
+.game-main.is-deploying .game-ready-btn:not(:disabled):hover {
+    transform: translate(-2px, -2px) !important;
+    box-shadow: 6px 6px 0 var(--game-shadow) !important;
+}
+
+.light-mode-active .game-main.is-deploying .game-ready-btn:not(:disabled):hover {
+    box-shadow: 6px 6px 0 var(--deploy-ink) !important;
+}
+
+.game-main.is-deploying .game-ready-btn.is-valid-ready:hover {
+    background: #ff7d64 !important;
+    border-color: #ff7d64 !important;
+    color: #ffffff !important;
+}
+
+.light-mode-active .game-main.is-deploying .game-ready-btn.is-valid-ready:hover {
+    background: #ff785f !important;
+    border-color: var(--deploy-ink) !important;
+}
+
+.game-main.is-deploying .game-ready-btn:not(:disabled):active {
+    transform: translate(1px, 1px) scale(0.99) !important;
+    box-shadow: 2px 2px 0 var(--game-shadow) !important;
+}
+
+.light-mode-active .game-main.is-deploying .game-ready-btn:not(:disabled):active {
+    box-shadow: 2px 2px 0 var(--deploy-ink) !important;
+}
+
+/* DEPLOYMENT PROFESSIONAL POLISH PASS */
+.game-main.is-deploying .game-status {
+    background:
+        radial-gradient(circle at 84% 0%, rgba(117, 223, 255, 0.12), transparent 34%),
+        linear-gradient(135deg, rgba(8, 32, 48, 0.96), rgba(3, 16, 27, 0.98)) !important;
+}
+
+.light-mode-active .game-main.is-deploying .game-status {
+    background:
+        radial-gradient(circle at 88% 8%, rgba(117, 223, 255, 0.20), transparent 34%),
+        linear-gradient(135deg, #ffffff, #f3fbff 64%, #ffffff) !important;
+}
+
+.game-main.is-deploying .game-status,
+.game-main.is-deploying .pvp-comms-panel {
+    border-top-width: 2.5px !important;
+}
+
+.game-main.is-deploying .deployment-dock {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+    border: 2.5px solid #75dfff !important;
+    border-radius: 12px !important;
+    box-shadow: 7px 7px 0 var(--game-shadow) !important;
+    padding: 18px 18px 16px !important;
+    background: linear-gradient(135deg, rgba(8, 34, 50, 0.98), rgba(3, 16, 27, 0.98)) !important;
+}
+
+.light-mode-active .game-main.is-deploying .deployment-dock {
+    border: 2.5px solid var(--deploy-ink) !important;
+    border-radius: 12px !important;
+    box-shadow: 7px 7px 0 var(--deploy-ink) !important;
+    background: linear-gradient(180deg, #ffffff, #f7fcff) !important;
+}
+
+.game-main.is-deploying .deployment-dock-heading {
+    margin-bottom: 0 !important;
+    padding-bottom: 12px !important;
+}
+
+.game-main.is-deploying .deployment-dock-heading h3 {
+    color: #e7f9ff !important;
+    letter-spacing: 0.12em !important;
+}
+
+.light-mode-active .game-main.is-deploying .deployment-dock-heading h3 {
+    color: var(--deploy-ink) !important;
+}
+
+.game-main.is-deploying .fleet-rule-panel {
+    margin: 0 !important;
+    min-height: 42px !important;
+    border: 2px solid #75dfff !important;
+    border-radius: 8px !important;
+    background: rgba(1, 16, 27, 0.48) !important;
+    box-shadow: 3px 3px 0 var(--game-shadow) !important;
+}
+
+.light-mode-active .game-main.is-deploying .fleet-rule-panel {
+    border: 2px solid var(--deploy-ink) !important;
+    background: #eef7fa !important;
+    box-shadow: 3px 3px 0 var(--deploy-ink) !important;
+}
+
+.game-main.is-deploying .fleet-rule-panel strong {
+    border: 1.5px solid #75dfff !important;
+    border-radius: 6px !important;
+    background: rgba(17, 103, 216, 0.12) !important;
+}
+
+.light-mode-active .game-main.is-deploying .fleet-rule-panel strong {
+    border: 1.5px solid var(--deploy-ink) !important;
+    background: #ffffff !important;
+    color: var(--deploy-blue-deep) !important;
+}
+
+.game-main.is-deploying .fleet-rule-message {
+    margin: -2px 0 0 !important;
+    border: 2px solid #75dfff !important;
+    border-radius: 8px !important;
+    background: rgba(255, 101, 90, 0.10) !important;
+    box-shadow: 3px 3px 0 var(--game-shadow) !important;
+}
+
+.light-mode-active .game-main.is-deploying .fleet-rule-message {
+    border: 2px solid var(--deploy-ink) !important;
+    background: #fff0f0 !important;
+    box-shadow: 3px 3px 0 var(--deploy-ink) !important;
+}
+
+.game-main.is-deploying .deployment-ship-grid {
+    flex: 1 1 auto !important;
+    gap: 10px !important;
+    min-height: 0 !important;
+    padding: 2px 6px 6px 0 !important;
+    mask-image: linear-gradient(to bottom, black calc(100% - 18px), transparent 100%) !important;
+}
+
+.game-main.is-deploying .deployment-ship-card {
+    height: 132px !important;
+    border-radius: 12px !important;
+    transition:
+        transform 140ms ease,
+        border-color 140ms ease,
+        background-color 140ms ease,
+        box-shadow 140ms ease,
+        opacity 140ms ease !important;
+}
+
+.game-main.is-deploying .deployment-ship-card:hover:not(.is-placed) {
+    transform: translate(-2px, -2px) !important;
+    box-shadow: 6px 6px 0 var(--game-shadow) !important;
+}
+
+.light-mode-active .game-main.is-deploying .deployment-ship-card:hover:not(.is-placed) {
+    box-shadow: 6px 6px 0 var(--deploy-ink) !important;
+}
+
+.game-main.is-deploying .deployment-ship-card:active:not(.is-placed) {
+    transform: translate(1px, 1px) scale(0.99) !important;
+    box-shadow: 2px 2px 0 var(--game-shadow) !important;
+}
+
+.light-mode-active .game-main.is-deploying .deployment-ship-card:active:not(.is-placed) {
+    box-shadow: 2px 2px 0 var(--deploy-ink) !important;
+}
+
+.game-main.is-deploying .deployment-ship-card.is-placed {
+    cursor: pointer !important;
+    opacity: 0.82 !important;
+    filter: none !important;
+    border-style: dashed !important;
+    box-shadow: none !important;
+    transform: none !important;
+    background:
+        radial-gradient(circle at 50% 62%, rgba(66, 214, 164, 0.10), transparent 38%),
+        linear-gradient(135deg, rgba(6, 32, 45, 0.70), rgba(4, 20, 31, 0.82)) !important;
+}
+
+.light-mode-active .game-main.is-deploying .deployment-ship-card.is-placed {
+    background:
+        radial-gradient(circle at 50% 62%, rgba(66, 214, 164, 0.12), transparent 42%),
+        linear-gradient(135deg, #f4fbff, #ffffff) !important;
+    border-color: #b8d8e8 !important;
+}
+
+.game-main.is-deploying .deployment-ship-card.is-placed:hover {
+    opacity: 1 !important;
+    border-color: rgba(66, 214, 164, 0.72) !important;
+    box-shadow: inset 0 0 0 1px rgba(66, 214, 164, 0.18) !important;
+    transform: none !important;
+}
+
+.light-mode-active .game-main.is-deploying .deployment-ship-card.is-placed:hover {
+    border-color: #42b98e !important;
+    box-shadow: inset 0 0 0 1px rgba(66, 214, 164, 0.22) !important;
+}
+
+.game-main.is-deploying .deployment-placed-mark {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: 74px !important;
+    min-height: 26px !important;
+    padding: 0 10px !important;
+    border: 1px solid rgba(66, 214, 164, 0.36) !important;
+    border-radius: 999px !important;
+    background: rgba(66, 214, 164, 0.10) !important;
+    color: rgba(198, 255, 235, 0.78) !important;
+    font-size: 8px !important;
+}
+
+.light-mode-active .game-main.is-deploying .deployment-placed-mark {
+    background: #eafff7 !important;
+    color: #23795f !important;
+    border-color: #9de0c9 !important;
+}
+
+.game-main.is-deploying .deployment-dock > .auto-arrange-button {
+    flex: 0 0 46px !important;
+    height: 46px !important;
+    margin-top: 4px !important;
+    border-radius: 10px !important;
+}
+
+.game-main.is-deploying .deployment-dock > .auto-arrange-button + .auto-arrange-button {
+    margin-top: 0 !important;
+}
+
+.game-main.is-deploying .deployment-dock > .auto-arrange-button:hover:not(:disabled) {
+    transform: translate(-2px, -2px) !important;
+    box-shadow: 6px 6px 0 var(--game-shadow) !important;
+}
+
+.light-mode-active .game-main.is-deploying .deployment-dock > .auto-arrange-button:hover:not(:disabled) {
+    box-shadow: 6px 6px 0 var(--deploy-ink) !important;
+}
+
+.game-main.is-deploying .deployment-dock > .auto-arrange-button:active:not(:disabled) {
+    transform: translate(1px, 1px) scale(0.99) !important;
+    box-shadow: 2px 2px 0 var(--game-shadow) !important;
+}
+
+.light-mode-active .game-main.is-deploying .deployment-dock > .auto-arrange-button:active:not(:disabled) {
+    box-shadow: 2px 2px 0 var(--deploy-ink) !important;
+}
+
+.game-main.is-deploying .pvp-comms-panel::after {
+    content: "RADAR" !important;
+    color: rgba(117, 223, 255, 0.055) !important;
+    font-size: clamp(40px, 5vw, 86px) !important;
+    letter-spacing: 0.22em !important;
+}
+
+.light-mode-active .game-main.is-deploying .pvp-comms-panel::after {
+    color: rgba(0, 119, 182, 0.09) !important;
+}
+
+.game-main.is-deploying .pvp-comms-header {
+    padding: 14px 18px !important;
+}
+
+.game-main.is-deploying .pvp-comms-content {
+    color: rgba(184, 218, 232, 0.72) !important;
+}
+
+.light-mode-active .game-main.is-deploying .pvp-comms-content {
+    color: #496675 !important;
+}
+
+/* GAME HEADER HOME-STYLE ALIGNMENT */
+.game-topbar {
+    --game-header-ink: #dff8ff;
+    --game-header-muted: #93adbe;
+    --game-header-panel: rgba(7, 24, 39, 0.92);
+    --game-header-accent: #75dfff;
+    --game-header-shadow: var(--game-shadow);
+    background: rgba(4, 18, 30, 0.92) !important;
+    border-bottom: 1px solid rgba(117, 223, 255, 0.18) !important;
+}
+
+.light-mode-active .game-topbar {
+    --game-header-ink: #10283a;
+    --game-header-muted: #617484;
+    --game-header-panel: #ffffff;
+    --game-header-accent: #1167d8;
+    --game-header-shadow: #10283a;
+    background: rgba(255, 252, 244, 0.96) !important;
+    border-bottom: 1px solid rgba(16, 40, 58, 0.12) !important;
+}
+
+.game-brand-lockup {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    min-width: 0 !important;
+    color: var(--game-header-ink) !important;
+    text-decoration: none !important;
+}
+
+.game-brand-logo {
+    width: 38px !important;
+    height: 38px !important;
+    flex: 0 0 auto !important;
+    border-radius: 50% !important;
+    object-fit: cover !important;
+    filter: drop-shadow(0 0 14px rgba(117, 223, 255, 0.26)) !important;
+}
+
+.light-mode-active .game-brand-logo {
+    filter: drop-shadow(0 6px 14px rgba(21, 53, 79, 0.14)) !important;
+}
+
+.game-brand-copy {
+    display: grid !important;
+    gap: 1px !important;
+    min-width: 0 !important;
+}
+
+.game-brand-copy strong {
+    color: var(--game-header-ink) !important;
+    font-family: var(--font-display) !important;
+    font-size: clamp(16px, 1.35vw, 21px) !important;
+    font-weight: 950 !important;
+    line-height: 1 !important;
+    letter-spacing: 0 !important;
+    text-transform: uppercase !important;
+    white-space: nowrap !important;
+}
+
+.game-brand-copy small {
+    color: var(--game-header-muted) !important;
+    font-family: var(--font-mono) !important;
+    font-size: 9px !important;
+    font-weight: 850 !important;
+    letter-spacing: 0.02em !important;
+    line-height: 1.05 !important;
+    text-transform: uppercase !important;
+    white-space: nowrap !important;
+}
+
+.light-mode-active .game-brand-copy small {
+    color: #5f879d !important;
+}
+
+.game-brand-lockup:hover .game-brand-copy strong,
+.game-brand-lockup:hover .game-brand-copy small {
+    color: var(--game-header-accent) !important;
+}
+
+.game-header-difficulty {
+    display: inline-flex !important;
+    align-items: center !important;
+    min-height: 34px !important;
+    padding: 0 13px !important;
+    border: 2px solid var(--game-header-shadow) !important;
+    border-radius: 6px !important;
+    background: var(--game-header-panel) !important;
+    color: var(--game-header-ink) !important;
+    box-shadow: 3px 3px 0 var(--game-header-shadow) !important;
+    font-family: var(--font-mono) !important;
+    font-size: 10px !important;
+    font-weight: 900 !important;
+    letter-spacing: 0 !important;
+    text-transform: uppercase !important;
+    white-space: nowrap !important;
+    pointer-events: none !important;
+}
+
+html:not(.light-mode-active) .game-header-difficulty {
+    border-color: #75dfff !important;
+    box-shadow: 3px 3px 0 var(--game-shadow) !important;
+}
+
+.game-header-home-btn {
+    width: 38px !important;
+    height: 38px !important;
+    padding: 0 !important;
+    border: 2px solid var(--game-header-shadow) !important;
+    border-radius: 50% !important;
+    background: var(--game-header-panel) !important;
+    color: var(--game-header-ink) !important;
+    box-shadow: 3px 3px 0 var(--game-header-shadow) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 22px !important;
+    line-height: 1 !important;
+    text-decoration: none !important;
+    transition:
+        transform 0.14s ease,
+        box-shadow 0.14s ease,
+        color 0.14s ease,
+        background-color 0.14s ease !important;
+}
+
+html:not(.light-mode-active) .game-header-home-btn {
+    border-color: #75dfff !important;
+    box-shadow: 3px 3px 0 var(--game-shadow) !important;
+}
+
+.game-header-home-btn:hover {
+    color: var(--game-header-accent) !important;
+    transform: translate(-1px, -1px) !important;
+    box-shadow: 4px 4px 0 var(--game-header-shadow) !important;
+}
+
+.game-header-home-btn:active {
+    transform: translate(1px, 1px) scale(0.98) !important;
+    box-shadow: 1px 1px 0 var(--game-header-shadow) !important;
+}
+
+.game-main.is-deploying .game-ready-btn,
+button.game-ready-btn {
+    border-radius: 18px !important;
+    min-height: 44px !important;
+    padding-inline: 32px !important;
+}
+
+.game-main.is-deploying .game-ready-btn.is-valid-ready,
+button.game-ready-btn.is-valid-ready {
+    border-radius: 18px !important;
+}
+
+@media (max-width: 767px) {
+    .game-brand-logo {
+        width: 34px !important;
+        height: 34px !important;
+    }
+
+    .game-brand-copy strong {
+        font-size: 15px !important;
+    }
+
+    .game-brand-copy small {
+        font-size: 8px !important;
+    }
+
+    .game-header-difficulty {
+        max-width: 150px !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+    }
+}
+
+/* GAME HEADER HOVER TRIM AND DEPLOY PANEL HEIGHT ALIGNMENT */
+.game-brand-lockup:hover .game-brand-copy strong {
+    color: var(--game-header-ink) !important;
+}
+
+.game-brand-lockup:hover .game-brand-copy small {
+    color: var(--game-header-muted) !important;
+}
+
+.light-mode-active .game-brand-lockup:hover .game-brand-copy small {
+    color: #5f879d !important;
+}
+
+.game-header-difficulty {
+    cursor: default !important;
+    transform: none !important;
+    height: 38px !important;
+    min-height: 38px !important;
+    padding: 0 16px !important;
+    border: 2px solid var(--game-header-shadow) !important;
+    border-radius: 999px !important;
+    box-shadow: 3px 3px 0 var(--game-header-shadow) !important;
+    background: var(--game-header-panel) !important;
+    color: var(--game-header-ink) !important;
+    transition: none !important;
+}
+
+html:not(.light-mode-active) .game-header-difficulty {
+    border: 2px solid #75dfff !important;
+    background: #071827 !important;
+    color: #e7f8ff !important;
+    box-shadow: 3px 3px 0 #ffffff !important;
+}
+
+.light-mode-active .game-header-difficulty {
+    border: 2px solid #10283a !important;
+    background: #ffffff !important;
+    color: #10283a !important;
+    box-shadow: 3px 3px 0 #10283a !important;
+}
+
+@media (min-width: 1024px) {
+    .game-main.is-deploying {
+        --deploy-side-panel-height: min(600px, calc(100dvh - 176px));
+    }
+
+    .game-main.is-deploying .deployment-dock,
+    .game-main.is-deploying .pvp-comms-panel,
+    .game-main.is-deploying .pvp-sidebar-column {
+        height: var(--deploy-side-panel-height) !important;
+        min-height: var(--deploy-side-panel-height) !important;
+        max-height: var(--deploy-side-panel-height) !important;
+    }
+}
+
+/* DEPLOYMENT MAP BEAUTY AND PANEL PROPORTION FIX */
+@media (min-width: 1024px) {
+    .game-main.is-deploying {
+        --deploy-side-panel-height: min(520px, calc(100dvh - 204px));
+    }
+
+    .game-main.is-deploying .deployment-dock {
+        height: var(--deploy-side-panel-height, 520px) !important;
+        min-height: 0 !important;
+        max-height: var(--deploy-side-panel-height, 520px) !important;
+    }
+}
+
+.game-main.is-deploying .deployment-ship-grid {
+    padding-bottom: 14px !important;
+}
+
+.game-main.is-deploying .ocean-board-surface {
+    border: 3px solid #082235 !important;
+    background: transparent !important;
+    box-shadow:
+        6px 6px 0 #10283a,
+        inset 0 0 0 1px rgba(255, 255, 255, 0.34),
+        inset 0 -24px 48px rgba(5, 83, 106, 0.12) !important;
+}
+
+
+.game-main.is-deploying .ocean-board-surface .ocean-cell {
+    background: rgba(255, 255, 255, 0.05) !important;
+    backdrop-filter: blur(1px);
+    -webkit-backdrop-filter: blur(1px);
+    border: 1px solid rgba(16, 40, 58, 0.04) !important;
+    box-shadow:
+        inset 1px 1px 0 rgba(255, 255, 255, 0.2),
+        inset -1px -1px 0 rgba(16, 40, 58, 0.14),
+        0 0 0 1px rgba(255, 255, 255, 0.18) !important;
+}
+
+.game-main.is-deploying .ocean-board-surface .ocean-cell:hover {
+    background: rgba(255, 255, 255, 0.15) !important;
+    border-color: rgba(17, 103, 216, 0.3) !important;
+    box-shadow:
+        inset 1px 1px 0 rgba(255, 255, 255, 0.3),
+        inset -1px -1px 0 rgba(16, 40, 58, 0.18),
+        0 0 10px rgba(117, 223, 255, 0.30) !important;
+}
+
+.light-mode-active .game-main.is-deploying .ocean-board-surface .ocean-cell.player-ship-cell {
+    background:
+        radial-gradient(circle at 50% 46%, rgba(47, 157, 187, 0.2), rgba(29, 122, 153, 0.28) 72%),
+        rgba(36, 146, 176, 0.16) !important;
+    border-color: rgba(5, 80, 105, 0.16) !important;
+    box-shadow:
+        inset 1px 1px 0 rgba(255, 255, 255, 0.2),
+        inset -1px -1px 0 rgba(0, 52, 70, 0.1),
+        inset 0 0 12px rgba(0, 80, 106, 0.12),
+        0 0 0 1px rgba(0, 92, 122, 0.08) !important;
+}
+
+.light-mode-active .game-main.is-deploying .ocean-board-surface .ocean-cell.player-ship-cell:hover {
+    background:
+        radial-gradient(circle at 50% 46%, rgba(48, 158, 188, 0.26), rgba(24, 116, 148, 0.34) 72%),
+        rgba(30, 138, 170, 0.22) !important;
+}
+
+html:not(.light-mode-active) .game-main.is-deploying .ocean-board-surface {
+    border-color: #75dfff !important;
+    background: transparent !important;
+    box-shadow:
+        6px 6px 0 #ffffff,
+        inset 0 0 0 1px rgba(117, 223, 255, 0.14),
+        inset 0 -24px 48px rgba(0, 0, 0, 0.28) !important;
+}
+
+html:not(.light-mode-active) .game-main.is-deploying .ocean-board-surface .ocean-cell {
+    background: rgba(255, 255, 255, 0.03) !important;
+    border-color: rgba(117, 223, 255, 0.04) !important;
+    box-shadow:
+        inset 1px 1px 0 rgba(117, 223, 255, 0.22),
+        inset -1px -1px 0 rgba(0, 0, 0, 0.34) !important;
+}
+
+html:not(.light-mode-active) .game-main.is-deploying .ocean-board-surface .ocean-cell.player-ship-cell {
+    background:
+        radial-gradient(circle at 50% 46%, rgba(73, 178, 204, 0.16), rgba(26, 95, 119, 0.26) 72%),
+        rgba(17, 82, 104, 0.18) !important;
+    border-color: rgba(117, 223, 255, 0.16) !important;
+    box-shadow:
+        inset 1px 1px 0 rgba(117, 223, 255, 0.24),
+        inset -1px -1px 0 rgba(0, 0, 0, 0.2),
+        inset 0 0 12px rgba(73, 178, 204, 0.12) !important;
+}
+
+/* MAP FOOTPRINT AND HOME HOVER MICRO FIX */
+.game-main.is-deploying .ocean-board-surface {
+    box-shadow:
+        0 0 0 3px #10283a,
+        0 12px 28px rgba(16, 40, 58, 0.16),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.34),
+        inset 0 -24px 48px rgba(5, 83, 106, 0.12) !important;
+}
+
+html:not(.light-mode-active) .game-main.is-deploying .ocean-board-surface {
+    box-shadow:
+        0 0 0 2px #75dfff,
+        0 12px 28px rgba(0, 0, 0, 0.28),
+        inset 0 0 0 1px rgba(117, 223, 255, 0.14),
+        inset 0 -24px 48px rgba(0, 0, 0, 0.28) !important;
+}
+
+.game-header-home-btn:hover {
+    color: var(--game-header-ink) !important;
+}
+
+/* MAP OUTER CHROME REMOVAL */
+.game-main.is-deploying .ocean-board-surface,
+html:not(.light-mode-active) .game-main.is-deploying .ocean-board-surface,
+.light-mode-active .game-main.is-deploying .ocean-board-surface {
+    border: 0 !important;
+    outline: 0 !important;
+    box-shadow: none !important;
+}
+
+/* GAME HEADER RESPONSIVE OPTIMIZATIONS */
+.game-exit-button {
+    display: none !important;
+}
+
+@media (max-width: 767px) {
+    /* Hide the brand text but keep the logo */
+    .game-shell .command-brand-copy {
+        display: none !important;
+    }
+
+    /* Hide account/commander profile card */
+    .game-shell .command-account {
+        display: none !important;
+    }
+
+    /* Hide difficulty label */
+    .game-shell .game-header-difficulty {
+        display: none !important;
+    }
+
+    /* Show exit button for single player on mobile */
+    .game-shell .game-exit-button {
+        display: inline-flex !important;
+    }
+
+    /* Force display of theme switch & language toggle on mobile */
+    .game-shell .command-desktop-actions {
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+    }
+
+    /* Hide the duplicate settings button (the one outside command-desktop-actions) */
+    .game-shell .command-settings-mobile-button {
+        display: none !important;
+    }
+
+    /* Refine Leave Match button size to prevent text wrapping on mobile */
+    .game-shell .pvp-leave-match-button {
+        padding: 5px 10px !important;
+        font-size: 10px !important;
+        white-space: nowrap !important;
+        gap: 4px !important;
+    }
+
+    .game-shell .pvp-leave-match-button .material-symbols-outlined {
+        font-size: 15px !important;
+    }
+
+    /* Center align and distribute actions inside header */
+    .game-shell .command-header-inner {
+        display: flex !important;
+        justify-content: space-between !important;
+        width: calc(100% - 24px) !important;
+        gap: 16px !important;
+    }
+
+    .game-shell .command-actions {
+        flex: 1 !important;
+        display: flex !important;
+        justify-content: flex-end !important;
+        align-items: center !important;
+        gap: 12px !important;
+    }
+}
+
+/* High-specificity drag targets for all modes */
+.game-shell .ocean-board-surface .ocean-cell.drag-target-cell-valid,
+.game-shell .game-main.is-deploying .ocean-board-surface .ocean-cell.drag-target-cell-valid {
+    background: rgba(46, 204, 113, 0.45) !important;
+    border-color: rgba(46, 204, 113, 0.8) !important;
+    box-shadow: inset 0 0 15px rgba(46, 204, 113, 0.6), 0 0 10px rgba(46, 204, 113, 0.4) !important;
+}
+
+.game-shell .ocean-board-surface .ocean-cell.drag-target-cell-invalid,
+.game-shell .game-main.is-deploying .ocean-board-surface .ocean-cell.drag-target-cell-invalid {
+    background: rgba(231, 76, 60, 0.5) !important;
+    border-color: rgba(231, 76, 60, 0.8) !important;
+    box-shadow: inset 0 0 15px rgba(231, 76, 60, 0.6), 0 0 10px rgba(231, 76, 60, 0.4) !important;
+}
+
+/* =========================================
+   BOARD BG-SURFACE-CONTAINER SEAMLESS FIXES
+   ========================================= */
+
+/* Dark mode battle board container cell override */
+.ocean-board-surface .bg-surface-container {
+    background: rgba(255, 255, 255, 0.05) !important;
+    backdrop-filter: blur(1px) !important;
+    -webkit-backdrop-filter: blur(1px) !important;
+    border: 1px solid rgba(16, 40, 58, 0.04) !important;
+    box-shadow:
+        inset 1px 1px 0 rgba(255, 255, 255, 0.2),
+        inset -1px -1px 0 rgba(16, 40, 58, 0.14),
+        0 0 0 1px rgba(255, 255, 255, 0.18) !important;
+}
+
+/* Light mode battle board container cell override */
+.light-mode-active .ocean-board-surface .bg-surface-container {
+    background: rgba(255, 255, 255, 0.08) !important;
+    backdrop-filter: blur(1px) !important;
+    -webkit-backdrop-filter: blur(1px) !important;
+    border: 1px solid rgba(16, 40, 58, 0.18) !important;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.35),
+        inset 0 -1px 0 rgba(16, 40, 58, 0.12) !important;
+}
+
+/* Centered status badges for single player battle header */
+.turn-badge-player {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 28px !important;
+    border-radius: 9999px;
+    font-size: 13px !important;
+    font-weight: 900 !important;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: #00d2ff !important;
+    color: #02121d !important;
+    border: 2px solid #02121d !important;
+    box-shadow: 3px 3px 0 #02121d !important;
+}
+
+.light-mode-active .turn-badge-player {
+    background: #0077b6 !important;
+    color: #ffffff !important;
+    border: 2px solid #10283a !important;
+    box-shadow: 3px 3px 0 #10283a !important;
+}
+
+.turn-badge-bot {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 28px !important;
+    border-radius: 9999px;
+    font-size: 13px !important;
+    font-weight: 900 !important;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: #ff6b4a !important;
+    color: #ffffff !important;
+    border: 2px solid #02121d !important;
+    box-shadow: 3px 3px 0 #02121d !important;
+}
+
+.light-mode-active .turn-badge-bot {
+    background: #e63946 !important;
+    color: #ffffff !important;
+    border: 2px solid #10283a !important;
+    box-shadow: 3px 3px 0 #10283a !important;
+}
+
+.turn-badge-victory {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 28px !important;
+    border-radius: 9999px;
+    font-size: 13px !important;
+    font-weight: 900 !important;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: #22c55e !important;
+    color: #ffffff !important;
+    border: 2px solid #02121d !important;
+    box-shadow: 3px 3px 0 #02121d !important;
+}
+
+.light-mode-active .turn-badge-victory {
+    border: 2px solid #10283a !important;
+    box-shadow: 3px 3px 0 #10283a !important;
+}
+
+.turn-badge-defeat {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 28px !important;
+    border-radius: 9999px;
+    font-size: 13px !important;
+    font-weight: 900 !important;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: #ef4444 !important;
+    color: #ffffff !important;
+    border: 2px solid #02121d !important;
+    box-shadow: 3px 3px 0 #02121d !important;
+}
+
+.light-mode-active .turn-badge-defeat {
+    border: 2px solid #10283a !important;
+    box-shadow: 3px 3px 0 #10283a !important;
+}
+
+/* Vibrant and readable red timer when time < 10 seconds */
+.timer-pulse-red {
+    color: #ff3b30 !important;
+    text-shadow: 0 0 10px rgba(255, 59, 48, 0.4) !important;
+}
+
+.light-mode-active .timer-pulse-red {
+    color: #d90429 !important;
+    text-shadow: 0 0 8px rgba(217, 4, 41, 0.15) !important;
+}
+
+/* Deploying fleet status badge - high contrast box with block shadow */
+.turn-badge-deploying {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 22px !important;
+    border-radius: 4px !important;
+    font-size: 12px !important;
+    font-weight: 900 !important;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: #00d2ff !important;
+    color: #020d17 !important;
+    border: 2px solid #02121d !important;
+    box-shadow: 3px 3px 0 #02121d !important;
+    text-align: center;
+}
+
+.light-mode-active .turn-badge-deploying {
+    background: #0077b6 !important;
+    color: #ffffff !important;
+    border: 2px solid #10283a !important;
+    box-shadow: 3px 3px 0 #10283a !important;
+}
+
+html:not(.light-mode-active) .turn-badge-deploying,
+html:not(.light-mode-active) .turn-badge-player,
+html:not(.light-mode-active) .turn-badge-bot,
+html:not(.light-mode-active) .turn-badge-victory,
+html:not(.light-mode-active) .turn-badge-defeat {
+    border: 2px solid #ffffff !important;
+    box-shadow: 3px 3px 0 #ffffff !important;
+    color: #ffffff !important;
+}
+
+/* Premium Exit Dialog Modal */
+.game-exit-dialog {
+    background: linear-gradient(135deg, rgba(8, 28, 42, 0.95), rgba(3, 14, 23, 0.98)) !important;
+    border: 2.5px solid #75dfff !important;
+    box-shadow: 6px 6px 0 var(--game-shadow) !important;
+    border-radius: 16px !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+    color: #ffffff !important;
+}
+
+.light-mode-active .game-exit-dialog {
+    background: rgba(255, 255, 255, 0.98) !important;
+    border: 2.5px solid #10283a !important;
+    box-shadow: 6px 6px 0 #10283a !important;
+    color: #10283a !important;
+}
+
+/* Modal text colors */
+.game-exit-dialog h2 {
+    color: #8fe9ff !important;
+}
+.light-mode-active .game-exit-dialog h2 {
+    color: #10283a !important;
+}
+.game-exit-dialog p {
+    color: rgba(234, 247, 255, 0.72) !important;
+}
+.light-mode-active .game-exit-dialog p {
+    color: rgba(16, 40, 58, 0.8) !important;
+}
+
+/* Modal buttons */
+.game-exit-dialog .btn-stay,
+.game-exit-dialog .btn-leave {
+    font-size: 12px !important;
+    font-weight: 900 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.08em !important;
+    border-radius: 4px !important;
+    padding: 12px 24px !important;
+    cursor: pointer;
+    transition: transform 0.1s ease, box-shadow 0.1s ease !important;
+}
+
+/* Stay Button (Cancel/Neutral) */
+.game-exit-dialog .btn-stay {
+    background: #1e293b !important;
+    color: #ffffff !important;
+    border: 2px solid #02121d !important;
+    box-shadow: 3px 3px 0 var(--game-shadow) !important;
+}
+.game-exit-dialog .btn-stay:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 4px 4px 0 var(--game-shadow) !important;
+}
+.game-exit-dialog .btn-stay:active {
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 0 var(--game-shadow) !important;
+}
+
+.light-mode-active .game-exit-dialog .btn-stay {
+    background: #e2e8f0 !important;
+    color: #10283a !important;
+    border: 2px solid #10283a !important;
+    box-shadow: 3px 3px 0 #10283a !important;
+}
+.light-mode-active .game-exit-dialog .btn-stay:hover {
+    box-shadow: 4px 4px 0 #10283a !important;
+}
+.light-mode-active .game-exit-dialog .btn-stay:active {
+    box-shadow: 1px 1px 0 #10283a !important;
+}
+
+/* Leave Button (Confirm/Danger) */
+.game-exit-dialog .btn-leave {
+    background: #ef4444 !important;
+    color: #ffffff !important;
+    border: 2px solid #02121d !important;
+    box-shadow: 3px 3px 0 var(--game-shadow) !important;
+}
+.game-exit-dialog .btn-leave:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 4px 4px 0 var(--game-shadow) !important;
+}
+.game-exit-dialog .btn-leave:active {
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 0 var(--game-shadow) !important;
+}
+
+.light-mode-active .game-exit-dialog .btn-leave {
+    background: #dc2626 !important;
+    color: #ffffff !important;
+    border: 2px solid #10283a !important;
+    box-shadow: 3px 3px 0 #10283a !important;
+}
+.light-mode-active .game-exit-dialog .btn-leave:hover {
+    box-shadow: 4px 4px 0 #10283a !important;
+}
+.light-mode-active .game-exit-dialog .btn-leave:active {
+    box-shadow: 1px 1px 0 #10283a !important;
+}
+
+/* Mobile Battle Tabs Selector */
+.mobile-battle-tab {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 16px !important;
+    border-radius: 8px !important;
+    font-size: 13px !important;
+    font-weight: 900 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.08em !important;
+    transition: transform 0.12s ease, box-shadow 0.12s ease, background-color 0.12s ease, border-color 0.12s ease !important;
+    cursor: pointer;
+}
+
+/* Inactive State - Dark Mode */
+.mobile-battle-tab.is-inactive {
+    background: rgba(8, 28, 42, 0.65) !important;
+    color: rgba(140, 220, 255, 0.6) !important;
+    border: 2.5px solid rgba(117, 223, 255, 0.25) !important;
+    box-shadow: none !important;
+}
+
+.mobile-battle-tab.is-inactive:hover {
+    background: rgba(8, 28, 42, 0.85) !important;
+    color: rgba(140, 220, 255, 0.9) !important;
+    border-color: rgba(117, 223, 255, 0.45) !important;
+}
+
+/* Active State - Enemy Waters (Red/Coral tint for attack) - Dark Mode */
+.mobile-battle-tab.is-active-enemy {
+    background: #ff5a36 !important; /* Coral */
+    color: #ffffff !important;
+    border: 2.5px solid var(--game-shadow) !important;
+    box-shadow: 4px 4px 0 var(--game-shadow) !important;
+}
+
+.mobile-battle-tab.is-active-enemy:hover {
+    transform: translate(-2px, -2px) !important;
+    box-shadow: 6px 6px 0 var(--game-shadow) !important;
+}
+
+.mobile-battle-tab.is-active-enemy:active {
+    transform: translate(1px, 1px) scale(0.99) !important;
+    box-shadow: 2px 2px 0 var(--game-shadow) !important;
+}
+
+/* Active State - Your Fleet (Blue/Teal tint for defense) - Dark Mode */
+.mobile-battle-tab.is-active-fleet {
+    background: #00d2ff !important; /* Cyan */
+    color: #020d17 !important;
+    border: 2.5px solid var(--game-shadow) !important;
+    box-shadow: 4px 4px 0 var(--game-shadow) !important;
+}
+
+.mobile-battle-tab.is-active-fleet:hover {
+    transform: translate(-2px, -2px) !important;
+    box-shadow: 6px 6px 0 var(--game-shadow) !important;
+}
+
+.mobile-battle-tab.is-active-fleet:active {
+    transform: translate(1px, 1px) scale(0.99) !important;
+    box-shadow: 2px 2px 0 var(--game-shadow) !important;
+}
+
+/* --- LIGHT MODE ACTIVE --- */
+.light-mode-active .mobile-battle-tab.is-inactive {
+    background: rgba(255, 255, 255, 0.65) !important;
+    color: #10283a !important;
+    border: 2.5px solid rgba(16, 40, 58, 0.3) !important;
+    box-shadow: none !important;
+    opacity: 0.7;
+}
+
+.light-mode-active .mobile-battle-tab.is-inactive:hover {
+    background: rgba(255, 255, 255, 0.85) !important;
+    border-color: #10283a !important;
+    opacity: 1;
+}
+
+/* Active State - Enemy Waters - Light Mode */
+.light-mode-active .mobile-battle-tab.is-active-enemy {
+    background: #e63946 !important; /* Premium High-contrast Red */
+    color: #ffffff !important;
+    border: 2.5px solid #10283a !important;
+    box-shadow: 4px 4px 0 #10283a !important;
+}
+
+.light-mode-active .mobile-battle-tab.is-active-enemy:hover {
+    transform: translate(-2px, -2px) !important;
+    box-shadow: 6px 6px 0 #10283a !important;
+}
+
+/* Active State - Your Fleet - Light Mode */
+.light-mode-active .mobile-battle-tab.is-active-fleet {
+    background: #0077b6 !important; /* Premium High-contrast Blue */
+    color: #ffffff !important;
+    border: 2.5px solid #10283a !important;
+    box-shadow: 4px 4px 0 #10283a !important;
+}
+
+.light-mode-active .mobile-battle-tab.is-active-fleet:hover {
+    transform: translate(-2px, -2px) !important;
+    box-shadow: 6px 6px 0 #10283a !important;
+}
+
+.light-mode-active .mobile-battle-tab:active {
+    transform: translate(1px, 1px) scale(0.99) !important;
+    box-shadow: 2px 2px 0 #10283a !important;
+}
+
+
+
 
 

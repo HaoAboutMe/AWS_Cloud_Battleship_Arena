@@ -10,6 +10,7 @@ import waterSplashSound from "../assets/sounds/sfx/water-splash.mp3";
 
 const STORAGE_KEY = "battleshipSoundMuted";
 const SETTINGS_STORAGE_KEY = "battleshipSoundSettings";
+const UI_CLICK_CLEANUP_KEY = "__battleshipUIClickSoundCleanup";
 const MUSIC_VOLUME = 0.35;
 const DEFAULT_SOUND_SETTINGS = Object.freeze({
   masterVolume: 1,
@@ -24,12 +25,12 @@ const lastPlayedAt = new Map();
 const listeners = new Set();
 const settingsListeners = new Set();
 const soundBaseVolumes = new Map([
-  ["click", 0.5],
+  ["click", 0.6],
   ["ready", 0.62],
   ["miss", 0.72],
   ["hit", 0.72],
   ["explosion", 0.72],
-  ["sunk", 0.82],
+  ["sunk", 0.64],
   ["victory", 0.74],
   ["defeat", 1],
   ["rankUp", 0.75],
@@ -256,18 +257,24 @@ const ensureSounds = () => {
     "ready",
     createSound(digitalClickSound, { volume: 0.62, pool: 6, preload: true }),
   );
-  sounds.set("miss", createSound(waterSplashSound, { volume: 0.72, pool: 8 }));
-  sounds.set("hit", createSound(explosionSound, { volume: 0.72, pool: 8 }));
+  sounds.set(
+    "miss",
+    createSound(waterSplashSound, { volume: 0.72, pool: 8, preload: true }),
+  );
+  sounds.set(
+    "hit",
+    createSound(explosionSound, { volume: 0.58, pool: 8, preload: true }),
+  );
   sounds.set(
     "explosion",
-    createSound(explosionSound, { volume: 0.72, pool: 8 }),
+    createSound(explosionSound, { volume: 0.58, pool: 8, preload: true }),
   );
   sounds.set(
     "sunk",
-    createSound(sunkSound, { volume: 0.2, pool: 4 }),
+    createSound(sunkSound, { volume: 0.64, pool: 4, preload: true }),
   );
-  sounds.set("victory", createSound(victorySound, { volume: 0.74 }));
-  sounds.set("defeat", createSound(defeatSound, { volume: 1 }));
+  sounds.set("victory", createSound(victorySound, { volume: 0.74, preload: true }));
+  sounds.set("defeat", createSound(defeatSound, { volume: 1, preload: true }));
   sounds.set(
     "rankUp",
     createSound(
@@ -288,6 +295,7 @@ const ensureSounds = () => {
     createSound(menuTheme, {
       loop: true,
       pool: 1,
+      preload: true,
       volume: MUSIC_VOLUME,
     }),
   );
@@ -296,6 +304,7 @@ const ensureSounds = () => {
     createSound(battleTheme, {
       loop: true,
       pool: 1,
+      preload: true,
       volume: MUSIC_VOLUME,
     }),
   );
@@ -347,6 +356,29 @@ const startRequestedMusic = () => {
       musicPlaybackIds.delete(previousName);
     }, 520);
   }
+
+  ["menuMusic", "battleMusic"].forEach((musicName) => {
+    if (musicName === requestedMusic || musicName === previousName) return;
+
+    const music = sounds.get(musicName);
+    const playbackId = musicPlaybackIds.get(musicName);
+    if (!music) return;
+
+    if (playbackId != null && music.playing(playbackId)) {
+      music.fade(music.volume(playbackId), 0, 300, playbackId);
+      window.setTimeout(() => {
+        if (musicPlaybackIds.get(musicName) !== playbackId) return;
+        music.stop(playbackId);
+        musicPlaybackIds.delete(musicName);
+      }, 320);
+      return;
+    }
+
+    if (music.playing()) {
+      music.stop();
+      musicPlaybackIds.delete(musicName);
+    }
+  });
 };
 
 export const syncBackgroundMusic = (pathname) => {
@@ -406,7 +438,12 @@ export const playSound = (name, options = {}) => {
 };
 
 export const installUIClickSounds = () => {
-  if (uiClickListenerInstalled || typeof document === "undefined") return;
+  if (typeof document === "undefined") return;
+
+  window[UI_CLICK_CLEANUP_KEY]?.();
+  window[UI_CLICK_CLEANUP_KEY] = null;
+
+  if (uiClickListenerInstalled) return;
   uiClickListenerInstalled = true;
 
   const resumeMusic = async () => {
@@ -421,33 +458,37 @@ export const installUIClickSounds = () => {
     startRequestedMusic();
   };
 
+  const clickHandler = (event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+
+    if (
+      target.closest(
+        "[data-sound='off'], .ocean-cell, .game-board, .battle-board",
+      )
+    )
+      return;
+
+    const interactive = target.closest(
+      "button, a, select, input[type='checkbox'], input[type='radio'], [role='button'], .profile-rank-card",
+    );
+    if (!interactive) return;
+
+    const customSound = interactive.getAttribute("data-sound");
+    if (customSound === "off") return;
+    playSound(customSound || "click", { minGap: 90 });
+  };
+
   document.addEventListener("pointerdown", resumeMusic, { once: true });
   document.addEventListener("keydown", resumeMusic, { once: true });
+  document.addEventListener("click", clickHandler, true);
 
-  document.addEventListener(
-    "click",
-    (event) => {
-      const target = event.target;
-      if (!(target instanceof Element)) return;
-
-      if (
-        target.closest(
-          "[data-sound='off'], .ocean-cell, .game-board, .battle-board",
-        )
-      )
-        return;
-
-      const interactive = target.closest(
-        "button, a, select, input[type='checkbox'], input[type='radio'], [role='button'], .profile-rank-card",
-      );
-      if (!interactive) return;
-
-      const customSound = interactive.getAttribute("data-sound");
-      if (customSound === "off") return;
-      playSound(customSound || "click", { minGap: 90 });
-    },
-    true,
-  );
+  window[UI_CLICK_CLEANUP_KEY] = () => {
+    document.removeEventListener("pointerdown", resumeMusic);
+    document.removeEventListener("keydown", resumeMusic);
+    document.removeEventListener("click", clickHandler, true);
+    uiClickListenerInstalled = false;
+  };
 };
 
 export const isSoundMuted = () => {

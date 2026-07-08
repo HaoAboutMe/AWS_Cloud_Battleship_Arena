@@ -8,6 +8,8 @@ import {
   useState,
 } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import CommandHeader from "../components/CommandHeader";
+import { setPreferredLightMode } from "../utils/themePreference";
 import ship1 from "../assets/ships/image/ship-1.webp";
 import ship10 from "../assets/ships/image/ship-10.webp";
 import ship2 from "../assets/ships/image/ship-2.webp";
@@ -22,6 +24,7 @@ import GameResultModal from "../components/GameResultModal";
 import { PvpCommandStrip, PvpCommsPanel } from "../components/PvpBattlePanels";
 import { useAuth } from "../contexts/AuthContext";
 import { useLanguage } from "../contexts/LanguageContext";
+import logoImg from "../assets/logo/logo.webp";
 import BattleEffectsLayer from "../game/BattleEffectsLayer";
 import {
   canPlaceShip,
@@ -46,13 +49,13 @@ import {
   resetRoomForRematch,
   sendSocketMessage,
 } from "../services/matchService";
-import { playSound } from "../services/soundService";
+import { playSound, syncBackgroundMusic } from "../services/soundService";
 import "./GameEffects.css";
 
 const RankUpAnimation = lazy(() => import("../components/RankUpAnimation"));
 
 const BOARD_SIZE = 10;
-const CELL_SIZE = 40;
+const CELL_SIZE = 35;
 const CELL_GAP = 2;
 const COORD_HEADER_HEIGHT = 24;
 const SHIP_CELL_PADDING = 0;
@@ -319,14 +322,17 @@ const GAME_COPY = {
     unableLeaveCleanly: "Unable to leave room cleanly.",
     unableResetRematch: "Unable to reset room for rematch.",
     youLeftMatch: "You left the match.",
+    opponentLeftMatch: "Opponent left the match.",
     timeUp: "Time is up! Turn passes to enemy.",
     yourTurnStarted: "Your turn started.",
     waitingOpponentMove: "Waiting for opponent move through the room channel.",
     enemyThinking: "Enemy is thinking...",
-    enemyDestroyedYourShip: "Enemy destroyed your ship (size {size}) at {cell}!",
+    enemyDestroyedYourShip:
+      "Enemy destroyed your ship (size {size}) at {cell}!",
     enemyHitYourShip: "Enemy hit your ship at {cell}!",
     enemyMissedAt: "Enemy missed at {cell}.",
-    youDestroyedEnemyShip: "You destroyed an enemy ship (size {size}) at {cell}!",
+    youDestroyedEnemyShip:
+      "You destroyed an enemy ship (size {size}) at {cell}!",
     directHitAt: "Direct hit at {cell}!",
     missedAt: "Missed at {cell}.",
     roomStillConnecting: "Room channel is still connecting. Wait a moment.",
@@ -338,10 +344,12 @@ const GAME_COPY = {
     roomConnected: "Room channel connected.",
     roomConnectionFailed: "Room channel connection failed.",
     roomNotConfigured: "Room channel is not configured.",
-    enemyWatersSynced: "Enemy waters synced. Shot results will be verified by opponent fleet.",
+    enemyWatersSynced:
+      "Enemy waters synced. Shot results will be verified by opponent fleet.",
     returnedShipStaging: "Returned ship to staging dock.",
     cannotRotateHere: "Cannot rotate here. Area blocked.",
-    invalidPlacementReturned: "Invalid placement. Ship returned to original position.",
+    invalidPlacementReturned:
+      "Invalid placement. Ship returned to original position.",
     fleetDeployedReview: "Fleet deployed. Review the formation or press Ready.",
     invalidPlacementPosition: "Invalid placement position.",
     autoArrangedLog:
@@ -462,11 +470,13 @@ const GAME_COPY = {
     unableLeaveCleanly: "Không thể rời phòng gọn gàng.",
     unableResetRematch: "Không thể đặt lại phòng để tái đấu.",
     youLeftMatch: "Bạn đã rời trận.",
+    opponentLeftMatch: "Đối phương đã rời trận.",
     timeUp: "Hết giờ! Lượt chuyển sang đối thủ.",
     yourTurnStarted: "Bắt đầu lượt của bạn.",
     waitingOpponentMove: "Đang chờ đối thủ đi qua kênh phòng.",
     enemyThinking: "Đối thủ đang suy nghĩ...",
-    enemyDestroyedYourShip: "Đối thủ đã phá hủy tàu của bạn (cỡ {size}) tại {cell}!",
+    enemyDestroyedYourShip:
+      "Đối thủ đã phá hủy tàu của bạn (cỡ {size}) tại {cell}!",
     enemyHitYourShip: "Đối thủ bắn trúng tàu của bạn tại {cell}!",
     enemyMissedAt: "Đối thủ bắn trượt tại {cell}.",
     youDestroyedEnemyShip: "Bạn đã phá hủy tàu địch (cỡ {size}) tại {cell}!",
@@ -481,11 +491,13 @@ const GAME_COPY = {
     roomConnected: "Đã kết nối kênh phòng.",
     roomConnectionFailed: "Kết nối kênh phòng thất bại.",
     roomNotConfigured: "Kênh phòng chưa được cấu hình.",
-    enemyWatersSynced: "Đã đồng bộ vùng biển địch. Kết quả bắn sẽ được xác minh bởi hạm đội đối thủ.",
+    enemyWatersSynced:
+      "Đã đồng bộ vùng biển địch. Kết quả bắn sẽ được xác minh bởi hạm đội đối thủ.",
     returnedShipStaging: "Đã đưa tàu về bến chờ.",
     cannotRotateHere: "Không thể xoay tại đây. Khu vực bị chặn.",
     invalidPlacementReturned: "Vị trí không hợp lệ. Tàu đã trở lại vị trí cũ.",
-    fleetDeployedReview: "Đã triển khai hạm đội. Kiểm tra đội hình hoặc nhấn Sẵn sàng.",
+    fleetDeployedReview:
+      "Đã triển khai hạm đội. Kiểm tra đội hình hoặc nhấn Sẵn sàng.",
     invalidPlacementPosition: "Vị trí đặt tàu không hợp lệ.",
     autoArrangedLog:
       "Đã tự sắp xếp hạm đội. Nhấn lần nữa để đổi đội hình hoặc nhấn Sẵn sàng.",
@@ -559,7 +571,7 @@ const GAME_COPY = {
     shipsTab: "Tín hiệu hạm đội",
     chatEventLog: "Chat & nhật ký trận",
     battleChat: "Trò Chuyện",
-    eventLog: "Nhật Ký Trận",
+    eventLog: "Nhật Ký",
     chatPlaceholder: "Gửi thông điệp chiến thuật...",
     sendChat: "Gửi tin nhắn",
     awaitingSignal: "Đang chờ tín hiệu chiến đấu...",
@@ -678,7 +690,14 @@ const useIsMobile = () => {
 function Game() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, attributes, checkAuth, customAvatarUrl } = useAuth();
+  const {
+    user,
+    attributes,
+    checkAuth,
+    customAvatarUrl,
+    logout,
+    loading: authLoading,
+  } = useAuth();
   const { language } = useLanguage();
   const copy = GAME_COPY[language] || GAME_COPY.en;
   const formatCopy = useCallback(
@@ -710,6 +729,51 @@ function Game() {
   const isPvpMode = searchParams.get("mode") === "pvp";
   const roomCode = searchParams.get("roomCode") || "";
   const [difficulty, setDifficulty] = useState("easy");
+
+  const [isLightMode, setIsLightMode] = useState(() =>
+    document.documentElement.classList.contains("light-mode-active"),
+  );
+
+  const toggleTheme = useCallback(
+    (e) => {
+      const nextLightMode = !isLightMode;
+
+      if (!document.startViewTransition) {
+        setPreferredLightMode(nextLightMode);
+        setIsLightMode(nextLightMode);
+        return;
+      }
+
+      const x = e.clientX;
+      const y = e.clientY;
+      const endRadius = Math.hypot(
+        Math.max(x, window.innerWidth - x),
+        Math.max(y, window.innerHeight - y),
+      );
+
+      const transition = document.startViewTransition(() => {
+        setPreferredLightMode(nextLightMode);
+        setIsLightMode(nextLightMode);
+      });
+
+      transition.ready.then(() => {
+        document.documentElement.animate(
+          {
+            clipPath: [
+              `circle(0px at ${x}px ${y}px)`,
+              `circle(${endRadius}px at ${x}px ${y}px)`,
+            ],
+          },
+          {
+            duration: 700,
+            easing: "ease-in-out",
+            pseudoElement: "::view-transition-new(root)",
+          },
+        );
+      });
+    },
+    [isLightMode],
+  );
 
   const [gameState, setGameState] = useState("PLACEMENT"); // PLACEMENT, READY, PLAYER_TURN, BOT_TURN, GAME_OVER
   const [isCustomShipyardActive, setIsCustomShipyardActive] = useState(false);
@@ -1106,7 +1170,9 @@ function Game() {
                 style={{
                   fontSize: "13px",
                   fontWeight: "bold",
-                  color: ship.isSunk ? "var(--shipyard-sunk-text, #ff6a42)" : "var(--shipyard-active-text, #91ebff)",
+                  color: ship.isSunk
+                    ? "var(--shipyard-sunk-text, #ff6a42)"
+                    : "var(--shipyard-active-text, #91ebff)",
                   textShadow: ship.isSunk
                     ? "var(--shipyard-sunk-glow, 0 0 4px #ff3c1f)"
                     : "var(--shipyard-active-glow, 0 0 4px rgba(81, 224, 255, 0.9))",
@@ -1467,6 +1533,7 @@ function Game() {
   const requestGameExit = useCallback(
     (target = "/") => {
       if (!shouldConfirmPvpExit()) {
+        syncBackgroundMusic(target);
         navigate(target);
         return;
       }
@@ -1475,6 +1542,42 @@ function Game() {
       setExitPromptOpen(true);
     },
     [navigate, shouldConfirmPvpExit],
+  );
+
+  const handleLogout = useCallback(async () => {
+    try {
+      localStorage.removeItem("battleshipSession");
+      if (isPvpMode) {
+        await leaveRoom({
+          roomCode: searchParams.get("room"),
+          player: currentBattlePlayer || roomPlayer,
+        });
+      }
+      syncBackgroundMusic("/");
+      navigate("/", { replace: true, state: { authEvent: "signed-out" } });
+      await logout();
+    } catch (err) {
+      console.error("Logout failed:", err);
+    }
+  }, [
+    isPvpMode,
+    searchParams,
+    currentBattlePlayer,
+    roomPlayer,
+    navigate,
+    logout,
+  ]);
+
+  const handleHeaderNavigation = useCallback(
+    (targetPath) => {
+      if (!shouldConfirmPvpExit()) {
+        syncBackgroundMusic(targetPath);
+        navigate(targetPath);
+        return;
+      }
+      requestGameExit(targetPath);
+    },
+    [shouldConfirmPvpExit, navigate, requestGameExit],
   );
 
   const confirmGameExit = useCallback(async () => {
@@ -1489,7 +1592,7 @@ function Game() {
     // Instead of navigate, we set Game Over state for player A
     gameStateRef.current = "GAME_OVER";
     setGameOverReason("player_left");
-    setGameOverSubMessage("Bạn đã rời trận");
+    setGameOverSubMessage("youLeftMatch");
     setGameState("GAME_OVER");
     setWinner("BOT"); // This triggers a Lose popup (since winner !== "PLAYER")
     releaseShotLock();
@@ -1513,7 +1616,10 @@ function Game() {
 
     try {
       setRematchLoading(true);
-      if (gameOverReason === "opponent_left") {
+      if (
+        gameOverReason === "opponent_left" ||
+        gameOverReason === "player_left"
+      ) {
         void leavePvpRoomCleanly().catch((leaveError) => {
           console.warn(leaveError.message || "Unable to leave room cleanly.");
         });
@@ -1524,10 +1630,7 @@ function Game() {
       navigate(`/lobby?roomCode=${roomCode}`);
     } catch (rematchError) {
       setShowModal(true);
-      addLog(
-        rematchError.message || copy.unableResetRematch,
-        "warning",
-      );
+      addLog(rematchError.message || copy.unableResetRematch, "warning");
     } finally {
       setRematchLoading(false);
     }
@@ -1551,6 +1654,7 @@ function Game() {
       });
     }
 
+    syncBackgroundMusic("/");
     navigate("/");
   }, [isPvpMode, leavePvpRoomCleanly, navigate, roomCode]);
 
@@ -1640,6 +1744,17 @@ function Game() {
       cell.shipOriginCol = minCol;
       cell.shipRoot = row === rootRow && col === rootCol;
       cell.shipBounds = cell.shipRoot ? bounds : null;
+
+      const opponentShip = opponentBattlePlayer?.board?.ships?.find((ship) => {
+        const shipRow = ship.row;
+        const shipCol = ship.col;
+        return ship.baseOffsets?.some(
+          ([dr, dc]) => shipRow + dr === row && shipCol + dc === col,
+        );
+      });
+      if (opponentShip?.shipBrushId) {
+        cell.shipBrushId = opponentShip.shipBrushId;
+      }
     });
   };
 
@@ -1670,6 +1785,32 @@ function Game() {
           "{roomCode}",
           roomCode,
         );
+  };
+
+  const getInstructionText = (isShort) => {
+    if (gameState === "PLACEMENT") {
+      if (!isFleetValid) {
+        return isShort
+          ? (language === "vi" ? "Kéo tàu vào bản đồ" : "Drag ships to map")
+          : (copy.dragShipsInstructions || "Drag ships from staging onto your map. Right-click to rotate.");
+      } else {
+        return isShort
+          ? (language === "vi" ? "Bấm Sẵn sàng để đấu" : "Press Ready to battle")
+          : (copy.formationCompleteInstructions || "Formation complete. Adjust ships, auto-arrange again, or press Ready.");
+      }
+    }
+    if (gameState === "READY") {
+      if (selectedShip) {
+        return isShort
+          ? (language === "vi" ? "Di chuyển/Xoay tàu" : "Move or rotate ship")
+          : (copy.moveSelectedShipInstructions || "Move the selected ship or right-click to rotate it, then press Ready.");
+      } else {
+        return isShort
+          ? (language === "vi" ? "Chọn tàu để chỉnh" : "Select ship to adjust")
+          : (copy.selectShipInstructions || "Select any ship to move or rotate it, then press Ready.");
+      }
+    }
+    return "";
   };
 
   const clearShipFromBoard = (board, shipId) => {
@@ -2152,7 +2293,7 @@ function Game() {
   const handleOpponentLeft = useCallback(() => {
     gameStateRef.current = "GAME_OVER";
     setGameOverReason("opponent_left");
-    setGameOverSubMessage("Đối phương rời trận");
+    setGameOverSubMessage("opponentLeftMatch");
     setGameState("GAME_OVER");
     setWinner("PLAYER");
     releaseShotLock();
@@ -2229,10 +2370,14 @@ function Game() {
             );
           });
           addLog(
-            formatCopy("enemyDestroyedYourShip", "Enemy destroyed your ship (size {size}) at {cell}!", {
-              size: botShot.result.shipLength,
-              cell: cellName,
-            }),
+            formatCopy(
+              "enemyDestroyedYourShip",
+              "Enemy destroyed your ship (size {size}) at {cell}!",
+              {
+                size: botShot.result.shipLength,
+                cell: cellName,
+              },
+            ),
             "defeat",
           );
         } else {
@@ -2240,7 +2385,12 @@ function Game() {
             playSound("hit", { minGap: 90 });
             playerEffectsRef.current?.playHit(botShot.row, botShot.col);
           });
-          addLog(formatCopy("enemyHitYourShip", "Enemy hit your ship at {cell}!", { cell: cellName }), "enemy_hit");
+          addLog(
+            formatCopy("enemyHitYourShip", "Enemy hit your ship at {cell}!", {
+              cell: cellName,
+            }),
+            "enemy_hit",
+          );
         }
 
         if (checkVictory(newPlayerBoard)) {
@@ -2255,7 +2405,12 @@ function Game() {
           playSound("miss", { minGap: 90 });
           playerEffectsRef.current?.playMiss(botShot.row, botShot.col);
         });
-        addLog(formatCopy("enemyMissedAt", "Enemy missed at {cell}.", { cell: cellName }), "enemy_miss");
+        addLog(
+          formatCopy("enemyMissedAt", "Enemy missed at {cell}.", {
+            cell: cellName,
+          }),
+          "enemy_miss",
+        );
         setTimeout(() => startPlayerTurn(), 800);
       }
 
@@ -2307,10 +2462,14 @@ function Game() {
               : [...prev, shotResult.shipId],
           );
           addLog(
-            formatCopy("youDestroyedEnemyShip", "You destroyed an enemy ship (size {size}) at {cell}!", {
-              size: shotResult.shipLength,
-              cell: cellName,
-            }),
+            formatCopy(
+              "youDestroyedEnemyShip",
+              "You destroyed an enemy ship (size {size}) at {cell}!",
+              {
+                size: shotResult.shipLength,
+                cell: cellName,
+              },
+            ),
             "destroy",
           );
         } else {
@@ -2320,10 +2479,14 @@ function Game() {
               : [...prev, shotResult.shipId],
           );
           addLog(
-            formatCopy("enemyDestroyedYourShip", "Enemy destroyed your ship (size {size}) at {cell}!", {
-              size: shotResult.shipLength,
-              cell: cellName,
-            }),
+            formatCopy(
+              "enemyDestroyedYourShip",
+              "Enemy destroyed your ship (size {size}) at {cell}!",
+              {
+                size: shotResult.shipLength,
+                cell: cellName,
+              },
+            ),
             "defeat",
           );
         }
@@ -2344,8 +2507,12 @@ function Game() {
         });
         addLog(
           isOutgoing
-            ? formatCopy("directHitAt", "Direct hit at {cell}!", { cell: cellName })
-            : formatCopy("enemyHitYourShip", "Enemy hit your ship at {cell}!", { cell: cellName }),
+            ? formatCopy("directHitAt", "Direct hit at {cell}!", {
+                cell: cellName,
+              })
+            : formatCopy("enemyHitYourShip", "Enemy hit your ship at {cell}!", {
+                cell: cellName,
+              }),
           isOutgoing ? "player_hit" : "enemy_hit",
         );
       }
@@ -2357,7 +2524,9 @@ function Game() {
       addLog(
         isOutgoing
           ? formatCopy("missedAt", "Missed at {cell}.", { cell: cellName })
-          : formatCopy("enemyMissedAt", "Enemy missed at {cell}.", { cell: cellName }),
+          : formatCopy("enemyMissedAt", "Enemy missed at {cell}.", {
+              cell: cellName,
+            }),
         isOutgoing ? "player_miss" : "enemy_miss",
       );
     }
@@ -2398,6 +2567,19 @@ function Game() {
           cell.shipId = shotResult.shipId || `enemy-hit-${payload.shotId}`;
           cell.shipTypeId = shotResult.shipTypeId || null;
           cell.shipLength = shotResult.shipLength || null;
+
+          const opponentShip = opponentBattlePlayer?.board?.ships?.find(
+            (ship) => {
+              const shipRow = ship.row;
+              const shipCol = ship.col;
+              return ship.baseOffsets?.some(
+                ([dr, dc]) => shipRow + dr === row && shipCol + dc === col,
+              );
+            },
+          );
+          if (opponentShip?.shipBrushId) {
+            cell.shipBrushId = opponentShip.shipBrushId;
+          }
 
           if (shotResult.isSunk && Array.isArray(payload.sunkCells)) {
             revealSunkShipOnBoard(nextBoard, shotResult, payload.sunkCells);
@@ -2442,10 +2624,14 @@ function Game() {
             );
           });
           addLog(
-            formatCopy("youDestroyedEnemyShip", "You destroyed an enemy ship (size {size}) at {cell}!", {
-              size: shotResult.shipLength,
-              cell: cellName,
-            }),
+            formatCopy(
+              "youDestroyedEnemyShip",
+              "You destroyed an enemy ship (size {size}) at {cell}!",
+              {
+                size: shotResult.shipLength,
+                cell: cellName,
+              },
+            ),
             "destroy",
           );
         } else {
@@ -2453,7 +2639,12 @@ function Game() {
             playSound("hit", { minGap: 90 });
             enemyEffectsRef.current?.playHit(row, col);
           });
-          addLog(formatCopy("directHitAt", "Direct hit at {cell}!", { cell: cellName }), "player_hit");
+          addLog(
+            formatCopy("directHitAt", "Direct hit at {cell}!", {
+              cell: cellName,
+            }),
+            "player_hit",
+          );
         }
       } else {
         setStats((prev) => {
@@ -2465,7 +2656,10 @@ function Game() {
           playSound("miss", { minGap: 90 });
           enemyEffectsRef.current?.playMiss(row, col);
         });
-        addLog(formatCopy("missedAt", "Missed at {cell}.", { cell: cellName }), "player_miss");
+        addLog(
+          formatCopy("missedAt", "Missed at {cell}.", { cell: cellName }),
+          "player_miss",
+        );
       }
     } else {
       // Target player: opponent shot us
@@ -2504,10 +2698,14 @@ function Game() {
             );
           });
           addLog(
-            formatCopy("enemyDestroyedYourShip", "Enemy destroyed your ship (size {size}) at {cell}!", {
-              size: shotResult.shipLength,
-              cell: cellName,
-            }),
+            formatCopy(
+              "enemyDestroyedYourShip",
+              "Enemy destroyed your ship (size {size}) at {cell}!",
+              {
+                size: shotResult.shipLength,
+                cell: cellName,
+              },
+            ),
             "defeat",
           );
         } else {
@@ -2515,14 +2713,24 @@ function Game() {
             playSound("hit", { minGap: 90 });
             playerEffectsRef.current?.playHit(row, col);
           });
-          addLog(formatCopy("enemyHitYourShip", "Enemy hit your ship at {cell}!", { cell: cellName }), "enemy_hit");
+          addLog(
+            formatCopy("enemyHitYourShip", "Enemy hit your ship at {cell}!", {
+              cell: cellName,
+            }),
+            "enemy_hit",
+          );
         }
       } else {
         window.requestAnimationFrame(() => {
           playSound("miss", { minGap: 90 });
           playerEffectsRef.current?.playMiss(row, col);
         });
-        addLog(formatCopy("enemyMissedAt", "Enemy missed at {cell}.", { cell: cellName }), "enemy_miss");
+        addLog(
+          formatCopy("enemyMissedAt", "Enemy missed at {cell}.", {
+            cell: cellName,
+          }),
+          "enemy_miss",
+        );
       }
     }
 
@@ -2713,10 +2921,7 @@ function Game() {
       pvpSocketRef.current = socket;
     } catch (socketError) {
       setPvpSocketReady(false);
-      addLog(
-        socketError.message || copy.roomNotConfigured,
-        "warning",
-      );
+      addLog(socketError.message || copy.roomNotConfigured, "warning");
     }
 
     return () => {
@@ -2737,10 +2942,7 @@ function Game() {
       pvpEnemyBoardLoadedRef.current = true;
       setEnemyBoard(createBoard());
       matchStartedAtRef.current = new Date().toISOString();
-      addLog(
-        copy.enemyWatersSynced,
-        "info",
-      );
+      addLog(copy.enemyWatersSynced, "info");
     }
 
     // Xác định người đi trước (players[0] là host)
@@ -2815,10 +3017,14 @@ function Game() {
             );
           });
           addLog(
-            formatCopy("youDestroyedEnemyShip", "You destroyed an enemy ship (size {size}) at {cell}!", {
-              size: shotResult.shipLength,
-              cell: cellName,
-            }),
+            formatCopy(
+              "youDestroyedEnemyShip",
+              "You destroyed an enemy ship (size {size}) at {cell}!",
+              {
+                size: shotResult.shipLength,
+                cell: cellName,
+              },
+            ),
             "destroy",
           );
         } else {
@@ -2826,7 +3032,12 @@ function Game() {
             playSound("hit", { minGap: 90 });
             enemyEffectsRef.current?.playHit(r, c);
           });
-          addLog(formatCopy("directHitAt", "Direct hit at {cell}!", { cell: cellName }), "player_hit");
+          addLog(
+            formatCopy("directHitAt", "Direct hit at {cell}!", {
+              cell: cellName,
+            }),
+            "player_hit",
+          );
         }
 
         if (checkVictory(newEnemyBoard)) {
@@ -2841,7 +3052,10 @@ function Game() {
           enemyEffectsRef.current?.playMiss(r, c);
         });
         setStats((prev) => ({ ...prev, misses: prev.misses + 1 }));
-        addLog(formatCopy("missedAt", "Missed at {cell}.", { cell: cellName }), "player_miss");
+        addLog(
+          formatCopy("missedAt", "Missed at {cell}.", { cell: cellName }),
+          "player_miss",
+        );
         setTimeout(() => startBotTurn(), 800);
       }
 
@@ -2958,10 +3172,7 @@ function Game() {
               originalPlacement.shipDef,
               originalPlacement.rotation,
             );
-            addLog(
-              copy.invalidPlacementReturned,
-              "warning",
-            );
+            addLog(copy.invalidPlacementReturned, "warning");
           }
           return newBoard;
         });
@@ -3040,10 +3251,7 @@ function Game() {
             nextShipCount <= FLEET_MAX_SHIPS
           ) {
             setFleetRuleMessage(copy.fleetValid);
-            addLog(
-              copy.fleetDeployedReview,
-              "info",
-            );
+            addLog(copy.fleetDeployedReview, "info");
           } else {
             setFleetRuleMessage("");
           }
@@ -3580,10 +3788,7 @@ function Game() {
     setHoverCell(null);
     setInvalidRotationPreview(null);
     setFleetRuleMessage(copy.fleetValid);
-    addLog(
-      copy.autoArrangedLog,
-      "info",
-    );
+    addLog(copy.autoArrangedLog, "info");
   };
 
   const beginBattle = async () => {
@@ -3602,6 +3807,7 @@ function Game() {
         const minRow = Math.min(...cells.map((c) => c.row));
         const minCol = Math.min(...cells.map((c) => c.col));
         const baseOffsets = cells.map((c) => [c.row - minRow, c.col - minCol]);
+        const brushId = customDrawBoard[minRow][minCol].shipBrushId;
         return {
           shipId: `custom-${idx}-${Date.now()}`,
           shipTypeId: "custom",
@@ -3609,6 +3815,7 @@ function Game() {
           col: minCol,
           rotation: 0,
           baseOffsets,
+          shipBrushId: brushId,
         };
       });
 
@@ -3643,9 +3850,13 @@ function Game() {
               newPlayerBoard[row][col].shipOriginRow = minRow;
               newPlayerBoard[row][col].shipOriginCol = minCol;
               newPlayerBoard[row][col].shipLength = cells.length;
+              newPlayerBoard[row][col].shipBrushId =
+                customDrawBoard[row][col].shipBrushId;
             });
             newPlayerBoard[minRow][minCol].shipRoot = true;
             newPlayerBoard[minRow][minCol].shipBounds = bounds;
+            newPlayerBoard[minRow][minCol].shipBrushId =
+              customDrawBoard[minRow][minCol].shipBrushId;
           });
           setPlayerBoard(newPlayerBoard);
 
@@ -3662,10 +3873,7 @@ function Game() {
             "info",
           );
         } catch (readyError) {
-          addLog(
-            readyError.message || copy.unableMarkReady,
-            "warning",
-          );
+          addLog(readyError.message || copy.unableMarkReady, "warning");
         } finally {
           setPvpReadyLoading(false);
         }
@@ -3688,9 +3896,13 @@ function Game() {
           newPlayerBoard[row][col].shipOriginRow = minRow;
           newPlayerBoard[row][col].shipOriginCol = minCol;
           newPlayerBoard[row][col].shipLength = cells.length;
+          newPlayerBoard[row][col].shipBrushId =
+            customDrawBoard[row][col].shipBrushId;
         });
         newPlayerBoard[minRow][minCol].shipRoot = true;
         newPlayerBoard[minRow][minCol].shipBounds = bounds;
+        newPlayerBoard[minRow][minCol].shipBrushId =
+          customDrawBoard[minRow][minCol].shipBrushId;
       });
       setPlayerBoard(newPlayerBoard);
 
@@ -4094,7 +4306,7 @@ function Game() {
                 getFallbackShipCells(board, cell.shipId).map((shipCell) => (
                   <div
                     key={`${cell.shipId}-${shipCell.row}-${shipCell.col}`}
-                    className="absolute bg-secondary/30 border border-secondary/40"
+                    className={`absolute ocean-cell ${shipCell.shipBrushId ? `custom-painted-cell-${shipCell.shipBrushId}` : "bg-secondary/30 border border-secondary/40"}`}
                     style={{
                       left: `calc(${shipCell.col - (cell.shipOriginCol ?? cell.col)} * (var(--cell-size) + var(--cell-gap)))`,
                       top: `calc(${shipCell.row - (cell.shipOriginRow ?? cell.row)} * (var(--cell-size) + var(--cell-gap)))`,
@@ -4319,6 +4531,7 @@ function Game() {
             cellGap={CELL_GAP}
             boardSide={boardSide}
             smokeCells={smokeCells}
+            isLightMode={isLightMode}
           />
           <div
             className="relative z-10 grid"
@@ -4350,7 +4563,7 @@ function Game() {
                         handleCustomBoardTouchMove(e, playerBoardRef)
                       }
                       onTouchEnd={stopCustomPainting}
-                      className={`ocean-cell relative overflow-visible ${isPlacementLocked ? "cursor-default" : "cursor-crosshair"} ${!isPainted ? "bg-surface-container/50" : `custom-painted-cell-${cell.shipBrushId}`}`}
+                      className={`ocean-cell relative overflow-visible ${isPlacementLocked ? "cursor-default" : "cursor-crosshair"} ${!isPainted ? "" : `custom-painted-cell-${cell.shipBrushId}`}`}
                       style={{
                         transition:
                           "background 0.1s, border 0.1s, box-shadow 0.1s",
@@ -4369,9 +4582,7 @@ function Game() {
                 const isCellMiss = isCellHit && !cell.hasShip;
                 const isSunkShipCell =
                   cell.hasShip && sunkShipIds.includes(cell.shipId);
-                const playerCellBg = cell.hasShip
-                  ? "bg-transparent"
-                  : "bg-surface-container/50";
+                const playerCellBg = cell.hasShip ? "bg-transparent" : "";
                 const baseCellBg = isEnemy
                   ? isSunkShipCell
                     ? "bg-transparent"
@@ -4386,6 +4597,8 @@ function Game() {
                   : isDraggableShipCell
                     ? "cursor-grab"
                     : "cursor-pointer";
+
+                const showBrush = cell.shipBrushId && (!isEnemy || cell.isHit);
 
                 return (
                   <div
@@ -4412,23 +4625,11 @@ function Game() {
                     onTouchEnd={(event) =>
                       !isEnemy && handleTouchEnd(event, r, c)
                     }
-                    className={`ocean-cell relative ${cursorClass} overflow-visible transition-all duration-300 ${baseCellBg} ${
-                      !isEnemy && cell.hasShip ? "player-ship-cell" : ""
-                    } ${
-                      isHovered && draggedShip
-                        ? canPlace
+                    className={`ocean-cell relative ${cursorClass} overflow-visible transition-all duration-300 ${baseCellBg} ${!isEnemy && cell.hasShip ? "player-ship-cell" : ""} ${showBrush ? `custom-painted-cell-${cell.shipBrushId}` : ""} ${
+                      isHovered
+                        ? canPlace && !invalidRotationPreview
                           ? "drag-target-cell-valid"
                           : "drag-target-cell-invalid"
-                        : ""
-                    } ${
-                      isHovered && invalidRotationPreview && !draggedShip
-                        ? "drag-target-cell-invalid"
-                        : ""
-                    } ${
-                      isHovered
-                        ? canPlace
-                          ? "bg-secondary/50 shadow-[0_0_15px_#a5e7ff]"
-                          : "bg-error/50"
                         : ""
                     }`}
                   >
@@ -4445,28 +4646,28 @@ function Game() {
 
   return (
     <div className="game-shell bg-background text-on-background font-body-md min-h-screen selection:bg-secondary/30 flex flex-col">
-      <header className="w-full top-0 sticky z-50 border-b border-white/5 bg-surface/40 backdrop-blur-xl shadow-[0_0_20px_rgba(0,210,255,0.1)]">
-        <div className="flex justify-between items-center w-full px-gutter max-w-[1440px] mx-auto h-12">
-          <Link
-            to="/"
-            onClick={(event) => {
-              if (!shouldConfirmPvpExit()) return;
-              event.preventDefault();
-              requestGameExit("/");
+      <CommandHeader
+        currentUser={user}
+        attributes={attributes}
+        authLoading={authLoading}
+        isLightMode={isLightMode}
+        onToggleTheme={toggleTheme}
+        onLogout={handleLogout}
+        onNavigateRequest={handleHeaderNavigation}
+        hideNav={true}
+        customActions={
+          <div
+            className="game-header-actions"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "12px",
+              marginRight: "12px",
             }}
-            className="font-display-lg text-[20px] font-black text-secondary tracking-tighter uppercase hover:text-white transition-colors truncate"
           >
-            {isMobile ? "BATTLESHIP" : "Cloud Battleship Arena"}
-          </Link>
-          <div className="flex items-center gap-4">
             {isPvpMode ? (
               <button
-                onClick={(event) => {
-                  if (!shouldConfirmPvpExit()) {
-                    navigate("/");
-                    return;
-                  }
-                  event.preventDefault();
+                onClick={() => {
                   requestGameExit("/");
                 }}
                 className="pvp-leave-match-button"
@@ -4477,25 +4678,28 @@ function Game() {
                 <span>{copy.leave || "Leave Match"}</span>
               </button>
             ) : (
-              <span className="text-[10px] uppercase font-bold text-secondary bg-secondary/10 px-2 py-1 rounded-sm border border-secondary/20">
-                {copy.difficultyLabel}:{" "}
-                {copy.difficultyNames?.[difficulty] || difficulty}
-              </span>
+              <>
+                <span className="game-header-difficulty">
+                  {copy.difficultyLabel}:{" "}
+                  {copy.difficultyNames?.[difficulty] || difficulty}
+                </span>
+                <button
+                  onClick={() => requestGameExit("/")}
+                  className="pvp-leave-match-button game-exit-button"
+                >
+                  <span
+                    className="material-symbols-outlined"
+                    aria-hidden="true"
+                  >
+                    logout
+                  </span>
+                  <span>{copy.leave || "Leave Match"}</span>
+                </button>
+              </>
             )}
-            <Link
-              to="/"
-              onClick={(event) => {
-                if (!shouldConfirmPvpExit()) return;
-                event.preventDefault();
-                requestGameExit("/");
-              }}
-              className="material-symbols-outlined text-on-surface-variant hover:text-secondary active:scale-95 transition-all p-2 rounded-full hover:bg-white/5"
-            >
-              home
-            </Link>
           </div>
-        </div>
-      </header>
+        }
+      />
 
       <main
         className={`game-main flex-1 w-full max-w-[1440px] mx-auto px-gutter flex flex-col lg:flex-row gap-4 pb-20 lg:pb-0 ${isPvpMode ? "pvp-game-main" : ""} ${gameState === "PLACEMENT" || gameState === "READY" ? "is-deploying" : ""}`}
@@ -4504,7 +4708,10 @@ function Game() {
         <div className="game-board-column flex-1 flex flex-col lg:w-[70%] lg:flex-none transition-all">
           {/* PvP Command Strip — replaces two side panels and game-status */}
           {isPvpMode && (
-            <div className="sticky top-12 z-40 lg:static bg-background/95 lg:bg-transparent pb-2 lg:pb-0 pt-2 lg:pt-0 backdrop-blur-md lg:backdrop-blur-none -mx-gutter px-gutter lg:mx-0 lg:px-0">
+            <div
+              className="sticky z-40 lg:static pvp-command-sticky-container lg:bg-transparent pb-2 lg:pb-0 pt-2 lg:pt-0 backdrop-blur-md lg:backdrop-blur-none -mx-gutter px-gutter lg:mx-0 lg:px-0"
+              style={{ top: "76px" }}
+            >
               <PvpCommandStrip
                 myPlayer={currentBattlePlayer || roomPlayer}
                 myRankLabel={
@@ -4610,7 +4817,7 @@ function Game() {
                         pvpReadyLoading ||
                         isWaitingForOpponentFleet
                       }
-                      className={`font-bold px-4 py-1.5 md:px-8 md:py-2 text-sm md:text-base rounded-sm transition-all tracking-widest ${
+                      className={`game-ready-btn font-bold px-4 py-1.5 md:px-8 md:py-2 text-sm md:text-base rounded-sm transition-all tracking-widest ${
                         (isCustomShipyardActive
                           ? !isCustomFleetValid
                           : !isFleetValid ||
@@ -4619,7 +4826,7 @@ function Game() {
                         pvpReadyLoading ||
                         isWaitingForOpponentFleet
                           ? "bg-surface-container text-on-surface-variant/40 cursor-not-allowed opacity-50"
-                          : "bg-secondary text-on-secondary-fixed hover:bg-secondary-container active:scale-95"
+                          : "is-valid-ready bg-secondary text-on-secondary-fixed hover:bg-secondary-container active:scale-95"
                       }`}
                     >
                       {pvpReadyLoading
@@ -4636,104 +4843,104 @@ function Game() {
           )}
           {/* Status Header — Only for Single Player Modes */}
           {!isPvpMode && (
-            <div className="game-status glass-card rounded-xl border border-white/10 flex justify-between items-center mb-4">
-              <div>
-                <h2 className="font-display-lg text-base md:text-xl uppercase tracking-widest text-on-surface">
+            <div className="game-status glass-card rounded-xl border border-white/10 flex flex-row md:grid md:grid-cols-3 gap-3 md:gap-0 items-center justify-between w-full mb-2 p-3 md:p-4">
+              {/* Left Column: Sector Command Title */}
+              <div className="hidden md:flex w-full md:w-auto flex-col justify-center items-start">
+                <h2 className="font-display-lg text-sm md:text-lg uppercase tracking-widest text-on-surface leading-none text-left">
                   {gameState === "PLACEMENT" || gameState === "READY"
                     ? copy.deployFleet || "Deploy Your Fleet"
                     : copy.sectorCommand || "Sector Command"}
                 </h2>
-                <p className="text-on-surface-variant text-xs md:text-sm mt-1 hidden md:block">
-                  {gameState === "PLACEMENT" &&
-                    (!isFleetValid
-                      ? copy.dragShipsInstructions ||
-                        "Drag ships from staging onto your map. Right-click to rotate."
-                      : copy.formationCompleteInstructions ||
-                        "Formation complete. Adjust ships, auto-arrange again, or press Ready.")}
-                  {gameState === "READY" &&
-                    (selectedShip
-                      ? copy.moveSelectedShipInstructions ||
-                        "Move the selected ship or right-click to rotate it, then press Ready."
-                      : copy.selectShipInstructions ||
-                        "Select any ship to move or rotate it, then press Ready.")}
-                  {gameState === "PLAYER_TURN" && (
-                    <span className="text-secondary glow-text">
-                      {copy.yourTurn || "Your turn! Target enemy waters."}
-                    </span>
-                  )}
-                  {gameState === "BOT_TURN" && (
-                    <span className="text-error">
-                      {copy.enemyFiring || "Enemy is firing! Brace for impact!"}
-                    </span>
-                  )}
-                  {gameState === "GAME_OVER" &&
-                    (winner === "PLAYER" ? (
-                      <span className="text-green-400">
-                        {copy.sectorSecured || "Sector Secured!"}
-                      </span>
-                    ) : (
-                      <span className="text-error">
-                        {copy.fleetAnnihilated || "Fleet Annihilated!"}
-                      </span>
-                    ))}
-                </p>
               </div>
-              {(gameState === "PLACEMENT" || gameState === "READY") && (
-                <button
-                  onClick={beginBattle}
-                  disabled={
-                    isCustomShipyardActive
-                      ? !isCustomFleetValid
-                      : !isFleetValid ||
-                        Boolean(invalidRotationPreview) ||
-                        Boolean(draggedShip)
-                  }
-                  className={`font-bold px-4 py-1.5 md:px-8 md:py-2 text-sm md:text-base rounded-sm transition-all tracking-widest ${
-                    isCustomShipyardActive
-                      ? !isCustomFleetValid
-                      : !isFleetValid || invalidRotationPreview || draggedShip
-                        ? "bg-surface-container text-on-surface-variant/40 cursor-not-allowed opacity-50"
-                        : "bg-secondary text-on-secondary-fixed hover:bg-secondary-container active:scale-95"
-                  }`}
-                >
-                  {copy.ready}
-                </button>
-              )}
-              {(gameState === "PLAYER_TURN" || gameState === "BOT_TURN") && (
-                <div className="text-center">
-                  <span className="text-[10px] text-on-surface-variant uppercase font-bold tracking-widest">
-                    {copy.timeLabel || "Time"}
+
+              {/* Center Column: Turn Indicator Badge */}
+              <div className="flex-1 md:flex-none flex justify-start md:justify-center items-center">
+                {(gameState === "PLACEMENT" || gameState === "READY") && (
+                  <span className="turn-badge-deploying">
+                    {getInstructionText(isMobile)}
                   </span>
-                  <div
-                    className={`text-3xl font-black ${turnTimer <= 10 ? "text-error animate-pulse" : "text-secondary"}`}
+                )}
+                {gameState === "PLAYER_TURN" && (
+                  <span className="turn-badge-player">
+                    {language === "vi" ? "Lượt của bạn" : "Your Turn"}
+                  </span>
+                )}
+                {gameState === "BOT_TURN" && (
+                  <span className="turn-badge-bot">
+                    {language === "vi" ? "Lượt của máy" : "Enemy Turn"}
+                  </span>
+                )}
+                {gameState === "GAME_OVER" &&
+                  (winner === "PLAYER" ? (
+                    <span className="turn-badge-victory">
+                      {language === "vi" ? "Chiến thắng" : "Victory"}
+                    </span>
+                  ) : (
+                    <span className="turn-badge-defeat">
+                      {language === "vi" ? "Thất bại" : "Defeat"}
+                    </span>
+                  ))}
+              </div>
+
+              {/* Right Column: Action Button or Time */}
+              <div className="flex-none flex justify-end items-center ml-2 md:ml-0 md:w-auto">
+                {(gameState === "PLACEMENT" || gameState === "READY") && (
+                  <button
+                    onClick={beginBattle}
+                    disabled={
+                      isCustomShipyardActive
+                        ? !isCustomFleetValid
+                        : !isFleetValid ||
+                          Boolean(invalidRotationPreview) ||
+                          Boolean(draggedShip)
+                    }
+                    className={`game-ready-btn font-bold px-4 py-1.5 md:px-8 md:py-2 text-sm md:text-base rounded-sm transition-all tracking-widest ${
+                      (isCustomShipyardActive
+                        ? !isCustomFleetValid
+                        : !isFleetValid || invalidRotationPreview || draggedShip)
+                          ? "bg-surface-container text-on-surface-variant/40 cursor-not-allowed opacity-50"
+                          : "is-valid-ready bg-secondary text-on-secondary-fixed hover:bg-secondary-container active:scale-95"
+                    }`}
                   >
-                    {turnTimer}s
+                    {copy.ready}
+                  </button>
+                )}
+                {(gameState === "PLAYER_TURN" || gameState === "BOT_TURN") && (
+                  <div className="text-right">
+                    <span className="text-[10px] text-on-surface-variant uppercase font-bold tracking-widest block leading-none mb-1">
+                      {copy.timeLabel || "Time"}
+                    </span>
+                    <div
+                      className={`text-xl md:text-3xl font-black leading-none ${turnTimer <= 10 ? "timer-pulse-red animate-pulse" : "text-secondary"}`}
+                    >
+                      {turnTimer}s
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           )}
 
           {/* Battle Tabs for Mobile */}
           {isMobile && gameState !== "PLACEMENT" && gameState !== "READY" && (
-            <div className="flex w-full justify-center gap-2 mb-2 px-4">
+            <div className="flex w-full justify-center gap-3 mb-3 px-4">
               <button
                 onClick={() => setActiveBattleTab("enemy")}
-                className={`flex-1 py-2 px-4 rounded-lg font-bold tracking-widest text-sm transition-all border ${
+                className={`mobile-battle-tab flex-1 ${
                   activeBattleTab === "enemy"
-                    ? "bg-error/20 text-error border-error shadow-[0_0_15px_rgba(255,0,0,0.2)]"
-                    : "bg-surface-container border-white/10 text-on-surface-variant"
+                    ? "is-active-enemy"
+                    : "is-inactive"
                 }`}
               >
                 {(isPvpMode ? copy.enemyFleet : copy.enemyWaters) ||
-                  "ENEMY FLEET"}
+                  "ENEMY WATERS"}
               </button>
               <button
                 onClick={() => setActiveBattleTab("fleet")}
-                className={`flex-1 py-2 px-4 rounded-lg font-bold tracking-widest text-sm transition-all border ${
+                className={`mobile-battle-tab flex-1 ${
                   activeBattleTab === "fleet"
-                    ? "bg-secondary/20 text-secondary border-secondary shadow-[0_0_15px_rgba(0,210,255,0.2)]"
-                    : "bg-surface-container border-white/10 text-on-surface-variant"
+                    ? "is-active-fleet"
+                    : "is-inactive"
                 }`}
               >
                 {copy.yourFleet || "YOUR FLEET"}
@@ -4883,7 +5090,7 @@ function Game() {
                     <div className="flex gap-2 w-full px-2">
                       <button
                         onClick={autoArrangeFleet}
-                        className="flex-1 auto-arrange-button m-0 min-h-[32px] text-[11px] p-1.5"
+                        className="flex-1 auto-arrange-button is-orange"
                         disabled={isPlacementLocked}
                       >
                         <span className="material-symbols-outlined text-[15px]">
@@ -4896,12 +5103,7 @@ function Game() {
                           e.stopPropagation();
                           toggleCustomShipyard();
                         }}
-                        className="flex-1 auto-arrange-button m-0 min-h-[32px] text-[11px] p-1.5"
-                        style={{
-                          background: "rgba(165,231,255,0.08)",
-                          color: "#a5e7ff",
-                          border: "1px solid rgba(165,231,255,0.3)",
-                        }}
+                        className="flex-1 auto-arrange-button"
                         disabled={isPlacementLocked}
                       >
                         <span className="material-symbols-outlined text-[15px]">
@@ -4946,7 +5148,7 @@ function Game() {
                 isCustomShipyardActive ? (
                   /* === Custom Shipyard Validation Panel === */
                   <div
-                    className="deployment-dock"
+                    className="deployment-dock is-custom-shipyard"
                     style={{
                       "--cell-size": `${CELL_SIZE}px`,
                       "--cell-gap": `${CELL_GAP}px`,
@@ -4978,7 +5180,7 @@ function Game() {
                       }}
                     >
                       {/* Brush Toolbar */}
-                      <div className="flex gap-[4px] w-full">
+                      <div className="flex gap-2 w-full px-2">
                         {[1, 2, 3, 4].map((brushId) => {
                           const count = customBrushCounts[brushId - 1];
                           const isActive = activeShipBrush === brushId;
@@ -5000,34 +5202,24 @@ function Game() {
                                 e.stopPropagation();
                                 setActiveShipBrush(brushId);
                               }}
-                              className={`flex-1 flex flex-col items-center justify-center py-[2px] rounded-sm transition-all brush-${brushId} ${isActive ? "is-active-brush" : ""}`}
+                              className={`custom-shipyard-brush-btn flex-1 flex flex-col items-center justify-center py-1 transition-all brush-${brushId} ${isActive ? "is-active-brush" : ""} ${isInvalid ? "is-invalid-brush" : ""}`}
                               style={{
-                                background: isActive
-                                  ? `${brushColor}30`
-                                  : "rgba(255,255,255,0.03)",
-                                border: `1px solid ${isInvalid ? "#ef4444" : isActive ? brushColor : "rgba(255,255,255,0.1)"}`,
-                                borderTopWidth: isActive ? "3px" : "1px",
+                                "--brush-color": brushColor,
                               }}
                             >
                               <span
+                                className="custom-shipyard-brush-label"
                                 style={{
                                   fontSize: "10px",
                                   fontWeight: "bold",
-                                  color: isInvalid
-                                    ? "#ef4444"
-                                    : isActive
-                                      ? brushColor
-                                      : "rgba(255,255,255,0.7)",
                                 }}
                               >
                                 Tàu {brushId}
                               </span>
                               <span
+                                className="custom-shipyard-brush-count"
                                 style={{
                                   fontSize: "9px",
-                                  color: isInvalid
-                                    ? "#ef4444"
-                                    : "rgba(255,255,255,0.5)",
                                 }}
                               >
                                 {count} {copy.cellsLabel || "ô"}
@@ -5094,12 +5286,17 @@ function Game() {
                           </div>
 
                           {/* Progress Bar */}
-                          <div className="order-3 md:order-2 col-span-2 md:col-span-1 w-full h-1 rounded-sm bg-white/10 overflow-hidden">
+                          <div
+                            className="order-3 md:order-2 col-span-2 md:col-span-1 w-full h-2 rounded-md bg-black/30 border border-[#75dfff]/30 overflow-hidden"
+                            style={{
+                              boxShadow: "inset 0 1px 3px rgba(0,0,0,0.6)",
+                            }}
+                          >
                             <div
                               className="custom-shipyard-progress"
                               style={{
                                 height: "100%",
-                                borderRadius: "2px",
+                                borderRadius: "6px",
                                 width: `${Math.min(100, (customDrawCellCount / CUSTOM_SHIPYARD_CELL_BUDGET) * 100)}%`,
                                 background:
                                   customDrawCellCount >
@@ -5205,12 +5402,15 @@ function Game() {
                                   fontSize: "10px",
                                   fontWeight: "bold",
                                   padding: "3px 8px",
-                                  borderRadius: "4px",
-                                  border: `1px solid ${ok ? theme.border : "rgba(239,68,68,0.5)"}`,
+                                  borderRadius: "6px",
+                                  border: `1px solid ${ok ? theme.main : "#ef4444"}`,
                                   background: ok
                                     ? theme.bg
-                                    : "rgba(239,68,68,0.1)",
-                                  color: ok ? theme.main : "#ef4444",
+                                    : "rgba(239,68,68,0.15)",
+                                  backdropFilter: "blur(4px)",
+                                  WebkitBackdropFilter: "blur(4px)",
+                                  boxShadow: `2px 2px 0 ${ok ? theme.main : "#ef4444"}`,
+                                  color: ok ? theme.main : "#ff958c",
                                 }}
                               >
                                 {copy.shipLabel || "Ship"} {brushId}: {sz}{" "}
@@ -5259,9 +5459,6 @@ function Game() {
                           flex: 1.2,
                           minHeight: "36px",
                           padding: "6px 12px",
-                          background: "rgba(165,231,255,0.08)",
-                          border: "1px solid rgba(165,231,255,0.3)",
-                          color: "#a5e7ff",
                         }}
                         onClick={(e) => {
                           e.stopPropagation();
@@ -5470,7 +5667,7 @@ function Game() {
                     </div>
                     <button
                       type="button"
-                      className="auto-arrange-button"
+                      className="auto-arrange-button is-orange"
                       onClick={autoArrangeFleet}
                       disabled={isPlacementLocked}
                     >
@@ -5488,9 +5685,6 @@ function Game() {
                       className="auto-arrange-button"
                       style={{
                         marginTop: "6px",
-                        background: "rgba(165,231,255,0.08)",
-                        border: "1px solid rgba(165,231,255,0.3)",
-                        color: "#a5e7ff",
                       }}
                       onClick={(e) => {
                         e.stopPropagation();
@@ -5568,49 +5762,6 @@ function Game() {
               </div>
             )}
           </div>
-
-          {/* Mini Battle Log for Mobile */}
-          {isMobile && gameState !== "PLACEMENT" && gameState !== "READY" && (
-            <div className="mobile-mini-battle-log mx-4">
-              <div
-                className={`mini-turn-status text-center ${
-                  gameState === "PLAYER_TURN"
-                    ? "text-secondary shadow-secondary/50 drop-shadow-md"
-                    : gameState === "BOT_TURN"
-                      ? "text-error shadow-error/50 drop-shadow-md"
-                      : "text-yellow-400"
-                }`}
-              >
-                {gameState === "PLAYER_TURN"
-                  ? "YOUR TURN"
-                  : gameState === "BOT_TURN"
-                    ? "ENEMY TURN"
-                    : "GAME OVER"}
-              </div>
-
-              <div className="mini-log-list flex flex-col gap-1 items-center text-on-surface-variant mt-2">
-                {logs
-                  .filter((log) =>
-                    [
-                      "player_hit",
-                      "player_miss",
-                      "enemy_hit",
-                      "enemy_miss",
-                      "destroy",
-                    ].includes(log.type),
-                  )
-                  .slice(-2)
-                  .map((log) => (
-                    <div
-                      key={log.id}
-                      className="mini-log-item truncate w-full text-center"
-                    >
-                      {log.msg}
-                    </div>
-                  ))}
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Comms Panel — Right Sidebar / Bottom Sheet on Mobile */}
@@ -5635,8 +5786,8 @@ function Game() {
       </main>
 
       {exitPromptOpen && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-fade-in">
-          <div className="game-exit-dialog glass-card max-w-md w-full p-7 rounded-2xl border border-white/10 shadow-2xl text-center">
+        <div className="fixed inset-0 z-[210] flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-fade-in">
+          <div className="game-exit-dialog max-w-md w-full p-7 text-center">
             <span className="material-symbols-outlined text-[56px] text-error drop-shadow-[0_0_18px_rgba(255,87,87,0.45)]">
               warning
             </span>
@@ -5650,14 +5801,14 @@ function Game() {
               <button
                 type="button"
                 onClick={() => setExitPromptOpen(false)}
-                className="flex-1 bg-surface-container border border-white/10 text-on-surface font-bold py-3 rounded-full hover:bg-white/5 transition-all active:scale-95"
+                className="flex-1 btn-stay"
               >
                 {copy.stay}
               </button>
               <button
                 type="button"
                 onClick={confirmGameExit}
-                className="flex-1 bg-error text-white font-bold py-3 rounded-full hover:brightness-110 transition-all active:scale-95"
+                className="flex-1 btn-leave"
               >
                 {copy.leave}
               </button>

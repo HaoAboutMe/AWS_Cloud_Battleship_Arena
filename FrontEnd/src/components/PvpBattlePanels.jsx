@@ -91,90 +91,97 @@ export function PvpCommandStrip({
     return "VS";
   })();
 
-  const isBattlePhase = !myIsDeploying && !myIsReady;
+  const isDeployingPhase = myIsDeploying || oppIsDeploying;
 
   return (
     <div className="pvp-command-strip-wrapper" aria-label="Battle HUD">
-
       <div className="pvp-command-strip flex flex-col gap-2">
+        {/* ── ROW 1: Player Names & Avatars ── */}
         <div className="pvp-command-strip-top">
-          {/* ── LEFT: Commander ── */}
-        <div className="pvp-strip-player pvp-strip-commander">
-          <div className="pvp-strip-avatar-wrap">
-            <MiniAvatar player={myPlayer} tone="cyan" />
-            <span className={`pvp-strip-dot is-${myStatusDot}`} aria-hidden="true" />
-          </div>
-          <div className="pvp-strip-info">
-            <strong title={myPlayer?.displayName}>
-              {myPlayer?.displayName || "Commander"}
-            </strong>
-            <span className="pvp-strip-rank">
-              {myRankLabel}
-              {myIsDeploying && myIsConnected && (
-                <span className="ml-1 opacity-80 italic">
-                  - {myIsReady ? (copy?.readyStatus || "Đã sẵn sàng") : (copy?.deployingStatus || "Đang xếp tàu")}
-                </span>
-              )}
-            </span>
-          </div>
-
-        </div>
-
-        {/* ── CENTER: Status badge ── */}
-        <div
-          className={`pvp-strip-center ${
-            myIsMyTurn
-              ? "is-my-turn"
-              : oppIsTheirTurn
-                ? "is-opp-turn"
-                : myIsReady || myIsDeploying
-                  ? "is-deploying"
-                  : ""
-          }`}
-        >
-          {(myIsMyTurn || oppIsTheirTurn) && (
-            <span className="pvp-strip-center-pulse" aria-hidden="true" />
-          )}
-          <span className="pvp-strip-center-icon material-symbols-outlined" aria-hidden="true">
-            {myIsMyTurn ? "my_location" : oppIsTheirTurn ? "radar" : "anchor"}
-          </span>
-          <span className="pvp-strip-center-label">{centerLabel}</span>
-        </div>
-
-        {/* ── RIGHT: Opponent ── */}
-        <div className="pvp-strip-player pvp-strip-opponent">
-
-          <div className="pvp-strip-info pvp-strip-info-right">
-            <strong title={oppPlayer?.displayName}>
-              {oppPlayer?.displayName || (copy.waitingPlayer || "Waiting…")}
-            </strong>
-            <span className="pvp-strip-rank">
-              {oppRankLabel}
-              {oppIsDeploying && oppIsConnected && (
-                <span className="ml-1 opacity-80 italic">
-                  - {oppIsReady ? (copy?.readyStatus || "Đã sẵn sàng") : (copy?.deployingStatus || "Đang xếp tàu")}
-                </span>
-              )}
-            </span>
-          </div>
-          <div className="pvp-strip-avatar-wrap">
-            <MiniAvatar player={oppPlayer} tone="red" />
-            <span className={`pvp-strip-dot is-${oppStatusDot}`} aria-hidden="true" />
-          </div>
-        </div>
-        </div>
-
-        {/* ── BOTTOM: Status & Action ── */}
-        {(statusTextNode || actionButtonNode) && (
-          <div className="pvp-command-strip-bottom">
-            <div className="pvp-strip-status-text">
-              {statusTextNode}
+          {/* LEFT: Commander */}
+          <div className="pvp-strip-player pvp-strip-commander">
+            <div className="pvp-strip-avatar-wrap">
+              <MiniAvatar player={myPlayer} tone="cyan" />
+              <span className={`pvp-strip-dot is-${myStatusDot}`} aria-hidden="true" />
             </div>
-            {actionButtonNode && (
-              <div className="pvp-strip-action">
-                {actionButtonNode}
-              </div>
+            <div className="pvp-strip-info">
+              <strong title={myPlayer?.displayName}>
+                {myPlayer?.displayName || "Commander"}
+              </strong>
+              <span className="pvp-strip-rank">{myRankLabel}</span>
+            </div>
+          </div>
+
+          {/* RIGHT: Opponent */}
+          <div className="pvp-strip-player pvp-strip-opponent">
+            <div className="pvp-strip-info pvp-strip-info-right">
+              <strong title={oppPlayer?.displayName}>
+                {oppPlayer?.displayName || (copy.waitingPlayer || "Waiting…")}
+              </strong>
+              <span className="pvp-strip-rank">{oppRankLabel}</span>
+            </div>
+            <div className="pvp-strip-avatar-wrap">
+              <MiniAvatar player={oppPlayer} tone="red" />
+              <span className={`pvp-strip-dot is-${oppStatusDot}`} aria-hidden="true" />
+            </div>
+          </div>
+        </div>
+
+        {/* ── ROW 2: Deploy Statuses & Ready Button (Only during Deployment Phase) ── */}
+        {isDeployingPhase && (
+          <div className="pvp-command-strip-deploy-row">
+            {/* Left Player Status */}
+            <div className="pvp-deploy-status-wrap-left">
+              {myIsDeploying && myIsConnected && (
+                <span className={`pvp-deploy-badge ${myIsReady ? "is-ready" : "is-deploying"}`}>
+                  {myIsReady ? (copy?.readyStatus || "Đã sẵn sàng") : (copy?.deployingStatus || "Đang xếp tàu")}
+                </span>
+              )}
+            </div>
+
+            {/* Center Ready Button */}
+            <div className="pvp-strip-action-center">
+              {actionButtonNode || <div style={{ height: "40px" }} />}
+            </div>
+
+            {/* Right Player Status */}
+            <div className="pvp-deploy-status-wrap-right">
+              {oppIsDeploying && oppIsConnected && (
+                <span className={`pvp-deploy-badge ${oppIsReady ? "is-ready" : "is-deploying"}`}>
+                  {oppIsReady ? (copy?.readyStatus || "Đã sẵn sàng") : (copy?.deployingStatus || "Đang xếp tàu")}
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ── BOTTOM STATUS BADGE: Turn indicator (Only during battle) ── */}
+        {!isDeployingPhase && (
+          <div
+            className={`pvp-strip-center ${
+              myIsMyTurn
+                ? "is-my-turn"
+                : oppIsTheirTurn
+                  ? "is-opp-turn"
+                  : myIsReady || myIsDeploying
+                    ? "is-deploying"
+                    : ""
+            }`}
+          >
+            {(myIsMyTurn || oppIsTheirTurn) && (
+              <span className="pvp-strip-center-pulse" aria-hidden="true" />
             )}
+            <span className="pvp-strip-center-icon material-symbols-outlined" aria-hidden="true">
+              {myIsMyTurn ? "my_location" : oppIsTheirTurn ? "radar" : "anchor"}
+            </span>
+            <span className="pvp-strip-center-label">{centerLabel}</span>
+          </div>
+        )}
+
+        {/* ── BOTTOM ACTION BUTTON: For rematch or other states (Only during non-deployment) ── */}
+        {!isDeployingPhase && actionButtonNode && (
+          <div className="pvp-strip-action">
+            {actionButtonNode}
           </div>
         )}
       </div>

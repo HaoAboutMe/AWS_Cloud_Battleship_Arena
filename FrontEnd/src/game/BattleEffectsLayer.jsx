@@ -26,16 +26,17 @@ const tweenOut = (scene, target, config) => {
         onComplete: () => target.destroy(),
     });
 };
-
-const playImpactRipple = (scene, x, y, intensity = 1) => {
+const playImpactRipple = (scene, x, y, intensity = 1, isLightMode = false) => {
     [0, 120, 250].forEach((delay, index) => {
         scene.time.delayedCall(delay, () => {
+            const color1 = isLightMode ? 0x0077a6 : 0xa9efff;
+            const color2 = isLightMode ? 0x005f8a : 0x4bb9d6;
             const ripple = ring(
                 scene,
                 x,
                 y,
                 7 + (index * 2),
-                index === 0 ? 0xa9efff : 0x4bb9d6,
+                index === 0 ? color1 : color2,
                 0.6 - (index * 0.1),
                 index === 0 ? 2 : 1
             );
@@ -51,11 +52,12 @@ const playImpactRipple = (scene, x, y, intensity = 1) => {
     });
 };
 
-const playMiss = (scene, x, y) => {
-    playImpactRipple(scene, x, y, 1);
+const playMiss = (scene, x, y, isLightMode = false) => {
+    playImpactRipple(scene, x, y, 1, isLightMode);
 
     [0, 130].forEach((delay, index) => {
-        const wave = ring(scene, x, y, 5, 0xcdf7ff, 0.95 - (index * 0.2), 2);
+        const waveColor = isLightMode ? 0x0077a6 : 0xcdf7ff;
+        const wave = ring(scene, x, y, 5, waveColor, 0.95 - (index * 0.2), 2);
         wave.setScale(0.25);
         scene.time.delayedCall(delay, () => {
             tweenOut(scene, wave, {
@@ -68,7 +70,8 @@ const playMiss = (scene, x, y) => {
         });
     });
 
-    const column = circle(scene, x, y + 5, 6, 0xdff9ff, 0.9);
+    const columnColor = isLightMode ? 0x0077a6 : 0xdff9ff;
+    const column = circle(scene, x, y + 5, 6, columnColor, 0.9);
     column.setScale(0.2, 0.1);
     tweenOut(scene, column, {
         y: y - 12,
@@ -82,7 +85,8 @@ const playMiss = (scene, x, y) => {
     for (let index = 0; index < 7; index += 1) {
         const angle = rand(-2.8, -0.35);
         const distance = randInt(12, 23);
-        const drop = circle(scene, x, y, rand(1.2, 2.1), 0xeffcff, 0.95);
+        const dropColor = isLightMode ? 0x005f8a : 0xeffcff;
+        const drop = circle(scene, x, y, rand(1.2, 2.1), dropColor, 0.95);
         tweenOut(scene, drop, {
             x: x + (Math.cos(angle) * distance),
             y: y + (Math.sin(angle) * distance),
@@ -93,8 +97,8 @@ const playMiss = (scene, x, y) => {
     }
 };
 
-const playHit = (scene, x, y, compact = false) => {
-    playImpactRipple(scene, x, y, compact ? 0.75 : 1.12);
+const playHit = (scene, x, y, compact = false, isLightMode = false) => {
+    playImpactRipple(scene, x, y, compact ? 0.75 : 1.12, isLightMode);
 
     const wave = ring(scene, x, y, 6, 0xffd287, 0.95, 2);
     tweenOut(scene, wave, {
@@ -388,7 +392,7 @@ const animateSinkingShip = (scene, boardSide, shipId, attempt = 0) => {
 };
 
 const BattleEffectsLayer = forwardRef(function BattleEffectsLayer(
-    { width, height, cellSize, cellGap, boardSide, smokeCells = [] },
+    { width, height, cellSize, cellGap, boardSide, smokeCells = [], isLightMode = false },
     ref
 ) {
     const hostRef = useRef(null);
@@ -472,7 +476,7 @@ const BattleEffectsLayer = forwardRef(function BattleEffectsLayer(
         if (command.type === "miss") {
             wakeFor(scene, 2200);
             const { x, y } = cellCenter(command.row, command.col);
-            playMiss(scene, x, y);
+            playMiss(scene, x, y, isLightMode);
         }
 
         if (command.type === "sync-smoke") {
@@ -496,7 +500,7 @@ const BattleEffectsLayer = forwardRef(function BattleEffectsLayer(
         if (command.type === "hit") {
             wakeFor(scene, 8500);
             const { x, y } = cellCenter(command.row, command.col);
-            playHit(scene, x, y);
+            playHit(scene, x, y, false, isLightMode);
             playLingeringSmoke(scene, x, y);
         }
 
@@ -507,7 +511,7 @@ const BattleEffectsLayer = forwardRef(function BattleEffectsLayer(
             cells.forEach((cell, index) => {
                 const { x, y } = cellCenter(cell.row, cell.col);
                 const delay = index * 150;
-                scene.time.delayedCall(delay, () => playHit(scene, x, y, true));
+                scene.time.delayedCall(delay, () => playHit(scene, x, y, true, isLightMode));
                 scene.time.delayedCall(
                     delay,
                     () => playLingeringSmoke(scene, x, y, true)

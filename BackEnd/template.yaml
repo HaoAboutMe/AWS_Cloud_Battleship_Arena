@@ -169,7 +169,7 @@ Resources:
           Type: HttpApi
           Properties:
             ApiId: !Ref BattleshipHttpApi
-            Path: /rooms
+            Path: /api/rooms
             Method: POST
 
   JoinRoomFunction:
@@ -186,7 +186,7 @@ Resources:
           Type: HttpApi
           Properties:
             ApiId: !Ref BattleshipHttpApi
-            Path: /rooms/{roomCode}/join
+            Path: /api/rooms/{roomCode}/join
             Method: POST
 
   MatchmakeRoomFunction:
@@ -203,7 +203,7 @@ Resources:
           Type: HttpApi
           Properties:
             ApiId: !Ref BattleshipHttpApi
-            Path: /matchmaking
+            Path: /api/matchmaking
             Method: POST
 
   GetRoomFunction:
@@ -220,7 +220,7 @@ Resources:
           Type: HttpApi
           Properties:
             ApiId: !Ref BattleshipHttpApi
-            Path: /rooms/{roomCode}
+            Path: /api/rooms/{roomCode}
             Method: GET
 
   ReadyRoomFunction:
@@ -237,7 +237,7 @@ Resources:
           Type: HttpApi
           Properties:
             ApiId: !Ref BattleshipHttpApi
-            Path: /rooms/{roomCode}/ready
+            Path: /api/rooms/{roomCode}/ready
             Method: POST
 
   LobbyReadyRoomFunction:
@@ -254,7 +254,7 @@ Resources:
           Type: HttpApi
           Properties:
             ApiId: !Ref BattleshipHttpApi
-            Path: /rooms/{roomCode}/lobby-ready
+            Path: /api/rooms/{roomCode}/lobby-ready
             Method: POST
 
   RematchRoomFunction:
@@ -271,7 +271,7 @@ Resources:
           Type: HttpApi
           Properties:
             ApiId: !Ref BattleshipHttpApi
-            Path: /rooms/{roomCode}/rematch
+            Path: /api/rooms/{roomCode}/rematch
             Method: POST
 
   LeaveRoomFunction:
@@ -288,7 +288,7 @@ Resources:
           Type: HttpApi
           Properties:
             ApiId: !Ref BattleshipHttpApi
-            Path: /rooms/{roomCode}/leave
+            Path: /api/rooms/{roomCode}/leave
             Method: POST
 
   WebSocketConnectFunction:
@@ -564,7 +564,7 @@ Resources:
           Type: HttpApi
           Properties:
             ApiId: !Ref BattleshipHttpApi
-            Path: /user
+            Path: /api/user
             Method: GET
             Auth:
               Authorizer: CognitoAuthorizer
@@ -583,7 +583,7 @@ Resources:
           Type: HttpApi
           Properties:
             ApiId: !Ref BattleshipHttpApi
-            Path: /users/check-username
+            Path: /api/users/check-username
             Method: GET
 
 
@@ -606,7 +606,7 @@ Resources:
           Type: HttpApi
           Properties:
             ApiId: !Ref BattleshipHttpApi
-            Path: /matches
+            Path: /api/matches
             Method: GET
             Auth:
               Authorizer: CognitoAuthorizer
@@ -627,7 +627,7 @@ Resources:
           Type: HttpApi
           Properties:
             ApiId: !Ref BattleshipHttpApi
-            Path: /user/username
+            Path: /api/user/username
             Method: PUT
             Auth:
               Authorizer: CognitoAuthorizer
@@ -651,7 +651,7 @@ Resources:
           Type: HttpApi
           Properties:
             ApiId: !Ref BattleshipHttpApi
-            Path: /users/avatar-upload-url
+            Path: /api/users/avatar-upload-url
             Method: GET
             Auth:
               Authorizer: CognitoAuthorizer
@@ -673,7 +673,7 @@ Resources:
           Type: HttpApi
           Properties:
             ApiId: !Ref BattleshipHttpApi
-            Path: /users/top-commanders
+            Path: /api/users/top-commanders
             Method: GET
 
   WarmUpControllerFunction:
