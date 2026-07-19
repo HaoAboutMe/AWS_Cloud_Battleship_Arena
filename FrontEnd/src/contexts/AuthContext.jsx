@@ -1,0 +1,167 @@
+import { createContext, useContext, useState, useEffect } from "react";
+import { Hub } from "aws-amplify/utils";
+import {
+  getLoggedInUser,
+  getLoggedInUserAttributes,
+  getLoggedInIdentityClaims,
+  logoutUser,
+} from "../services/authService";
+import { getUserProfile } from "../services/userService";
+
+const AuthContext = createContext();
+
+export function AuthProvider({ children }) {
+  const [user, setUser] = useState(null);
+  const [attributes, setAttributes] = useState({});
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [customAvatarUrl, setCustomAvatarUrl] = useState(() => {
+    return localStorage.getItem("customAvatarUrl") || null;
+  });
+  const [sessionTimestamp, setSessionTimestamp] = useState(() => Date.now());
+
+  const updateAvatar = (url) => {
+    setCustomAvatarUrl(url);
+    localStorage.setItem("customAvatarUrl", url);
+  };
+
+  const checkAuth = async () => {
+    try {
+      const currentUser = await getLoggedInUser();
+      setUser(currentUser);
+      setIsAuthenticated(Boolean(currentUser));
+
+      const [attributeResult, claimResult] = await Promise.allSettled([
+        getLoggedInUserAttributes(),
+        getLoggedInIdentityClaims(),
+      ]);
+      const userAttributes =
+        attributeResult.status === "fulfilled" ? attributeResult.value : {};
+      const identityClaims =
+        claimResult.status === "fulfilled" ? claimResult.value : {};
+
+      // Cognito attributes are authoritative, while ID-token claims provide
+      // social profile fields that may not be returned by fetchUserAttributes.
+      const mergedAttributes = {
+        ...identityClaims,
+        ...userAttributes,
+      };
+
+      const email = mergedAttributes.email;
+      if (email) {
+        try {
+          const dbData = await getUserProfile(email);
+          if (dbData) {
+            if (dbData.username) {
+              mergedAttributes.preferred_username = dbData.username;
+            }
+            if (dbData.lastUsernameChange) {
+              mergedAttributes.lastUsernameChange = dbData.lastUsernameChange;
+            }
+            if (dbData.avatarUrl) {
+              mergedAttributes.picture = dbData.avatarUrl;
+            }
+            [
+              "rank",
+              "rankPoints",
+              "peakRank",
+              "rankedWins",
+              "rankedLosses",
+              "rankedMatches",
+              "winStreak",
+            ].forEach((field) => {
+              if (dbData[field] !== undefined) {
+                mergedAttributes[field] = dbData[field];
+              }
+            });
+          }
+        } catch (e) {
+          console.error("Failed to fetch DB user data:", e);
+        }
+      }
+
+      setAttributes(mergedAttributes);
+      setSessionTimestamp(Date.now());
+    } catch {
+      setUser(null);
+      setAttributes({});
+      setIsAuthenticated(false);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const initialAuthCheck = window.setTimeout(checkAuth, 0);
+
+    const stopListening = Hub.listen("auth", ({ payload }) => {
+      if (payload.event === "signedIn") {
+        checkAuth();
+        window.dispatchEvent(new Event("battleship-auth-changed"));
+      }
+
+      if (payload.event === "signedOut") {
+        setUser(null);
+        setAttributes({});
+        setIsAuthenticated(false);
+        setCustomAvatarUrl(null);
+        localStorage.removeItem("customAvatarUrl");
+        window.dispatchEvent(new Event("battleship-auth-changed"));
+      }
+    });
+
+    return () => {
+      window.clearTimeout(initialAuthCheck);
+      stopListening();
+    };
+  }, []);
+
+  const login = async () => {
+    await checkAuth();
+  };
+
+  const logout = async () => {
+    try {
+      localStorage.setItem("justSignedOut", "true");
+      // Set a timeout to clear the flag in case we don't redirect (e.g. email/password login)
+      const timeoutId = setTimeout(() => {
+        localStorage.removeItem("justSignedOut");
+      }, 1500);
+
+      await logoutUser();
+      
+      setUser(null);
+      setAttributes({});
+      setIsAuthenticated(false);
+      setCustomAvatarUrl(null);
+      localStorage.removeItem("customAvatarUrl");
+    } catch (error) {
+      console.error("Error logging out: ", error);
+      localStorage.removeItem("justSignedOut");
+    }
+  };
+
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        attributes,
+        isAuthenticated,
+        loading,
+        login,
+        logout,
+        checkAuth,
+        customAvatarUrl,
+        updateAvatar,
+        sessionTimestamp,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+// eslint-disable-next-line react-refresh/only-export-components
+export function useAuth() {
+  return useContext(AuthContext);
+}

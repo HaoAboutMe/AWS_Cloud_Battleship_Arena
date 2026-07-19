@@ -1,0 +1,6 @@
+/.cursorrules
+/.agents
+/skills-lock.json
+**/node_modules/
+.aws-sam/
+BackEnd/samconfig.toml

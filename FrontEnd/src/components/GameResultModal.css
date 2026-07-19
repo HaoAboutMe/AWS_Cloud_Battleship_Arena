@@ -1,0 +1,341 @@
+/* GameResultModal.css - Premium Neo-Brutalist Results Theme */
+
+/* Colors & Variables */
+.result-modal {
+  --modal-border: #02121d;
+  --modal-bg: linear-gradient(135deg, rgba(8, 28, 42, 0.95), rgba(3, 14, 23, 0.98));
+  --modal-text: #ffffff;
+  --modal-title: #f3d27a; /* Victory gold default */
+  --modal-subtitle: rgba(222, 236, 246, 0.78);
+  --stat-bg: rgba(4, 18, 30, 0.54);
+  --stat-border: rgba(146, 231, 255, 0.12);
+  --stat-accent: #00d2ff;
+  
+  /* Modal Card Style */
+  position: relative;
+  width: min(840px, calc(100vw - 32px)) !important;
+  max-height: 92dvh;
+  overflow-y: auto !important;
+  padding: 24px !important;
+  border-radius: 16px !important;
+  border: 2.5px solid var(--modal-border) !important;
+  background: var(--modal-bg) !important;
+  box-shadow: 6px 6px 0 var(--game-shadow) !important;
+  color: var(--modal-text) !important;
+  text-align: left !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  isolation: isolate;
+}
+
+/* Light Mode Overrides */
+.light-mode-active .result-modal {
+  --modal-border: #10283a;
+  --modal-bg: rgba(255, 255, 255, 0.98);
+  --modal-text: #10283a;
+  --modal-title: #0077b6; /* Victory blue default */
+  --modal-subtitle: rgba(16, 40, 58, 0.8);
+  --stat-bg: #f8fafc;
+  --stat-border: #cbd5e1;
+  --stat-accent: #0077b6;
+  
+  box-shadow: 6px 6px 0 #10283a !important;
+}
+
+/* Victory / Defeat Accents */
+.result-modal--victory {
+  --modal-title: #f3d27a;
+  --stat-accent: #00d2ff;
+}
+.light-mode-active .result-modal--victory {
+  --modal-title: #0077b6;
+  --stat-accent: #0077b6;
+}
+
+.result-modal--defeat {
+  --modal-title: #ff8b7c;
+  --stat-accent: #ff684f;
+}
+.light-mode-active .result-modal--defeat {
+  --modal-title: #dc2626;
+  --stat-accent: #dc2626;
+}
+
+/* Battle Scene Container */
+.result-battle-scene {
+  position: relative;
+  z-index: 1;
+  width: 100% !important;
+  height: clamp(200px, 32vh, 280px) !important;
+  margin: 0 auto 16px !important;
+  overflow: hidden;
+  border-radius: 8px !important;
+  border: 2px solid var(--modal-border) !important;
+  background: #142b3b !important;
+  box-shadow: inset 0 0 40px rgba(0,0,0,0.5) !important;
+}
+
+.result-scene-art {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(1.05) contrast(1.05) brightness(0.95);
+}
+
+.result-modal__header {
+  position: absolute;
+  left: 50% !important;
+  top: 50% !important;
+  bottom: auto !important;
+  transform: translate(-50%, -50%) !important;
+  z-index: 5;
+  width: 100% !important;
+  text-align: center !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+}
+
+.result-modal__title {
+  margin: 0;
+  color: var(--modal-title) !important;
+  font-family: var(--heading), sans-serif;
+  font-size: clamp(38px, 6vw, 64px) !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-shadow: 0 4px 0 rgba(0, 0, 0, 0.6), 0 0 20px rgba(0, 0, 0, 0.4) !important;
+  line-height: 0.9 !important;
+}
+
+.result-modal__subtitle {
+  margin: 0 0 16px !important;
+  font-size: clamp(12px, 1.1vw, 15px) !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--modal-text) !important;
+  opacity: 0.85;
+}
+
+/* Stats Block */
+.result-stats {
+  display: grid !important;
+  grid-template-columns: 1.1fr repeat(3, minmax(0, 1fr)) !important;
+  gap: 0 !important;
+  margin: 0 0 18px !important;
+  overflow: hidden;
+  border: 2.5px solid var(--modal-border) !important;
+  border-radius: 12px !important;
+  background: var(--stat-bg) !important;
+  box-shadow: 4px 4px 0 var(--game-shadow) !important;
+}
+
+.light-mode-active .result-stats {
+  box-shadow: 4px 4px 0 #10283a !important;
+}
+
+.result-stat {
+  min-height: 86px !important;
+  padding: 16px 14px !important;
+  border-right: 1.5px solid var(--modal-border) !important;
+  background: transparent !important;
+  text-align: left !important;
+}
+
+.result-stat:last-child {
+  border-right: none !important;
+}
+
+.result-stat p {
+  margin: 0 0 8px !important;
+  font-size: 10px !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--modal-text) !important;
+  opacity: 0.7;
+}
+
+.result-stat strong,
+.result-stat__accent {
+  display: block;
+  font-size: clamp(24px, 2.5vw, 36px) !important;
+  font-weight: 900 !important;
+  color: var(--stat-accent) !important;
+  line-height: 1 !important;
+}
+
+/* First stat box contains the exit reason, make text size wrap nicely */
+.result-stat:first-child strong {
+  font-size: clamp(14px, 1.6vw, 18px) !important;
+  line-height: 1.2 !important;
+  font-weight: 800 !important;
+}
+
+.result-stat__accent span {
+  opacity: 0.6;
+  font-size: 0.7em;
+}
+
+/* Ranked Result Card */
+.ranked-result-card {
+  margin: 0 0 18px !important;
+  padding: 16px !important;
+  border: 2px solid var(--modal-border) !important;
+  border-radius: 12px !important;
+  background: var(--stat-bg) !important;
+  box-shadow: 3px 3px 0 var(--game-shadow) !important;
+}
+
+.light-mode-active .ranked-result-card {
+  box-shadow: 3px 3px 0 #10283a !important;
+}
+
+.ranked-result-card__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ranked-result-card__top p {
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.ranked-result-card__top strong {
+  font-size: 24px;
+  font-weight: 900;
+  color: var(--stat-accent);
+}
+
+.ranked-result-card__rank,
+.ranked-result-card__rp {
+  margin-top: 4px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.ranked-result-card__meter {
+  width: 100%;
+  height: 6px;
+  margin-top: 10px;
+  background: rgba(0,0,0,0.3);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.ranked-result-card__meter span {
+  display: block;
+  height: 100%;
+  background: var(--stat-accent);
+  width: 70%;
+}
+
+/* Actions Section */
+.result-actions {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 16px !important;
+  width: 100% !important;
+  margin: 8px auto 0 !important;
+}
+
+.result-action {
+  min-height: 52px !important;
+  border: 2px solid var(--modal-border) !important;
+  border-radius: 6px !important;
+  font-size: 15px !important;
+  font-weight: 900 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: transform 0.1s ease, box-shadow 0.1s ease, background-color 0.1s ease !important;
+}
+
+.result-action:hover {
+  transform: translate(-1px, -1px) !important;
+}
+
+.result-action:active {
+  transform: translate(2px, 2px) !important;
+}
+
+/* Play Again Button (Primary Accent) */
+.result-action--primary {
+  background: var(--stat-accent) !important;
+  color: #02121d !important;
+  box-shadow: 3px 3px 0 var(--game-shadow) !important;
+}
+.result-action--primary:hover {
+  box-shadow: 4px 4px 0 var(--game-shadow) !important;
+}
+.result-action--primary:active {
+  box-shadow: 1px 1px 0 var(--game-shadow) !important;
+}
+
+.light-mode-active .result-action--primary {
+  color: #ffffff !important;
+  box-shadow: 3px 3px 0 #10283a !important;
+}
+.light-mode-active .result-action--primary:hover {
+  box-shadow: 4px 4px 0 #10283a !important;
+}
+.light-mode-active .result-action--primary:active {
+  box-shadow: 1px 1px 0 #10283a !important;
+}
+
+/* Return Home Button (Secondary/Neutral) */
+.result-action--ghost {
+  background: #1e293b !important;
+  color: #ffffff !important;
+  box-shadow: 3px 3px 0 var(--game-shadow) !important;
+}
+.result-action--ghost:hover {
+  background: rgba(255, 255, 255, 0.05) !important;
+  box-shadow: 4px 4px 0 var(--game-shadow) !important;
+}
+.result-action--ghost:active {
+  box-shadow: 1px 1px 0 var(--game-shadow) !important;
+}
+
+.light-mode-active .result-action--ghost {
+  background: #e2e8f0 !important;
+  color: #10283a !important;
+  box-shadow: 3px 3px 0 #10283a !important;
+}
+.light-mode-active .result-action--ghost:hover {
+  background: #cbd5e1 !important;
+  box-shadow: 4px 4px 0 #10283a !important;
+}
+.light-mode-active .result-action--ghost:active {
+  box-shadow: 1px 1px 0 #10283a !important;
+}
+
+/* Responsive Queries */
+@media (max-width: 768px) {
+  .result-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  
+  .result-stat {
+    min-height: 72px !important;
+    padding: 10px 12px !important;
+  }
+  
+  .result-stat:nth-child(2) {
+    border-right: none !important;
+  }
+  
+  .result-stat:nth-child(-n+2) {
+    border-bottom: 1.5px solid var(--modal-border) !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .result-actions {
+    grid-template-columns: 1fr !important;
+  }
+}

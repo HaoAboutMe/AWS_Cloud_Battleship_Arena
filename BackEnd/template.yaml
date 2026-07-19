@@ -1,0 +1,1563 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: Cloud Battleship Arena serverless backend.
+
+Globals:
+  Function:
+    Runtime: nodejs24.x
+    Architectures:
+      - x86_64
+    Timeout: 10
+    MemorySize: 256
+    Environment:
+      Variables:
+        ROOMS_TABLE: !Ref RoomsTable
+        CONNECTIONS_TABLE: !Ref ConnectionsTable
+        CHAT_MESSAGES_TABLE: !Ref ChatMessagesTable
+        CORS_ORIGIN: !Ref CorsOrigin
+
+Parameters:
+  CorsOrigin:
+    Type: String
+    Default: "http://localhost:5173"
+    Description: Frontend origin allowed to call the HTTP API.
+  LocalCorsOrigin:
+    Type: String
+    Default: "http://localhost:5173"
+    Description: Local frontend origin allowed during development.
+  CognitoUserPoolId:
+    Type: String
+    Description: Cognito User Pool ID
+  CognitoUserPoolClientId:
+    Type: String
+    Description: Cognito User Pool Client ID
+  MonitoringAlarmEmail:
+    Type: String
+    Default: ""
+    Description: Optional email address that receives CloudWatch alarm notifications.
+  MonitoringLambdaErrorThreshold:
+    Type: Number
+    Default: 1
+    MinValue: 1
+    Description: Backend Lambda errors in 5 minutes required to trigger an alarm.
+  MonitoringDynamoDbThrottleThreshold:
+    Type: Number
+    Default: 1
+    MinValue: 1
+    Description: DynamoDB throttle events in 5 minutes required to trigger an alarm.
+
+Conditions:
+  HasMonitoringAlarmEmail: !Not [!Equals [!Ref MonitoringAlarmEmail, ""]]
+
+Resources:
+  MonitoringAlarmTopic:
+    Type: AWS::SNS::Topic
+    Condition: HasMonitoringAlarmEmail
+    Properties:
+      TopicName: !Sub "${AWS::StackName}-backend-monitoring-alarms"
+      DisplayName: !Sub "${AWS::StackName} backend monitoring alarms"
+
+  MonitoringAlarmSubscription:
+    Type: AWS::SNS::Subscription
+    Condition: HasMonitoringAlarmEmail
+    Properties:
+      Protocol: email
+      TopicArn: !Ref MonitoringAlarmTopic
+      Endpoint: !Ref MonitoringAlarmEmail
+
+  RoomsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: Rooms
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: roomCode
+          AttributeType: S
+      KeySchema:
+        - AttributeName: roomCode
+          KeyType: HASH
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+
+  ConnectionsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: Connections
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: connectionId
+          AttributeType: S
+        - AttributeName: roomCode
+          AttributeType: S
+      KeySchema:
+        - AttributeName: connectionId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: byRoomCode
+          KeySchema:
+            - AttributeName: roomCode
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+
+  ChatMessagesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ChatMessages
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: roomCode
+          AttributeType: S
+        - AttributeName: messageKey
+          AttributeType: S
+      KeySchema:
+        - AttributeName: roomCode
+          KeyType: HASH
+        - AttributeName: messageKey
+          KeyType: RANGE
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+
+  BattleshipHttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      CorsConfiguration:
+        AllowOrigins:
+          - !Ref CorsOrigin
+          - !Ref LocalCorsOrigin
+        AllowMethods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+          - OPTIONS
+        AllowHeaders:
+          - content-type
+          - authorization
+      Auth:
+        Authorizers:
+          CognitoAuthorizer:
+            IdentitySource: "$request.header.Authorization"
+            JwtConfiguration:
+              Audience:
+                - !Ref CognitoUserPoolClientId
+              Issuer: !Sub "https://cognito-idp.${AWS::Region}.amazonaws.com/${CognitoUserPoolId}"
+
+  BattleshipWebSocketApi:
+    Type: AWS::ApiGatewayV2::Api
+    Properties:
+      Name: CloudBattleshipWebSocket
+      ProtocolType: WEBSOCKET
+      RouteSelectionExpression: "$request.body.action"
+
+  CreateRoomFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: CreateRoom
+      CodeUri: .
+      Handler: src/handlers/createRoom.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref RoomsTable
+      Events:
+        CreateRoom:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref BattleshipHttpApi
+            Path: /api/rooms
+            Method: POST
+
+  JoinRoomFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: JoinRoom
+      CodeUri: .
+      Handler: src/handlers/joinRoom.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref RoomsTable
+      Events:
+        JoinRoom:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref BattleshipHttpApi
+            Path: /api/rooms/{roomCode}/join
+            Method: POST
+
+  MatchmakeRoomFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: MatchmakeRoom
+      CodeUri: .
+      Handler: src/handlers/matchmakeRoom.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref RoomsTable
+      Events:
+        MatchmakeRoom:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref BattleshipHttpApi
+            Path: /api/matchmaking
+            Method: POST
+
+  GetRoomFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: GetRoom
+      CodeUri: .
+      Handler: src/handlers/getRoom.handler
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref RoomsTable
+      Events:
+        GetRoom:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref BattleshipHttpApi
+            Path: /api/rooms/{roomCode}
+            Method: GET
+
+  ReadyRoomFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: ReadyRoom
+      CodeUri: .
+      Handler: src/handlers/readyRoom.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref RoomsTable
+      Events:
+        ReadyRoom:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref BattleshipHttpApi
+            Path: /api/rooms/{roomCode}/ready
+            Method: POST
+
+  LobbyReadyRoomFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: LobbyReadyRoom
+      CodeUri: .
+      Handler: src/handlers/lobbyReadyRoom.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref RoomsTable
+      Events:
+        LobbyReadyRoom:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref BattleshipHttpApi
+            Path: /api/rooms/{roomCode}/lobby-ready
+            Method: POST
+
+  RematchRoomFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: RematchRoom
+      CodeUri: .
+      Handler: src/handlers/rematchRoom.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref RoomsTable
+      Events:
+        RematchRoom:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref BattleshipHttpApi
+            Path: /api/rooms/{roomCode}/rematch
+            Method: POST
+
+  LeaveRoomFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: LeaveRoom
+      CodeUri: .
+      Handler: src/handlers/leaveRoom.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref RoomsTable
+      Events:
+        LeaveRoom:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref BattleshipHttpApi
+            Path: /api/rooms/{roomCode}/leave
+            Method: POST
+
+  WebSocketConnectFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: WebSocketConnect
+      CodeUri: .
+      Handler: src/handlers/wsConnect.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ConnectionsTable
+
+  WebSocketDisconnectFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: WebSocketDisconnect
+      CodeUri: .
+      Handler: src/handlers/wsDisconnect.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ConnectionsTable
+
+  WebSocketMessageFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: WebSocketMessage
+      CodeUri: .
+      Handler: src/handlers/wsMessage.handler
+      Environment:
+        Variables:
+          ROOMS_TABLE: !Ref RoomsTable
+          CONNECTIONS_TABLE: !Ref ConnectionsTable
+          CHAT_MESSAGES_TABLE: !Ref ChatMessagesTable
+          CORS_ORIGIN: !Ref CorsOrigin
+          MATCH_HISTORY_TABLE: !Ref MatchHistoryTable
+          AVATAR_BUCKET_NAME: !Ref AvatarBucket
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ConnectionsTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref RoomsTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ChatMessagesTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref MatchHistoryTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UserTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref EmailIndexTable
+        - Statement:
+            Effect: Allow
+            Action:
+              - execute-api:ManageConnections
+            Resource: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${BattleshipWebSocketApi}/*"
+
+  ConnectIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref BattleshipWebSocketApi
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub
+        - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${FunctionArn}/invocations
+        - FunctionArn: !GetAtt WebSocketConnectFunction.Arn
+
+  DisconnectIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref BattleshipWebSocketApi
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub
+        - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${FunctionArn}/invocations
+        - FunctionArn: !GetAtt WebSocketDisconnectFunction.Arn
+
+  MessageIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref BattleshipWebSocketApi
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub
+        - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${FunctionArn}/invocations
+        - FunctionArn: !GetAtt WebSocketMessageFunction.Arn
+
+  ConnectRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref BattleshipWebSocketApi
+      RouteKey: $connect
+      Target: !Sub integrations/${ConnectIntegration}
+
+  DisconnectRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref BattleshipWebSocketApi
+      RouteKey: $disconnect
+      Target: !Sub integrations/${DisconnectIntegration}
+
+  DefaultRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref BattleshipWebSocketApi
+      RouteKey: $default
+      Target: !Sub integrations/${MessageIntegration}
+
+  WebSocketDeployment:
+    Type: AWS::ApiGatewayV2::Deployment
+    DependsOn:
+      - ConnectRoute
+      - DisconnectRoute
+      - DefaultRoute
+    Properties:
+      ApiId: !Ref BattleshipWebSocketApi
+
+  WebSocketStage:
+    Type: AWS::ApiGatewayV2::Stage
+    Properties:
+      ApiId: !Ref BattleshipWebSocketApi
+      DeploymentId: !Ref WebSocketDeployment
+      StageName: prod
+      AutoDeploy: true
+
+  ConnectPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref WebSocketConnectFunction
+      Principal: apigateway.amazonaws.com
+
+  DisconnectPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref WebSocketDisconnectFunction
+      Principal: apigateway.amazonaws.com
+
+  MessagePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref WebSocketMessageFunction
+      Principal: apigateway.amazonaws.com
+
+  UserTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: User
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: userId
+          AttributeType: S
+        - AttributeName: username
+          AttributeType: S
+        - AttributeName: rank
+          AttributeType: S
+        - AttributeName: rankPoints
+          AttributeType: N
+      KeySchema:
+        - AttributeName: userId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: UsernameIndex
+          KeySchema:
+            - AttributeName: username
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+        - IndexName: RankLeaderboardIndex
+          KeySchema:
+            - AttributeName: rank
+              KeyType: HASH
+            - AttributeName: rankPoints
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+  EmailIndexTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: EmailIndex
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: email
+          AttributeType: S
+      KeySchema:
+        - AttributeName: email
+          KeyType: HASH
+
+  MatchHistoryTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: MatchHistoryV2
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: userId
+          AttributeType: S
+        - AttributeName: endedAt
+          AttributeType: S
+      KeySchema:
+        - AttributeName: userId
+          KeyType: HASH
+        - AttributeName: endedAt
+          KeyType: RANGE
+
+  AvatarBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders:
+              - "*"
+            AllowedMethods:
+              - PUT
+              - GET
+              - POST
+              - HEAD
+            AllowedOrigins:
+              - !Ref CorsOrigin
+              - !Ref LocalCorsOrigin
+            MaxAge: 3600
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  AvatarBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref AvatarBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: AllowCloudFrontReadAvatars
+            Effect: Allow
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Action: s3:GetObject
+            Resource: !Sub "arn:aws:s3:::${AvatarBucket}/*"
+            Condition:
+              StringLike:
+                AWS:SourceArn: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/*"
+
+  # ==========================================
+  # LAMBDA FUNCTIONS (Phân hệ User & History)
+  # ==========================================
+  CreateUserFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: CreateUser
+      CodeUri: .
+      Handler: src/handlers/users/createUser.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UserTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EmailIndexTable
+
+  GetUserFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: GetUser
+      CodeUri: .
+      Handler: src/handlers/users/getUser.handler
+      Environment:
+        Variables:
+          AVATAR_BUCKET_NAME: !Ref AvatarBucket
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref UserTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref EmailIndexTable
+      Events:
+        GetUser:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref BattleshipHttpApi
+            Path: /api/user
+            Method: GET
+            Auth:
+              Authorizer: CognitoAuthorizer
+
+  CheckUsernameFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: CheckUsername
+      CodeUri: .
+      Handler: src/handlers/users/checkUsername.handler
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref UserTable
+      Events:
+        CheckUsername:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref BattleshipHttpApi
+            Path: /api/users/check-username
+            Method: GET
+
+
+  GetMatchHistoryFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: GetMatchHistory
+      CodeUri: .
+      Handler: src/handlers/users/getMatchHistory.handler
+      Environment:
+        Variables:
+          MATCH_HISTORY_TABLE: !Ref MatchHistoryTable
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref MatchHistoryTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref EmailIndexTable
+      Events:
+        GetMatchHistory:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref BattleshipHttpApi
+            Path: /api/matches
+            Method: GET
+            Auth:
+              Authorizer: CognitoAuthorizer
+
+  UpdateUsernameFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: UpdateUsername
+      CodeUri: .
+      Handler: src/handlers/users/updateUsername.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UserTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref EmailIndexTable
+      Events:
+        UpdateUsername:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref BattleshipHttpApi
+            Path: /api/user/username
+            Method: PUT
+            Auth:
+              Authorizer: CognitoAuthorizer
+
+  GetAvatarUploadUrlFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: GetAvatarUploadUrl
+      CodeUri: .
+      Handler: src/handlers/users/getAvatarUploadUrl.handler
+      Environment:
+        Variables:
+          AVATAR_BUCKET_NAME: !Ref AvatarBucket
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref EmailIndexTable
+        - S3WritePolicy:
+            BucketName: !Ref AvatarBucket
+      Events:
+        GetAvatarUploadUrl:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref BattleshipHttpApi
+            Path: /api/users/avatar-upload-url
+            Method: GET
+            Auth:
+              Authorizer: CognitoAuthorizer
+
+  GetLeaderboardFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: GetLeaderboard
+      CodeUri: .
+      Handler: src/handlers/users/getLeaderboard.handler
+      Environment:
+        Variables:
+          AVATAR_BUCKET_NAME: !Ref AvatarBucket
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref UserTable
+      Events:
+        GetLeaderboard:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref BattleshipHttpApi
+            Path: /api/users/top-commanders
+            Method: GET
+
+  WarmUpControllerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: WarmUpController
+      CodeUri: src/handlers/
+      Handler: warmupController.handler
+      Timeout: 10
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - lambda:InvokeFunction
+              Resource: 
+                - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:WebSocketConnect"
+                - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:CreateRoom"
+                - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:JoinRoom"
+                - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:MatchmakeRoom"
+                - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:RematchRoom"
+      Events:
+        WarmUpSchedule:
+          Type: Schedule
+          Properties:
+            Schedule: rate(5 minutes)
+            Name: BattleshipWarmUpSchedule
+            Description: Ping functions to keep them warm
+            Enabled: true
+
+  BackendRoomLambdaErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-backend-room-lambda-errors"
+      AlarmDescription: Alerts when room-related backend Lambdas report errors.
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: !Ref MonitoringLambdaErrorThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: !If
+        - HasMonitoringAlarmEmail
+        - - !Ref MonitoringAlarmTopic
+        - !Ref AWS::NoValue
+      OKActions: !If
+        - HasMonitoringAlarmEmail
+        - - !Ref MonitoringAlarmTopic
+        - !Ref AWS::NoValue
+      Metrics:
+        - Id: m1
+          MetricStat:
+            Metric:
+              Namespace: AWS/Lambda
+              MetricName: Errors
+              Dimensions:
+                - Name: FunctionName
+                  Value: !Ref CreateRoomFunction
+            Period: 300
+            Stat: Sum
+          ReturnData: false
+        - Id: m2
+          MetricStat:
+            Metric:
+              Namespace: AWS/Lambda
+              MetricName: Errors
+              Dimensions:
+                - Name: FunctionName
+                  Value: !Ref JoinRoomFunction
+            Period: 300
+            Stat: Sum
+          ReturnData: false
+        - Id: m3
+          MetricStat:
+            Metric:
+              Namespace: AWS/Lambda
+              MetricName: Errors
+              Dimensions:
+                - Name: FunctionName
+                  Value: !Ref MatchmakeRoomFunction
+            Period: 300
+            Stat: Sum
+          ReturnData: false
+        - Id: m4
+          MetricStat:
+            Metric:
+              Namespace: AWS/Lambda
+              MetricName: Errors
+              Dimensions:
+                - Name: FunctionName
+                  Value: !Ref GetRoomFunction
+            Period: 300
+            Stat: Sum
+          ReturnData: false
+        - Id: m5
+          MetricStat:
+            Metric:
+              Namespace: AWS/Lambda
+              MetricName: Errors
+              Dimensions:
+                - Name: FunctionName
+                  Value: !Ref ReadyRoomFunction
+            Period: 300
+            Stat: Sum
+          ReturnData: false
+        - Id: m6
+          MetricStat:
+            Metric:
+              Namespace: AWS/Lambda
+              MetricName: Errors
+              Dimensions:
+                - Name: FunctionName
+                  Value: !Ref LobbyReadyRoomFunction
+            Period: 300
+            Stat: Sum
+          ReturnData: false
+        - Id: m7
+          MetricStat:
+            Metric:
+              Namespace: AWS/Lambda
+              MetricName: Errors
+              Dimensions:
+                - Name: FunctionName
+                  Value: !Ref RematchRoomFunction
+            Period: 300
+            Stat: Sum
+          ReturnData: false
+        - Id: m8
+          MetricStat:
+            Metric:
+              Namespace: AWS/Lambda
+              MetricName: Errors
+              Dimensions:
+                - Name: FunctionName
+                  Value: !Ref LeaveRoomFunction
+            Period: 300
+            Stat: Sum
+          ReturnData: false
+        - Id: total
+          Expression: SUM(METRICS())
+          Label: Room Lambda errors
+          ReturnData: true
+
+  BackendRealtimeLambdaErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-backend-realtime-lambda-errors"
+      AlarmDescription: Alerts when realtime backend Lambdas report errors.
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: !Ref MonitoringLambdaErrorThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: !If
+        - HasMonitoringAlarmEmail
+        - - !Ref MonitoringAlarmTopic
+        - !Ref AWS::NoValue
+      OKActions: !If
+        - HasMonitoringAlarmEmail
+        - - !Ref MonitoringAlarmTopic
+        - !Ref AWS::NoValue
+      Metrics:
+        - Id: m1
+          MetricStat:
+            Metric:
+              Namespace: AWS/Lambda
+              MetricName: Errors
+              Dimensions:
+                - Name: FunctionName
+                  Value: !Ref WebSocketConnectFunction
+            Period: 300
+            Stat: Sum
+          ReturnData: false
+        - Id: m2
+          MetricStat:
+            Metric:
+              Namespace: AWS/Lambda
+              MetricName: Errors
+              Dimensions:
+                - Name: FunctionName
+                  Value: !Ref WebSocketDisconnectFunction
+            Period: 300
+            Stat: Sum
+          ReturnData: false
+        - Id: m3
+          MetricStat:
+            Metric:
+              Namespace: AWS/Lambda
+              MetricName: Errors
+              Dimensions:
+                - Name: FunctionName
+                  Value: !Ref WebSocketMessageFunction
+            Period: 300
+            Stat: Sum
+          ReturnData: false
+        - Id: m4
+          MetricStat:
+            Metric:
+              Namespace: AWS/Lambda
+              MetricName: Errors
+              Dimensions:
+                - Name: FunctionName
+                  Value: !Ref WarmUpControllerFunction
+            Period: 300
+            Stat: Sum
+          ReturnData: false
+        - Id: total
+          Expression: SUM(METRICS())
+          Label: Realtime Lambda errors
+          ReturnData: true
+
+  BackendUserLambdaErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-backend-user-lambda-errors"
+      AlarmDescription: Alerts when user-related backend Lambdas report errors.
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: !Ref MonitoringLambdaErrorThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: !If
+        - HasMonitoringAlarmEmail
+        - - !Ref MonitoringAlarmTopic
+        - !Ref AWS::NoValue
+      OKActions: !If
+        - HasMonitoringAlarmEmail
+        - - !Ref MonitoringAlarmTopic
+        - !Ref AWS::NoValue
+      Metrics:
+        - Id: m1
+          MetricStat:
+            Metric:
+              Namespace: AWS/Lambda
+              MetricName: Errors
+              Dimensions:
+                - Name: FunctionName
+                  Value: !Ref CreateUserFunction
+            Period: 300
+            Stat: Sum
+          ReturnData: false
+        - Id: m2
+          MetricStat:
+            Metric:
+              Namespace: AWS/Lambda
+              MetricName: Errors
+              Dimensions:
+                - Name: FunctionName
+                  Value: !Ref GetUserFunction
+            Period: 300
+            Stat: Sum
+          ReturnData: false
+        - Id: m3
+          MetricStat:
+            Metric:
+              Namespace: AWS/Lambda
+              MetricName: Errors
+              Dimensions:
+                - Name: FunctionName
+                  Value: !Ref CheckUsernameFunction
+            Period: 300
+            Stat: Sum
+          ReturnData: false
+        - Id: m4
+          MetricStat:
+            Metric:
+              Namespace: AWS/Lambda
+              MetricName: Errors
+              Dimensions:
+                - Name: FunctionName
+                  Value: !Ref GetMatchHistoryFunction
+            Period: 300
+            Stat: Sum
+          ReturnData: false
+        - Id: m5
+          MetricStat:
+            Metric:
+              Namespace: AWS/Lambda
+              MetricName: Errors
+              Dimensions:
+                - Name: FunctionName
+                  Value: !Ref UpdateUsernameFunction
+            Period: 300
+            Stat: Sum
+          ReturnData: false
+        - Id: m6
+          MetricStat:
+            Metric:
+              Namespace: AWS/Lambda
+              MetricName: Errors
+              Dimensions:
+                - Name: FunctionName
+                  Value: !Ref GetAvatarUploadUrlFunction
+            Period: 300
+            Stat: Sum
+          ReturnData: false
+        - Id: m7
+          MetricStat:
+            Metric:
+              Namespace: AWS/Lambda
+              MetricName: Errors
+              Dimensions:
+                - Name: FunctionName
+                  Value: !Ref GetLeaderboardFunction
+            Period: 300
+            Stat: Sum
+          ReturnData: false
+        - Id: total
+          Expression: SUM(METRICS())
+          Label: User Lambda errors
+          ReturnData: true
+
+  BackendRoomLambdaThrottlesAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-backend-room-lambda-throttles"
+      AlarmDescription: Alerts when room-related backend Lambdas are throttled.
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 1
+      TreatMissingData: notBreaching
+      AlarmActions: !If
+        - HasMonitoringAlarmEmail
+        - - !Ref MonitoringAlarmTopic
+        - !Ref AWS::NoValue
+      OKActions: !If
+        - HasMonitoringAlarmEmail
+        - - !Ref MonitoringAlarmTopic
+        - !Ref AWS::NoValue
+      Metrics:
+        - Id: m1
+          MetricStat:
+            Metric:
+              Namespace: AWS/Lambda
+              MetricName: Throttles
+              Dimensions:
+                - Name: FunctionName
+                  Value: !Ref CreateRoomFunction
+            Period: 300
+            Stat: Sum
+          ReturnData: false
+        - Id: m2
+          MetricStat:
+            Metric:
+              Namespace: AWS/Lambda
+              MetricName: Throttles
+              Dimensions:
+                - Name: FunctionName
+                  Value: !Ref JoinRoomFunction
+            Period: 300
+            Stat: Sum
+          ReturnData: false
+        - Id: m3
+          MetricStat:
+            Metric:
+              Namespace: AWS/Lambda
+              MetricName: Throttles
+              Dimensions:
+                - Name: FunctionName
+                  Value: !Ref MatchmakeRoomFunction
+            Period: 300
+            Stat: Sum
+          ReturnData: false
+        - Id: m4
+          MetricStat:
+            Metric:
+              Namespace: AWS/Lambda
+              MetricName: Throttles
+              Dimensions:
+                - Name: FunctionName
+                  Value: !Ref GetRoomFunction
+            Period: 300
+            Stat: Sum
+          ReturnData: false
+        - Id: m5
+          MetricStat:
+            Metric:
+              Namespace: AWS/Lambda
+              MetricName: Throttles
+              Dimensions:
+                - Name: FunctionName
+                  Value: !Ref ReadyRoomFunction
+            Period: 300
+            Stat: Sum
+          ReturnData: false
+        - Id: m6
+          MetricStat:
+            Metric:
+              Namespace: AWS/Lambda
+              MetricName: Throttles
+              Dimensions:
+                - Name: FunctionName
+                  Value: !Ref LobbyReadyRoomFunction
+            Period: 300
+            Stat: Sum
+          ReturnData: false
+        - Id: m7
+          MetricStat:
+            Metric:
+              Namespace: AWS/Lambda
+              MetricName: Throttles
+              Dimensions:
+                - Name: FunctionName
+                  Value: !Ref RematchRoomFunction
+            Period: 300
+            Stat: Sum
+          ReturnData: false
+        - Id: m8
+          MetricStat:
+            Metric:
+              Namespace: AWS/Lambda
+              MetricName: Throttles
+              Dimensions:
+                - Name: FunctionName
+                  Value: !Ref LeaveRoomFunction
+            Period: 300
+            Stat: Sum
+          ReturnData: false
+        - Id: total
+          Expression: SUM(METRICS())
+          Label: Room Lambda throttles
+          ReturnData: true
+
+  BackendRealtimeLambdaThrottlesAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-backend-realtime-lambda-throttles"
+      AlarmDescription: Alerts when realtime backend Lambdas are throttled.
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 1
+      TreatMissingData: notBreaching
+      AlarmActions: !If
+        - HasMonitoringAlarmEmail
+        - - !Ref MonitoringAlarmTopic
+        - !Ref AWS::NoValue
+      OKActions: !If
+        - HasMonitoringAlarmEmail
+        - - !Ref MonitoringAlarmTopic
+        - !Ref AWS::NoValue
+      Metrics:
+        - Id: m1
+          MetricStat:
+            Metric:
+              Namespace: AWS/Lambda
+              MetricName: Throttles
+              Dimensions:
+                - Name: FunctionName
+                  Value: !Ref WebSocketConnectFunction
+            Period: 300
+            Stat: Sum
+          ReturnData: false
+        - Id: m2
+          MetricStat:
+            Metric:
+              Namespace: AWS/Lambda
+              MetricName: Throttles
+              Dimensions:
+                - Name: FunctionName
+                  Value: !Ref WebSocketDisconnectFunction
+            Period: 300
+            Stat: Sum
+          ReturnData: false
+        - Id: m3
+          MetricStat:
+            Metric:
+              Namespace: AWS/Lambda
+              MetricName: Throttles
+              Dimensions:
+                - Name: FunctionName
+                  Value: !Ref WebSocketMessageFunction
+            Period: 300
+            Stat: Sum
+          ReturnData: false
+        - Id: m4
+          MetricStat:
+            Metric:
+              Namespace: AWS/Lambda
+              MetricName: Throttles
+              Dimensions:
+                - Name: FunctionName
+                  Value: !Ref WarmUpControllerFunction
+            Period: 300
+            Stat: Sum
+          ReturnData: false
+        - Id: total
+          Expression: SUM(METRICS())
+          Label: Realtime Lambda throttles
+          ReturnData: true
+
+  BackendUserLambdaThrottlesAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-backend-user-lambda-throttles"
+      AlarmDescription: Alerts when user-related backend Lambdas are throttled.
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 1
+      TreatMissingData: notBreaching
+      AlarmActions: !If
+        - HasMonitoringAlarmEmail
+        - - !Ref MonitoringAlarmTopic
+        - !Ref AWS::NoValue
+      OKActions: !If
+        - HasMonitoringAlarmEmail
+        - - !Ref MonitoringAlarmTopic
+        - !Ref AWS::NoValue
+      Metrics:
+        - Id: m1
+          MetricStat:
+            Metric:
+              Namespace: AWS/Lambda
+              MetricName: Throttles
+              Dimensions:
+                - Name: FunctionName
+                  Value: !Ref CreateUserFunction
+            Period: 300
+            Stat: Sum
+          ReturnData: false
+        - Id: m2
+          MetricStat:
+            Metric:
+              Namespace: AWS/Lambda
+              MetricName: Throttles
+              Dimensions:
+                - Name: FunctionName
+                  Value: !Ref GetUserFunction
+            Period: 300
+            Stat: Sum
+          ReturnData: false
+        - Id: m3
+          MetricStat:
+            Metric:
+              Namespace: AWS/Lambda
+              MetricName: Throttles
+              Dimensions:
+                - Name: FunctionName
+                  Value: !Ref CheckUsernameFunction
+            Period: 300
+            Stat: Sum
+          ReturnData: false
+        - Id: m4
+          MetricStat:
+            Metric:
+              Namespace: AWS/Lambda
+              MetricName: Throttles
+              Dimensions:
+                - Name: FunctionName
+                  Value: !Ref GetMatchHistoryFunction
+            Period: 300
+            Stat: Sum
+          ReturnData: false
+        - Id: m5
+          MetricStat:
+            Metric:
+              Namespace: AWS/Lambda
+              MetricName: Throttles
+              Dimensions:
+                - Name: FunctionName
+                  Value: !Ref UpdateUsernameFunction
+            Period: 300
+            Stat: Sum
+          ReturnData: false
+        - Id: m6
+          MetricStat:
+            Metric:
+              Namespace: AWS/Lambda
+              MetricName: Throttles
+              Dimensions:
+                - Name: FunctionName
+                  Value: !Ref GetAvatarUploadUrlFunction
+            Period: 300
+            Stat: Sum
+          ReturnData: false
+        - Id: m7
+          MetricStat:
+            Metric:
+              Namespace: AWS/Lambda
+              MetricName: Throttles
+              Dimensions:
+                - Name: FunctionName
+                  Value: !Ref GetLeaderboardFunction
+            Period: 300
+            Stat: Sum
+          ReturnData: false
+        - Id: total
+          Expression: SUM(METRICS())
+          Label: User Lambda throttles
+          ReturnData: true
+
+  BackendDynamoDbReadThrottlesAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-backend-dynamodb-read-throttles"
+      AlarmDescription: Alerts when backend DynamoDB tables report read throttles.
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: !Ref MonitoringDynamoDbThrottleThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: !If
+        - HasMonitoringAlarmEmail
+        - - !Ref MonitoringAlarmTopic
+        - !Ref AWS::NoValue
+      OKActions: !If
+        - HasMonitoringAlarmEmail
+        - - !Ref MonitoringAlarmTopic
+        - !Ref AWS::NoValue
+      Metrics:
+        - Id: m1
+          MetricStat:
+            Metric:
+              Namespace: AWS/DynamoDB
+              MetricName: ReadThrottleEvents
+              Dimensions:
+                - Name: TableName
+                  Value: !Ref RoomsTable
+            Period: 300
+            Stat: Sum
+          ReturnData: false
+        - Id: m2
+          MetricStat:
+            Metric:
+              Namespace: AWS/DynamoDB
+              MetricName: ReadThrottleEvents
+              Dimensions:
+                - Name: TableName
+                  Value: !Ref ConnectionsTable
+            Period: 300
+            Stat: Sum
+          ReturnData: false
+        - Id: m3
+          MetricStat:
+            Metric:
+              Namespace: AWS/DynamoDB
+              MetricName: ReadThrottleEvents
+              Dimensions:
+                - Name: TableName
+                  Value: !Ref ChatMessagesTable
+            Period: 300
+            Stat: Sum
+          ReturnData: false
+        - Id: m4
+          MetricStat:
+            Metric:
+              Namespace: AWS/DynamoDB
+              MetricName: ReadThrottleEvents
+              Dimensions:
+                - Name: TableName
+                  Value: !Ref UserTable
+            Period: 300
+            Stat: Sum
+          ReturnData: false
+        - Id: m5
+          MetricStat:
+            Metric:
+              Namespace: AWS/DynamoDB
+              MetricName: ReadThrottleEvents
+              Dimensions:
+                - Name: TableName
+                  Value: !Ref EmailIndexTable
+            Period: 300
+            Stat: Sum
+          ReturnData: false
+        - Id: m6
+          MetricStat:
+            Metric:
+              Namespace: AWS/DynamoDB
+              MetricName: ReadThrottleEvents
+              Dimensions:
+                - Name: TableName
+                  Value: !Ref MatchHistoryTable
+            Period: 300
+            Stat: Sum
+          ReturnData: false
+        - Id: total
+          Expression: SUM(METRICS())
+          Label: DynamoDB read throttles
+          ReturnData: true
+
+  BackendDynamoDbWriteThrottlesAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-backend-dynamodb-write-throttles"
+      AlarmDescription: Alerts when backend DynamoDB tables report write throttles.
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: !Ref MonitoringDynamoDbThrottleThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: !If
+        - HasMonitoringAlarmEmail
+        - - !Ref MonitoringAlarmTopic
+        - !Ref AWS::NoValue
+      OKActions: !If
+        - HasMonitoringAlarmEmail
+        - - !Ref MonitoringAlarmTopic
+        - !Ref AWS::NoValue
+      Metrics:
+        - Id: m1
+          MetricStat:
+            Metric:
+              Namespace: AWS/DynamoDB
+              MetricName: WriteThrottleEvents
+              Dimensions:
+                - Name: TableName
+                  Value: !Ref RoomsTable
+            Period: 300
+            Stat: Sum
+          ReturnData: false
+        - Id: m2
+          MetricStat:
+            Metric:
+              Namespace: AWS/DynamoDB
+              MetricName: WriteThrottleEvents
+              Dimensions:
+                - Name: TableName
+                  Value: !Ref ConnectionsTable
+            Period: 300
+            Stat: Sum
+          ReturnData: false
+        - Id: m3
+          MetricStat:
+            Metric:
+              Namespace: AWS/DynamoDB
+              MetricName: WriteThrottleEvents
+              Dimensions:
+                - Name: TableName
+                  Value: !Ref ChatMessagesTable
+            Period: 300
+            Stat: Sum
+          ReturnData: false
+        - Id: m4
+          MetricStat:
+            Metric:
+              Namespace: AWS/DynamoDB
+              MetricName: WriteThrottleEvents
+              Dimensions:
+                - Name: TableName
+                  Value: !Ref UserTable
+            Period: 300
+            Stat: Sum
+          ReturnData: false
+        - Id: m5
+          MetricStat:
+            Metric:
+              Namespace: AWS/DynamoDB
+              MetricName: WriteThrottleEvents
+              Dimensions:
+                - Name: TableName
+                  Value: !Ref EmailIndexTable
+            Period: 300
+            Stat: Sum
+          ReturnData: false
+        - Id: m6
+          MetricStat:
+            Metric:
+              Namespace: AWS/DynamoDB
+              MetricName: WriteThrottleEvents
+              Dimensions:
+                - Name: TableName
+                  Value: !Ref MatchHistoryTable
+            Period: 300
+            Stat: Sum
+          ReturnData: false
+        - Id: total
+          Expression: SUM(METRICS())
+          Label: DynamoDB write throttles
+          ReturnData: true
+  BackendCloudWatchDashboard:
+    Type: AWS::CloudWatch::Dashboard
+    Properties:
+      DashboardName: !Sub "${AWS::StackName}-backend"
+      DashboardBody: !Sub |
+        {
+          "widgets": [
+            {
+              "type": "metric",
+              "x": 0,
+              "y": 0,
+              "width": 12,
+              "height": 6,
+              "properties": {
+                "title": "Key Lambda errors",
+                "region": "${AWS::Region}",
+                "stat": "Sum",
+                "period": 300,
+                "metrics": [
+                  [ "AWS/Lambda", "Errors", "FunctionName", "${CreateRoomFunction}" ],
+                  [ ".", ".", ".", "${JoinRoomFunction}" ],
+                  [ ".", ".", ".", "${MatchmakeRoomFunction}" ],
+                  [ ".", ".", ".", "${WebSocketMessageFunction}" ],
+                  [ ".", ".", ".", "${GetUserFunction}" ],
+                  [ ".", ".", ".", "${GetLeaderboardFunction}" ]
+                ]
+              }
+            },
+            {
+              "type": "metric",
+              "x": 12,
+              "y": 0,
+              "width": 12,
+              "height": 6,
+              "properties": {
+                "title": "Key Lambda duration p95",
+                "region": "${AWS::Region}",
+                "stat": "p95",
+                "period": 300,
+                "metrics": [
+                  [ "AWS/Lambda", "Duration", "FunctionName", "${CreateRoomFunction}" ],
+                  [ ".", ".", ".", "${JoinRoomFunction}" ],
+                  [ ".", ".", ".", "${MatchmakeRoomFunction}" ],
+                  [ ".", ".", ".", "${WebSocketMessageFunction}" ],
+                  [ ".", ".", ".", "${GetUserFunction}" ],
+                  [ ".", ".", ".", "${GetLeaderboardFunction}" ]
+                ]
+              }
+            },
+            {
+              "type": "metric",
+              "x": 0,
+              "y": 6,
+              "width": 12,
+              "height": 6,
+              "properties": {
+                "title": "DynamoDB throttles",
+                "region": "${AWS::Region}",
+                "stat": "Sum",
+                "period": 300,
+                "metrics": [
+                  [ "AWS/DynamoDB", "ReadThrottleEvents", "TableName", "${RoomsTable}" ],
+                  [ ".", "WriteThrottleEvents", ".", "${RoomsTable}" ],
+                  [ ".", "ReadThrottleEvents", ".", "${ConnectionsTable}" ],
+                  [ ".", "WriteThrottleEvents", ".", "${ConnectionsTable}" ],
+                  [ ".", "ReadThrottleEvents", ".", "${UserTable}" ],
+                  [ ".", "WriteThrottleEvents", ".", "${UserTable}" ],
+                  [ ".", "ReadThrottleEvents", ".", "${MatchHistoryTable}" ],
+                  [ ".", "WriteThrottleEvents", ".", "${MatchHistoryTable}" ]
+                ]
+              }
+            },
+            {
+              "type": "metric",
+              "x": 12,
+              "y": 6,
+              "width": 12,
+              "height": 6,
+              "properties": {
+                "title": "API Gateway activity",
+                "region": "${AWS::Region}",
+                "stat": "Sum",
+                "period": 300,
+                "metrics": [
+                  [ "AWS/ApiGateway", "Count", "ApiId", "${BattleshipHttpApi}" ],
+                  [ ".", "4xx", ".", "${BattleshipHttpApi}" ],
+                  [ ".", "5xx", ".", "${BattleshipHttpApi}" ],
+                  [ ".", "ConnectCount", "ApiId", "${BattleshipWebSocketApi}", "Stage", "prod" ],
+                  [ ".", "MessageCount", ".", "${BattleshipWebSocketApi}", ".", "prod" ],
+                  [ ".", "ClientError", ".", "${BattleshipWebSocketApi}", ".", "prod" ],
+                  [ ".", "ServerError", ".", "${BattleshipWebSocketApi}", ".", "prod" ]
+                ]
+              }
+            }
+          ]
+        }
+
+Outputs:
+  HttpApiUrl:
+    Description: HTTP API base URL.
+    Value: !Sub "https://${BattleshipHttpApi}.execute-api.${AWS::Region}.amazonaws.com"
+  WebSocketUrl:
+    Description: WebSocket API URL.
+    Value: !Sub "wss://${BattleshipWebSocketApi}.execute-api.${AWS::Region}.amazonaws.com/prod"
+  RoomsTableName:
+    Description: DynamoDB rooms table name.
+    Value: !Ref RoomsTable
+  ChatMessagesTableName:
+    Description: DynamoDB room chat messages table name.
+    Value: !Ref ChatMessagesTable
+  BackendCloudWatchDashboardName:
+    Description: CloudWatch dashboard name for backend metrics.
+    Value: !Sub "${AWS::StackName}-backend"
+  BackendMonitoringAlarmTopicArn:
+    Condition: HasMonitoringAlarmEmail
+    Description: SNS topic ARN used for backend CloudWatch alarm notifications.
+    Value: !Ref MonitoringAlarmTopic

@@ -1,0 +1,297 @@
+/* ============================================================
+   RankDemo – Rank Promotion Preview Page
+   ============================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Outfit:wght@400;600;700&display=swap');
+
+/* ── Page ── */
+.rd-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 48px 24px 64px;
+  gap: 40px;
+
+  background:
+    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(0, 150, 255, 0.07), transparent 60%),
+    linear-gradient(175deg, #030c18 0%, #060f1e 50%, #040810 100%);
+
+  color: #e2f0ff;
+  font-family: 'Outfit', sans-serif;
+}
+
+/* ── Header ── */
+.rd-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  max-width: 700px;
+}
+
+.rd-header-line {
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(117, 223, 255, 0.30), transparent);
+}
+
+.rd-header-content {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.rd-header-icon {
+  font-size: 44px;
+  color: #75dfff;
+  filter: drop-shadow(0 0 18px rgba(117, 223, 255, 0.70));
+  animation: rd-icon-pulse 2.8s ease-in-out infinite alternate;
+}
+
+@keyframes rd-icon-pulse {
+  from { filter: drop-shadow(0 0 12px rgba(117, 223, 255, 0.55)); }
+  to   { filter: drop-shadow(0 0 28px rgba(117, 223, 255, 0.90)); }
+}
+
+.rd-title {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: clamp(26px, 5vw, 38px);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #e8f6ff;
+  margin: 0;
+  line-height: 1.1;
+  text-shadow: 0 0 30px rgba(117, 223, 255, 0.30);
+}
+
+.rd-subtitle {
+  font-size: 14px;
+  color: rgba(180, 220, 240, 0.60);
+  margin: 4px 0 0;
+  letter-spacing: 0.04em;
+}
+
+/* ── Grid ── */
+.rd-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+  width: 100%;
+  max-width: 900px;
+}
+
+/* ── Card ── */
+.rd-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 28px 16px 24px;
+
+  background: rgba(4, 16, 30, 0.80);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+
+  cursor: pointer;
+  overflow: hidden;
+
+  transition:
+    transform        200ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    border-color     200ms ease,
+    box-shadow       200ms ease,
+    background       200ms ease;
+}
+
+/* Shimmer sweep */
+.rd-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    110deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.06) 50%,
+    transparent 70%
+  );
+  transform: translateX(-120%);
+  transition: transform 500ms ease;
+  pointer-events: none;
+}
+
+.rd-card:hover::before {
+  transform: translateX(120%);
+}
+
+/* Hover / focus state */
+.rd-card:hover:not(:disabled) {
+  transform: translateY(-4px) scale(1.02);
+  border-color: color-mix(in srgb, var(--to-color) 55%, transparent);
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.40),
+    0 0 28px color-mix(in srgb, var(--to-color) 20%, transparent);
+  background: rgba(6, 22, 40, 0.90);
+}
+
+/* Active / playing state */
+.rd-card-active {
+  border-color: color-mix(in srgb, var(--to-color) 70%, transparent) !important;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--to-color) 25%, transparent),
+    0 0 40px color-mix(in srgb, var(--to-color) 30%, transparent) !important;
+  animation: rd-card-pulse 1s ease-in-out infinite alternate;
+}
+
+@keyframes rd-card-pulse {
+  from { box-shadow: 0 0 20px color-mix(in srgb, var(--to-color) 25%, transparent); }
+  to   { box-shadow: 0 0 44px color-mix(in srgb, var(--to-color) 45%, transparent); }
+}
+
+/* Disabled (while another is playing) */
+.rd-card:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none !important;
+}
+.rd-card-active:disabled {
+  opacity: 1;
+}
+
+/* Bottom gradient bar */
+.rd-card::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 10%;
+  right: 10%;
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    var(--from-color, #888),
+    var(--to-color, #fff)
+  );
+  opacity: 0;
+  transition: opacity 200ms ease;
+}
+
+.rd-card:hover:not(:disabled)::after,
+.rd-card-active::after {
+  opacity: 1;
+}
+
+/* ── Rank dots row ── */
+.rd-card-ranks {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.rd-rank-dot {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.20);
+  flex-shrink: 0;
+  transition: transform 200ms ease, box-shadow 200ms ease;
+}
+
+.rd-rank-dot-new {
+  width: 28px;
+  height: 28px;
+}
+
+.rd-card:hover .rd-rank-dot-new {
+  transform: scale(1.18);
+}
+
+.rd-arrow {
+  font-size: 18px;
+  color: rgba(180, 220, 240, 0.45);
+}
+
+/* ── Card label ── */
+.rd-card-label {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: rgba(200, 228, 245, 0.80);
+  text-align: center;
+  line-height: 1.3;
+  transition: color 200ms ease;
+}
+
+.rd-card:hover .rd-card-label {
+  color: #e8f6ff;
+}
+
+/* ── Play icon ── */
+.rd-card-play {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  color: color-mix(in srgb, var(--to-color) 70%, white);
+  opacity: 0;
+  transform: scale(0.8);
+  transition: opacity 200ms ease, transform 200ms ease;
+  filter: drop-shadow(0 0 8px var(--to-color));
+}
+
+.rd-card:hover:not(:disabled) .rd-card-play {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* ── Playing badge ── */
+.rd-card-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--to-color) 20%, rgba(0, 0, 0, 0.60));
+  border: 1px solid color-mix(in srgb, var(--to-color) 50%, transparent);
+  color: color-mix(in srgb, var(--to-color) 80%, white);
+  animation: rd-badge-blink 0.8s ease-in-out infinite alternate;
+}
+
+@keyframes rd-badge-blink {
+  from { opacity: 0.70; }
+  to   { opacity: 1.00; }
+}
+
+/* ── Hint ── */
+.rd-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: rgba(160, 200, 220, 0.50);
+  letter-spacing: 0.03em;
+}
+
+.rd-hint .material-symbols-outlined {
+  font-size: 18px;
+  opacity: 0.7;
+}
+
+/* ── Responsive ── */
+@media (max-width: 480px) {
+  .rd-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .rd-header-content {
+    flex-direction: column;
+    text-align: center;
+  }
+}

@@ -1,216 +1,270 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Cloud Battleship Arena</title>
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-    <script id="tailwind-config">
-      tailwind.config = {
-        darkMode: "class",
-        theme: {
-          extend: {
-            "colors": {
-                    "error-container": "#93000a",
-                    "surface-tint": "#b9c3ff",
-                    "on-secondary-fixed": "#001f28",
-                    "on-primary-fixed": "#001356",
-                    "on-error-container": "#ffdad6",
-                    "secondary": "#a5e7ff",
-                    "on-surface-variant": "#c6c5d2",
-                    "on-primary-fixed-variant": "#334284",
-                    "primary-container": "#1a2a6c",
-                    "secondary-container": "#00d2ff",
-                    "on-primary": "#1a2a6c",
-                    "inverse-on-surface": "#233143",
-                    "surface-dim": "#051424",
-                    "outline-variant": "#454650",
-                    "error": "#ffb4ab",
-                    "surface": "#051424",
-                    "on-tertiary-container": "#9597a0",
-                    "tertiary-container": "#2d3037",
-                    "tertiary-fixed-dim": "#c4c6cf",
-                    "secondary-fixed": "#b6ebff",
-                    "surface-container-high": "#1c2b3c",
-                    "inverse-primary": "#4b5a9e",
-                    "primary": "#b9c3ff",
-                    "on-background": "#d4e4fa",
-                    "tertiary-fixed": "#e1e2eb",
-                    "on-tertiary-fixed": "#191c22",
-                    "surface-container": "#122131",
-                    "secondary-fixed-dim": "#47d6ff",
-                    "primary-fixed-dim": "#b9c3ff",
-                    "on-tertiary": "#2e3037",
-                    "surface-variant": "#273647",
-                    "surface-container-highest": "#273647",
-                    "on-error": "#690005",
-                    "on-secondary-fixed-variant": "#004e60",
-                    "outline": "#8f909b",
-                    "inverse-surface": "#d4e4fa",
-                    "tertiary": "#c4c6cf",
-                    "surface-bright": "#2c3a4c",
-                    "primary-fixed": "#dde1ff",
-                    "on-primary-container": "#8594dc",
-                    "surface-container-lowest": "#010f1f",
-                    "on-secondary": "#003543",
-                    "surface-container-low": "#0d1c2d",
-                    "on-tertiary-fixed-variant": "#44474e",
-                    "on-surface": "#d4e4fa",
-                    "background": "#051424",
-                    "on-secondary-container": "#00566a"
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/png" href="/logo.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cloud Battleship Arena</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+    rel="stylesheet" />
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "error-container": "#93000a",
+            "surface-tint": "#b9c3ff",
+            "on-secondary-fixed": "#001f28",
+            "on-primary-fixed": "#001356",
+            "on-error-container": "#ffdad6",
+            "secondary": "#a5e7ff",
+            "on-surface-variant": "#c6c5d2",
+            "on-primary-fixed-variant": "#334284",
+            "primary-container": "#1a2a6c",
+            "secondary-container": "#00d2ff",
+            "on-primary": "#1a2a6c",
+            "inverse-on-surface": "#233143",
+            "surface-dim": "#051424",
+            "outline-variant": "#454650",
+            "error": "#ffb4ab",
+            "surface": "#051424",
+            "on-tertiary-container": "#9597a0",
+            "tertiary-container": "#2d3037",
+            "tertiary-fixed-dim": "#c4c6cf",
+            "secondary-fixed": "#b6ebff",
+            "surface-container-high": "#1c2b3c",
+            "inverse-primary": "#4b5a9e",
+            "primary": "#b9c3ff",
+            "on-background": "#d4e4fa",
+            "tertiary-fixed": "#e1e2eb",
+            "on-tertiary-fixed": "#191c22",
+            "surface-container": "#122131",
+            "secondary-fixed-dim": "#47d6ff",
+            "primary-fixed-dim": "#b9c3ff",
+            "on-tertiary": "#2e3037",
+            "surface-variant": "#273647",
+            "surface-container-highest": "#273647",
+            "on-error": "#690005",
+            "on-secondary-fixed-variant": "#004e60",
+            "outline": "#8f909b",
+            "inverse-surface": "#d4e4fa",
+            "tertiary": "#c4c6cf",
+            "surface-bright": "#2c3a4c",
+            "primary-fixed": "#dde1ff",
+            "on-primary-container": "#8594dc",
+            "surface-container-lowest": "#010f1f",
+            "on-secondary": "#003543",
+            "surface-container-low": "#0d1c2d",
+            "on-tertiary-fixed-variant": "#44474e",
+            "on-surface": "#d4e4fa",
+            "background": "#051424",
+            "on-secondary-container": "#00566a"
+          },
+          "keyframes": {
+            "fade-in": {
+              "0%": { opacity: "0" },
+              "100%": { opacity: "1" }
             },
-            "keyframes": {
-              "fade-in": {
-                "0%": { opacity: "0" },
-                "100%": { opacity: "1" }
-              },
-              "ping-once": {
-                "0%": { transform: "scale(1)", opacity: "1" },
-                "50%": { transform: "scale(1.5)", opacity: "0.8" },
-                "100%": { transform: "scale(1)", opacity: "1" }
-              }
-            },
-            "animation": {
-              "fade-in": "fade-in 0.3s ease-out forwards",
-              "ping-once": "ping-once 0.3s cubic-bezier(0, 0, 0.2, 1) forwards"
-            },
-            "borderRadius": {
-                    "DEFAULT": "0.125rem",
-                    "lg": "0.25rem",
-                    "xl": "0.5rem",
-                    "full": "0.75rem"
-            },
-            "spacing": {
-                    "sidebar-width": "280px",
-                    "gutter": "16px",
-                    "container-padding": "24px",
-                    "unit": "4px"
-            },
-            "fontFamily": {
-                    "label-md": ["Inter"],
-                    "headline-md": ["Inter"],
-                    "body-md": ["Inter"],
-                    "body-lg": ["Inter"],
-                    "title-lg": ["Inter"],
-                    "headline-lg": ["Inter"],
-                    "display-lg": ["Inter"],
-                    "label-sm": ["Inter"]
-            },
-            "fontSize": {
-                    "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
-                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
-                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
-                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
-                    "title-lg": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
-                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
-                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "800"}],
-                    "label-sm": ["10px", {"lineHeight": "14px", "letterSpacing": "0.08em", "fontWeight": "700"}]
+            "ping-once": {
+              "0%": { transform: "scale(1)", opacity: "1" },
+              "50%": { transform: "scale(1.5)", opacity: "0.8" },
+              "100%": { transform: "scale(1)", opacity: "1" }
             }
           },
+          "animation": {
+            "fade-in": "fade-in 0.3s ease-out forwards",
+            "ping-once": "ping-once 0.3s cubic-bezier(0, 0, 0.2, 1) forwards"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          "spacing": {
+            "sidebar-width": "280px",
+            "gutter": "16px",
+            "container-padding": "24px",
+            "unit": "4px"
+          },
+          "fontFamily": {
+            "label-md": ["Space Grotesk", "system-ui", "sans-serif"],
+            "headline-md": ["Space Grotesk", "system-ui", "sans-serif"],
+            "body-md": ["Space Grotesk", "system-ui", "sans-serif"],
+            "body-lg": ["Space Grotesk", "system-ui", "sans-serif"],
+            "title-lg": ["Space Grotesk", "system-ui", "sans-serif"],
+            "headline-lg": ["Space Grotesk", "system-ui", "sans-serif"],
+            "display-lg": ["Space Grotesk", "system-ui", "sans-serif"],
+            "label-sm": ["Space Grotesk", "system-ui", "sans-serif"]
+          },
+          "fontSize": {
+            "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+            "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+            "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+            "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+            "title-lg": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+            "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700" }],
+            "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "800" }],
+            "label-sm": ["10px", { "lineHeight": "14px", "letterSpacing": "0.08em", "fontWeight": "700" }]
+          }
         },
-      }
-    </script>
-    <style>
-      .glass-card {
-        background: rgba(18, 33, 49, 0.4);
-        backdrop-filter: blur(16px);
-        border: 1px solid rgba(255, 255, 255, 0.05);
-        transition: all 0.3s ease;
-      }
-      .glass-card:hover {
-        border-color: #a5e7ff;
-        box-shadow: 0 0 20px rgba(0, 210, 255, 0.1);
-      }
-      .glow-text {
-        text-shadow: 0 0 10px rgba(165, 231, 255, 0.5);
-      }
-      .glow-text-error {
-        text-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
-      }
-      .ocean-wave {
-        background: radial-gradient(circle at 50% 50%, rgba(0, 210, 255, 0.05) 0%, transparent 70%);
-      }
-      .status-chip {
-        border-left: 2px solid #a5e7ff;
-        background: rgba(165, 231, 255, 0.1);
-      }
-      ::-webkit-scrollbar {
-        width: 6px;
-      }
-      ::-webkit-scrollbar-track {
-        background: #051424;
-      }
-      ::-webkit-scrollbar-thumb {
-        background: #1c2b3c;
-        border-radius: 10px;
-      }
-      ::-webkit-scrollbar-thumb:hover {
-        background: #a5e7ff;
-      }
-      ::view-transition-old(root),
-      ::view-transition-new(root) {
-        animation: none;
-        mix-blend-mode: normal;
-      }
-      .light-mode-active body, .light-mode-active .bg-background {
-        background-color: #f4f7fb !important;
-      }
-      .light-mode-active .text-on-background, .light-mode-active .text-on-surface {
-        color: #0d1b2a !important;
-      }
-      .light-mode-active .text-on-surface-variant {
-        color: #4a5568 !important;
-      }
-      .light-mode-active .glass-card {
-        background: rgba(255, 255, 255, 0.7) !important;
-        border: 1px solid rgba(0, 0, 0, 0.05) !important;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05) !important;
-      }
-      .light-mode-active .glass-card:hover {
-        border-color: #00d2ff !important;
-        box-shadow: 0 8px 32px rgba(0, 210, 255, 0.2) !important;
-      }
-      .light-mode-active header {
-        background: rgba(255, 255, 255, 0.7) !important;
-        border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05) !important;
-      }
-      .light-mode-active .text-secondary {
-        color: #0077b6 !important;
-      }
-      .light-mode-active .glow-text {
-        text-shadow: 0 0 10px rgba(0, 119, 182, 0.3) !important;
-      }
-      .light-mode-active .bg-surface-container, .light-mode-active .bg-surface-container\/30, .light-mode-active .bg-white\/5 {
-        background-color: rgba(255, 255, 255, 0.6) !important;
-        border-color: rgba(0, 0, 0, 0.1) !important;
-      }
-      .light-mode-active .border-white\/5, .light-mode-active .border-white\/10 {
-        border-color: rgba(0, 0, 0, 0.1) !important;
-      }
-      .light-mode-active .bg-secondary\/10 {
-        background-color: rgba(0, 119, 182, 0.1) !important;
-      }
-      .light-mode-active .bg-secondary {
-        background-color: #0077b6 !important;
-        color: #ffffff !important;
-      }
-      .light-mode-active .border-secondary {
-        border-color: #0077b6 !important;
-      }
-      .light-mode-active .ocean-wave {
-        background: radial-gradient(circle at 50% 50%, rgba(0, 119, 182, 0.08) 0%, transparent 70%) !important;
-      }
-      .light-mode-active .text-on-secondary-fixed {
-        color: #ffffff !important;
-      }
-    </style>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+      },
+    }
+  </script>
+  <style>
+    .glass-card {
+      background: rgba(18, 33, 49, 0.4);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      transition: all 0.3s ease;
+    }
+
+    .glass-card:hover {
+      border-color: #a5e7ff;
+      box-shadow: 0 0 20px rgba(0, 210, 255, 0.1);
+    }
+
+    .glow-text {
+      text-shadow: 0 0 10px rgba(165, 231, 255, 0.5);
+    }
+
+    .glow-text-error {
+      text-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+    }
+
+    .ocean-wave {
+      background: radial-gradient(circle at 50% 50%, rgba(0, 210, 255, 0.05) 0%, transparent 70%);
+    }
+
+    .status-chip {
+      border-left: 2px solid #a5e7ff;
+      background: rgba(165, 231, 255, 0.1);
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #051424;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #1c2b3c;
+      border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #a5e7ff;
+    }
+
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+      animation: none;
+      mix-blend-mode: normal;
+    }
+
+    .light-mode-active body,
+    .light-mode-active .bg-background {
+      background-color: #dce7ef !important;
+      background-image:
+        linear-gradient(rgba(255, 255, 255, 0.2), rgba(213, 229, 239, 0.34)),
+        radial-gradient(circle at 82% 8%, rgba(0, 119, 182, 0.1), transparent 28%) !important;
+    }
+
+    .light-mode-active .text-on-background,
+    .light-mode-active .text-on-surface {
+      color: #0d1b2a !important;
+    }
+
+    .light-mode-active .text-on-surface-variant {
+      color: #4a5568 !important;
+    }
+
+    .light-mode-active .glass-card {
+      background: rgba(246, 251, 253, 0.94) !important;
+      border: 1px solid rgba(25, 78, 104, 0.14) !important;
+      box-shadow: 0 10px 26px rgba(23, 58, 78, 0.08) !important;
+    }
+
+    .light-mode-active .glass-card:hover {
+      border-color: #1686b8 !important;
+      box-shadow: 0 12px 30px rgba(18, 105, 145, 0.16) !important;
+    }
+
+    .light-mode-active header {
+      background: rgba(5, 30, 45, 0.96) !important;
+      border-bottom: 1px solid rgba(117, 223, 255, 0.2) !important;
+      box-shadow: 0 6px 22px rgba(12, 45, 64, 0.18) !important;
+    }
+
+    .light-mode-active .text-secondary {
+      color: #0077b6 !important;
+    }
+
+    .light-mode-active .glow-text {
+      text-shadow: 0 0 10px rgba(0, 119, 182, 0.3) !important;
+    }
+
+    .light-mode-active .bg-surface-container,
+    .light-mode-active .bg-surface-container\/30,
+    .light-mode-active .bg-surface-container\/50,
+    .light-mode-active .bg-white\/5 {
+      background-color: rgba(221, 235, 243, 0.92) !important;
+      border-color: rgba(25, 78, 104, 0.16) !important;
+    }
+
+    .light-mode-active .border-white\/5,
+    .light-mode-active .border-white\/10 {
+      border-color: rgba(25, 78, 104, 0.14) !important;
+    }
+
+    .light-mode-active .bg-secondary\/10 {
+      background-color: rgba(0, 119, 182, 0.1) !important;
+    }
+
+    .light-mode-active .bg-secondary {
+      background-color: #0077b6 !important;
+      color: #ffffff !important;
+    }
+
+    .light-mode-active .border-secondary {
+      border-color: #0077b6 !important;
+    }
+
+    .light-mode-active .ocean-wave {
+      background: radial-gradient(circle at 50% 50%, rgba(0, 119, 182, 0.08) 0%, transparent 70%) !important;
+    }
+
+    .light-mode-active .text-on-secondary-fixed {
+      color: #ffffff !important;
+    }
+
+    .light-mode-active select {
+      color: #123047 !important;
+    }
+
+    .light-mode-active select option {
+      background: #eef6fa;
+      color: #123047;
+    }
+
+    .light-mode-active ::-webkit-scrollbar-track {
+      background: #cfdee7;
+    }
+
+    .light-mode-active ::-webkit-scrollbar-thumb {
+      background: #7094a8;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.jsx"></script>
+</body>
+
 </html>
